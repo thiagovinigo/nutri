@@ -4,7 +4,7 @@ import {
   FileText, Activity, Sparkles, Edit3, Send, Plus, X, Trash2,
   Eye, TrendingUp, Utensils, BrainCircuit, Play
 } from 'lucide-react';
-import { useAppContext } from '../context/AppContext';
+import { useAppContext } from '../../../context/AppContext';
 import OpenAI from 'openai';
 
 const openai = new OpenAI({

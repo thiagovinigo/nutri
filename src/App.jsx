@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import DashboardNutri from './pages/DashboardNutri';
-import PatientApp from './pages/PatientApp';
+import DashboardNutri from './features/nutricionista/pages/DashboardNutri';
+import PatientApp from './features/paciente/pages/PatientApp';
 import { ArrowRightLeft } from 'lucide-react';
 import { AppProvider, useAppContext } from './context/AppContext';
 
