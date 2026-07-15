@@ -81,14 +81,18 @@ export default function DashboardNutri() {
   const handleSavePatient = async (e) => {
     e.preventDefault();
 
-    const normalizeCpf = (cpf) => (cpf || '').replace(/\D/g, '');
-    const normalizeEmail = (email) => (email || '').toLowerCase().trim();
+    const normalizeCpf = (cpf) => String(cpf || '').replace(/\D/g, '');
+    const normalizeEmail = (email) => String(email || '').toLowerCase().trim();
 
-    // Validação de duplicidade aprimorada
+    // Validação de duplicidade aprimorada e super robusta
     const isDuplicate = patients.some(p => {
       if (editingPatient && p.id === editingPatient) return false;
-      const sameCpf = patCpf && normalizeCpf(p.cpf) !== '' && normalizeCpf(p.cpf) === normalizeCpf(patCpf);
-      const sameEmail = patEmail && normalizeEmail(p.email) !== '' && normalizeEmail(p.email) === normalizeEmail(patEmail);
+      const cleanPatCpf = normalizeCpf(patCpf);
+      const cleanPatEmail = normalizeEmail(patEmail);
+      
+      const sameCpf = cleanPatCpf !== '' && normalizeCpf(p.cpf) === cleanPatCpf;
+      const sameEmail = cleanPatEmail !== '' && normalizeEmail(p.email) === cleanPatEmail;
+      
       return sameCpf || sameEmail;
     });
 
