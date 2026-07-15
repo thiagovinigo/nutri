@@ -360,6 +360,7 @@ export default function PatientList({
                     <Plus size={18} /> Novo Paciente
                   </button>
                 </div>
+              </div>
 
               <div style={{ display: 'flex', gap: '12px', marginBottom: '16px', flexWrap: 'wrap' }}>
                 <div style={{ position: 'relative', flex: '1 1 220px' }}>

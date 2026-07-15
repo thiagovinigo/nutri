@@ -26,3 +26,4 @@ dist-ssr
 
 # Claude Code local-only settings (machine-specific permissions)
 .claude/settings.local.json
+.vercel
