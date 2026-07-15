@@ -80,6 +80,18 @@ export default function DashboardNutri() {
 
   const handleSavePatient = async (e) => {
     e.preventDefault();
+
+    // Validação de duplicidade
+    const isDuplicate = patients.some(p => {
+      if (editingPatient && p.id === editingPatient) return false;
+      return (p.cpf && p.cpf === patCpf) || (p.email && p.email === patEmail);
+    });
+
+    if (isDuplicate) {
+      alert("Já existe um paciente cadastrado com este E-mail ou CPF!");
+      return;
+    }
+
     if (editingPatient) {
       await updatePatient(editingPatient, { name: patName, objective: patObj, restrictions: patRest, cpf: patCpf, email: patEmail });
     } else {
