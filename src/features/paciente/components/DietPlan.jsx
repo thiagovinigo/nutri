@@ -18,9 +18,18 @@ export default function DietPlan({ activePatient }) {
               {r.meals?.map((m, mIdx) => (
                 <div key={mIdx} style={{marginBottom: '12px', paddingBottom: '12px', borderBottom: '1px dashed #e2e8f0'}}>
                   <strong style={{color: '#3b82f6'}}>{m.name}</strong>
-                  <p style={{margin: '4px 0 0 0', fontSize: '0.95rem', color: '#334155'}}>{m.desc}</p>
+                  <p style={{margin: '4px 0 0 0', fontSize: '0.95rem', color: '#334155', whiteSpace: 'pre-wrap'}}>{m.desc}</p>
                 </div>
               ))}
+              
+              {r.supplements && (
+                <div style={{ marginTop: '16px', padding: '16px', backgroundColor: '#F0FDF4', border: '1px solid #BBF7D0', borderRadius: '12px' }}>
+                  <strong style={{ color: '#166534', display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
+                    Vitaminas e Suplementos
+                  </strong>
+                  <p style={{ margin: 0, fontSize: '0.95rem', color: '#15803D', whiteSpace: 'pre-wrap' }}>{r.supplements}</p>
+                </div>
+              )}
             </div>
           ))}
         </div>

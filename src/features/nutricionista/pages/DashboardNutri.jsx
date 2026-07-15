@@ -47,6 +47,7 @@ export default function DashboardNutri() {
   
   const [dietTitle, setDietTitle] = useState('');
   const [dietDescription, setDietDescription] = useState('');
+  const [dietSupplements, setDietSupplements] = useState('');
   const [dietDuration, setDietDuration] = useState(1);
   const [dietMeals, setDietMeals] = useState([]);
   const [isGenerating, setIsGenerating] = useState(false);
@@ -142,6 +143,7 @@ export default function DashboardNutri() {
     setExamResult(null);
     setDietTitle('');
     setDietDescription('');
+    setDietSupplements('');
     setDietDuration(1);
     setDietMeals([]);
     setView('consulta');
@@ -155,6 +157,7 @@ export default function DashboardNutri() {
     setExamResult(null);
     setDietTitle('');
     setDietDescription('');
+    setDietSupplements('');
     setDietDuration(1);
     setDietMeals([]);
     setView('consulta');
@@ -312,7 +315,7 @@ Cite diretrizes ou referências científicas usadas para basear a sua análise d
   const finishConsultation = () => {
     if (dietTitle && dietMeals.length > 0) {
       const formattedMeals = dietMeals.map(m => ({ ...m, done: false, log: null }));
-      addRecipe(activePatient.id, dietTitle, formattedMeals, dietDescription);
+      addRecipe(activePatient.id, dietTitle, formattedMeals, dietDescription, dietSupplements);
     }
     if (activeApptId) markAppointmentDone(activeApptId);
     updatePatient(activePatient.id, { records: activePatient.records + `\n\n[Consulta - ${new Date().toLocaleDateString('pt-BR')}]:\n${anamnesis}` });
@@ -333,6 +336,7 @@ Cite diretrizes ou referências científicas usadas para basear a sua análise d
         examResult={examResult} setExamTab={setExamTab} examTab={examTab}
         dietTitle={dietTitle} setDietTitle={setDietTitle}
         dietDescription={dietDescription} setDietDescription={setDietDescription}
+        dietSupplements={dietSupplements} setDietSupplements={setDietSupplements}
         dietDuration={dietDuration} setDietDuration={setDietDuration}
         dietMeals={dietMeals} setDietMeals={setDietMeals}
         isGenerating={isGenerating}

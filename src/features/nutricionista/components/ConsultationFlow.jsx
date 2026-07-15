@@ -62,6 +62,7 @@ export default function ConsultationFlow({
   examResult, setExamTab, examTab,
   dietTitle, setDietTitle,
   dietDescription, setDietDescription,
+  dietSupplements, setDietSupplements,
   dietDuration, setDietDuration,
   dietMeals, setDietMeals,
   isGenerating,
@@ -75,6 +76,7 @@ export default function ConsultationFlow({
 }) {
   const [draggedRecipe, setDraggedRecipe] = useState(null);
   const [selectedExamFiles, setSelectedExamFiles] = useState([]);
+  const [prescriptionTab, setPrescriptionTab] = useState('cardapio');
 
   const handleDragStart = (e, recipe) => {
     setDraggedRecipe(recipe);
@@ -221,65 +223,120 @@ export default function ConsultationFlow({
             <div className="crm-card">
               <h2 style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '24px' }}><Edit3 color="var(--crm-accent)" /> Prescrição Dietética Estruturada</h2>
               
-              {/* Assistentes de Prescrição */}
-              <div style={{ marginBottom: '32px', padding: '24px', backgroundColor: '#F0FDF4', border: '1px solid #BBF7D0', borderRadius: '12px' }}>
-                <h3 style={{ fontSize: '1.1rem', color: '#166534', marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  <Sparkles size={18} /> Como você deseja iniciar a prescrição?
-                </h3>
-                <div style={{ display: 'flex', gap: '16px' }}>
-                  <div style={{ flex: 1 }}>
-                    <div style={{ display: 'flex', gap: '8px' }}>
-                      <select 
-                        className="crm-input" 
-                        style={{ width: '100px', borderColor: '#10B981', color: '#166534', backgroundColor: '#FFF' }}
-                        value={dietDuration}
-                        onChange={e => setDietDuration(Number(e.target.value))}
-                      >
-                        <option value={1}>1 Dia</option>
-                        <option value={7}>7 Dias</option>
-                        <option value={15}>15 Dias</option>
-                        <option value={30}>30 Dias</option>
-                      </select>
-                      <button className="crm-btn-primary" onClick={generateDietFromAI} disabled={isGenerating} style={{ flex: 1, backgroundColor: '#10B981', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '8px', padding: '12px' }}>
-                        <Sparkles size={16} color="#FFF" /> {isGenerating ? 'Analisando...' : 'Sugerir com IA'}
-                      </button>
-                    </div>
-                    {examResult && (
-                      <p style={{ fontSize: '0.8rem', color: '#15803D', marginTop: '8px', textAlign: 'center' }}>
-                        A IA utilizará a análise dos exames como base.
-                      </p>
-                    )}
-                  </div>
-                  <div style={{ flex: 1 }}>
-                    <select 
-                      className="crm-input" 
-                      style={{ width: '100%', padding: '12px', borderColor: '#10B981', color: '#166534', cursor: 'pointer', backgroundColor: '#FFF' }}
-                      onChange={e => {
-                        const tpl = dietTemplates?.find(t => t.id === e.target.value);
-                        if (tpl) {
-                          if (!dietTitle) setDietTitle(tpl.title);
-                          const newMeals = tpl.days 
-                            ? tpl.days.flatMap(d => d.meals.map(m => ({ ...m, name: `Dia ${d.dayIndex} - ${m.name}` }))) 
-                            : (tpl.meals || []);
-                          
-                          setDietMeals(prev => [...prev, ...newMeals]);
-                          e.target.value = "";
-                        }
-                      }}
-                      defaultValue=""
-                    >
-                      <option value="" disabled>Carregar Template Salvo...</option>
-                      {dietTemplates?.map(t => (
-                        <option key={t.id} value={t.id}>{t.title}</option>
-                      ))}
-                    </select>
-                  </div>
-                </div>
+              <div className="results-tabs">
+                <button className={prescriptionTab === 'cardapio' ? 'results-tab-btn active' : 'results-tab-btn'} onClick={() => setPrescriptionTab('cardapio')}>Refeições do Cardápio</button>
+                <button className={prescriptionTab === 'suplementos' ? 'results-tab-btn active' : 'results-tab-btn'} onClick={() => setPrescriptionTab('suplementos')}>Vitaminas e Suplementos</button>
+                <button className={prescriptionTab === 'ferramentas' ? 'results-tab-btn active' : 'results-tab-btn'} onClick={() => setPrescriptionTab('ferramentas')}>Ferramentas e Assistentes</button>
               </div>
 
-              {/* Área de Trabalho Manual (Canvas) */}
-              <div style={{ display: 'flex', gap: '24px', marginBottom: '32px' }}>
-                <div style={{ flex: 2 }}>
+              {prescriptionTab === 'ferramentas' && (
+                <div className="animate-pop-in">
+                  {/* Assistentes de Prescrição */}
+                  <div style={{ marginBottom: '32px', padding: '24px', backgroundColor: '#F0FDF4', border: '1px solid #BBF7D0', borderRadius: '12px' }}>
+                    <h3 style={{ fontSize: '1.1rem', color: '#166534', marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      <Sparkles size={18} /> Como você deseja iniciar a prescrição?
+                    </h3>
+                    <div style={{ display: 'flex', gap: '16px', flexWrap: 'wrap' }}>
+                      <div style={{ flex: '1 1 300px' }}>
+                        <div style={{ display: 'flex', gap: '8px' }}>
+                          <select 
+                            className="crm-input" 
+                            style={{ width: '100px', borderColor: '#10B981', color: '#166534', backgroundColor: '#FFF' }}
+                            value={dietDuration}
+                            onChange={e => setDietDuration(Number(e.target.value))}
+                          >
+                            <option value={1}>1 Dia</option>
+                            <option value={7}>7 Dias</option>
+                            <option value={15}>15 Dias</option>
+                            <option value={30}>30 Dias</option>
+                          </select>
+                          <button className="crm-btn-primary" onClick={generateDietFromAI} disabled={isGenerating} style={{ flex: 1, backgroundColor: '#10B981', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '8px', padding: '12px' }}>
+                            <Sparkles size={16} color="#FFF" /> {isGenerating ? 'Analisando...' : 'Sugerir com IA'}
+                          </button>
+                        </div>
+                        {examResult && (
+                          <p style={{ fontSize: '0.8rem', color: '#15803D', marginTop: '8px', textAlign: 'center' }}>
+                            A IA utilizará a análise dos exames como base.
+                          </p>
+                        )}
+                      </div>
+                      <div style={{ flex: '1 1 300px' }}>
+                        <select 
+                          className="crm-input" 
+                          style={{ width: '100%', padding: '12px', borderColor: '#10B981', color: '#166534', cursor: 'pointer', backgroundColor: '#FFF' }}
+                          onChange={e => {
+                            const tpl = dietTemplates?.find(t => t.id === e.target.value);
+                            if (tpl) {
+                              if (!dietTitle) setDietTitle(tpl.title);
+                              const newMeals = tpl.days 
+                                ? tpl.days.flatMap(d => d.meals.map(m => ({ ...m, name: `Dia ${d.dayIndex} - ${m.name}` }))) 
+                                : (tpl.meals || []);
+                              
+                              setDietMeals(prev => [...prev, ...newMeals]);
+                              e.target.value = "";
+                            }
+                          }}
+                          defaultValue=""
+                        >
+                          <option value="" disabled>Carregar Template Salvo...</option>
+                          {dietTemplates?.map(t => (
+                            <option key={t.id} value={t.id}>{t.title}</option>
+                          ))}
+                        </select>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <div style={{ backgroundColor: '#FFF', border: '1px solid var(--crm-border)', borderRadius: '12px', padding: '16px' }}>
+                    <h3 style={{ fontSize: '1.1rem', color: 'var(--crm-text-main)', marginBottom: '8px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      <GripVertical size={18} /> Receitas Salvas
+                    </h3>
+                    <p style={{ fontSize: '0.85rem', color: 'var(--crm-text-muted)', marginBottom: '16px' }}>Para utilizar, arraste uma receita desta lista para dentro de uma refeição na aba "Refeições do Cardápio".</p>
+                    
+                    {(!recipeLibrary || recipeLibrary.length === 0) ? (
+                      <p style={{ fontSize: '0.85rem', color: 'var(--crm-text-muted)', textAlign: 'center', padding: '20px 0' }}>Sua biblioteca está vazia.</p>
+                    ) : (
+                      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: '12px', maxHeight: '400px', overflowY: 'auto' }}>
+                        {recipeLibrary.map(rec => (
+                          <div 
+                            key={rec.id} 
+                            className="recipe-draggable"
+                            draggable
+                            onDragStart={e => {
+                              handleDragStart(e, rec);
+                              setPrescriptionTab('cardapio'); // Auto muda de aba para facilitar o drop
+                            }}
+                          >
+                            <strong>{rec.title}</strong>
+                            <div style={{ fontSize: '0.75rem', color: 'var(--crm-text-muted)', marginTop: '4px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                              {rec.ingredients}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {prescriptionTab === 'suplementos' && (
+                <div className="animate-pop-in" style={{ marginBottom: '32px' }}>
+                  <label className="crm-label">Vitaminas e Suplementação Manipulada</label>
+                  <p style={{ fontSize: '0.85rem', color: 'var(--crm-text-muted)', marginBottom: '16px' }}>
+                    Descreva os suplementos, dosagens e horários. Este conteúdo aparecerá em destaque no aplicativo do paciente.
+                  </p>
+                  <textarea 
+                    className="crm-input" 
+                    placeholder="Ex: Ômega 3 (1000mg) - 1 cápsula após o almoço..." 
+                    value={dietSupplements} 
+                    onChange={e => setDietSupplements(e.target.value)} 
+                    style={{ minHeight: '250px', resize: 'vertical' }} 
+                  />
+                </div>
+              )}
+
+              {prescriptionTab === 'cardapio' && (
+                <div className="animate-pop-in" style={{ marginBottom: '32px' }}>
                   <div style={{ marginBottom: '24px' }}>
                     <label className="crm-label">Título do Plano Alimentar</label>
                     <input type="text" className="crm-input" placeholder="Ex: Dieta de Transição (Verão)" value={dietTitle} onChange={e => setDietTitle(e.target.value)} style={{ fontWeight: '600', fontSize: '1.1rem', marginBottom: '16px' }} />
@@ -294,7 +351,7 @@ export default function ConsultationFlow({
 
                   {dietMeals.length === 0 ? (
                     <div style={{ padding: '40px', textAlign: 'center', backgroundColor: '#FFF', border: '2px dashed var(--crm-border)', borderRadius: '8px' }}>
-                      <p style={{ color: 'var(--crm-text-muted)' }}>Nenhuma refeição cadastrada. Adicione manualmente ou use a IA.</p>
+                      <p style={{ color: 'var(--crm-text-muted)' }}>Nenhuma refeição cadastrada. Adicione manualmente ou use a aba de Ferramentas.</p>
                     </div>
                   ) : (
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
@@ -331,57 +388,30 @@ export default function ConsultationFlow({
                   >
                     <Plus size={16} /> Adicionar Refeição Manualmente
                   </button>
-                </div>
 
-                <div style={{ flex: 1, backgroundColor: '#FFF', border: '1px solid var(--crm-border)', borderRadius: '12px', padding: '16px', alignSelf: 'flex-start', position: 'sticky', top: '24px' }}>
-                  <h3 style={{ fontSize: '1rem', color: 'var(--crm-text-main)', marginBottom: '8px', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                    <GripVertical size={16} /> Receitas Salvas
-                  </h3>
-                  <p style={{ fontSize: '0.8rem', color: 'var(--crm-text-muted)', marginBottom: '16px' }}>Arraste uma receita para dentro de uma refeição ao lado.</p>
-                  
-                  {(!recipeLibrary || recipeLibrary.length === 0) ? (
-                    <p style={{ fontSize: '0.85rem', color: 'var(--crm-text-muted)', textAlign: 'center', padding: '20px 0' }}>Sua biblioteca está vazia.</p>
-                  ) : (
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', maxHeight: '400px', overflowY: 'auto' }}>
-                      {recipeLibrary.map(rec => (
-                        <div 
-                          key={rec.id} 
-                          className="recipe-draggable"
-                          draggable
-                          onDragStart={e => handleDragStart(e, rec)}
-                        >
-                          <strong>{rec.title}</strong>
-                          <div style={{ fontSize: '0.75rem', color: 'var(--crm-text-muted)', marginTop: '4px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                            {rec.ingredients}
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  )}
+                  <div style={{ display: 'flex', gap: '16px', marginTop: '32px', flexWrap: 'wrap', justifyContent: 'flex-end', alignItems: 'center' }}>
+                    {dietMeals.length > 0 && (
+                      <button className="crm-btn-secondary" onClick={() => setDietMeals([])} style={{ color: 'var(--crm-danger)', borderColor: 'var(--crm-danger)', marginRight: 'auto' }}>
+                        <Trash2 size={16} /> Limpar Tudo
+                      </button>
+                    )}
+                    
+                    <button 
+                      className="crm-btn-secondary" 
+                      onClick={() => {
+                        if (dietTitle && dietMeals.length > 0) {
+                          addDietTemplate(dietTitle, dietMeals);
+                          alert('Template salvo com sucesso na sua biblioteca!');
+                        } else {
+                          alert('Preencha o título e as refeições antes de salvar.');
+                        }
+                      }}
+                    >
+                      <Download size={16} color="var(--crm-text-main)" /> Salvar como Template
+                    </button>
+                  </div>
                 </div>
-              </div>
-
-              <div style={{ display: 'flex', gap: '16px', marginBottom: '24px', flexWrap: 'wrap', justifyContent: 'flex-end', alignItems: 'center', borderTop: '1px solid var(--crm-border)', paddingTop: '24px' }}>
-                {dietMeals.length > 0 && (
-                  <button className="crm-btn-secondary" onClick={() => setDietMeals([])} style={{ color: 'var(--crm-danger)', borderColor: 'var(--crm-danger)', marginRight: 'auto' }}>
-                    <Trash2 size={16} /> Limpar Tudo
-                  </button>
-                )}
-                
-                <button 
-                  className="crm-btn-secondary" 
-                  onClick={() => {
-                    if (dietTitle && dietMeals.length > 0) {
-                      addDietTemplate(dietTitle, dietMeals);
-                      alert('Template salvo com sucesso na sua biblioteca!');
-                    } else {
-                      alert('Preencha o título e as refeições antes de salvar.');
-                    }
-                  }}
-                >
-                  <Download size={16} color="var(--crm-text-main)" /> Salvar como Template
-                </button>
-              </div>
+              )}
               
               {dietError && (
                 <div role="alert" style={{ marginBottom: '24px', padding: '14px 16px', backgroundColor: '#FEF2F2', border: '1px solid #FCA5A5', borderRadius: '8px', color: '#991B1B', fontSize: '0.9rem' }}>

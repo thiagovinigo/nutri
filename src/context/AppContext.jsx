@@ -175,10 +175,10 @@ export function AppProvider({ children }) {
     }
   };
 
-  const addRecipe = async (patientId, title, meals, description = '') => {
+  const addRecipe = async (patientId, title, meals, description = '', supplements = '') => {
     const p = patients.find(pat => pat.id === patientId);
     if (!p) return;
-    const newRecipes = [...(p.recipes || []), { title, description, meals }];
+    const newRecipes = [...(p.recipes || []), { title, description, supplements, meals }];
     setPatients(prev => prev.map(pat => pat.id === patientId ? { ...pat, recipes: newRecipes } : pat));
     if (!isFirebaseConfigured) return;
     try {
