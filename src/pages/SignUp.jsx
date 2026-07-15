@@ -16,10 +16,18 @@ export default function SignUp() {
   const searchParams = new URLSearchParams(window.location.search);
   const nutriIdParam = searchParams.get('nutri');
 
+  const roleParam = searchParams.get('role');
+
   // Se vier com o parâmetro, já trava no papel de paciente
   React.useEffect(() => {
-    if (nutriIdParam) setRole('paciente');
-  }, [nutriIdParam]);
+    if (nutriIdParam) {
+      setRole('paciente');
+    } else if (roleParam === 'nutricionista') {
+      setRole('nutricionista');
+    } else {
+      setRole('paciente');
+    }
+  }, [nutriIdParam, roleParam]);
 
   const handleSignUp = async (e) => {
     e.preventDefault();

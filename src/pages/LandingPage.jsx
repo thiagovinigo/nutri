@@ -15,12 +15,24 @@ export default function LandingPage() {
           <button 
             className="btn-3d" 
             style={{...styles.btn, backgroundColor: '#3b82f6', boxShadow: '0 6px 0 #2563eb'}}
-            onClick={() => navigate('/cadastro')}
+            onClick={() => navigate('/cadastro?role=paciente')}
           >
             <User size={28} />
             <div style={{textAlign: 'left'}}>
-              <span style={{display: 'block', fontSize: '1.2rem'}}>Criar Conta Grátis</span>
+              <span style={{display: 'block', fontSize: '1.2rem'}}>Criar Conta Grátis (Paciente)</span>
               <span style={{fontSize: '0.85rem', fontWeight: 'normal'}}>Ganhe 1 consulta IA agora</span>
+            </div>
+          </button>
+
+          <button 
+            className="btn-3d" 
+            style={{...styles.btn, backgroundColor: '#10B981', boxShadow: '0 6px 0 #059669'}}
+            onClick={() => navigate('/cadastro?role=nutricionista')}
+          >
+            <ShieldCheck size={28} />
+            <div style={{textAlign: 'left'}}>
+              <span style={{display: 'block', fontSize: '1.2rem'}}>Sou Especialista (Nutri)</span>
+              <span style={{fontSize: '0.85rem', fontWeight: 'normal'}}>Criar CRM e Consultório Virtual</span>
             </div>
           </button>
           
