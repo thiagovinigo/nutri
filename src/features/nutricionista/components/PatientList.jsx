@@ -500,7 +500,7 @@ export default function PatientList({
                   <h3 style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '16px' }}>
                     <TrendingUp size={20} color="var(--crm-accent)" /> Histórico de Peso
                   </h3>
-                  {viewedPatient.weights.length === 0 ? (
+                  {(!viewedPatient.weights || viewedPatient.weights.length === 0) ? (
                     <p style={{ color: 'var(--crm-text-muted)' }}>Nenhuma medição registrada.</p>
                   ) : (
                     <ul style={{ listStyle: 'none', padding: 0 }}>
@@ -520,7 +520,7 @@ export default function PatientList({
                   <h3 style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '16px' }}>
                     <Utensils size={20} color="var(--crm-accent)" /> Prescrições Dietéticas Ativas
                   </h3>
-                  {viewedPatient.recipes.length === 0 ? (
+                  {(!viewedPatient.recipes || viewedPatient.recipes.length === 0) ? (
                     <p style={{ color: 'var(--crm-text-muted)' }}>Nenhuma dieta cadastrada para este paciente.</p>
                   ) : (
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
