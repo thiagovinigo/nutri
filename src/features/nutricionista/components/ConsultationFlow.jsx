@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { FileText, Activity, Sparkles, Edit3, Send, Plus, X, Upload, CheckCircle, Trash2, GripVertical, Download } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 
 function normTitle(s) {
   return (s || '').toLowerCase()
@@ -166,7 +167,7 @@ export default function ConsultationFlow({
                   <div style={{ padding: '24px', backgroundColor: '#FFF', borderRadius: '0 0 12px 12px', minHeight: '300px', border: '1px solid var(--crm-border)', borderTop: 'none' }}>
                     {parseMarkdownTabs(examResult)[examTab] ? (
                       <div className="markdown-body">
-                        <ReactMarkdown>{parseMarkdownTabs(examResult)[examTab]}</ReactMarkdown>
+                        <ReactMarkdown remarkPlugins={[remarkGfm]}>{parseMarkdownTabs(examResult)[examTab]}</ReactMarkdown>
                       </div>
                     ) : (
                       <p style={{ color: 'var(--crm-text-muted)' }}>Seção não disponível para esta análise.</p>
