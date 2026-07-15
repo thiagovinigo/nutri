@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { auth, db } from '../services/firebase';
 import { createUserWithEmailAndPassword } from 'firebase/auth';
-import { doc, setDoc } from 'firebase/firestore';
+import { doc, setDoc, getDoc, deleteDoc } from 'firebase/firestore';
 
 export default function SignUp() {
   const [name, setName] = useState('');
@@ -45,9 +45,11 @@ export default function SignUp() {
       });
 
       // Se for paciente, criamos também o registro inicial em 'patients' para não dar erro no AppContext
+      // Se for paciente, criamos também o registro inicial em 'patients' para não dar erro no AppContext
       if (role === 'paciente') {
-        await setDoc(doc(db, 'patients', user.uid), {
+        let initialData = {
           name: name,
+          email: email, // garantindo o email no doc também
           nutricionista_id: nutriIdParam || null,
           objective: 'Melhorar alimentação',
           restrictions: 'Nenhuma registrada',
@@ -58,7 +60,25 @@ export default function SignUp() {
           records: nutriIdParam ? 'Cadastrado por Convite do Nutricionista.' : 'Cadastro self-service pelo App.',
           recipes: [],
           weights: []
-        });
+        };
+
+        const vincularId = searchParams.get('vincular');
+        if (vincularId) {
+          try {
+            const tempDocRef = doc(db, 'patients', vincularId);
+            const tempDocSnap = await getDoc(tempDocRef);
+            if (tempDocSnap.exists()) {
+              // Mescla os dados do cadastro temporário com o default (sobrescrevendo o default)
+              initialData = { ...initialData, ...tempDocSnap.data(), name: name, email: email, status: 'ativo' };
+              // Deleta o temporário
+              await deleteDoc(tempDocRef);
+            }
+          } catch(e) {
+            console.warn("Falha ao mesclar dados do convite. Pode ser restrição de permissão se o e-mail for diferente.", e);
+          }
+        }
+
+        await setDoc(doc(db, 'patients', user.uid), initialData);
       }
 
       // Redireciona com base na role escolhida

@@ -17,6 +17,10 @@ service cloud.firestore {
         && resource.data.nutricionista_id == request.auth.uid;
       allow create: if request.auth != null
         && request.resource.data.nutricionista_id == request.auth.uid;
+
+      // Paciente novo pode ler e deletar o documento temporário gerado pelo nutri, se o email bater
+      allow read, delete: if request.auth != null 
+        && resource.data.email == request.auth.token.email;
     }
 
     match /appointments/{apptId} {

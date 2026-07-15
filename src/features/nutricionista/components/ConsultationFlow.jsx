@@ -61,7 +61,7 @@ export default function ConsultationFlow({
                   <h3 style={{ color: 'var(--crm-text-main)', marginBottom: '16px' }}>Faça o upload do exame do paciente</h3>
                   <input 
                     type="file" 
-                    accept="application/pdf"
+                    accept="application/pdf, image/jpeg, image/png, image/jpg"
                     style={{ padding: '8px', border: '1px solid var(--crm-border)', borderRadius: '8px', cursor: 'pointer' }}
                     onChange={(e) => {
                       if (e.target.files && e.target.files.length > 0) {
@@ -117,23 +117,31 @@ export default function ConsultationFlow({
                   <input type="text" className="crm-input" placeholder="Ex: Dieta de Transição" value={dietTitle} onChange={e => setDietTitle(e.target.value)} style={{ fontWeight: '600' }} />
                 </div>
                 <div style={{ flex: 1 }}>
-                  <label className="crm-label">Importar de Template</label>
+                  <label className="crm-label">Importar Template da Biblioteca</label>
                   <select 
                     className="crm-input" 
                     onChange={e => {
                       const tpl = dietTemplates?.find(t => t.id === e.target.value);
                       if (tpl) {
-                        setDietTitle(tpl.title);
-                        setDietMeals(tpl.meals);
+                        if (!dietTitle) setDietTitle(tpl.title);
+                        const newMeals = tpl.days 
+                          ? tpl.days.flatMap(d => d.meals.map(m => ({ ...m, name: `Dia ${d.dayIndex} - ${m.name}` }))) 
+                          : (tpl.meals || []);
+                        
+                        setDietMeals(prev => [...prev, ...newMeals]);
+                        
+                        // Reset select so we can import the same one again if needed
+                        e.target.value = "";
                       }
                     }}
                     defaultValue=""
                   >
-                    <option value="" disabled>Selecione um template...</option>
+                    <option value="" disabled>Adicionar refeições de um template...</option>
                     {dietTemplates?.map(t => (
                       <option key={t.id} value={t.id}>{t.title}</option>
                     ))}
                   </select>
+                  <p style={{ fontSize: '0.8rem', color: 'var(--crm-text-muted)', marginTop: '4px' }}>Selecionar um template irá anexá-lo ao cardápio atual.</p>
                 </div>
               </div>
               <label className="crm-label">Refeições Estruturadas</label>
@@ -153,7 +161,7 @@ export default function ConsultationFlow({
               )}
               <div style={{ display: 'flex', gap: '16px', marginBottom: '24px', flexWrap: 'wrap' }}>
                 <button className="crm-btn-secondary" onClick={generateDietFromAI} disabled={isGenerating}>
-                  <Sparkles size={16} color="var(--crm-accent)" /> {isGenerating ? 'Gerando JSON Estruturado...' : 'Gerar Esboço Estruturado (OpenAI)'}
+                  <Sparkles size={16} color="var(--crm-accent)" /> {isGenerating ? 'Adicionando...' : 'Adicionar Novo Dia com IA'}
                 </button>
                 <button 
                   className="crm-btn-secondary" 
@@ -168,6 +176,11 @@ export default function ConsultationFlow({
                 >
                   <Edit3 size={16} color="var(--crm-text-main)" /> Salvar como Template
                 </button>
+                {dietMeals.length > 0 && (
+                  <button className="crm-btn-secondary" onClick={() => setDietMeals([])} style={{ color: 'var(--crm-danger)', borderColor: 'var(--crm-danger)' }}>
+                    <X size={16} /> Limpar Refeições
+                  </button>
+                )}
               </div>
               {dietError && (
                 <div role="alert" style={{ marginBottom: '24px', padding: '14px 16px', backgroundColor: '#FEF2F2', border: '1px solid #FCA5A5', borderRadius: '8px', color: '#991B1B', fontSize: '0.9rem' }}>

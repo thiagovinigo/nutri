@@ -15,7 +15,7 @@ export default function PatientList({
   handleCreateAppointment, cancelAppointment, startConsultation,
   showPatientModal, setShowPatientModal,
   openNewPatientModal, openEditPatientModal, editingPatient, handleDeletePatient,
-  patName, setPatName, patObj, setPatObj, patRest, setPatRest, handleSavePatient,
+  patName, setPatName, patObj, setPatObj, patRest, setPatRest, patCpf, setPatCpf, patEmail, setPatEmail, handleSavePatient,
   viewingPatientId, setViewingPatientId,
   synthesisResult, setSynthesisResult, isSynthesizing, generatePatientSynthesis, synthesisError,
   addNotification,
@@ -84,11 +84,13 @@ export default function PatientList({
     setSelectedDayIndex(1);
   };
 
+  const [dietBuilderMessage, setDietBuilderMessage] = useState('');
   const handleCopyDay1 = () => {
     if (dietBuilderDays.length === 0) return;
     const day1Meals = JSON.stringify(dietBuilderDays[0].meals);
     setDietBuilderDays(prev => prev.map(d => ({ ...d, meals: JSON.parse(day1Meals) })));
-    addNotification('admin', 'Refeições do Dia 1 replicadas para todos os dias!');
+    setDietBuilderMessage('Refeições do Dia 1 replicadas para todos os dias!');
+    setTimeout(() => setDietBuilderMessage(''), 3000);
   };
 
   const handleAddMeal = (dayIdx) => {
@@ -352,9 +354,9 @@ export default function PatientList({
                     if (!profile?.id) return alert('Perfil não carregado!');
                     const link = `${window.location.origin}/cadastro?nutri=${profile.id}`;
                     navigator.clipboard.writeText(link);
-                    alert('Link de convite copiado para a área de transferência:\n' + link);
+                    alert('Link Geral de Convite copiado para a área de transferência:\n' + link);
                   }}>
-                    <LinkIcon size={18} /> Link de Convite
+                    <LinkIcon size={18} /> Link Geral de Convite
                   </button>
                   <button className="crm-btn-primary" style={{ display: 'flex', alignItems: 'center', gap: '8px' }} onClick={openNewPatientModal}>
                     <Plus size={18} /> Novo Paciente
@@ -437,6 +439,17 @@ export default function PatientList({
                   ← Voltar para Lista
                 </button>
                 <div style={{ display: 'flex', gap: '12px' }}>
+                  <button className="crm-btn-secondary" onClick={() => {
+                    if (!profile?.id) return alert('Perfil não carregado!');
+                    const link = `${window.location.origin}/cadastro?nutri=${profile.id}&vincular=${viewedPatient.id}`;
+                    navigator.clipboard.writeText(link);
+                    alert(`Link Único de Convite copiado!\nQuando o paciente acessar, os dados dele serão automaticamente transferidos.\nLink: ${link}`);
+                    if (viewedPatient.email) {
+                      window.location.href = `mailto:${viewedPatient.email}?subject=Convite para o Vytal App&body=Olá ${viewedPatient.name}, criei o seu cadastro na minha plataforma! Acesse o link abaixo para criar sua senha e baixar o app:\n\n${link}`;
+                    }
+                  }} style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    <LinkIcon size={16} /> Enviar Convite
+                  </button>
                   <button className="crm-btn-secondary" onClick={() => generatePatientSynthesis(viewedPatient)} disabled={isSynthesizing} style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                     <BrainCircuit size={16} color="var(--crm-accent)" /> 
                     {isSynthesizing ? 'Analisando Histórico...' : 'Gerar Síntese Clínica (IA)'}
@@ -667,11 +680,14 @@ export default function PatientList({
                     <div style={{ flex: 1 }}>
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
                         <h2 style={{ fontSize: '1.4rem' }}>Cardápio - Dia {selectedDayIndex}</h2>
-                        {selectedDayIndex !== 1 && (
-                          <button className="crm-btn-secondary" onClick={handleCopyDay1} style={{ fontSize: '0.85rem', padding: '6px 12px' }}>
-                            Copiar do Dia 1 para todos
-                          </button>
-                        )}
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                          {dietBuilderMessage && <span style={{ color: 'var(--crm-good)', fontSize: '0.82rem', fontWeight: 600 }}>{dietBuilderMessage}</span>}
+                          {selectedDayIndex !== 1 && (
+                            <button className="crm-btn-secondary" onClick={handleCopyDay1} style={{ fontSize: '0.85rem', padding: '6px 12px' }}>
+                              Copiar do Dia 1 para todos
+                            </button>
+                          )}
+                        </div>
                       </div>
 
                       <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
@@ -1188,6 +1204,16 @@ export default function PatientList({
               <div style={{ marginBottom: '16px' }}>
                 <label className="crm-label">Nome Completo</label>
                 <input type="text" className="crm-input" value={patName} onChange={e => setPatName(e.target.value)} required />
+              </div>
+              <div style={{ display: 'flex', gap: '16px', marginBottom: '16px' }}>
+                <div style={{ flex: 1 }}>
+                  <label className="crm-label">CPF</label>
+                  <input type="text" className="crm-input" placeholder="000.000.000-00" value={patCpf} onChange={e => setPatCpf(e.target.value)} />
+                </div>
+                <div style={{ flex: 1 }}>
+                  <label className="crm-label">E-mail</label>
+                  <input type="email" className="crm-input" placeholder="email@paciente.com" value={patEmail} onChange={e => setPatEmail(e.target.value)} />
+                </div>
               </div>
               <div style={{ marginBottom: '16px' }}>
                 <label className="crm-label">Objetivo Clínico</label>

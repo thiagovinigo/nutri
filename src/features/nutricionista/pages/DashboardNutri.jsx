@@ -29,6 +29,8 @@ export default function DashboardNutri() {
   const [patName, setPatName] = useState('');
   const [patObj, setPatObj] = useState('');
   const [patRest, setPatRest] = useState('');
+  const [patCpf, setPatCpf] = useState('');
+  const [patEmail, setPatEmail] = useState('');
 
   const [viewingPatientId, setViewingPatientId] = useState(null);
   const [isSynthesizing, setIsSynthesizing] = useState(false);
@@ -66,20 +68,20 @@ export default function DashboardNutri() {
 
   const openNewPatientModal = () => {
     setEditingPatient(null);
-    setPatName(''); setPatObj(''); setPatRest('');
+    setPatName(''); setPatObj(''); setPatRest(''); setPatCpf(''); setPatEmail('');
     setShowPatientModal(true);
   };
 
   const openEditPatientModal = (p) => {
     setEditingPatient(p.id);
-    setPatName(p.name); setPatObj(p.objective); setPatRest(p.restrictions);
+    setPatName(p.name); setPatObj(p.objective); setPatRest(p.restrictions); setPatCpf(p.cpf || ''); setPatEmail(p.email || '');
     setShowPatientModal(true);
   };
 
   const handleSavePatient = (e) => {
     e.preventDefault();
-    if (editingPatient) updatePatient(editingPatient, { name: patName, objective: patObj, restrictions: patRest });
-    else addPatient(patName, patObj, patRest);
+    if (editingPatient) updatePatient(editingPatient, { name: patName, objective: patObj, restrictions: patRest, cpf: patCpf, email: patEmail });
+    else addPatient(patName, patObj, patRest, patCpf, patEmail);
     setShowPatientModal(false);
   };
 
@@ -108,15 +110,40 @@ export default function DashboardNutri() {
     setExamAnalyzing(true);
     setExamError('');
     try {
-      // Extrai texto real do PDF usando pdf.js
-      const extractedText = await extractTextFromPDF(file);
+      let messages = [];
       
+      if (file.type.startsWith('image/')) {
+        // Converter imagem para Base64
+        const base64 = await new Promise((resolve, reject) => {
+          const reader = new FileReader();
+          reader.readAsDataURL(file);
+          reader.onload = () => resolve(reader.result);
+          reader.onerror = error => reject(error);
+        });
+        
+        messages = [{
+          role: "user",
+          content: [
+            { type: "text", text: `Contexto do paciente: Objetivo é ${activePatient.objective}. Anamnese de hoje: ${anamnesis}.\n\nAnalise a imagem do laudo médico anexada:` },
+            { type: "image_url", image_url: { url: base64 } }
+          ]
+        }];
+      } else if (file.type === 'application/pdf') {
+        const extractedText = await extractTextFromPDF(file);
+        messages = [{
+          role: "user",
+          content: `Contexto do paciente: Objetivo é ${activePatient.objective}. Anamnese de hoje: ${anamnesis}.\n\nResultado do PDF extraído:\n${extractedText.substring(0, 50000)}`
+        }];
+      } else {
+        throw new Error("Formato não suportado. Envie um PDF ou Imagem (JPG/PNG).");
+      }
+
       const response = await fetch('/api/openai-bridge', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          system_prompt: "Você é um motor de IA clínica estilo Medhub focado em nutrição. Retorne um JSON estrito com as chaves: 'detalhada' (resumo dos achados e valores alterados), 'correlacao' (como os resultados afetam o quadro do paciente) e 'nutricao' (condutas nutricionais específicas baseadas nos achados). ATENÇÃO: Os valores dessas chaves devem ser OBRIGATORIAMENTE textos, nunca objetos aninhados.",
-          messages: [{ role: "user", content: `Contexto do paciente: Objetivo é ${activePatient.objective}. Anamnese de hoje: ${anamnesis}. \n\nResultado do PDF extraído: ${extractedText.substring(0, 50000)}` }],
+          system_prompt: "Você é um motor de IA clínica estilo MedHub focado em nutrição funcional. Analise o exame laboratorial e retorne um JSON estrito com exatamente 3 chaves: 'detalhada' (Descreva minuciosamente os achados, marcadores alterados e seus valores), 'correlacao' (Faça a correlação fisiológica, riscos e diagnósticos cruzando com a anamnese e objetivo) e 'nutricao' (Liste ações de conduta nutricional e suplementação específicas para corrigir esses achados). ATENÇÃO: Os valores dessas chaves devem ser OBRIGATORIAMENTE textos limpos (pode usar quebras de linha \\n), nunca objetos aninhados.",
+          messages: messages,
           format_json: true
         })
       });
@@ -144,7 +171,7 @@ export default function DashboardNutri() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          system_prompt: "Você é um Nutricionista Clínico de alta performance. Crie um esboço de plano alimentar diário e retorne EXATAMENTE UM JSON contendo um array chamado 'meals'. O plano deve conter OBRIGATORIAMENTE 6 REFEIÇÕES (Café da Manhã, Lanche da Manhã, Almoço, Lanche da Tarde, Jantar, Ceia). Cada item no array deve ter 'name' (Nome da Refeição) e 'desc' (O que o paciente deve comer). Ex: { \"meals\": [ { \"name\": \"Almoço\", \"desc\": \"150g frango\" } ] }",
+          system_prompt: "Você é um Nutricionista Clínico de alta performance. Crie um esboço de plano alimentar e retorne EXATAMENTE UM JSON contendo um array chamado 'meals'. O plano deve conter OBRIGATORIAMENTE refeições completas (ex: Café da Manhã, Almoço, Jantar). Cada item no array deve ter 'name' (Nome da Refeição) e 'desc' (O que o paciente deve comer). Ex: { \"meals\": [ { \"name\": \"Almoço\", \"desc\": \"150g frango\" } ] }",
           messages: [{ role: "user", content: `Crie um cardápio considerando este contexto clínico:\n\n${promptContext}` }],
           format_json: true
         })
@@ -152,8 +179,19 @@ export default function DashboardNutri() {
       if (!response.ok) throw new Error("Erro na rede ou na API.");
       const data = await response.json();
       const parsed = JSON.parse(data.choices[0].message.content);
-      setDietTitle(`Plano Personalizado - ${new Date().toLocaleDateString('pt-BR')}`);
-      setDietMeals(parsed.meals || []);
+      
+      if (!dietTitle) {
+        setDietTitle(`Plano Personalizado - ${new Date().toLocaleDateString('pt-BR')}`);
+      }
+      
+      // Anexa as novas refeições ao final das existentes
+      setDietMeals(prev => {
+        const currentCount = prev.length;
+        const newMeals = parsed.meals || [];
+        // Se já existem refeições, podemos adicionar um prefixo para separar os dias,
+        // ou simplesmente anexar.
+        return [...prev, ...newMeals];
+      });
     } catch (error) {
       setDietError(error.message || 'Erro ao gerar dieta com IA.');
     } finally {
@@ -244,7 +282,7 @@ export default function DashboardNutri() {
         handleCreateAppointment={handleCreateAppointment} cancelAppointment={cancelAppointment} startConsultation={startConsultation}
         showPatientModal={showPatientModal} setShowPatientModal={setShowPatientModal}
         openNewPatientModal={openNewPatientModal} openEditPatientModal={openEditPatientModal} editingPatient={editingPatient} handleDeletePatient={handleDeletePatient}
-        patName={patName} setPatName={setPatName} patObj={patObj} setPatObj={setPatObj} patRest={patRest} setPatRest={setPatRest} handleSavePatient={handleSavePatient}
+        patName={patName} setPatName={setPatName} patObj={patObj} setPatObj={setPatObj} patRest={patRest} setPatRest={setPatRest} patCpf={patCpf} setPatCpf={setPatCpf} patEmail={patEmail} setPatEmail={setPatEmail} handleSavePatient={handleSavePatient}
         viewingPatientId={viewingPatientId} setViewingPatientId={setViewingPatientId}
         synthesisResult={synthesisResult} setSynthesisResult={setSynthesisResult} isSynthesizing={isSynthesizing} generatePatientSynthesis={generatePatientSynthesis}
         synthesisError={synthesisError}
