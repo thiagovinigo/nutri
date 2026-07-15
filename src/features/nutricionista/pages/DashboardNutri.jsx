@@ -164,7 +164,7 @@ export default function DashboardNutri() {
           contentArray.push({ type: "image_url", image_url: { url: base64 } });
         } else if (file.type === 'application/pdf') {
           const extractedText = await extractTextFromPDF(file);
-          contentArray.push({ type: "text", text: `\n\n--- Conteúdo do PDF (${file.name}) ---\n${extractedText.substring(0, 50000)}` });
+          contentArray.push({ type: "text", text: `\n\n--- Conteúdo do PDF (${file.name}) ---\n${extractedText.substring(0, 450000)}` });
         } else {
           throw new Error(`Formato não suportado: ${file.name}. Envie PDF ou Imagem.`);
         }
