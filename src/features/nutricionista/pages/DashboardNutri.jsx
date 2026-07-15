@@ -81,10 +81,15 @@ export default function DashboardNutri() {
   const handleSavePatient = async (e) => {
     e.preventDefault();
 
-    // Validação de duplicidade
+    const normalizeCpf = (cpf) => (cpf || '').replace(/\D/g, '');
+    const normalizeEmail = (email) => (email || '').toLowerCase().trim();
+
+    // Validação de duplicidade aprimorada
     const isDuplicate = patients.some(p => {
       if (editingPatient && p.id === editingPatient) return false;
-      return (p.cpf && p.cpf === patCpf) || (p.email && p.email === patEmail);
+      const sameCpf = patCpf && normalizeCpf(p.cpf) !== '' && normalizeCpf(p.cpf) === normalizeCpf(patCpf);
+      const sameEmail = patEmail && normalizeEmail(p.email) !== '' && normalizeEmail(p.email) === normalizeEmail(patEmail);
+      return sameCpf || sameEmail;
     });
 
     if (isDuplicate) {
@@ -98,9 +103,17 @@ export default function DashboardNutri() {
       const newId = await addPatient(patName, patObj, patRest, patCpf, patEmail);
       if (patEmail && newId) {
         const link = `${window.location.origin}/paciente?vincular=${newId}`;
-        const subject = encodeURIComponent("Seu acesso ao app Nutri");
-        const body = encodeURIComponent(`Olá ${patName},\n\nSeu plano alimentar já está sendo estruturado! Acesse o app pelo link abaixo.\n\n🔗 ${link}\n\nPara acessar, informe este e-mail e o seu CPF.\n\nAbraços!`);
-        window.location.href = `mailto:${patEmail}?subject=${subject}&body=${body}`;
+        try {
+          fetch('/api/send-email', {
+             method: 'POST',
+             headers: { 'Content-Type': 'application/json' },
+             body: JSON.stringify({ to: patEmail, name: patName, link })
+          });
+        } catch (error) {
+          console.error('Serviço de e-mail não configurado.', error);
+        }
+        // Abre o perfil do paciente recém-criado onde o link de cópia rápida está disponível no topo
+        setViewingPatientId(newId);
       }
     }
     setShowPatientModal(false);
