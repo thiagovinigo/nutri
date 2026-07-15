@@ -70,6 +70,7 @@ export default function ConsultationFlow({
   recipeLibrary
 }) {
   const [draggedRecipe, setDraggedRecipe] = useState(null);
+  const [selectedExamFiles, setSelectedExamFiles] = useState([]);
 
   const handleDragStart = (e, recipe) => {
     setDraggedRecipe(recipe);
@@ -124,21 +125,51 @@ export default function ConsultationFlow({
             <div className="crm-card">
               <h2 style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '24px' }}><Activity color="var(--crm-accent)" /> Análise de Exames (Powered by OpenAI)</h2>
               {!examUploaded && !examAnalyzing && (
-                <div style={{ textAlign: 'center', padding: '60px 20px', border: '2px dashed var(--crm-border)', borderRadius: '12px', backgroundColor: '#F8FAFC' }}>
-                  <Upload size={48} color="var(--crm-text-muted)" style={{ marginBottom: '16px' }} />
-                  <h3 style={{ color: 'var(--crm-text-main)', marginBottom: '16px' }}>Faça o upload dos exames do paciente</h3>
-                  <input 
-                    type="file" 
-                    multiple
-                    accept="application/pdf, image/jpeg, image/png, image/jpg"
-                    style={{ padding: '8px', border: '1px solid var(--crm-border)', borderRadius: '8px', cursor: 'pointer', width: '100%', maxWidth: '300px' }}
-                    onChange={(e) => {
-                      if (e.target.files && e.target.files.length > 0) {
-                        analyzeExamWithAI(Array.from(e.target.files));
-                      }
-                    }}
-                  />
-                  <p style={{ color: 'var(--crm-text-muted)', marginTop: '16px', fontSize: '0.9rem' }}>Você pode selecionar múltiplos arquivos (PDFs e Imagens). A IA extrairá e cruzará tudo com o quadro clínico.</p>
+                <div>
+                  <div style={{ padding: '40px 20px', border: '2px dashed var(--crm-border)', borderRadius: '12px', backgroundColor: '#F8FAFC', textAlign: 'center', position: 'relative' }}>
+                    <Upload size={40} color="var(--crm-text-muted)" style={{ marginBottom: '16px' }} />
+                    <h3 style={{ color: 'var(--crm-text-main)', marginBottom: '8px' }}>
+                      {selectedExamFiles.length > 0 ? `${selectedExamFiles.length} arquivo(s) adicionado(s) — arraste mais ou clique` : 'Adicione todos os arquivos de uma vez'}
+                    </h3>
+                    <p style={{ color: 'var(--crm-text-muted)', fontSize: '0.9rem' }}>Imagens (JPG, PNG) · Documentos (PDF)</p>
+                    <input 
+                      type="file" 
+                      multiple
+                      accept="application/pdf, image/jpeg, image/png, image/jpg"
+                      style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', opacity: 0, cursor: 'pointer' }}
+                      onChange={(e) => {
+                        if (e.target.files && e.target.files.length > 0) {
+                          setSelectedExamFiles(prev => [...prev, ...Array.from(e.target.files)]);
+                        }
+                        // Reseta o valor do input para permitir upload do mesmo arquivo se removido
+                        e.target.value = null;
+                      }}
+                    />
+                  </div>
+
+                  {selectedExamFiles.length > 0 && (
+                    <div className="animate-pop-in" style={{ marginTop: '24px' }}>
+                      <p style={{ fontSize: '0.85rem', fontWeight: 'bold', color: 'var(--crm-text-muted)', marginBottom: '12px', textTransform: 'uppercase' }}>
+                        Documentos e Exames Laboratoriais ({selectedExamFiles.length})
+                      </p>
+                      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '12px' }}>
+                        {selectedExamFiles.map((f, i) => (
+                          <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '8px 12px', backgroundColor: 'rgba(99, 102, 241, 0.1)', color: 'var(--crm-accent)', borderRadius: '8px', fontSize: '0.9rem' }}>
+                            <FileText size={16} />
+                            <span style={{ maxWidth: '200px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{f.name}</span>
+                            <button onClick={() => setSelectedExamFiles(prev => prev.filter((_, idx) => idx !== i))} style={{ background: 'none', border: 'none', color: 'var(--crm-accent)', cursor: 'pointer', display: 'flex', alignItems: 'center' }}>
+                              <X size={16} />
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                      <div style={{ marginTop: '24px', display: 'flex', justifyContent: 'flex-end' }}>
+                        <button className="crm-btn-primary" onClick={() => analyzeExamWithAI(selectedExamFiles)}>
+                          <Sparkles size={16} color="#FFF" style={{ marginRight: '8px' }} /> Analisar {selectedExamFiles.length} arquivo(s) com IA
+                        </button>
+                      </div>
+                    </div>
+                  )}
                 </div>
               )}
               {examError && (
