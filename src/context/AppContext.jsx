@@ -9,51 +9,11 @@ export function AppProvider({ children }) {
   const [session, setSession] = useState(null);
   const [profile, setProfile] = useState(null);
 
-  const [patients, setPatients] = useState([
-    {
-      id: 'mock-1',
-      name: 'João Silva (Mock)',
-      email: 'paciente@teste.com',
-      cpf: '123',
-      objective: 'Emagrecimento',
-      restrictions: 'Sem lactose',
-      status: 'engajado',
-      streak: 5,
-      xp: 120,
-      waterGlasses: 3,
-      records: 'Paciente iniciou acompanhamento hoje.',
-      recipes: [],
-      weights: [{ date: '10/07/2026', value: 85.0 }]
-    },
-    {
-      id: 'mock-2',
-      name: 'Maria Souza (Mock)',
-      email: 'maria@teste.com',
-      cpf: '456',
-      objective: 'Hipertrofia',
-      restrictions: 'Vegana',
-      status: 'em_risco',
-      streak: 0,
-      xp: 45,
-      waterGlasses: 0,
-      records: 'Paciente relatou dificuldade com a dieta.',
-      recipes: [],
-      weights: [{ date: '01/07/2026', value: 62.0 }]
-    }
-  ]);
+  const [patients, setPatients] = useState([]);
   const [appointments, setAppointments] = useState([]);
   const [dietTemplates, setDietTemplates] = useState([]);
-  const [recipeLibrary, setRecipeLibrary] = useState([
-    {
-      id: 'rec-1',
-      title: 'Panqueca de Aveia Protéica',
-      description: 'Ótima para o café da manhã ou pré-treino.',
-      ingredients: ['1 ovo', '2 claras', '30g de aveia em flocos', '1 scoop de whey protein', 'Canela a gosto'],
-      instructions: 'Misture todos os ingredientes. Aqueça uma frigideira antiaderente e doure dos dois lados.',
-      tags: ['Café da Manhã', 'Hipertrofia']
-    }
-  ]);
-  const [activePatientId, setActivePatientId] = useState('mock-1');
+  const [recipeLibrary, setRecipeLibrary] = useState([]);
+  const [activePatientId, setActivePatientId] = useState(null);
 
   const [clinicConfig, setClinicConfig] = useState({
     name: 'Vytal',
@@ -117,38 +77,46 @@ export function AppProvider({ children }) {
 
   const fetchPatients = async () => {
     try {
-      const q = query(collection(db, 'patients')); // Idealmente filtrado por nutricionista_id
+      const q = query(collection(db, 'patients'), where('nutricionista_id', '==', profile.id));
       const querySnapshot = await getDocs(q);
       const data = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
       setPatients(data);
-    } catch(e) {}
+    } catch(e) {
+      console.error("Erro ao buscar pacientes:", e);
+    }
   };
 
   const fetchAppointments = async () => {
     try {
-      const q = query(collection(db, 'appointments'));
+      const q = query(collection(db, 'appointments'), where('nutricionista_id', '==', profile.id));
       const querySnapshot = await getDocs(q);
       const data = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
       setAppointments(data);
-    } catch(e) {}
+    } catch(e) {
+      console.error("Erro ao buscar agenda:", e);
+    }
   };
 
   const fetchDietTemplates = async () => {
     try {
-      const q = query(collection(db, 'dietTemplates'));
+      const q = query(collection(db, 'dietTemplates'), where('nutricionista_id', '==', profile.id));
       const querySnapshot = await getDocs(q);
       const data = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-      if (data.length > 0) setDietTemplates(data);
-    } catch(e) {}
+      setDietTemplates(data);
+    } catch(e) {
+      console.error("Erro ao buscar modelos de dieta:", e);
+    }
   };
 
   const fetchRecipes = async () => {
     try {
-      const q = query(collection(db, 'recipes'));
+      const q = query(collection(db, 'recipes'), where('nutricionista_id', '==', profile.id));
       const querySnapshot = await getDocs(q);
       const data = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-      if (data.length > 0) setRecipeLibrary(data);
-    } catch(e) {}
+      setRecipeLibrary(data);
+    } catch(e) {
+      console.error("Erro ao buscar receitas:", e);
+    }
   };
 
   // CRUD Pacientes — sempre atualiza o estado local; só tenta sincronizar
