@@ -70,6 +70,7 @@ Consolidado a partir da auditoria de produto e do `spec.md`. Ordenado por priori
 - [ ] Guard de rota real: redirecionar `/nutri` e `/paciente` para `/login` quando não há sessão ativa (hoje dá pra acessar direto pela URL).
 - [ ] Regras de segurança no Firestore que isolem dados por paciente/clínica no servidor — hoje o filtro é só visual no cliente.
 - [ ] Investigar e resolver a instabilidade do canal de escrita do Firestore (erro 503 recorrente) antes de depender dele em produção.
+- [ ] **Edge Case Estrutural:** Tratar o cenário onde um mesmo paciente (mesmo CPF/E-mail) é atendido por mais de um nutricionista na plataforma (atualmente o modelo assume relacionamento 1:N restrito via `nutricionista_id`).
 
 ### Monetização
 - [ ] Integração real com Stripe (checkout, webhooks de assinatura, bloqueio de features por plano).

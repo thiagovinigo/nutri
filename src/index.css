@@ -1,19 +1,21 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Nunito:wght@400;600;700;800;900&display=swap');
 
 :root {
-  /* Gamified Design System (Duolingo Style) - App Paciente */
-  --primary-color: #58CC02;
-  --primary-hover: #89E219;
-  --primary-shadow: #58A700;
-  --secondary-color: #1CB0F6;
-  --secondary-shadow: #1899D6;
-  --danger-color: #FF4B4B;
-  --danger-shadow: #EA2B2B;
-  --warning-color: #FFC800;
-  --warning-shadow: #F49000;
-  --gray-light: #e5e5e5;
-  --gray-shadow: #CECECE;
-  --font-family-gamified: 'Nunito', sans-serif;
+  /* Premium Dark Fitness Design System - App Paciente */
+  --patient-bg: #0B0D12;
+  --patient-surface: #151821;
+  --patient-surface-2: #1E222D;
+  --patient-text: #F8FAFC;
+  --patient-text-muted: #94A3B8;
+  --primary-color: #00E5FF; /* Neon Cyan */
+  --primary-hover: #33EAFF;
+  --primary-shadow: #0099AA;
+  --secondary-color: #7B1FA2; /* Deep Purple */
+  --secondary-shadow: #4A148C;
+  --accent-color: #FF0055; /* Neon Pink */
+  --glass-bg: rgba(21, 24, 33, 0.7);
+  --glass-border: rgba(255, 255, 255, 0.06);
+  --font-family-patient: 'Inter', sans-serif;
 
   /* SaaS CRM Premium Design System - Dashboard Nutricionista */
   --crm-bg: #F4F5F7;
@@ -42,21 +44,45 @@
 }
 
 * { box-sizing: border-box; margin: 0; padding: 0; }
-body { overflow-x: hidden; -webkit-font-smoothing: antialiased; font-family: var(--font-family-gamified); color: #4b4b4b;}
+body { overflow-x: hidden; -webkit-font-smoothing: antialiased; font-family: var(--font-family-patient); color: var(--patient-text);}
 
 /* ----------------------------------------------------
-   GAMIFIED UI (App do Paciente) 
+   PATIENT PREMIUM UI (Dark Mode) 
 ------------------------------------------------------- */
-.btn-3d { display: inline-flex; align-items: center; justify-content: center; font-family: var(--font-family-gamified); font-weight: 700; font-size: 1.1rem; text-transform: uppercase; letter-spacing: 1px; border-radius: 16px; border: none; cursor: pointer; padding: 12px 24px; transition: transform 0.1s, box-shadow 0.1s; user-select: none; position: relative; text-decoration: none; }
-.btn-primary { background-color: var(--primary-color); color: white; box-shadow: 0 4px 0 var(--primary-shadow); }
-.btn-primary:active { box-shadow: 0 0px 0 var(--primary-shadow); transform: translateY(4px); }
-.btn-secondary { background-color: var(--secondary-color); color: white; box-shadow: 0 4px 0 var(--secondary-shadow); }
-.btn-secondary:active { box-shadow: 0 0px 0 var(--secondary-shadow); transform: translateY(4px); }
+.patient-container {
+  font-family: var(--font-family-patient);
+  background-color: var(--patient-bg);
+  color: var(--patient-text);
+  min-height: 100vh;
+  padding-bottom: 80px; /* space for bottom nav */
+}
+.patient-card {
+  background-color: var(--patient-surface);
+  border: 1px solid var(--glass-border);
+  border-radius: 20px;
+  padding: 20px;
+  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
+}
+.patient-glass {
+  background: var(--glass-bg);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid var(--glass-border);
+}
 
-@keyframes popIn { 0% { transform: scale(0.8); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
-.animate-pop-in { animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; }
-@keyframes bounce { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
-.animate-bounce { animation: bounce 2s infinite ease-in-out; }
+.btn-3d { display: inline-flex; align-items: center; justify-content: center; font-family: var(--font-family-patient); font-weight: 700; font-size: 1rem; letter-spacing: 0.5px; border-radius: 12px; border: none; cursor: pointer; padding: 12px 24px; transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1); user-select: none; position: relative; text-decoration: none; }
+.btn-primary { background: linear-gradient(135deg, var(--primary-color) 0%, #00B4D8 100%); color: #000; box-shadow: 0 4px 15px rgba(0, 229, 255, 0.3); }
+.btn-primary:active { transform: scale(0.96); box-shadow: 0 2px 8px rgba(0, 229, 255, 0.2); }
+.btn-secondary { background-color: var(--patient-surface-2); color: var(--patient-text); border: 1px solid var(--glass-border); }
+.btn-secondary:active { transform: scale(0.96); background-color: #2A303C; }
+
+/* Animações CSS para feedback visual */
+@keyframes popIn { 0% { transform: scale(0.9); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
+.animate-pop-in { animation: popIn 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+@keyframes pulseGlow { 0% { box-shadow: 0 0 0 0 rgba(0, 229, 255, 0.4); } 70% { box-shadow: 0 0 0 15px rgba(0, 229, 255, 0); } 100% { box-shadow: 0 0 0 0 rgba(0, 229, 255, 0); } }
+.animate-pulse-glow { animation: pulseGlow 2s infinite; }
+@keyframes slideUp { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+.animate-slide-up { animation: slideUp 0.4s ease-out forwards; }
 
 /* ----------------------------------------------------
    SAAS CRM UI (Dashboard do Nutricionista) 
