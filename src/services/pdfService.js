@@ -14,7 +14,7 @@ export async function extractTextFromPDF(file) {
     const arrayBuffer = await file.arrayBuffer();
     
     // Carrega o documento PDF
-    const loadingTask = pdfjsLib.getDocument(new Uint8Array(arrayBuffer));
+    const loadingTask = pdfjsLib.getDocument({ data: new Uint8Array(arrayBuffer) });
     const pdf = await loadingTask.promise;
     
     let fullText = '';
