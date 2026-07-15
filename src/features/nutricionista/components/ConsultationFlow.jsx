@@ -86,13 +86,8 @@ export default function ConsultationFlow({
               )}
               {examResult && (
                 <div className="animate-pop-in">
-                  <div style={{ display: 'flex', gap: '16px', borderBottom: '1px solid var(--crm-border)', paddingBottom: '12px', marginBottom: '24px' }}>
-                    <button onClick={() => setExamTab('detalhada')} style={{ background: 'none', border: 'none', fontSize: '0.95rem', fontWeight: examTab === 'detalhada' ? '600' : '400', color: examTab === 'detalhada' ? 'var(--crm-accent)' : 'var(--crm-text-muted)', cursor: 'pointer' }}>Análise Detalhada</button>
-                    <button onClick={() => setExamTab('correlacao')} style={{ background: 'none', border: 'none', fontSize: '0.95rem', fontWeight: examTab === 'correlacao' ? '600' : '400', color: examTab === 'correlacao' ? 'var(--crm-accent)' : 'var(--crm-text-muted)', cursor: 'pointer' }}>Correlação Clínica</button>
-                    <button onClick={() => setExamTab('nutricao')} style={{ background: 'none', border: 'none', fontSize: '0.95rem', fontWeight: examTab === 'nutricao' ? '600' : '400', color: examTab === 'nutricao' ? 'var(--crm-accent)' : 'var(--crm-text-muted)', cursor: 'pointer' }}>Conduta Nutricional</button>
-                  </div>
                   <div style={{ padding: '24px', backgroundColor: '#F8FAFC', borderRadius: '12px', minHeight: '200px', whiteSpace: 'pre-wrap', lineHeight: '1.6', fontSize: '0.95rem', color: 'var(--crm-text-main)' }}>
-                    {typeof examResult[examTab] === 'object' ? JSON.stringify(examResult[examTab], null, 2) : examResult[examTab]}
+                    {examResult}
                   </div>
                 </div>
               )}

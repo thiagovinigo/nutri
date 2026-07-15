@@ -72,7 +72,8 @@ export default function QuestBoard({ activePatient }) {
             addExtraMealLog(activePatient.id, aiFeedback);
             completeQuest(activePatient.id, 5); 
           } else {
-            markMealDone(activePatient.id, activePatient.recipes.length - 1, activeMealIndex, aiFeedback);
+            const mealName = currentRecipe.meals[activeMealIndex]?.name || 'Refeição';
+            markMealDone(activePatient.id, activePatient.recipes.length - 1, activeMealIndex, aiFeedback, mealName);
             completeQuest(activePatient.id, 20); 
           }
           setPreviewImage(null);

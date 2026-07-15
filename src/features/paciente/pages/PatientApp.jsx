@@ -26,8 +26,28 @@ export default function PatientApp() {
   const [chatHistory, setChatHistory] = useState([]);
   const [chatInput, setChatInput] = useState('');
   const [isChatLoading, setIsChatLoading] = useState(false);
+  const [useMock, setUseMock] = useState(false);
 
-  const activePatient = patients.find(p => p.id === activePatientId) || patients[0];
+  const bypassPatient = {
+    id: 'mock_1',
+    name: 'Paciente Teste (Modo Dev)',
+    objective: 'Ganho de massa muscular',
+    waterTarget: 3000,
+    waterLogs: [],
+    mealsCompleted: [],
+    xp: 450,
+    streak: 3,
+    notifications: [{ id: 1, text: 'Aviso: não esqueça da água hoje!', read: false }],
+    recipes: [{
+      date: new Date().toISOString(),
+      meals: [
+        { id: 1, name: 'Café da Manhã', desc: '2 ovos mexidos, 1 fatia de pão integral, café preto.', type: 'cafe' },
+        { id: 2, name: 'Almoço', desc: '150g de peito de frango, 100g de arroz integral, salada à vontade.', type: 'almoco' }
+      ]
+    }]
+  };
+
+  const activePatient = useMock ? bypassPatient : (patients.find(p => p.id === activePatientId) || patients[0]);
   const currentRecipe = activePatient?.recipes?.length > 0 ? activePatient.recipes[activePatient.recipes.length - 1] : null;
 
   const handleLogin = async (e) => {
@@ -139,6 +159,16 @@ export default function PatientApp() {
             </div>
             <button type="submit" className="btn-3d btn-primary" style={{width: '100%', marginTop: '12px'}}><Lock size={18} style={{marginRight: '8px'}} /> ACESSAR</button>
           </form>
+          
+          {import.meta.env.DEV && (
+            <button 
+              onClick={() => { setUseMock(true); setIsLoggedIn(true); }} 
+              className="btn-3d" 
+              style={{width: '100%', marginTop: '16px', background: 'var(--glass-panel)', border: '1px solid var(--glass-border)', color: 'var(--patient-text)'}}
+            >
+              🛠️ BYPASS MODO TESTE (DEV)
+            </button>
+          )}
         </div>
       </div>
     );

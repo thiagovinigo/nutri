@@ -188,27 +188,35 @@ export function AppProvider({ children }) {
     }
   };
 
-  const markMealDone = (patientId, recipeIdx, mealIdx, aiFeedback) => {
-    setPatients(prev => prev.map(p => {
-      if (p.id === patientId && p.recipes && p.recipes[recipeIdx]) {
-        const newRecipes = [...p.recipes];
-        const newMeals = [...newRecipes[recipeIdx].meals];
-        newMeals[mealIdx] = { ...newMeals[mealIdx], done: true, log: aiFeedback };
-        newRecipes[recipeIdx] = { ...newRecipes[recipeIdx], meals: newMeals };
-        return { ...p, recipes: newRecipes };
-      }
-      return p;
-    }));
+  const markMealDone = async (patientId, recipeIdx, mealIdx, aiFeedback, mealName = 'Refeição') => {
+    const p = patients.find(pat => pat.id === patientId);
+    if (!p || !p.recipes || !p.recipes[recipeIdx]) return;
+
+    const newRecipes = [...p.recipes];
+    const newMeals = [...newRecipes[recipeIdx].meals];
+    newMeals[mealIdx] = { ...newMeals[mealIdx], done: true, log: aiFeedback };
+    newRecipes[recipeIdx] = { ...newRecipes[recipeIdx], meals: newMeals };
+
+    const time = new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+    const date = new Date().toLocaleDateString('pt-BR');
+    const newFoodLog = { id: `food-${Date.now()}`, type: 'plano', date, time, mealName, log: aiFeedback };
+    const newFoodLogs = [...(p.foodLogs || []), newFoodLog];
+
+    await updatePatient(patientId, { recipes: newRecipes, foodLogs: newFoodLogs });
   };
-  const addExtraMealLog = (patientId, aiFeedback) => {
-    setPatients(prev => prev.map(p => {
-      if (p.id === patientId) {
-        const time = new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
-        const newLog = { time, log: aiFeedback };
-        return { ...p, extraLogs: [...(p.extraLogs || []), newLog] };
-      }
-      return p;
-    }));
+
+  const addExtraMealLog = async (patientId, aiFeedback) => {
+    const p = patients.find(pat => pat.id === patientId);
+    if (!p) return;
+
+    const time = new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+    const date = new Date().toLocaleDateString('pt-BR');
+    const newFoodLog = { id: `food-${Date.now()}`, type: 'extra', date, time, mealName: 'Refeição Livre', log: aiFeedback };
+    const newFoodLogs = [...(p.foodLogs || []), newFoodLog];
+
+    const newExtraLogs = [...(p.extraLogs || []), { time, log: aiFeedback }];
+
+    await updatePatient(patientId, { extraLogs: newExtraLogs, foodLogs: newFoodLogs });
   };
   const addWater = (patientId) => {
     setPatients(prev => prev.map(p => {
