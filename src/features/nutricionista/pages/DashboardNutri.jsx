@@ -143,37 +143,31 @@ export default function DashboardNutri() {
     setView('consulta');
   };
 
-  const analyzeExamWithAI = async (file) => {
-    if (!file) return;
+  const analyzeExamWithAI = async (files) => {
+    if (!files || files.length === 0) return;
     setExamAnalyzing(true);
     setExamError('');
     try {
-      let messages = [];
+      let contentArray = [
+        { type: "text", text: `Contexto do paciente: Objetivo é ${activePatient.objective}. Anamnese de hoje: ${anamnesis}.\n\nAnalise os exames anexados:` }
+      ];
       
-      if (file.type.startsWith('image/')) {
-        // Converter imagem para Base64
-        const base64 = await new Promise((resolve, reject) => {
-          const reader = new FileReader();
-          reader.readAsDataURL(file);
-          reader.onload = () => resolve(reader.result);
-          reader.onerror = error => reject(error);
-        });
-        
-        messages = [{
-          role: "user",
-          content: [
-            { type: "text", text: `Contexto do paciente: Objetivo é ${activePatient.objective}. Anamnese de hoje: ${anamnesis}.\n\nAnalise a imagem do laudo médico anexada:` },
-            { type: "image_url", image_url: { url: base64 } }
-          ]
-        }];
-      } else if (file.type === 'application/pdf') {
-        const extractedText = await extractTextFromPDF(file);
-        messages = [{
-          role: "user",
-          content: `Contexto do paciente: Objetivo é ${activePatient.objective}. Anamnese de hoje: ${anamnesis}.\n\nResultado do PDF extraído:\n${extractedText.substring(0, 50000)}`
-        }];
-      } else {
-        throw new Error("Formato não suportado. Envie um PDF ou Imagem (JPG/PNG).");
+      for (let i = 0; i < files.length; i++) {
+        const file = files[i];
+        if (file.type.startsWith('image/')) {
+          const base64 = await new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.readAsDataURL(file);
+            reader.onload = () => resolve(reader.result);
+            reader.onerror = error => reject(error);
+          });
+          contentArray.push({ type: "image_url", image_url: { url: base64 } });
+        } else if (file.type === 'application/pdf') {
+          const extractedText = await extractTextFromPDF(file);
+          contentArray.push({ type: "text", text: `\n\n--- Conteúdo do PDF (${file.name}) ---\n${extractedText.substring(0, 50000)}` });
+        } else {
+          throw new Error(`Formato não suportado: ${file.name}. Envie PDF ou Imagem.`);
+        }
       }
 
       const response = await fetch('/api/openai-bridge', {
@@ -181,22 +175,25 @@ export default function DashboardNutri() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           system_prompt: `Você é um motor de IA clínica estilo MedHub focado em nutrição funcional. 
-Analise TODOS os resultados laboratoriais com detalhamento completo e retorne o resultado em texto limpo com seções Markdown, sem texto de apresentação.
-Use EXATAMENTE as seções com headers ## conforme mostrado abaixo:
+Analise TODOS os resultados laboratoriais e de imagem anexados com detalhamento completo. 
+Retorne o resultado OBRIGATORIAMENTE em texto formatado em Markdown, sem texto de introdução ou conclusão.
+Use EXATAMENTE as seções com headers ## conforme mostrado abaixo (você deve usar esses exatos títulos):
 
 ## Análise Detalhada
- - Liste cada grupo de exames (Hemograma, Perfil Lipídico, etc).
- - Indique: Parâmetro | Resultado | Referência | Status (✅ Normal / ⚠️ Alterado).
- - Destaque correlações fisiológicas e metabólicas.
+Liste cada grupo de exames analisados.
+Indique: Parâmetro | Resultado Encontrado | Valor de Referência | Status (✅ Normal / ⚠️ Alterado / 🚨 Crítico).
+Destaque correlações fisiológicas dos parâmetros alterados.
 
 ## Correlação Clínica
- - Relacione os achados com a anamnese e objetivo do paciente.
- - Liste possíveis riscos e diagnósticos funcionais.
+Relacione os achados dos exames com a anamnese e o objetivo do paciente.
+Liste possíveis diagnósticos nutricionais ou metabólicos baseados nesses cruzamentos.
 
-## Conduta Nutricional e Suplementação
- - Liste ações de conduta e prescrição de suplementação específicas para corrigir esses achados.
-`,
-          messages: messages
+## Impressão Nutricional
+Qual a conduta inicial recomendada para corrigir as rotas metabólicas alteradas?
+
+## Referências Bibliográficas
+Cite diretrizes ou referências científicas usadas para basear a sua análise de parâmetros.`,
+          messages: [{ role: "user", content: contentArray }]
         })
       });
       if (!response.ok) throw new Error("Erro na rede ou na API.");
@@ -316,6 +313,7 @@ Use EXATAMENTE as seções com headers ## conforme mostrado abaixo:
         examError={examError} dietError={dietError} finishedMessage={finishedMessage}
         onSuspend={() => setView(activeApptId ? 'agenda' : 'pacientes')}
         dietTemplates={dietTemplates} addDietTemplate={addDietTemplate}
+        recipeLibrary={recipeLibrary}
       />
     );
   }

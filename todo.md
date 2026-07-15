@@ -212,4 +212,7 @@ Síntese dos dois comitês acima em uma ordem de execução única. Critério: o
   - Implementado envio automático de convite por e-mail via `mailto:` no momento do cadastro do paciente pelo nutricionista.
 - [x] **Bugfix Crítico (Produção):**
   - Corrigido problema onde o link de convite (`/paciente?vincular=...`) redirecionava incorretamente o paciente para a tela de `/login` devido a um bloqueio do `RequireAuth`. A própria tela do paciente agora gerencia o onboarding sem bloquear links externos.
+- [x] **Deploy & Firebase Auth (Bugfixes):**
+  - Adicionado `vercel.json` para corrigir erros `404: NOT_FOUND` da Vercel ao recarregar a página ou acessar a URL diretamente pelo celular.
+  - Criado utilitário `firebaseErrors.js` para interceptar erros do Firebase Auth e traduzi-los para mensagens amigáveis ao usuário (ex: `auth/invalid-credential` virou `E-mail ou senha inválidos`).
 - [ ] **Problema a investigar (Edge Case):** Como tratar pacientes que usam a plataforma com **múltiplos nutricionistas diferentes**. O sistema hoje cruza a base de CPF isolada por nutricionista, mas pode haver conflito se o mesmo paciente for convidado por dois profissionais distintos.

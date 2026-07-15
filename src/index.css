@@ -423,3 +423,88 @@ body { overflow-x: hidden; -webkit-font-smoothing: antialiased; font-family: var
   from { opacity: 0; transform: translateY(10px); }
   to { opacity: 1; transform: translateY(0); }
 }
+
+/* ----------------------------------------------------
+   MEDHUB STYLE EXAM TABS & MARKDOWN
+------------------------------------------------------- */
+.results-tabs {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  border-bottom: 2px solid var(--crm-border);
+  padding-bottom: 8px;
+  margin-bottom: 24px;
+}
+.results-tab-btn {
+  padding: 8px 16px;
+  border: none;
+  background: transparent;
+  color: var(--crm-text-muted);
+  font-weight: 600;
+  font-size: 0.9rem;
+  cursor: pointer;
+  border-radius: 8px 8px 0 0;
+  white-space: nowrap;
+  transition: all 0.2s;
+}
+.results-tab-btn:hover {
+  color: var(--crm-text-main);
+  background-color: var(--crm-accent-soft);
+}
+.results-tab-btn.active {
+  color: var(--crm-accent);
+  border-bottom: 3px solid var(--crm-accent);
+  background-color: #F8FAFC;
+}
+
+.markdown-body {
+  font-size: 0.95rem;
+  line-height: 1.6;
+  color: var(--crm-text-main);
+}
+.markdown-body h2 {
+  font-size: 1.25rem;
+  margin-top: 24px;
+  margin-bottom: 16px;
+  border-bottom: 1px solid var(--crm-border);
+  padding-bottom: 8px;
+  color: var(--crm-primary);
+}
+.markdown-body h3 {
+  font-size: 1.1rem;
+  margin-top: 16px;
+  margin-bottom: 8px;
+}
+.markdown-body p { margin-bottom: 16px; }
+.markdown-body ul, .markdown-body ol { margin-bottom: 16px; padding-left: 24px; }
+.markdown-body li { margin-bottom: 8px; }
+.markdown-body strong { font-weight: 700; color: #000; }
+
+/* ----------------------------------------------------
+   PRESCRIPTION DRAG & DROP
+------------------------------------------------------- */
+.meal-dropzone {
+  border: 2px dashed var(--crm-border);
+  border-radius: 8px;
+  padding: 16px;
+  min-height: 80px;
+  background-color: #F8FAFC;
+  transition: all 0.2s ease;
+}
+.meal-dropzone.drag-over {
+  border-color: var(--crm-accent);
+  background-color: var(--crm-accent-soft);
+}
+.recipe-draggable {
+  cursor: grab;
+  padding: 12px;
+  border: 1px solid var(--crm-border);
+  border-radius: 8px;
+  background-color: white;
+  margin-bottom: 8px;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+  font-size: 0.9rem;
+}
+.recipe-draggable:active {
+  cursor: grabbing;
+}
