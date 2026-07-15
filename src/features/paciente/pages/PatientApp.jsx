@@ -30,7 +30,7 @@ export default function PatientApp() {
     try {
       // 1. Tenta logar no Firebase com o CPF como senha
       const { signInWithEmailAndPassword, createUserWithEmailAndPassword } = await import('firebase/auth');
-      const { auth, db } = await import('../../../firebase');
+      const { auth, db } = await import('../../../services/firebase');
       const { doc, getDoc, setDoc, deleteDoc } = await import('firebase/firestore');
       
       try {
