@@ -185,50 +185,60 @@ export default function ConsultationFlow({
             <div className="crm-card">
               <h2 style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '24px' }}><Edit3 color="var(--crm-accent)" /> Prescrição Dietética Estruturada</h2>
               
-              <div style={{ display: 'flex', gap: '16px', marginBottom: '24px' }}>
-                <div style={{ flex: 1 }}>
-                  <label className="crm-label">Título do Plano</label>
-                  <input type="text" className="crm-input" placeholder="Ex: Dieta de Transição (Verão)" value={dietTitle} onChange={e => setDietTitle(e.target.value)} style={{ fontWeight: '600', fontSize: '1.1rem' }} />
-                </div>
-                <div style={{ flex: 1 }}>
-                  <label className="crm-label">Importar Template</label>
-                  <select 
-                    className="crm-input" 
-                    onChange={e => {
-                      const tpl = dietTemplates?.find(t => t.id === e.target.value);
-                      if (tpl) {
-                        if (!dietTitle) setDietTitle(tpl.title);
-                        const newMeals = tpl.days 
-                          ? tpl.days.flatMap(d => d.meals.map(m => ({ ...m, name: `Dia ${d.dayIndex} - ${m.name}` }))) 
-                          : (tpl.meals || []);
-                        
-                        setDietMeals(prev => [...prev, ...newMeals]);
-                        e.target.value = "";
-                      }
-                    }}
-                    defaultValue=""
-                  >
-                    <option value="" disabled>Selecione um template salvo...</option>
-                    {dietTemplates?.map(t => (
-                      <option key={t.id} value={t.id}>{t.title}</option>
-                    ))}
-                  </select>
+              {/* Assistentes de Prescrição */}
+              <div style={{ marginBottom: '32px', padding: '24px', backgroundColor: '#F0FDF4', border: '1px solid #BBF7D0', borderRadius: '12px' }}>
+                <h3 style={{ fontSize: '1.1rem', color: '#166534', marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <Sparkles size={18} /> Como você deseja iniciar a prescrição?
+                </h3>
+                <div style={{ display: 'flex', gap: '16px' }}>
+                  <div style={{ flex: 1 }}>
+                    <button className="crm-btn-primary" onClick={generateDietFromAI} disabled={isGenerating} style={{ width: '100%', backgroundColor: '#10B981', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '8px', padding: '12px' }}>
+                      <Sparkles size={16} color="#FFF" /> {isGenerating ? 'Analisando...' : 'Sugerir com Inteligência Artificial'}
+                    </button>
+                    {examResult && (
+                      <p style={{ fontSize: '0.8rem', color: '#15803D', marginTop: '8px', textAlign: 'center' }}>
+                        A IA utilizará a análise dos exames como base.
+                      </p>
+                    )}
+                  </div>
+                  <div style={{ flex: 1 }}>
+                    <select 
+                      className="crm-input" 
+                      style={{ width: '100%', padding: '12px', borderColor: '#10B981', color: '#166534', cursor: 'pointer', backgroundColor: '#FFF' }}
+                      onChange={e => {
+                        const tpl = dietTemplates?.find(t => t.id === e.target.value);
+                        if (tpl) {
+                          if (!dietTitle) setDietTitle(tpl.title);
+                          const newMeals = tpl.days 
+                            ? tpl.days.flatMap(d => d.meals.map(m => ({ ...m, name: `Dia ${d.dayIndex} - ${m.name}` }))) 
+                            : (tpl.meals || []);
+                          
+                          setDietMeals(prev => [...prev, ...newMeals]);
+                          e.target.value = "";
+                        }
+                      }}
+                      defaultValue=""
+                    >
+                      <option value="" disabled>Carregar Template Salvo...</option>
+                      {dietTemplates?.map(t => (
+                        <option key={t.id} value={t.id}>{t.title}</option>
+                      ))}
+                    </select>
+                  </div>
                 </div>
               </div>
 
+              {/* Área de Trabalho Manual (Canvas) */}
               <div style={{ display: 'flex', gap: '24px', marginBottom: '32px' }}>
                 <div style={{ flex: 2 }}>
+                  <div style={{ marginBottom: '24px' }}>
+                    <label className="crm-label">Título do Plano Alimentar</label>
+                    <input type="text" className="crm-input" placeholder="Ex: Dieta de Transição (Verão)" value={dietTitle} onChange={e => setDietTitle(e.target.value)} style={{ fontWeight: '600', fontSize: '1.1rem' }} />
+                  </div>
+                  
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
                     <h3 style={{ fontSize: '1.1rem', color: 'var(--crm-text-main)' }}>Refeições do Cardápio</h3>
-                    <button className="crm-btn-primary" onClick={generateDietFromAI} disabled={isGenerating} style={{ backgroundColor: '#10B981' }}>
-                      <Sparkles size={16} color="#FFF" /> {isGenerating ? 'Gerando...' : 'Sugerir Plano Alimentar com IA'}
-                    </button>
                   </div>
-                  {examResult && (
-                    <p style={{ fontSize: '0.85rem', color: 'var(--crm-text-muted)', marginBottom: '16px' }}>
-                      💡 <strong>Dica:</strong> A IA utilizará a <em>Impressão Nutricional</em> da análise de exames para pré-preencher este plano.
-                    </p>
-                  )}
 
                   {dietMeals.length === 0 ? (
                     <div style={{ padding: '40px', textAlign: 'center', backgroundColor: '#FFF', border: '2px dashed var(--crm-border)', borderRadius: '8px' }}>
