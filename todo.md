@@ -70,6 +70,7 @@ Consolidado a partir da auditoria de produto e do `spec.md`. Ordenado por priori
 - [ ] Guard de rota real: redirecionar `/nutri` e `/paciente` para `/login` quando não há sessão ativa (hoje dá pra acessar direto pela URL).
 - [ ] Regras de segurança no Firestore que isolem dados por paciente/clínica no servidor — hoje o filtro é só visual no cliente.
 - [ ] Investigar e resolver a instabilidade do canal de escrita do Firestore (erro 503 recorrente) antes de depender dele em produção.
+- [ ] **Edge Case Estrutural:** Tratar o cenário onde um mesmo paciente (mesmo CPF/E-mail) é atendido por mais de um nutricionista na plataforma (atualmente o modelo assume relacionamento 1:N restrito via `nutricionista_id`).
 
 ### Monetização
 - [ ] Integração real com Stripe (checkout, webhooks de assinatura, bloqueio de features por plano).
@@ -142,7 +143,7 @@ Passagem tela a tela pelas duas metades do produto (CRM do nutricionista, app do
 - [ ] **Peso ainda é lançado via `window.prompt()` nativo do navegador** (`Profile.jsx` → `handleUpdateWeight`) — quebra completamente a identidade visual "gamificada" do resto do app; deveria ser um modal com o mesmo `btn-3d`/card style do resto do produto.
 - [ ] **Ícone de coração no TopBar (❤️ 5) sugere um sistema de "vidas" estilo Duolingo que não existe de verdade** — não há penalidade nem lógica associada a esse número, é decorativo. Ou constrói a mecânica de verdade (perder coração ao pular dia) ou remove o ícone — hoje é uma promessa visual que engana o paciente.
 - [ ] **`DietPlan.jsx` é uma lista estática de refeições passadas** — não indica visualmente qual dieta está ativa vs. histórico, nem tem estado por refeição (feito/pendente) como o `QuestBoard` tem. As duas telas mostram a mesma dieta de formas inconsistentes.
-- [ ] **Nenhum dark mode** — não é obrigatório, mas vale decisão consciente (ver skill de design usada na auditoria: "não default pra dark mode, mas também não ignorar a pergunta").
+- [x] **Nenhum dark mode** — não é obrigatório, mas vale decisão consciente (ver skill de design usada na auditoria: "não default pra dark mode, mas também não ignorar a pergunta"). Foi implementado o **Dark Mode Premium** com glassmorphism.
 - [ ] **Contraste de cor não verificado formalmente** — várias combinações (texto cinza claro `#94a3b8` sobre branco, badges) estão na faixa duvidosa de WCAG AA; precisa de auditoria de contraste real, não só visual.
 
 ### Consistência entre os dois mundos
@@ -196,3 +197,19 @@ Síntese dos dois comitês acima em uma ordem de execução única. Critério: o
 - [ ] **Verificação ao vivo pendente:** rodei lint (sem erros novos) e confirmei via código que o guard não bloqueia o modo dev, mas a automação de navegador desta sessão ficou instável no meio do teste do modal de peso e do chat — vale um clique manual rápido em `/paciente` → Vytal Bot e Perfil → Informar Meu Peso antes de considerar 100% validado.
 - [ ] Instabilidade do canal de escrita do Firestore (erro 503 observado nos testes) não foi resolvida — é de infraestrutura/rede do ambiente, não do código. O padrão "local-first" já em uso evita que isso trave a UI, mas vale investigar se persiste fora deste ambiente de dev.
 - [ ] "Trocar Papel" no CRM (`Sair (Trocar Papel)`) foi mantido como está — na prática só navega pra landing page, não é um bypass de segurança como os botões do Login.
+
+---
+
+## ✅ Executado em 15/07/2026 (Experiência Premium e Correções de Cadastro)
+
+- [x] **UX Redesign (App do Paciente):** Migração do visual "infantil" para um "Dark Mode Premium" focado em alta performance.
+  - Implementado **Glassmorphism** e cores neon para acentos.
+  - O `QuestBoard` abandonou a lista simples de tarefas e ganhou um **Gráfico Circular de Progresso** centralizado.
+  - Introduzido o **ShareableMilestone**: um cartão holográfico que aparece quando o paciente atinge 100% da dieta diária, pensado para gerar compartilhamento viral no Instagram.
+- [x] **Correções de Cadastro e Convite:**
+  - Impedida a criação de pacientes duplicados (mesmo CPF ou E-mail) para o mesmo nutricionista.
+  - Melhorada a UI do link de convite gerado, com botão de copiar fácil.
+  - Implementado envio automático de convite por e-mail via `mailto:` no momento do cadastro do paciente pelo nutricionista.
+- [x] **Bugfix Crítico (Produção):**
+  - Corrigido problema onde o link de convite (`/paciente?vincular=...`) redirecionava incorretamente o paciente para a tela de `/login` devido a um bloqueio do `RequireAuth`. A própria tela do paciente agora gerencia o onboarding sem bloquear links externos.
+- [ ] **Problema a investigar (Edge Case):** Como tratar pacientes que usam a plataforma com **múltiplos nutricionistas diferentes**. O sistema hoje cruza a base de CPF isolada por nutricionista, mas pode haver conflito se o mesmo paciente for convidado por dois profissionais distintos.

@@ -540,6 +540,29 @@ export default function PatientList({
                   )}
                 </div>
 
+                <div className="crm-card" style={{ flex: '1 1 400px' }}>
+                  <h3 style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '16px' }}>
+                    <Camera size={20} color="var(--crm-accent)" /> Diário Alimentar (Análises da IA)
+                  </h3>
+                  {(!viewedPatient.foodLogs || viewedPatient.foodLogs.length === 0) ? (
+                    <p style={{ color: 'var(--crm-text-muted)' }}>Nenhuma refeição registrada com foto ainda.</p>
+                  ) : (
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', maxHeight: '400px', overflowY: 'auto', paddingRight: '8px' }}>
+                      {viewedPatient.foodLogs.slice().reverse().map((log, idx) => (
+                        <div key={idx} style={{ padding: '16px', backgroundColor: '#F8FAFC', borderRadius: '8px', borderLeft: log.type === 'extra' ? '4px solid #F59E0B' : '4px solid var(--crm-accent)' }}>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
+                            <strong style={{ fontSize: '1rem', color: 'var(--crm-text-main)' }}>{log.mealName}</strong>
+                            <span style={{ fontSize: '0.85rem', color: 'var(--crm-text-muted)' }}>{log.date} às {log.time}</span>
+                          </div>
+                          <div style={{ fontSize: '0.95rem', color: 'var(--crm-text-muted)', whiteSpace: 'pre-wrap', lineHeight: '1.5' }}>
+                            {log.log}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+
                 <div className="crm-card" style={{ flex: '1 1 300px' }}>
                   <h3 style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '16px' }}>
                     <FileText size={20} color="var(--crm-accent)" /> Anotações do Prontuário

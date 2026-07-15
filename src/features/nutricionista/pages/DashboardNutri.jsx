@@ -180,15 +180,29 @@ export default function DashboardNutri() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          system_prompt: "Você é um motor de IA clínica estilo MedHub focado em nutrição funcional. Analise o exame laboratorial e retorne um JSON estrito com exatamente 3 chaves: 'detalhada' (Descreva minuciosamente os achados, marcadores alterados e seus valores), 'correlacao' (Faça a correlação fisiológica, riscos e diagnósticos cruzando com a anamnese e objetivo) e 'nutricao' (Liste ações de conduta nutricional e suplementação específicas para corrigir esses achados). ATENÇÃO: Os valores dessas chaves devem ser OBRIGATORIAMENTE textos limpos (pode usar quebras de linha \\n), nunca objetos aninhados.",
-          messages: messages,
-          format_json: true
+          system_prompt: `Você é um motor de IA clínica estilo MedHub focado em nutrição funcional. 
+Analise TODOS os resultados laboratoriais com detalhamento completo e retorne o resultado em texto limpo com seções Markdown, sem texto de apresentação.
+Use EXATAMENTE as seções com headers ## conforme mostrado abaixo:
+
+## Análise Detalhada
+ - Liste cada grupo de exames (Hemograma, Perfil Lipídico, etc).
+ - Indique: Parâmetro | Resultado | Referência | Status (✅ Normal / ⚠️ Alterado).
+ - Destaque correlações fisiológicas e metabólicas.
+
+## Correlação Clínica
+ - Relacione os achados com a anamnese e objetivo do paciente.
+ - Liste possíveis riscos e diagnósticos funcionais.
+
+## Conduta Nutricional e Suplementação
+ - Liste ações de conduta e prescrição de suplementação específicas para corrigir esses achados.
+`,
+          messages: messages
         })
       });
       if (!response.ok) throw new Error("Erro na rede ou na API.");
       const data = await response.json();
-      const parsedResult = JSON.parse(data.choices[0].message.content);
-      setExamResult(parsedResult);
+      const rawResult = data.choices[0].message.content;
+      setExamResult(rawResult);
       setExamUploaded(true);
     } catch (error) {
       setExamError(error.message || 'Erro ao analisar exame.');
@@ -203,7 +217,7 @@ export default function DashboardNutri() {
     try {
       let promptContext = `Objetivo: ${activePatient.objective}. Restrições: ${activePatient.restrictions || 'Nenhuma'}.`;
       if (anamnesis) promptContext += `\nAnamnese: ${anamnesis}`;
-      if (examResult) promptContext += `\nConduta Sugerida pelos Exames: ${examResult.nutricao}`;
+      if (examResult) promptContext += `\nConduta Sugerida pelos Exames:\n${examResult}`;
 
       const response = await fetch('/api/openai-bridge', {
         method: 'POST',

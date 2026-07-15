@@ -26,8 +26,28 @@ export default function PatientApp() {
   const [chatHistory, setChatHistory] = useState([]);
   const [chatInput, setChatInput] = useState('');
   const [isChatLoading, setIsChatLoading] = useState(false);
+  const [useMock, setUseMock] = useState(false);
 
-  const activePatient = patients.find(p => p.id === activePatientId) || patients[0];
+  const bypassPatient = {
+    id: 'mock_1',
+    name: 'Paciente Teste (Modo Dev)',
+    objective: 'Ganho de massa muscular',
+    waterTarget: 3000,
+    waterLogs: [],
+    mealsCompleted: [],
+    xp: 450,
+    streak: 3,
+    notifications: [{ id: 1, text: 'Aviso: não esqueça da água hoje!', read: false }],
+    recipes: [{
+      date: new Date().toISOString(),
+      meals: [
+        { id: 1, name: 'Café da Manhã', desc: '2 ovos mexidos, 1 fatia de pão integral, café preto.', type: 'cafe' },
+        { id: 2, name: 'Almoço', desc: '150g de peito de frango, 100g de arroz integral, salada à vontade.', type: 'almoco' }
+      ]
+    }]
+  };
+
+  const activePatient = useMock ? bypassPatient : (patients.find(p => p.id === activePatientId) || patients[0]);
   const currentRecipe = activePatient?.recipes?.length > 0 ? activePatient.recipes[activePatient.recipes.length - 1] : null;
 
   const handleLogin = async (e) => {
@@ -113,32 +133,42 @@ export default function PatientApp() {
   };
 
   const styles = {
-    container: { backgroundColor: '#f8fafc', minHeight: '100vh', fontFamily: "'Inter', sans-serif", paddingBottom: '100px', color: '#0f172a' },
-    content: { padding: '20px', maxWidth: '600px', margin: '0 auto' },
-    card: { backgroundColor: '#ffffff', borderRadius: '20px', padding: '20px', border: '2px solid #e2e8f0', boxShadow: '0 4px 0 #cbd5e1', marginBottom: '16px' },
-    actionBtn: { backgroundColor: '#3b82f6', color: 'white', border: 'none', borderRadius: '12px', padding: '12px 20px', fontWeight: '800', fontSize: '1rem', cursor: 'pointer', boxShadow: '0 4px 0 #2563eb', display: 'flex', alignItems: 'center', gap: '8px' }
+    content: { padding: '20px', maxWidth: '600px', margin: '0 auto' }
   };
 
   if (!isLoggedIn) {
     return (
-      <div style={{...styles.container, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px'}}>
-        <div style={{...styles.card, width: '100%', maxWidth: '400px'}}>
-          <div style={{textAlign: 'center', marginBottom: '24px'}}>
-            <h1 style={{color: '#1e293b', margin: '0 0 8px 0'}}>Vytal App</h1>
-            <p style={{color: '#64748b', margin: 0}}>Acesse seu plano alimentar</p>
+      <div className="patient-container" style={{display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px'}}>
+        <div className="patient-card patient-glass" style={{width: '100%', maxWidth: '400px'}}>
+          <div style={{textAlign: 'center', marginBottom: '32px'}}>
+            <div className="animate-pulse-glow" style={{width: '60px', height: '60px', borderRadius: '50%', background: 'var(--primary-color)', margin: '0 auto 16px', display: 'flex', alignItems: 'center', justifyContent: 'center'}}>
+              <span style={{fontSize: '32px'}}>🍏</span>
+            </div>
+            <h1 style={{color: 'var(--patient-text)', margin: '0 0 8px 0', fontSize: '1.8rem'}}>Vytal App</h1>
+            <p style={{color: 'var(--patient-text-muted)', margin: 0}}>Acesse seu plano de Alta Performance</p>
           </div>
-          {loginError && <div style={{backgroundColor: '#fee2e2', color: '#b91c1c', padding: '12px', borderRadius: '8px', marginBottom: '16px', fontSize: '0.9rem'}}>{loginError}</div>}
-          <form onSubmit={handleLogin} style={{display: 'flex', flexDirection: 'column', gap: '16px'}}>
+          {loginError && <div style={{backgroundColor: 'rgba(255,0,85,0.1)', color: 'var(--accent-color)', padding: '12px', borderRadius: '8px', marginBottom: '16px', fontSize: '0.9rem', border: '1px solid var(--accent-color)'}}>{loginError}</div>}
+          <form onSubmit={handleLogin} style={{display: 'flex', flexDirection: 'column', gap: '20px'}}>
             <div>
-              <label style={{display: 'block', marginBottom: '6px', fontWeight: 'bold', color: '#334155'}}>E-mail cadastrado</label>
-              <input type="email" value={loginEmail} onChange={e => setLoginEmail(e.target.value)} placeholder="Ex: ana@silva.com" style={{width: '100%', padding: '12px', borderRadius: '8px', border: '1px solid #cbd5e1', boxSizing: 'border-box'}} required />
+              <label style={{display: 'block', marginBottom: '8px', fontWeight: '600', color: 'var(--patient-text-muted)', fontSize: '0.9rem'}}>E-MAIL</label>
+              <input type="email" value={loginEmail} onChange={e => setLoginEmail(e.target.value)} placeholder="Seu e-mail" style={{width: '100%', padding: '14px', borderRadius: '12px', border: '1px solid var(--glass-border)', background: 'rgba(0,0,0,0.2)', color: 'var(--patient-text)', boxSizing: 'border-box'}} required />
             </div>
             <div>
-              <label style={{display: 'block', marginBottom: '6px', fontWeight: 'bold', color: '#334155'}}>CPF</label>
-              <input type="text" value={loginCpf} onChange={e => setLoginCpf(e.target.value)} placeholder="Ex: 111.111.111-11" style={{width: '100%', padding: '12px', borderRadius: '8px', border: '1px solid #cbd5e1', boxSizing: 'border-box'}} required />
+              <label style={{display: 'block', marginBottom: '8px', fontWeight: '600', color: 'var(--patient-text-muted)', fontSize: '0.9rem'}}>CPF</label>
+              <input type="text" value={loginCpf} onChange={e => setLoginCpf(e.target.value)} placeholder="111.111.111-11" style={{width: '100%', padding: '14px', borderRadius: '12px', border: '1px solid var(--glass-border)', background: 'rgba(0,0,0,0.2)', color: 'var(--patient-text)', boxSizing: 'border-box'}} required />
             </div>
-            <button type="submit" className="btn-3d" style={{...styles.actionBtn, justifyContent: 'center', width: '100%', marginTop: '8px'}}><Lock size={18} /> Entrar</button>
+            <button type="submit" className="btn-3d btn-primary" style={{width: '100%', marginTop: '12px'}}><Lock size={18} style={{marginRight: '8px'}} /> ACESSAR</button>
           </form>
+          
+          {import.meta.env.DEV && (
+            <button 
+              onClick={() => { setUseMock(true); setIsLoggedIn(true); }} 
+              className="btn-3d" 
+              style={{width: '100%', marginTop: '16px', background: 'var(--glass-panel)', border: '1px solid var(--glass-border)', color: 'var(--patient-text)'}}
+            >
+              🛠️ BYPASS MODO TESTE (DEV)
+            </button>
+          )}
         </div>
       </div>
     );
@@ -146,14 +176,14 @@ export default function PatientApp() {
 
   if (!activePatient) {
     return (
-      <div style={{...styles.container, display: 'flex', alignItems: 'center', justifyContent: 'center'}}>
-        <p style={{color: '#64748b', fontSize: '1.2rem'}}>Carregando seus dados...</p>
+      <div className="patient-container" style={{display: 'flex', alignItems: 'center', justifyContent: 'center'}}>
+        <p style={{color: 'var(--patient-text-muted)', fontSize: '1.2rem', fontWeight: '600'}}>Sincronizando perfil...</p>
       </div>
     );
   }
 
   return (
-    <div style={styles.container}>
+    <div className="patient-container">
       <TopBar streak={activePatient.streak} gems={activePatient.xp} notifications={activePatient.notifications || []} onOpenNotifications={() => markNotificationsRead(activePatient.id)} />
       <div style={styles.content}>
         {currentView === 'home' && <QuestBoard activePatient={activePatient} />}

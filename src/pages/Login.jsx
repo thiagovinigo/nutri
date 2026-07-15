@@ -3,6 +3,7 @@ import { useNavigate, Link } from 'react-router-dom';
 import { auth, db } from '../services/firebase';
 import { signInWithEmailAndPassword } from 'firebase/auth';
 import { doc, getDoc, setDoc } from 'firebase/firestore';
+import { getFirebaseErrorMessage } from '../utils/firebaseErrors';
 
 export default function Login() {
   const [email, setEmail] = useState('');
@@ -54,7 +55,7 @@ export default function Login() {
       }
       
     } catch (error) {
-      setErrorMsg(error.message);
+      setErrorMsg(getFirebaseErrorMessage(error));
     } finally {
       setLoading(false);
     }

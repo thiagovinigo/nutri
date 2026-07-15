@@ -1,6 +1,7 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { Target, Check, Camera, Sparkles, Flame, Droplets, AlertCircle } from 'lucide-react';
 import { useAppContext } from '../../../context/AppContext';
+import ShareableMilestone from './ShareableMilestone';
 
 export default function QuestBoard({ activePatient }) {
   const { completeQuest, markMealDone, addExtraMealLog, addWater } = useAppContext();
@@ -9,12 +10,20 @@ export default function QuestBoard({ activePatient }) {
   const [previewImage, setPreviewImage] = useState(null);
   const [activeMealIndex, setActiveMealIndex] = useState(null);
   const [analysisError, setAnalysisError] = useState(null);
+  const [showMilestone, setShowMilestone] = useState(false);
   const fileInputRef = useRef(null);
 
   const currentRecipe = activePatient?.recipes?.length > 0 ? activePatient.recipes[activePatient.recipes.length - 1] : null;
   const totalMeals = currentRecipe ? currentRecipe.meals.length : 0;
   const completedMeals = currentRecipe ? currentRecipe.meals.filter(m => m.done).length : 0;
   const progressPercent = totalMeals > 0 ? Math.round((completedMeals / totalMeals) * 100) : 0;
+
+  // Mostra milestone quando atinge 100%
+  useEffect(() => {
+    if (progressPercent === 100 && totalMeals > 0 && !activePatient.milestoneShownToday) {
+      setShowMilestone(true);
+    }
+  }, [progressPercent, totalMeals, activePatient.milestoneShownToday]);
 
   const handleDrinkWater = () => {
     addWater(activePatient.id);
@@ -63,7 +72,8 @@ export default function QuestBoard({ activePatient }) {
             addExtraMealLog(activePatient.id, aiFeedback);
             completeQuest(activePatient.id, 5); 
           } else {
-            markMealDone(activePatient.id, activePatient.recipes.length - 1, activeMealIndex, aiFeedback);
+            const mealName = currentRecipe.meals[activeMealIndex]?.name || 'Refeição';
+            markMealDone(activePatient.id, activePatient.recipes.length - 1, activeMealIndex, aiFeedback, mealName);
             completeQuest(activePatient.id, 20); 
           }
           setPreviewImage(null);
@@ -83,92 +93,105 @@ export default function QuestBoard({ activePatient }) {
     }
   };
 
+  // SVG Circular Progress
+  const radius = 40;
+  const circumference = 2 * Math.PI * radius;
+  const strokeDashoffset = circumference - (progressPercent / 100) * circumference;
+
   return (
     <div className="animate-pop-in">
       <input type="file" accept="image/*" capture="environment" ref={fileInputRef} style={{ display: 'none' }} onChange={handleFileChange} />
       
-      <div style={{...styles.card, display: 'flex', alignItems: 'center', justifyContent: 'space-between'}}>
+      {showMilestone && <ShareableMilestone onClose={() => setShowMilestone(false)} />}
+
+      <div className="patient-card patient-glass" style={{display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '20px'}}>
         <div>
-          <h3 style={{margin: 0, color: '#0284c7', display: 'flex', alignItems: 'center', gap: '6px'}}><Droplets size={20}/> Hidratação</h3>
-          <p style={{margin: '4px 0 0 0', color: '#64748b'}}>Você já bebeu {activePatient.waterGlasses || 0} copos hoje.</p>
+          <h3 style={{margin: 0, color: 'var(--primary-color)', display: 'flex', alignItems: 'center', gap: '8px'}}><Droplets size={20}/> Hidratação</h3>
+          <p style={{margin: '4px 0 0 0', color: 'var(--patient-text-muted)'}}>{activePatient.waterGlasses || 0} copos hoje</p>
         </div>
-        <button className="btn-3d" style={{...styles.actionBtn, backgroundColor: '#38bdf8', boxShadow: '0 4px 0 #0284c7'}} onClick={handleDrinkWater}>
-          + Copo
+        <button className="btn-3d btn-primary" style={{padding: '10px 16px', fontSize: '0.9rem'}} onClick={handleDrinkWater}>
+          + COPO
         </button>
       </div>
 
       {analysisError && (
-        <div role="alert" style={styles.errorBanner}>
-          <AlertCircle size={20} color="#dc2626" style={{ flexShrink: 0 }} />
+        <div role="alert" className="patient-card" style={{borderColor: 'var(--accent-color)', backgroundColor: 'rgba(255,0,85,0.1)', display: 'flex', alignItems: 'center', gap: '10px', color: 'var(--accent-color)', marginBottom: '20px'}}>
+          <AlertCircle size={20} style={{ flexShrink: 0 }} />
           <span>{analysisError}</span>
         </div>
       )}
 
       {currentRecipe ? (
         <>
-          <div style={{...styles.card, backgroundColor: progressPercent === 100 ? '#dcfce7' : '#fff', borderColor: progressPercent === 100 ? '#86efac' : '#e2e8f0'}}>
-            <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center'}}>
-              <h3 style={{margin: 0, color: progressPercent === 100 ? '#166534' : '#0f172a'}}>Suas Refeições</h3>
-              <span style={{fontWeight: 'bold', fontSize: '1.2rem', color: progressPercent === 100 ? '#16a34a' : '#3b82f6'}}>{completedMeals} / {totalMeals}</span>
+          <div className="patient-card patient-glass" style={{display: 'flex', alignItems: 'center', gap: '20px', marginBottom: '24px'}}>
+            <div style={{position: 'relative', width: '100px', height: '100px'}}>
+              <svg width="100" height="100" style={{transform: 'rotate(-90deg)'}}>
+                <circle cx="50" cy="50" r={radius} stroke="rgba(255,255,255,0.1)" strokeWidth="8" fill="none" />
+                <circle cx="50" cy="50" r={radius} stroke="var(--primary-color)" strokeWidth="8" fill="none" strokeDasharray={circumference} strokeDashoffset={strokeDashoffset} style={{transition: 'stroke-dashoffset 1s ease-in-out', strokeLinecap: 'round'}} />
+              </svg>
+              <div style={{position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column'}}>
+                <span style={{fontSize: '1.2rem', fontWeight: '900', color: progressPercent === 100 ? '#FFD700' : 'var(--patient-text)'}}>{progressPercent}%</span>
+              </div>
             </div>
-            <div style={styles.progressBarBg}>
-              <div style={{...styles.progressBarFill, width: `${progressPercent}%`}}></div>
+            <div>
+              <h3 style={{margin: '0 0 4px 0', fontSize: '1.3rem', color: 'var(--patient-text)'}}>Performance</h3>
+              <p style={{margin: 0, color: 'var(--patient-text-muted)'}}>{completedMeals} de {totalMeals} refeições concluídas</p>
             </div>
           </div>
 
-          <h2 style={styles.sectionTitle}><Target color="#f59e0b" /> Checklist de Hoje</h2>
+          <h2 style={{fontSize: '1.2rem', fontWeight: '800', marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--patient-text)'}}><Target color="var(--primary-color)" /> Refeições de Hoje</h2>
 
           {currentRecipe.meals.map((meal, idx) => {
             const isAnalyzingThis = analyzing && activeMealIndex === idx;
             return (
-              <div key={idx} style={{...styles.card, display: 'flex', flexDirection: 'column', borderColor: meal.done ? '#86efac' : '#e2e8f0'}}>
+              <div key={idx} className="patient-card patient-glass" style={{display: 'flex', flexDirection: 'column', marginBottom: '16px', borderColor: meal.done ? 'var(--primary-color)' : 'var(--glass-border)'}}>
                 <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: meal.done && meal.log ? '12px' : '0'}}>
                   <div>
-                    <h4 style={{margin: 0, fontSize: '1.1rem', color: meal.done ? '#16a34a' : '#0f172a', display: 'flex', alignItems: 'center', gap: '6px'}}>
-                      {meal.done && <Check size={18} color="#16a34a" />} {meal.name}
+                    <h4 style={{margin: 0, fontSize: '1.1rem', color: meal.done ? 'var(--primary-color)' : 'var(--patient-text)', display: 'flex', alignItems: 'center', gap: '8px'}}>
+                      {meal.done && <Check size={18} color="var(--primary-color)" />} {meal.name}
                     </h4>
-                    <p style={{margin: '4px 0 0 0', fontSize: '0.9rem', color: '#64748b'}}>{meal.desc}</p>
+                    <p style={{margin: '4px 0 0 0', fontSize: '0.9rem', color: 'var(--patient-text-muted)'}}>{meal.desc}</p>
                   </div>
                   {!meal.done ? (
-                    <button className="btn-3d" style={styles.actionBtn} onClick={() => handleCameraClick(idx)} disabled={analyzing}>
+                    <button className="btn-3d btn-primary" style={{padding: '12px', borderRadius: '50%'}} onClick={() => handleCameraClick(idx)} disabled={analyzing}>
                       <Camera size={20} />
                     </button>
                   ) : (
-                    <span style={{backgroundColor: '#16a34a', color: 'white', padding: '6px 12px', borderRadius: '12px', fontWeight: 'bold', fontSize: '0.9rem'}}>FEITO</span>
+                    <span style={{backgroundColor: 'rgba(0,229,255,0.2)', color: 'var(--primary-color)', padding: '6px 12px', borderRadius: '12px', fontWeight: 'bold', fontSize: '0.8rem'}}>CONCLUÍDO</span>
                   )}
                 </div>
                 {isAnalyzingThis && (
-                  <div style={{marginTop: '12px', padding: '16px', backgroundColor: '#e0f2fe', borderRadius: '12px', textAlign: 'center', animation: 'pulse 1.5s infinite'}}>
-                    {previewImage && <img src={previewImage} alt="Preview" style={{width: '80px', height: '80px', objectFit: 'cover', borderRadius: '12px', marginBottom: '12px'}} />}
-                    <h4 style={{color: '#0284c7', margin: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px'}}><Sparkles size={18} /> Avaliando sua refeição...</h4>
+                  <div className="animate-pulse-glow" style={{marginTop: '16px', padding: '16px', backgroundColor: 'rgba(0,229,255,0.1)', borderRadius: '12px', textAlign: 'center'}}>
+                    {previewImage && <img src={previewImage} alt="Preview" style={{width: '80px', height: '80px', objectFit: 'cover', borderRadius: '12px', marginBottom: '12px', border: '1px solid var(--primary-color)'}} />}
+                    <h4 style={{color: 'var(--primary-color)', margin: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px'}}><Sparkles size={18} /> IA Analisando Nutrientes...</h4>
                   </div>
                 )}
                 {meal.done && meal.log && (
-                  <div style={{marginTop: '12px', padding: '12px', backgroundColor: '#f8fafc', borderRadius: '12px', borderLeft: '4px solid #3b82f6'}}>
-                    <p style={{margin: 0, fontSize: '0.9rem', color: '#334155', fontStyle: 'italic'}}>"{meal.log}" - EloIA</p>
+                  <div style={{marginTop: '16px', padding: '12px', backgroundColor: 'rgba(255,255,255,0.05)', borderRadius: '12px', borderLeft: '3px solid var(--primary-color)'}}>
+                    <p style={{margin: 0, fontSize: '0.9rem', color: 'var(--patient-text)', fontStyle: 'italic'}}>"{meal.log}" - Vytal AI</p>
                   </div>
                 )}
               </div>
             );
           })}
 
-          <div style={{marginTop: '24px'}}>
-            <button className="btn-3d" style={{...styles.actionBtn, backgroundColor: '#f1f5f9', color: '#475569', boxShadow: '0 4px 0 #cbd5e1', width: '100%', justifyContent: 'center'}} onClick={() => handleCameraClick('extra')} disabled={analyzing}>
-              <Flame size={20} color="#94a3b8" /> Comeu algo diferente? Registre sem culpa!
+          <div style={{marginTop: '32px'}}>
+            <button className="btn-3d btn-secondary" style={{width: '100%', justifyContent: 'center'}} onClick={() => handleCameraClick('extra')} disabled={analyzing}>
+              <Flame size={20} style={{marginRight: '8px'}} /> Registre refeição livre
             </button>
             {analyzing && activeMealIndex === 'extra' && (
-              <div style={{marginTop: '12px', padding: '16px', backgroundColor: '#fdf4ff', borderRadius: '12px', textAlign: 'center', animation: 'pulse 1.5s infinite'}}>
-                {previewImage && <img src={previewImage} alt="Preview Extra" style={{width: '80px', height: '80px', objectFit: 'cover', borderRadius: '12px', marginBottom: '12px'}} />}
-                <h4 style={{color: '#c026d3', margin: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px'}}><Sparkles size={18} /> Registrando com carinho...</h4>
+              <div className="animate-pulse-glow" style={{marginTop: '16px', padding: '16px', backgroundColor: 'rgba(255,0,85,0.1)', borderRadius: '12px', textAlign: 'center'}}>
+                {previewImage && <img src={previewImage} alt="Preview Extra" style={{width: '80px', height: '80px', objectFit: 'cover', borderRadius: '12px', marginBottom: '12px', border: '1px solid var(--accent-color)'}} />}
+                <h4 style={{color: 'var(--accent-color)', margin: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px'}}><Sparkles size={18} /> Analisando sem culpa...</h4>
               </div>
             )}
             {activePatient.extraLogs && activePatient.extraLogs.length > 0 && (
-              <div style={{marginTop: '16px'}}>
-                <h3 style={{...styles.sectionTitle, color: '#8b5cf6'}}><Flame color="#a78bfa"/> Diário de Exceções Livres</h3>
+              <div style={{marginTop: '24px'}}>
+                <h3 style={{fontSize: '1.1rem', fontWeight: '800', marginBottom: '16px', color: 'var(--accent-color)', display: 'flex', alignItems: 'center', gap: '8px'}}><Flame color="var(--accent-color)"/> Diário Livre</h3>
                 {activePatient.extraLogs.slice().reverse().map((elog, i) => (
-                    <div key={i} style={{...styles.card, flexDirection: 'column', alignItems: 'flex-start', backgroundColor: '#f5f3ff', borderColor: '#ddd6fe'}}>
-                      <strong style={{color: '#7c3aed', marginBottom: '8px'}}>Registrado às {elog.time}</strong>
-                      <p style={{margin: 0, fontSize: '0.9rem', color: '#5b21b6', fontStyle: 'italic'}}>"{elog.log}" - EloIA</p>
+                    <div key={i} className="patient-card patient-glass" style={{marginBottom: '12px', borderColor: 'rgba(255,0,85,0.3)'}}>
+                      <strong style={{color: 'var(--accent-color)', marginBottom: '8px', display: 'block', fontSize: '0.8rem'}}>Registrado às {elog.time}</strong>
+                      <p style={{margin: 0, fontSize: '0.9rem', color: 'var(--patient-text)', fontStyle: 'italic'}}>"{elog.log}" - Vytal AI</p>
                     </div>
                 ))}
               </div>
@@ -176,21 +199,12 @@ export default function QuestBoard({ activePatient }) {
           </div>
         </>
       ) : (
-        <div style={{textAlign: 'center', padding: '40px 20px', color: '#64748b'}}>
-          <AlertCircle size={48} color="#cbd5e1" style={{marginBottom: '16px'}} />
-          <h3>Sem Dieta Ativa</h3>
-          <p>O seu nutricionista ainda não enviou um cardápio estruturado para você.</p>
+        <div style={{textAlign: 'center', padding: '60px 20px', color: 'var(--patient-text-muted)'}}>
+          <AlertCircle size={48} color="var(--glass-border)" style={{marginBottom: '16px'}} />
+          <h3 style={{color: 'var(--patient-text)'}}>Sem Plano Ativo</h3>
+          <p>O seu nutricionista ainda não liberou seu cardápio de Alta Performance.</p>
         </div>
       )}
     </div>
   );
 }
-
-const styles = {
-  sectionTitle: { fontSize: '1.2rem', fontWeight: '800', marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '8px', color: '#1e293b' },
-  card: { backgroundColor: '#ffffff', borderRadius: '20px', padding: '20px', border: '2px solid #e2e8f0', boxShadow: '0 4px 0 #cbd5e1', marginBottom: '16px' },
-  actionBtn: { backgroundColor: '#3b82f6', color: 'white', border: 'none', borderRadius: '12px', padding: '12px 20px', fontWeight: '800', fontSize: '1rem', cursor: 'pointer', boxShadow: '0 4px 0 #2563eb', transition: 'transform 0.1s, box-shadow 0.1s', display: 'flex', alignItems: 'center', gap: '8px' },
-  progressBarBg: { height: '16px', backgroundColor: '#e2e8f0', borderRadius: '8px', width: '100%', overflow: 'hidden', marginTop: '8px' },
-  progressBarFill: { height: '100%', backgroundColor: '#22c55e', transition: 'width 0.5s ease-out' },
-  errorBanner: { display: 'flex', alignItems: 'center', gap: '10px', backgroundColor: '#fef2f2', border: '2px solid #fecaca', borderRadius: '16px', padding: '14px 16px', marginBottom: '16px', color: '#991b1b', fontSize: '0.9rem', fontWeight: 600 }
-};
