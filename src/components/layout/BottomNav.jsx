@@ -1,34 +1,37 @@
 import React from 'react';
-import { Home, Shield, Target, User } from 'lucide-react';
+import { Home, ClipboardList, BookOpen, User, MessageCircle } from 'lucide-react';
 
 export default function BottomNav({ currentView, setCurrentView }) {
   const navItems = [
-    { id: 'learn', icon: <Home size={28} />, label: 'Aprender' },
-    { id: 'leaderboard', icon: <Shield size={28} />, label: 'Ranking' },
-    { id: 'quests', icon: <Target size={28} />, label: 'Missões' },
+    { id: 'home', icon: <Home size={28} />, label: 'Início' },
+    { id: 'diet', icon: <ClipboardList size={28} />, label: 'Plano' },
+    { id: 'recipes', icon: <BookOpen size={28} />, label: 'Receitas' },
+    { id: 'quests', icon: <MessageCircle size={28} />, label: 'Nutri-Bot' },
     { id: 'profile', icon: <User size={28} />, label: 'Perfil' }
   ];
 
   return (
-    <div style={styles.navContainer} className="glass-panel">
+    <nav style={styles.navContainer} className="glass-panel" aria-label="Navegação principal">
       {navItems.map(item => {
         const isActive = currentView === item.id;
         return (
-          <button 
+          <button
             key={item.id}
             onClick={() => setCurrentView(item.id)}
+            aria-label={item.label}
+            aria-current={isActive ? 'page' : undefined}
             style={{
               ...styles.navItem,
               color: isActive ? 'var(--primary-color)' : 'var(--text-muted)',
-              transform: isActive ? 'scale(1.1)' : 'scale(1)',
               background: isActive ? 'rgba(88, 204, 2, 0.1)' : 'transparent'
             }}
           >
-            {item.icon}
+            <span style={{ transform: isActive ? 'scale(1.1)' : 'scale(1)', transition: 'transform 0.2s' }}>{item.icon}</span>
+            <span style={styles.navLabel}>{item.label}</span>
           </button>
         );
       })}
-    </div>
+    </nav>
   );
 }
 
@@ -42,9 +45,8 @@ const styles = {
     justifyContent: 'space-around',
     padding: '12px 10px',
     paddingBottom: 'max(12px, env(safe-area-inset-bottom))',
-    borderBottom: 'none',
-    borderLeft: 'none',
-    borderRight: 'none',
+    borderTop: '1px solid #e2e8f0',
+    backgroundColor: '#ffffff',
     borderRadius: '20px 20px 0 0',
     zIndex: 100,
   },
@@ -53,9 +55,14 @@ const styles = {
     display: 'flex',
     flexDirection: 'column',
     alignItems: 'center',
-    padding: '8px 16px',
+    gap: '2px',
+    padding: '6px 14px',
     borderRadius: '12px',
     cursor: 'pointer',
-    transition: 'all 0.2s',
+    transition: 'background-color 0.2s',
+  },
+  navLabel: {
+    fontSize: '11px',
+    fontWeight: 700,
   }
 };

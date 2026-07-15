@@ -1,58 +1,58 @@
-import React, { useState } from 'react';
+import React from 'react';
+import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import DashboardNutri from './features/nutricionista/pages/DashboardNutri';
 import PatientApp from './features/paciente/pages/PatientApp';
-import { ArrowRightLeft } from 'lucide-react';
+import LandingPage from './pages/LandingPage';
+import Login from './pages/Login';
+import SignUp from './pages/SignUp';
 import { AppProvider, useAppContext } from './context/AppContext';
 
-function MainLayout() {
-  const [role, setRole] = useState('patient'); // 'patient' or 'nutri'
-  const { patients, activePatientId, setActivePatientId } = useAppContext();
+// Em produção, exige sessão real. Em dev (`vite dev`), deixa passar sem login
+// para permitir os atalhos "Modo Nutricionista/Paciente" usados em testes.
+function RequireAuth({ children }) {
+  const { session } = useAppContext();
+  if (!session && !import.meta.env.DEV) {
+    return <Navigate to="/login" replace />;
+  }
+  return children;
+}
+
+const FeedbackButton = () => {
+  const location = useLocation();
+  if (location.pathname === '/' || location.pathname === '/login') return null;
+
+  // No /paciente existe uma barra de navegação fixa na parte inferior — o botão
+  // sobe para não ficar em cima dela (antes cobria por completo a aba "Perfil").
+  const bottomOffset = location.pathname === '/paciente' ? 'calc(env(safe-area-inset-bottom, 0px) + 84px)' : '20px';
 
   return (
-    <div style={{ height: '100vh', width: '100vw', display: 'flex', flexDirection: 'column' }}>
-      {/* Dev Toggle Bar */}
-      <div style={{
-        background: '#333', color: 'white', padding: '12px 16px', display: 'flex', 
-        justifyContent: 'space-between', alignItems: 'center', zIndex: 1000, flexShrink: 0
-      }}>
-        <div style={{display: 'flex', alignItems: 'center', gap: '16px'}}>
-          <strong style={{ letterSpacing: '1px' }}>EloNutri <span style={{fontWeight: 'normal', opacity: 0.7}}>MVP</span></strong>
-          
-          <select 
-            value={activePatientId} 
-            onChange={(e) => setActivePatientId(parseInt(e.target.value))}
-            style={{padding: '4px', borderRadius: '4px', background: '#555', color: 'white', border: 'none'}}
-          >
-            {patients.map(p => (
-              <option key={p.id} value={p.id}>Simulando Paciente: {p.name}</option>
-            ))}
-          </select>
-        </div>
-
-        <button 
-          onClick={() => setRole(role === 'patient' ? 'nutri' : 'patient')}
-          style={{
-            background: 'var(--primary-color)', border: 'none', color: 'white', 
-            padding: '6px 12px', borderRadius: '8px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px',
-            fontWeight: 'bold'
-          }}
-        >
-          <ArrowRightLeft size={16} />
-          Trocar para Visão {role === 'patient' ? 'Nutricionista' : 'Paciente'}
-        </button>
-      </div>
-
-      <div style={{ flex: 1, overflow: 'hidden' }}>
-        {role === 'patient' ? <PatientApp /> : <DashboardNutri />}
-      </div>
-    </div>
+    <a
+      href="mailto:suporte@vytal.com?subject=Feedback/Bug Report"
+      style={{
+        position: 'fixed', bottom: bottomOffset, right: '20px', zIndex: 9999,
+        backgroundColor: '#f59e0b', color: 'white', padding: '12px 24px',
+        borderRadius: '50px', textDecoration: 'none', fontWeight: 'bold',
+        boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)', display: 'flex', alignItems: 'center', gap: '8px'
+      }}
+    >
+      <span>💬 Sugestões/Bugs</span>
+    </a>
   );
-}
+};
 
 function App() {
   return (
     <AppProvider>
-      <MainLayout />
+      <BrowserRouter>
+        <Routes>
+          <Route path="/" element={<LandingPage />} />
+          <Route path="/login" element={<Login />} />
+          <Route path="/cadastro" element={<SignUp />} />
+          <Route path="/nutri" element={<RequireAuth><DashboardNutri /></RequireAuth>} />
+          <Route path="/paciente" element={<RequireAuth><PatientApp /></RequireAuth>} />
+        </Routes>
+        <FeedbackButton />
+      </BrowserRouter>
     </AppProvider>
   );
 }

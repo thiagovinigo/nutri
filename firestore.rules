@@ -1,0 +1,43 @@
+rules_version = '2';
+
+// Regras de segurança do Firestore para o Vytal.
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    match /users/{userId} {
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+    }
+
+    match /patients/{patientId} {
+      // Paciente pode ler e atualizar seu próprio doc
+      allow read, update: if request.auth != null && request.auth.uid == patientId;
+      
+      // Nutricionista dono pode ler, atualizar, criar, deletar
+      allow read, update, delete: if request.auth != null
+        && resource.data.nutricionista_id == request.auth.uid;
+      allow create: if request.auth != null
+        && request.resource.data.nutricionista_id == request.auth.uid;
+    }
+
+    match /appointments/{apptId} {
+      allow read, update, delete: if request.auth != null
+        && resource.data.nutricionista_id == request.auth.uid;
+      allow create: if request.auth != null
+        && request.resource.data.nutricionista_id == request.auth.uid;
+    }
+
+    match /dietTemplates/{templateId} {
+      allow read, update, delete: if request.auth != null
+        && resource.data.nutricionista_id == request.auth.uid;
+      allow create: if request.auth != null
+        && request.resource.data.nutricionista_id == request.auth.uid;
+    }
+
+    match /recipes/{recipeId} {
+      allow read, update, delete: if request.auth != null
+        && resource.data.nutricionista_id == request.auth.uid;
+      allow create: if request.auth != null
+        && request.resource.data.nutricionista_id == request.auth.uid;
+    }
+  }
+}
