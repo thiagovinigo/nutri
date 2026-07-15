@@ -439,17 +439,7 @@ export default function PatientList({
                   ← Voltar para Lista
                 </button>
                 <div style={{ display: 'flex', gap: '12px' }}>
-                  <button className="crm-btn-secondary" onClick={() => {
-                    if (!profile?.id) return alert('Perfil não carregado!');
-                    const link = `${window.location.origin}/cadastro?nutri=${profile.id}&vincular=${viewedPatient.id}`;
-                    navigator.clipboard.writeText(link);
-                    alert(`Link Único de Convite copiado!\nQuando o paciente acessar, os dados dele serão automaticamente transferidos.\nLink: ${link}`);
-                    if (viewedPatient.email) {
-                      window.location.href = `mailto:${viewedPatient.email}?subject=Convite para o Vytal App&body=Olá ${viewedPatient.name}, criei o seu cadastro na minha plataforma! Acesse o link abaixo para criar sua senha e baixar o app:\n\n${link}`;
-                    }
-                  }} style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                    <LinkIcon size={16} /> Enviar Convite
-                  </button>
+
                   <button className="crm-btn-secondary" onClick={() => generatePatientSynthesis(viewedPatient)} disabled={isSynthesizing} style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                     <BrainCircuit size={16} color="var(--crm-accent)" /> 
                     {isSynthesizing ? 'Analisando Histórico...' : 'Gerar Síntese Clínica (IA)'}
