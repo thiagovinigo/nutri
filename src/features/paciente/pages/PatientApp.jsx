@@ -24,15 +24,57 @@ export default function PatientApp() {
   const activePatient = patients.find(p => p.id === activePatientId) || patients[0];
   const currentRecipe = activePatient?.recipes?.length > 0 ? activePatient.recipes[activePatient.recipes.length - 1] : null;
 
-  const handleLogin = (e) => {
+  const handleLogin = async (e) => {
     e.preventDefault();
-    const found = patients.find(p => p.email === loginEmail && p.cpf === loginCpf);
-    if (found) {
-      setActivePatientId(found.id);
-      setIsLoggedIn(true);
-      setLoginError('');
-    } else {
-      setLoginError('Paciente não encontrado. Verifique se o E-mail e CPF estão corretos.');
+    setLoginError('');
+    try {
+      // 1. Tenta logar no Firebase com o CPF como senha
+      const { signInWithEmailAndPassword, createUserWithEmailAndPassword } = await import('firebase/auth');
+      const { auth, db } = await import('../../../firebase');
+      const { doc, getDoc, setDoc, deleteDoc } = await import('firebase/firestore');
+      
+      try {
+        await signInWithEmailAndPassword(auth, loginEmail, loginCpf);
+        setIsLoggedIn(true);
+      } catch (authError) {
+        // Se der erro (usuário não encontrado ou credencial inválida), verifica se há link de vínculo
+        const params = new URLSearchParams(window.location.search);
+        const vincularId = params.get('vincular');
+        
+        if (vincularId) {
+          // É o primeiro acesso, vamos registrar o paciente com o CPF sendo a senha
+          const userCredential = await createUserWithEmailAndPassword(auth, loginEmail, loginCpf);
+          const user = userCredential.user;
+          
+          // Buscar o doc temporário no Firestore criado pelo Nutricionista
+          const tempDocRef = doc(db, 'patients', vincularId);
+          const tempDocSnap = await getDoc(tempDocRef);
+          
+          if (tempDocSnap.exists()) {
+            const data = tempDocSnap.data();
+            
+            // Criar o perfil de acesso como paciente
+            await setDoc(doc(db, 'users', user.uid), { role: 'paciente', email: loginEmail });
+            
+            // Mover os dados da ficha para o ID do Firebase Auth
+            await setDoc(doc(db, 'patients', user.uid), { ...data, id: user.uid });
+            
+            // Deletar o documento temporário para não sujar o BD
+            await deleteDoc(tempDocRef);
+            
+            // Remover o parâmetro da URL
+            window.history.replaceState({}, document.title, window.location.pathname);
+            setIsLoggedIn(true);
+          } else {
+            setLoginError('Link de convite inválido ou já utilizado.');
+          }
+        } else {
+          setLoginError('Paciente não encontrado. Verifique seu E-mail e CPF ou acesse pelo link enviado pela sua Nutri no primeiro acesso.');
+        }
+      }
+    } catch (error) {
+      console.error(error);
+      setLoginError('Erro de conexão ao tentar fazer login.');
     }
   };
 
@@ -92,6 +134,14 @@ export default function PatientApp() {
             <button type="submit" className="btn-3d" style={{...styles.actionBtn, justifyContent: 'center', width: '100%', marginTop: '8px'}}><Lock size={18} /> Entrar</button>
           </form>
         </div>
+      </div>
+    );
+  }
+
+  if (!activePatient) {
+    return (
+      <div style={{...styles.container, display: 'flex', alignItems: 'center', justifyContent: 'center'}}>
+        <p style={{color: '#64748b', fontSize: '1.2rem'}}>Carregando seus dados...</p>
       </div>
     );
   }

@@ -78,10 +78,19 @@ export default function DashboardNutri() {
     setShowPatientModal(true);
   };
 
-  const handleSavePatient = (e) => {
+  const handleSavePatient = async (e) => {
     e.preventDefault();
-    if (editingPatient) updatePatient(editingPatient, { name: patName, objective: patObj, restrictions: patRest, cpf: patCpf, email: patEmail });
-    else addPatient(patName, patObj, patRest, patCpf, patEmail);
+    if (editingPatient) {
+      await updatePatient(editingPatient, { name: patName, objective: patObj, restrictions: patRest, cpf: patCpf, email: patEmail });
+    } else {
+      const newId = await addPatient(patName, patObj, patRest, patCpf, patEmail);
+      if (patEmail && newId) {
+        const link = `${window.location.origin}/paciente?vincular=${newId}`;
+        const subject = encodeURIComponent("Seu acesso ao app Nutri");
+        const body = encodeURIComponent(`Olá ${patName},\n\nSeu plano alimentar já está sendo estruturado! Acesse o app pelo link abaixo.\n\n🔗 ${link}\n\nPara acessar, informe este e-mail e o seu CPF.\n\nAbraços!`);
+        window.location.href = `mailto:${patEmail}?subject=${subject}&body=${body}`;
+      }
+    }
     setShowPatientModal(false);
   };
 

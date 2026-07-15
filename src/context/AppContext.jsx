@@ -77,10 +77,19 @@ export function AppProvider({ children }) {
 
   const fetchPatients = async () => {
     try {
-      const q = query(collection(db, 'patients'), where('nutricionista_id', '==', profile.id));
-      const querySnapshot = await getDocs(q);
-      const data = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-      setPatients(data);
+      if (profile.role === 'paciente') {
+        const docRef = doc(db, 'patients', profile.id);
+        const docSnap = await getDoc(docRef);
+        if (docSnap.exists()) {
+          setPatients([{ id: docSnap.id, ...docSnap.data() }]);
+          setActivePatientId(docSnap.id);
+        }
+      } else {
+        const q = query(collection(db, 'patients'), where('nutricionista_id', '==', profile.id));
+        const querySnapshot = await getDocs(q);
+        const data = querySnapshot.docs.map(d => ({ id: d.id, ...d.data() }));
+        setPatients(data);
+      }
     } catch(e) {
       console.error("Erro ao buscar pacientes:", e);
     }
@@ -134,12 +143,14 @@ export function AppProvider({ children }) {
     // esperando o Firestore. Se a sincronização for bem-sucedida depois,
     // só trocamos o ID local pelo ID real do documento.
     setPatients(prev => [...prev, { id: localId, ...newPatient }]);
-    if (!isFirebaseConfigured) return;
+    if (!isFirebaseConfigured) return localId;
     try {
       const docRef = await addDoc(collection(db, 'patients'), newPatient);
       setPatients(prev => prev.map(p => p.id === localId ? { id: docRef.id, ...newPatient } : p));
+      return docRef.id;
     } catch (e) {
       console.warn('Falha ao sincronizar novo paciente com o Firestore (mantido localmente):', e);
+      return localId;
     }
   };
 
