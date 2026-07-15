@@ -49,7 +49,7 @@ function App() {
           <Route path="/login" element={<Login />} />
           <Route path="/cadastro" element={<SignUp />} />
           <Route path="/nutri" element={<RequireAuth><DashboardNutri /></RequireAuth>} />
-          <Route path="/paciente" element={<RequireAuth><PatientApp /></RequireAuth>} />
+          <Route path="/paciente" element={<PatientApp />} />
         </Routes>
         <FeedbackButton />
       </BrowserRouter>
