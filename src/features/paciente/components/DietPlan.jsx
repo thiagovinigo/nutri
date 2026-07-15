@@ -12,7 +12,8 @@ export default function DietPlan({ activePatient }) {
         <div style={{display: 'flex', flexDirection: 'column', gap: '16px'}}>
           {activePatient.recipes.slice().reverse().map((r, idx) => (
             <div key={idx} style={{...styles.card, flexDirection: 'column', alignItems: 'stretch'}}>
-              <strong style={{fontSize: '1.2rem', marginBottom: '16px', display: 'block'}}>{r.title}</strong>
+              <strong style={{fontSize: '1.2rem', marginBottom: r.description ? '8px' : '16px', display: 'block'}}>{r.title}</strong>
+              {r.description && <p style={{fontSize: '0.95rem', color: '#64748b', marginBottom: '16px', marginTop: 0}}>{r.description}</p>}
               
               {r.meals?.map((m, mIdx) => (
                 <div key={mIdx} style={{marginBottom: '12px', paddingBottom: '12px', borderBottom: '1px dashed #e2e8f0'}}>

@@ -46,6 +46,8 @@ export default function DashboardNutri() {
   const [examTab, setExamTab] = useState('detalhada'); 
   
   const [dietTitle, setDietTitle] = useState('');
+  const [dietDescription, setDietDescription] = useState('');
+  const [dietDuration, setDietDuration] = useState(1);
   const [dietMeals, setDietMeals] = useState([]);
   const [isGenerating, setIsGenerating] = useState(false);
 
@@ -139,6 +141,21 @@ export default function DashboardNutri() {
     setExamUploaded(false);
     setExamResult(null);
     setDietTitle('');
+    setDietDescription('');
+    setDietDuration(1);
+    setDietMeals([]);
+    setView('consulta');
+  };
+
+  const openConsultation = (p) => {
+    setActivePatientId(p.id);
+    setConsultationStep(1);
+    setAnamnesis('');
+    setExamUploaded(false);
+    setExamResult(null);
+    setDietTitle('');
+    setDietDescription('');
+    setDietDuration(1);
     setDietMeals([]);
     setView('consulta');
   };
@@ -222,11 +239,15 @@ Cite diretrizes ou referências científicas usadas para basear a sua análise d
       if (anamnesis) promptContext += `\nAnamnese: ${anamnesis}`;
       if (examResult) promptContext += `\nConduta Sugerida pelos Exames:\n${examResult}`;
 
+      const systemPrompt = dietDuration > 1 
+        ? `Você é um Nutricionista Clínico de alta performance. Crie um esboço de plano alimentar para ${dietDuration} dias e retorne EXATAMENTE UM JSON contendo um array chamado 'meals'. O plano deve conter refeições completas (ex: Café da Manhã, Almoço, Jantar). Como são múltiplos dias, o 'name' da refeição DEVE incluir o dia, ex: "Dia 1 - Café da Manhã". Ex: { "meals": [ { "name": "Dia 1 - Almoço", "desc": "150g frango" } ] }`
+        : `Você é um Nutricionista Clínico de alta performance. Crie um esboço de plano alimentar para 1 dia e retorne EXATAMENTE UM JSON contendo um array chamado 'meals'. O plano deve conter OBRIGATORIAMENTE refeições completas (ex: Café da Manhã, Almoço, Jantar). Cada item no array deve ter 'name' (Nome da Refeição) e 'desc' (O que o paciente deve comer). Ex: { "meals": [ { "name": "Almoço", "desc": "150g frango" } ] }`;
+
       const response = await fetch('/api/openai-bridge', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          system_prompt: "Você é um Nutricionista Clínico de alta performance. Crie um esboço de plano alimentar e retorne EXATAMENTE UM JSON contendo um array chamado 'meals'. O plano deve conter OBRIGATORIAMENTE refeições completas (ex: Café da Manhã, Almoço, Jantar). Cada item no array deve ter 'name' (Nome da Refeição) e 'desc' (O que o paciente deve comer). Ex: { \"meals\": [ { \"name\": \"Almoço\", \"desc\": \"150g frango\" } ] }",
+          system_prompt: systemPrompt,
           messages: [{ role: "user", content: `Crie um cardápio considerando este contexto clínico:\n\n${promptContext}` }],
           format_json: true
         })
@@ -291,7 +312,7 @@ Cite diretrizes ou referências científicas usadas para basear a sua análise d
   const finishConsultation = () => {
     if (dietTitle && dietMeals.length > 0) {
       const formattedMeals = dietMeals.map(m => ({ ...m, done: false, log: null }));
-      addRecipe(activePatient.id, dietTitle, formattedMeals);
+      addRecipe(activePatient.id, dietTitle, formattedMeals, dietDescription);
     }
     if (activeApptId) markAppointmentDone(activeApptId);
     updatePatient(activePatient.id, { records: activePatient.records + `\n\n[Consulta - ${new Date().toLocaleDateString('pt-BR')}]:\n${anamnesis}` });
@@ -311,6 +332,8 @@ Cite diretrizes ou referências científicas usadas para basear a sua análise d
         examAnalyzing={examAnalyzing}
         examResult={examResult} setExamTab={setExamTab} examTab={examTab}
         dietTitle={dietTitle} setDietTitle={setDietTitle}
+        dietDescription={dietDescription} setDietDescription={setDietDescription}
+        dietDuration={dietDuration} setDietDuration={setDietDuration}
         dietMeals={dietMeals} setDietMeals={setDietMeals}
         isGenerating={isGenerating}
         analyzeExamWithAI={analyzeExamWithAI}

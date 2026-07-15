@@ -61,6 +61,8 @@ export default function ConsultationFlow({
   examAnalyzing,
   examResult, setExamTab, examTab,
   dietTitle, setDietTitle,
+  dietDescription, setDietDescription,
+  dietDuration, setDietDuration,
   dietMeals, setDietMeals,
   isGenerating,
   analyzeExamWithAI,
@@ -226,9 +228,22 @@ export default function ConsultationFlow({
                 </h3>
                 <div style={{ display: 'flex', gap: '16px' }}>
                   <div style={{ flex: 1 }}>
-                    <button className="crm-btn-primary" onClick={generateDietFromAI} disabled={isGenerating} style={{ width: '100%', backgroundColor: '#10B981', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '8px', padding: '12px' }}>
-                      <Sparkles size={16} color="#FFF" /> {isGenerating ? 'Analisando...' : 'Sugerir com Inteligência Artificial'}
-                    </button>
+                    <div style={{ display: 'flex', gap: '8px' }}>
+                      <select 
+                        className="crm-input" 
+                        style={{ width: '100px', borderColor: '#10B981', color: '#166534', backgroundColor: '#FFF' }}
+                        value={dietDuration}
+                        onChange={e => setDietDuration(Number(e.target.value))}
+                      >
+                        <option value={1}>1 Dia</option>
+                        <option value={7}>7 Dias</option>
+                        <option value={15}>15 Dias</option>
+                        <option value={30}>30 Dias</option>
+                      </select>
+                      <button className="crm-btn-primary" onClick={generateDietFromAI} disabled={isGenerating} style={{ flex: 1, backgroundColor: '#10B981', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '8px', padding: '12px' }}>
+                        <Sparkles size={16} color="#FFF" /> {isGenerating ? 'Analisando...' : 'Sugerir com IA'}
+                      </button>
+                    </div>
                     {examResult && (
                       <p style={{ fontSize: '0.8rem', color: '#15803D', marginTop: '8px', textAlign: 'center' }}>
                         A IA utilizará a análise dos exames como base.
@@ -267,7 +282,10 @@ export default function ConsultationFlow({
                 <div style={{ flex: 2 }}>
                   <div style={{ marginBottom: '24px' }}>
                     <label className="crm-label">Título do Plano Alimentar</label>
-                    <input type="text" className="crm-input" placeholder="Ex: Dieta de Transição (Verão)" value={dietTitle} onChange={e => setDietTitle(e.target.value)} style={{ fontWeight: '600', fontSize: '1.1rem' }} />
+                    <input type="text" className="crm-input" placeholder="Ex: Dieta de Transição (Verão)" value={dietTitle} onChange={e => setDietTitle(e.target.value)} style={{ fontWeight: '600', fontSize: '1.1rem', marginBottom: '16px' }} />
+                    
+                    <label className="crm-label">Orientações Gerais do Plano (Opcional)</label>
+                    <textarea className="crm-input" placeholder="Orientações, metas ou visão geral da dieta..." value={dietDescription} onChange={e => setDietDescription(e.target.value)} style={{ minHeight: '80px', resize: 'vertical' }} />
                   </div>
                   
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
@@ -293,7 +311,7 @@ export default function ConsultationFlow({
                               const newMeals = [...dietMeals];
                               newMeals[idx].name = e.target.value;
                               setDietMeals(newMeals);
-                            }} placeholder="Nome da Refeição (ex: Café da Manhã)" />
+                            }} placeholder="Nome da Refeição" />
                             <button onClick={() => setDietMeals(dietMeals.filter((_, i) => i !== idx))} style={{ background: 'none', border: 'none', color: 'var(--crm-danger)', cursor: 'pointer' }}><Trash2 size={16} /></button>
                           </div>
                           <textarea className="crm-input" style={{ width: '100%', minHeight: '80px', resize: 'vertical', background: 'transparent', border: '1px solid var(--crm-border)' }} value={meal.desc} onChange={(e) => {
@@ -343,27 +361,26 @@ export default function ConsultationFlow({
                 </div>
               </div>
 
-              <div style={{ display: 'flex', gap: '16px', marginBottom: '24px', flexWrap: 'wrap', justifyContent: 'space-between' }}>
-                <div>
-                  <button 
-                    className="crm-btn-secondary" 
-                    onClick={() => {
-                      if (dietTitle && dietMeals.length > 0) {
-                        addDietTemplate(dietTitle, dietMeals);
-                        alert('Template salvo com sucesso na sua biblioteca!');
-                      } else {
-                        alert('Preencha o título e as refeições antes de salvar.');
-                      }
-                    }}
-                  >
-                    <Download size={16} color="var(--crm-text-main)" /> Salvar como Template Reutilizável
-                  </button>
-                </div>
+              <div style={{ display: 'flex', gap: '16px', marginBottom: '24px', flexWrap: 'wrap', justifyContent: 'flex-end', alignItems: 'center', borderTop: '1px solid var(--crm-border)', paddingTop: '24px' }}>
                 {dietMeals.length > 0 && (
-                  <button className="crm-btn-secondary" onClick={() => setDietMeals([])} style={{ color: 'var(--crm-danger)', borderColor: 'var(--crm-danger)' }}>
+                  <button className="crm-btn-secondary" onClick={() => setDietMeals([])} style={{ color: 'var(--crm-danger)', borderColor: 'var(--crm-danger)', marginRight: 'auto' }}>
                     <Trash2 size={16} /> Limpar Tudo
                   </button>
                 )}
+                
+                <button 
+                  className="crm-btn-secondary" 
+                  onClick={() => {
+                    if (dietTitle && dietMeals.length > 0) {
+                      addDietTemplate(dietTitle, dietMeals);
+                      alert('Template salvo com sucesso na sua biblioteca!');
+                    } else {
+                      alert('Preencha o título e as refeições antes de salvar.');
+                    }
+                  }}
+                >
+                  <Download size={16} color="var(--crm-text-main)" /> Salvar como Template
+                </button>
               </div>
               
               {dietError && (
