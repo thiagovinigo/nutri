@@ -101,6 +101,7 @@ body { overflow-x: hidden; -webkit-font-smoothing: antialiased; font-family: var
 }
 .crm-sidebar {
   width: 260px;
+  flex-shrink: 0;
   background-color: var(--crm-sidebar-bg);
   background-image: linear-gradient(180deg, var(--crm-sidebar-bg) 0%, var(--crm-sidebar-bg-2) 140%);
   border-right: 1px solid #05060a;
@@ -507,4 +508,56 @@ body { overflow-x: hidden; -webkit-font-smoothing: antialiased; font-family: var
 }
 .recipe-draggable:active {
   cursor: grabbing;
+}
+
+/* ----------------------------------------------------
+   RESPONSIVIDADE (MOBILE)
+------------------------------------------------------- */
+@media (max-width: 768px) {
+  /* Força a estrutura do CRM a empilhar (coluna) em telas menores */
+  .crm-container {
+    flex-direction: column !important;
+    height: 100vh !important;
+    overflow: hidden;
+  }
+  
+  /* Sidebar vira um topo horizontal com scroll */
+  .crm-sidebar {
+    width: 100% !important;
+    height: auto !important;
+    padding: 16px !important;
+    border-right: none;
+    border-bottom: 1px solid #05060a;
+  }
+  
+  /* Organiza o logo e botões de sair do topo */
+  .crm-sidebar > div:first-child {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 16px !important;
+  }
+  
+  /* O menu vertical vira horizontal scrollável */
+  .crm-sidebar nav {
+    flex-direction: row !important;
+    overflow-x: auto;
+    padding-bottom: 4px;
+  }
+  
+  /* Não deixa os textos dos botões quebrarem */
+  .crm-nav-btn {
+    white-space: nowrap;
+  }
+
+  /* Reduz o espaçamento gigante do conteúdo principal em mobile */
+  .crm-container > div:nth-child(2) {
+    padding: 16px !important;
+  }
+
+  /* Na tabela, permite rolagem horizontal */
+  .crm-card {
+    overflow-x: auto;
+  }
 }
