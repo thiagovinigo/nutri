@@ -39,6 +39,7 @@ function parseMarkdownTabs(markdown) {
     detalhada: find('analise detalhada', 'exames'),
     correlacao: find('correlacao clinica', 'achados'),
     conduta: find('conduta nutricional', 'impressao nutricional', 'plano de acao'),
+    plano: find('plano terapeutico', 'visao medica', 'intervencao'),
     referencias: find('referencias bibliograficas', 'referencias'),
   };
 }
@@ -47,6 +48,7 @@ const EXAM_TABS = [
   { key: 'detalhada', label: 'Análise Detalhada' },
   { key: 'correlacao', label: 'Correlação Clínica' },
   { key: 'conduta', label: 'Impressão Nutricional' },
+  { key: 'plano', label: 'Plano Terapêutico' },
   { key: 'referencias', label: 'Referências' },
 ];
 

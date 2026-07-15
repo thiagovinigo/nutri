@@ -191,6 +191,12 @@ Liste possíveis diagnósticos nutricionais ou metabólicos baseados nesses cruz
 ## Impressão Nutricional
 Qual a conduta inicial recomendada para corrigir as rotas metabólicas alteradas?
 
+## Plano Terapêutico (Visão Médica)
+Forneça sugestões detalhadas de intervenção, incluindo:
+- Tratamentos médicos e nutricionais sugeridos.
+- Sugestões alimentares específicas e suplementação para corrigir os marcadores.
+- Sugestão de outros exames complementares que deveriam ser solicitados para fechar o diagnóstico.
+
 ## Referências Bibliográficas
 Cite diretrizes ou referências científicas usadas para basear a sua análise de parâmetros.`,
           messages: [{ role: "user", content: contentArray }]
