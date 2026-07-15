@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Lock } from 'lucide-react';
 import TopBar from '../../../components/layout/TopBar';
 import BottomNav from '../../../components/layout/BottomNav';
@@ -10,9 +10,15 @@ import ChatBot from '../components/ChatBot';
 import Profile from '../components/Profile';
 
 export default function PatientApp() {
-  const { patients, activePatientId, setActivePatientId, markNotificationsRead } = useAppContext();
+  const { patients, activePatientId, setActivePatientId, markNotificationsRead, session, profile } = useAppContext();
 
   const [isLoggedIn, setIsLoggedIn] = useState(false);
+
+  useEffect(() => {
+    if (session && profile?.role === 'paciente') {
+      setIsLoggedIn(true);
+    }
+  }, [session, profile]);
   const [loginEmail, setLoginEmail] = useState('');
   const [loginCpf, setLoginCpf] = useState('');
   const [loginError, setLoginError] = useState('');
