@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { auth, db } from '../services/firebase';
 import { signInWithEmailAndPassword } from 'firebase/auth';
-import { doc, getDoc } from 'firebase/firestore';
+import { doc, getDoc, setDoc } from 'firebase/firestore';
 
 export default function Login() {
   const [email, setEmail] = useState('');
@@ -10,6 +10,8 @@ export default function Login() {
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
   const navigate = useNavigate();
+  const searchParams = new URLSearchParams(window.location.search);
+  const nutriIdParam = searchParams.get('nutri');
 
   const handleLogin = async (e) => {
     e.preventDefault();
@@ -32,6 +34,15 @@ export default function Login() {
         
       if (docSnap.exists()) {
         const profile = docSnap.data();
+        
+        // Se houver um link de convite e ele for paciente (ou não ter role salva), atualiza o vínculo
+        if (nutriIdParam && profile.role !== 'nutricionista') {
+          await setDoc(doc(db, 'patients', user.uid), {
+            nutricionista_id: nutriIdParam,
+            records: 'Vinculado ao nutricionista via convite de login.'
+          }, { merge: true });
+        }
+
         if (profile.role === 'nutricionista') {
           navigate('/nutri');
         } else {
@@ -92,7 +103,7 @@ export default function Login() {
           
           <div style={{ marginTop: '24px', textAlign: 'center' }}>
             <span style={{ color: '#64748b' }}>Ainda não tem conta? </span>
-            <Link to="/cadastro" style={{ color: '#2563eb', textDecoration: 'none', fontWeight: 'bold' }}>Cadastre-se grátis</Link>
+            <Link to={nutriIdParam ? `/cadastro?nutri=${nutriIdParam}` : "/cadastro"} style={{ color: '#2563eb', textDecoration: 'none', fontWeight: 'bold' }}>Cadastre-se grátis</Link>
           </div>
 
           {import.meta.env.DEV && (

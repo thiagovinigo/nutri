@@ -9,8 +9,8 @@ service cloud.firestore {
     }
 
     match /patients/{patientId} {
-      // Paciente pode ler e atualizar seu próprio doc
-      allow read, update: if request.auth != null && request.auth.uid == patientId;
+      // Paciente pode ler, criar e atualizar seu próprio doc
+      allow read, create, update: if request.auth != null && request.auth.uid == patientId;
       
       // Nutricionista dono pode ler, atualizar, criar, deletar
       allow read, update, delete: if request.auth != null

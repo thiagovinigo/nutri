@@ -167,7 +167,7 @@ export default function SignUp() {
 
           <div style={{ marginTop: '24px', textAlign: 'center' }}>
             <span style={{ color: '#64748b' }}>Já tem uma conta? </span>
-            <Link to="/login" style={{ color: '#2563eb', textDecoration: 'none', fontWeight: 'bold' }}>Faça login aqui</Link>
+            <Link to={nutriIdParam ? `/login?nutri=${nutriIdParam}` : "/login"} style={{ color: '#2563eb', textDecoration: 'none', fontWeight: 'bold' }}>Faça login aqui</Link>
           </div>
         </form>
       </div>
