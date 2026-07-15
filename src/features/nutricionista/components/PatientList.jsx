@@ -28,6 +28,9 @@ export default function PatientList({
   const { profile } = useAppContext();
   const viewedPatient = patients.find(p => p.id === viewingPatientId);
 
+  const [copiedGeneralLink, setCopiedGeneralLink] = useState(false);
+  const [copiedPatientLink, setCopiedPatientLink] = useState(false);
+
   // Busca/filtro/ordenação — Meus Pacientes
   const [patientSearch, setPatientSearch] = useState('');
   const [patientStatusFilter, setPatientStatusFilter] = useState('todos');
@@ -350,13 +353,14 @@ export default function PatientList({
                   <p style={{ color: 'var(--crm-text-muted)' }}>Gestão do seu portfólio clínico.</p>
                 </div>
                 <div style={{ display: 'flex', gap: '12px' }}>
-                  <button className="crm-btn-secondary" style={{ display: 'flex', alignItems: 'center', gap: '8px' }} onClick={() => {
+                  <button className={copiedGeneralLink ? "crm-btn-primary" : "crm-btn-secondary"} style={{ display: 'flex', alignItems: 'center', gap: '8px', transition: 'all 0.3s ease' }} onClick={() => {
                     if (!profile?.id) return alert('Perfil não carregado!');
                     const link = `${window.location.origin}/cadastro?nutri=${profile.id}`;
                     navigator.clipboard.writeText(link);
-                    alert('Link Geral de Convite copiado para a área de transferência:\n' + link);
+                    setCopiedGeneralLink(true);
+                    setTimeout(() => setCopiedGeneralLink(false), 2000);
                   }}>
-                    <LinkIcon size={18} /> Link Geral de Convite
+                    <LinkIcon size={18} /> {copiedGeneralLink ? 'Link Copiado!' : 'Link Geral de Convite'}
                   </button>
                   <button className="crm-btn-primary" style={{ display: 'flex', alignItems: 'center', gap: '8px' }} onClick={openNewPatientModal}>
                     <Plus size={18} /> Novo Paciente
@@ -440,6 +444,14 @@ export default function PatientList({
                 </button>
                 <div style={{ display: 'flex', gap: '12px' }}>
 
+                  <button className={copiedPatientLink ? "crm-btn-primary" : "crm-btn-secondary"} onClick={() => {
+                    const link = `${window.location.origin}/paciente?vincular=${viewedPatient.id}`;
+                    navigator.clipboard.writeText(link);
+                    setCopiedPatientLink(true);
+                    setTimeout(() => setCopiedPatientLink(false), 2000);
+                  }} style={{ display: 'flex', alignItems: 'center', gap: '6px', transition: 'all 0.3s ease' }}>
+                    <LinkIcon size={16} /> {copiedPatientLink ? 'Link Copiado!' : 'Copiar Link'}
+                  </button>
                   <button className="crm-btn-secondary" onClick={() => generatePatientSynthesis(viewedPatient)} disabled={isSynthesizing} style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                     <BrainCircuit size={16} color="var(--crm-accent)" /> 
                     {isSynthesizing ? 'Analisando Histórico...' : 'Gerar Síntese Clínica (IA)'}
