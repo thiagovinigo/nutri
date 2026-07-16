@@ -199,25 +199,19 @@ Analise TODOS os resultados laboratoriais e de imagem anexados com detalhamento 
 Retorne o resultado OBRIGATORIAMENTE em texto formatado em Markdown, sem texto de introdução ou conclusão.
 Use EXATAMENTE as seções com headers ## conforme mostrado abaixo (você deve usar esses exatos títulos):
 
-## Análise Detalhada
-Liste cada grupo de exames analisados.
-Indique: Parâmetro | Resultado Encontrado | Valor de Referência | Status (✅ Normal / ⚠️ Alterado / 🚨 Crítico).
-Destaque correlações fisiológicas dos parâmetros alterados.
+## 1. Análise Detalhada
+Liste cada grupo de exames analisados. Indique: Parâmetro | Resultado Encontrado | Valor de Referência | Status (✅ Normal / ⚠️ Alterado / 🚨 Crítico).
 
-## Correlação Clínica
-Relacione os achados dos exames com a anamnese e o objetivo do paciente.
-Liste possíveis diagnósticos nutricionais ou metabólicos baseados nesses cruzamentos.
+## 2. Tradução para o Paciente (Linguagem Leiga)
+Uma explicação simples, clara e empática sobre o que os exames dizem, perfeita para o profissional ler ou copiar para o paciente. Relacione os achados com os sintomas descritos na anamnese.
 
-## Impressão Nutricional
-Qual a conduta inicial recomendada para corrigir as rotas metabólicas alteradas?
+## 3. Visão do Profissional (Médica / Nutricional)
+Análise técnica profunda. Quais as rotas metabólicas impactadas? Cruzamento de achados e hipóteses diagnósticas avançadas (raciocínio clínico).
 
-## Plano Terapêutico (Visão Médica)
-Forneça sugestões detalhadas de intervenção, incluindo:
-- Tratamentos médicos e nutricionais sugeridos.
-- Sugestões alimentares específicas e suplementação para corrigir os marcadores.
-- Sugestão de outros exames complementares que deveriam ser solicitados para fechar o diagnóstico.
+## 4. Plano Terapêutico e Exames Complementares
+Sugestões de tratamento, suplementação focada e quais exames extras deveriam ser solicitados para fechar o diagnóstico.
 
-## Referências Bibliográficas
+## 5. Referências Bibliográficas
 Cite diretrizes ou referências científicas usadas para basear a sua análise de parâmetros.`,
           messages: [{ role: "user", content: contentArray }]
         })

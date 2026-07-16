@@ -39,13 +39,13 @@ function parseMarkdownTabs(markdown) {
 
   const parsed = {
     detalhada: find('analise detalhada', 'exames'),
-    correlacao: find('correlacao clinica', 'achados', 'correlacao'),
-    conduta: find('conduta nutricional', 'impressao nutricional', 'plano de acao', 'conduta', 'impressao'),
-    plano: find('plano terapeutico', 'visao medica', 'intervencao', 'plano'),
+    leiga: find('traducao para o paciente', 'linguagem leiga', 'leiga', 'paciente'),
+    profissional: find('visao do profissional', 'medica', 'nutricional', 'tecnica'),
+    plano: find('plano terapeutico', 'exames complementares', 'intervencao', 'plano', 'tratamento'),
     referencias: find('referencias bibliograficas', 'referencias'),
   };
 
-  if (!parsed.detalhada && !parsed.correlacao && !parsed.conduta && !parsed.plano) {
+  if (!parsed.detalhada && !parsed.leiga && !parsed.profissional && !parsed.plano) {
     parsed.detalhada = markdown;
   }
 
@@ -54,8 +54,8 @@ function parseMarkdownTabs(markdown) {
 
 const EXAM_TABS = [
   { key: 'detalhada', label: 'Análise Detalhada' },
-  { key: 'correlacao', label: 'Correlação Clínica' },
-  { key: 'conduta', label: 'Impressão Nutricional' },
+  { key: 'leiga', label: 'Tradução para o Paciente' },
+  { key: 'profissional', label: 'Visão do Profissional' },
   { key: 'plano', label: 'Plano Terapêutico' },
   { key: 'referencias', label: 'Referências' },
 ];
