@@ -16,9 +16,9 @@ function parseMarkdownTabs(markdown) {
   const lines = markdown.split('\n');
   for (let line of lines) {
     const cleanLine = line.trim();
-    let headerMatch = cleanLine.match(/^#{2,4}\s+(.*)$/);
+    let headerMatch = cleanLine.match(/^#{1,6}\s+(.*)$/);
     if (!headerMatch) {
-      headerMatch = cleanLine.match(/^\*\*(.*?)\*\*$/);
+      headerMatch = cleanLine.match(/^\*\*(.*?)\*\*:?$/);
     }
     
     if (headerMatch) {
@@ -26,6 +26,8 @@ function parseMarkdownTabs(markdown) {
       cur = { title: normTitle(headerMatch[1]), lines: [] };
     } else if (cur) {
       cur.lines.push(line);
+    } else if (cleanLine !== '') {
+      cur = { title: 'analise detalhada', lines: [line] };
     }
   }
   if (cur) chunks.push(cur);
@@ -35,13 +37,19 @@ function parseMarkdownTabs(markdown) {
     return c.length ? c.map(x => x.lines.join('\n').trim()).join('\n\n---\n\n') : '';
   };
 
-  return {
+  const parsed = {
     detalhada: find('analise detalhada', 'exames'),
-    correlacao: find('correlacao clinica', 'achados'),
-    conduta: find('conduta nutricional', 'impressao nutricional', 'plano de acao'),
-    plano: find('plano terapeutico', 'visao medica', 'intervencao'),
+    correlacao: find('correlacao clinica', 'achados', 'correlacao'),
+    conduta: find('conduta nutricional', 'impressao nutricional', 'plano de acao', 'conduta', 'impressao'),
+    plano: find('plano terapeutico', 'visao medica', 'intervencao', 'plano'),
     referencias: find('referencias bibliograficas', 'referencias'),
   };
+
+  if (!parsed.detalhada && !parsed.correlacao && !parsed.conduta && !parsed.plano) {
+    parsed.detalhada = markdown;
+  }
+
+  return parsed;
 }
 
 const EXAM_TABS = [
