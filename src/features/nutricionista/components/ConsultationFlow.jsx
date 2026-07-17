@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { FileText, Activity, Sparkles, Edit3, Send, Plus, X, Upload, CheckCircle, Trash2, GripVertical, Download } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
@@ -39,13 +39,13 @@ function parseMarkdownTabs(markdown) {
 
   const parsed = {
     detalhada: find('analise detalhada', 'exames'),
+    evolucao: find('evolucao', 'comparacao', 'historico'),
     leiga: find('traducao para o paciente', 'linguagem leiga', 'leiga', 'paciente'),
     profissional: find('visao do profissional', 'medica', 'nutricional', 'tecnica'),
-    plano: find('plano terapeutico', 'exames complementares', 'intervencao', 'plano', 'tratamento'),
     referencias: find('referencias bibliograficas', 'referencias'),
   };
 
-  if (!parsed.detalhada && !parsed.leiga && !parsed.profissional && !parsed.plano) {
+  if (!parsed.detalhada && !parsed.leiga && !parsed.profissional && !parsed.evolucao) {
     parsed.detalhada = markdown;
   }
 
@@ -54,9 +54,9 @@ function parseMarkdownTabs(markdown) {
 
 const EXAM_TABS = [
   { key: 'detalhada', label: 'Análise Detalhada' },
+  { key: 'evolucao', label: 'Evolução Clínica' },
   { key: 'leiga', label: 'Tradução para o Paciente' },
-  { key: 'profissional', label: 'Visão do Profissional' },
-  { key: 'plano', label: 'Plano Terapêutico' },
+  { key: 'profissional', label: 'Visão do Prof. e Comitê' },
   { key: 'referencias', label: 'Referências' },
 ];
 
@@ -65,6 +65,7 @@ export default function ConsultationFlow({
   activeApptId,
   consultationStep, setConsultationStep,
   anamnesis, setAnamnesis,
+  physicalEval, setPhysicalEval,
   examUploaded, setExamUploaded,
   examAnalyzing,
   examResult, setExamTab, examTab,
@@ -85,6 +86,44 @@ export default function ConsultationFlow({
   const [draggedRecipe, setDraggedRecipe] = useState(null);
   const [selectedExamFiles, setSelectedExamFiles] = useState([]);
   const [prescriptionTab, setPrescriptionTab] = useState('cardapio');
+
+  useEffect(() => {
+    if (physicalEval) {
+      const weight = parseFloat(physicalEval.weight);
+      const height = parseFloat(physicalEval.height);
+      const age = parseInt(physicalEval.age, 10);
+      const gender = physicalEval.gender || 'M';
+      const activityLevel = parseFloat(physicalEval.activityLevel || '1.2');
+
+      if (!isNaN(weight) && !isNaN(height) && !isNaN(age)) {
+        let tmbCalc = 0;
+        if (gender === 'M') {
+          tmbCalc = 88.362 + (13.397 * weight) + (4.799 * height) - (5.677 * age);
+        } else {
+          tmbCalc = 447.593 + (9.247 * weight) + (3.098 * height) - (4.330 * age);
+        }
+        
+        const getCalc = tmbCalc * activityLevel;
+        
+        const newTmb = Math.round(tmbCalc).toString();
+        const newGet = Math.round(getCalc).toString();
+
+        if (physicalEval.tmb !== newTmb || physicalEval.get !== newGet) {
+          setPhysicalEval(prev => ({
+            ...prev,
+            tmb: newTmb,
+            get: newGet
+          }));
+        }
+      } else if (physicalEval.tmb || physicalEval.get) {
+        setPhysicalEval(prev => ({
+          ...prev,
+          tmb: '',
+          get: ''
+        }));
+      }
+    }
+  }, [physicalEval?.weight, physicalEval?.height, physicalEval?.age, physicalEval?.gender, physicalEval?.activityLevel]);
 
   const handleDragStart = (e, recipe) => {
     setDraggedRecipe(recipe);
@@ -116,9 +155,10 @@ export default function ConsultationFlow({
 
         <nav style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
           <button className={`crm-nav-btn ${consultationStep === 1 ? 'active' : ''}`} onClick={() => setConsultationStep(1)}>1. Anamnese</button>
-          <button className={`crm-nav-btn ${consultationStep === 2 ? 'active' : ''}`} onClick={() => setConsultationStep(2)}>2. Exames (IA OpenAI)</button>
-          <button className={`crm-nav-btn ${consultationStep === 3 ? 'active' : ''}`} onClick={() => setConsultationStep(3)}>3. Prescrição Estruturada</button>
-          <button className={`crm-nav-btn ${consultationStep === 4 ? 'active' : ''}`} onClick={() => setConsultationStep(4)}>4. Resumo e Envio</button>
+          <button className={`crm-nav-btn ${consultationStep === 2 ? 'active' : ''}`} onClick={() => setConsultationStep(2)}>2. Avaliação Física</button>
+          <button className={`crm-nav-btn ${consultationStep === 3 ? 'active' : ''}`} onClick={() => setConsultationStep(3)}>3. Exames (IA OpenAI)</button>
+          <button className={`crm-nav-btn ${consultationStep === 4 ? 'active' : ''}`} onClick={() => setConsultationStep(4)}>4. Prescrição Estruturada</button>
+          <button className={`crm-nav-btn ${consultationStep === 5 ? 'active' : ''}`} onClick={() => setConsultationStep(5)}>5. Resumo e Envio</button>
         </nav>
       </div>
 
@@ -130,13 +170,93 @@ export default function ConsultationFlow({
               <label className="crm-label">Anotações Clínicas de Hoje</label>
               <textarea className="crm-input" placeholder="Como o paciente tem se sentido? As notas aqui servirão de contexto para a IA gerar a dieta." value={anamnesis} onChange={(e) => setAnamnesis(e.target.value)} style={{ height: '250px', resize: 'vertical' }} />
               <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '24px' }}>
-                <button className="crm-btn-primary" onClick={() => setConsultationStep(2)}>Avançar para Exames →</button>
+                <button className="crm-btn-primary" onClick={() => setConsultationStep(2)}>Avançar para Avaliação Física →</button>
               </div>
             </div>
           )}
 
           {consultationStep === 2 && (
-            <div className="crm-card">
+            <div className="crm-card animate-pop-in">
+              <h2 style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '24px' }}><Activity color="var(--crm-accent)" /> Avaliação Física e Antropometria</h2>
+              
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginBottom: '24px' }}>
+                <div>
+                  <label className="crm-label">Idade (anos)</label>
+                  <input type="number" className="crm-input" value={physicalEval?.age || ''} onChange={(e) => setPhysicalEval({...physicalEval, age: e.target.value})} placeholder="Ex: 30" />
+                </div>
+                <div>
+                  <label className="crm-label">Sexo</label>
+                  <select className="crm-input" value={physicalEval?.gender || 'M'} onChange={(e) => setPhysicalEval({...physicalEval, gender: e.target.value})}>
+                    <option value="M">Masculino</option>
+                    <option value="F">Feminino</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="crm-label">Peso Atual (kg)</label>
+                  <input type="number" className="crm-input" value={physicalEval?.weight || ''} onChange={(e) => setPhysicalEval({...physicalEval, weight: e.target.value})} placeholder="Ex: 75.5" />
+                </div>
+                <div>
+                  <label className="crm-label">Altura (cm)</label>
+                  <input type="number" className="crm-input" value={physicalEval?.height || ''} onChange={(e) => setPhysicalEval({...physicalEval, height: e.target.value})} placeholder="Ex: 175" />
+                </div>
+                <div>
+                  <label className="crm-label">Fator de Atividade</label>
+                  <select className="crm-input" value={physicalEval?.activityLevel || '1.2'} onChange={(e) => setPhysicalEval({...physicalEval, activityLevel: e.target.value})}>
+                    <option value="1.2">Sedentário (pouco/nenhum exp. físico)</option>
+                    <option value="1.375">Levemente Ativo (exercício 1-3 dias/sem)</option>
+                    <option value="1.55">Moderadamente Ativo (3-5 dias/sem)</option>
+                    <option value="1.725">Muito Ativo (6-7 dias/sem)</option>
+                    <option value="1.9">Extremamente Ativo (Atleta/treino 2x dia)</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="crm-label">% Gordura Corporal</label>
+                  <input type="number" className="crm-input" value={physicalEval?.bodyFat || ''} onChange={(e) => setPhysicalEval({...physicalEval, bodyFat: e.target.value})} placeholder="Ex: 15" />
+                </div>
+                <div>
+                  <label className="crm-label">% Massa Muscular</label>
+                  <input type="number" className="crm-input" value={physicalEval?.muscleMass || ''} onChange={(e) => setPhysicalEval({...physicalEval, muscleMass: e.target.value})} placeholder="Ex: 40" />
+                </div>
+                <div>
+                  <label className="crm-label">Circ. Cintura (cm)</label>
+                  <input type="number" className="crm-input" value={physicalEval?.waist || ''} onChange={(e) => setPhysicalEval({...physicalEval, waist: e.target.value})} placeholder="Ex: 80" />
+                </div>
+                <div>
+                  <label className="crm-label">Circ. Quadril (cm)</label>
+                  <input type="number" className="crm-input" value={physicalEval?.hips || ''} onChange={(e) => setPhysicalEval({...physicalEval, hips: e.target.value})} placeholder="Ex: 100" />
+                </div>
+              </div>
+
+              {physicalEval?.tmb && physicalEval?.get && (
+                <div style={{ backgroundColor: '#EFF6FF', border: '1px solid #BFDBFE', borderRadius: '12px', padding: '20px', marginBottom: '24px', display: 'flex', gap: '24px', alignItems: 'center' }}>
+                  <div style={{ padding: '12px', backgroundColor: '#DBEAFE', borderRadius: '50%' }}>
+                    <Sparkles size={24} color="#1D4ED8" />
+                  </div>
+                  <div style={{ flex: 1 }}>
+                    <h3 style={{ color: '#1E3A8A', marginBottom: '8px', fontSize: '1.1rem' }}>Gasto Energético (Harris-Benedict)</h3>
+                    <div style={{ display: 'flex', gap: '32px' }}>
+                      <div>
+                        <span style={{ fontSize: '0.85rem', color: '#3B82F6', textTransform: 'uppercase', fontWeight: 600 }}>TMB (Basal)</span>
+                        <div style={{ fontSize: '1.5rem', fontWeight: 700, color: '#1E3A8A' }}>{physicalEval.tmb} kcal</div>
+                      </div>
+                      <div>
+                        <span style={{ fontSize: '0.85rem', color: '#3B82F6', textTransform: 'uppercase', fontWeight: 600 }}>GET (Total)</span>
+                        <div style={{ fontSize: '1.5rem', fontWeight: 700, color: '#1E3A8A' }}>{physicalEval.get} kcal</div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '24px', borderTop: '1px solid var(--crm-border)', paddingTop: '24px' }}>
+                <button className="crm-btn-secondary" onClick={() => setConsultationStep(1)}>← Voltar para Anamnese</button>
+                <button className="crm-btn-primary" onClick={() => setConsultationStep(3)}>Avançar para Exames →</button>
+              </div>
+            </div>
+          )}
+
+          {consultationStep === 3 && (
+            <div className="crm-card animate-pop-in">
               <h2 style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '24px' }}><Activity color="var(--crm-accent)" /> Análise de Exames (Powered by OpenAI)</h2>
               {!examUploaded && !examAnalyzing && (
                 <div>
@@ -221,14 +341,14 @@ export default function ConsultationFlow({
                 </div>
               )}
               <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '32px', borderTop: '1px solid var(--crm-border)', paddingTop: '24px' }}>
-                <button className="crm-btn-secondary" onClick={() => setConsultationStep(1)}>← Voltar para Anamnese</button>
-                <button className="crm-btn-primary" onClick={() => setConsultationStep(3)}>Avançar para Prescrição →</button>
+                <button className="crm-btn-secondary" onClick={() => setConsultationStep(2)}>← Voltar para Avaliação</button>
+                <button className="crm-btn-primary" onClick={() => setConsultationStep(4)}>Avançar para Prescrição →</button>
               </div>
             </div>
           )}
 
-          {consultationStep === 3 && (
-            <div className="crm-card">
+          {consultationStep === 4 && (
+            <div className="crm-card animate-pop-in">
               <h2 style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '24px' }}><Edit3 color="var(--crm-accent)" /> Prescrição Dietética Estruturada</h2>
               
               <div className="results-tabs">
@@ -428,14 +548,14 @@ export default function ConsultationFlow({
               )}
               
               <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '32px', borderTop: '1px solid var(--crm-border)', paddingTop: '24px' }}>
-                <button className="crm-btn-secondary" onClick={() => setConsultationStep(2)}>← Voltar para Exames</button>
-                <button className="crm-btn-primary" onClick={() => setConsultationStep(4)}>Revisar e Enviar →</button>
+                <button className="crm-btn-secondary" onClick={() => setConsultationStep(3)}>← Voltar para Exames</button>
+                <button className="crm-btn-primary" onClick={() => setConsultationStep(5)}>Revisar e Enviar →</button>
               </div>
             </div>
           )}
 
-          {consultationStep === 4 && (
-            <div className="crm-card">
+          {consultationStep === 5 && (
+            <div className="crm-card animate-pop-in">
               <h2 style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '24px' }}><CheckCircle color="var(--crm-accent)" /> Resumo e Entrega</h2>
               <div style={{ backgroundColor: '#F8FAFC', padding: '24px', borderRadius: '12px', border: '1px solid var(--crm-border)' }}>
                 <h3 style={{ marginBottom: '16px' }}>Pronto para enviar para {activePatient.name}?</h3>
@@ -452,7 +572,7 @@ export default function ConsultationFlow({
                 </div>
               </div>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '32px', borderTop: '1px solid var(--crm-border)', paddingTop: '24px' }}>
-                <button className="crm-btn-secondary" onClick={() => setConsultationStep(3)}>← Voltar para Prescrição</button>
+                <button className="crm-btn-secondary" onClick={() => setConsultationStep(4)}>← Voltar para Prescrição</button>
                 <button className="crm-btn-primary" onClick={finishConsultation} style={{ padding: '12px 24px', fontSize: '1.05rem' }}>
                   <Send size={18} /> Publicar Diário no App
                 </button>

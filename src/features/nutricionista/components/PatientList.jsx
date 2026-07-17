@@ -1,8 +1,11 @@
 import React, { useState, useMemo } from 'react';
-import { Users, Calendar, PlayCircle, Trash2, Plus, Eye, Edit3, TrendingUp, Utensils, FileText, BrainCircuit, Play, Sparkles, Activity, Settings, CreditCard, Palette, AlertTriangle, Trophy, Star, Zap, LayoutDashboard, Search, ChevronUp, ChevronDown, ArrowRight, UserCog, BookOpen, ChefHat, Link as LinkIcon, Camera } from 'lucide-react';
+import { Users, Calendar, PlayCircle, Trash2, Plus, Eye, Edit3, TrendingUp, Utensils, FileText, BrainCircuit, Play, Sparkles, Activity, Settings, CreditCard, Palette, AlertTriangle, Trophy, Star, Zap, LayoutDashboard, Search, ChevronUp, ChevronDown, ArrowRight, UserCog, BookOpen, ChefHat, Link as LinkIcon, Camera, Upload } from 'lucide-react';
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, Legend, ResponsiveContainer } from 'recharts';
 import { useNavigate } from 'react-router-dom';
 import { useAppContext } from '../../../context/AppContext';
 import WeeklyCalendar from './WeeklyCalendar';
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 
 export default function PatientList({
   view, setView,
@@ -18,18 +21,48 @@ export default function PatientList({
   patName, setPatName, patObj, setPatObj, patRest, setPatRest, patCpf, setPatCpf, patEmail, setPatEmail, handleSavePatient,
   viewingPatientId, setViewingPatientId,
   synthesisResult, setSynthesisResult, isSynthesizing, generatePatientSynthesis, synthesisError,
-  addNotification,
+  addNotification, addExam,
   dietTemplates, deleteDietTemplate,
   recipeLibrary, addLibraryRecipe, deleteLibraryRecipe,
   addBonusRecipe,
   clinicConfig, updateClinicConfig
 }) {
   const navigate = useNavigate();
-  const { profile } = useAppContext();
+  const { profile, updatePatient } = useAppContext();
   const viewedPatient = patients.find(p => p.id === viewingPatientId);
 
   const [copiedGeneralLink, setCopiedGeneralLink] = useState(false);
   const [copiedPatientLink, setCopiedPatientLink] = useState(false);
+  const [prontuarioTab, setProntuarioTab] = useState('resumo');
+  const [protocoloSubTab, setProtocoloSubTab] = useState('dieta');
+  const [historicoSubTab, setHistoricoSubTab] = useState('anamnese');
+  const [selectedHistoryIdx, setSelectedHistoryIdx] = useState(null);
+  
+  const [editingMealPath, setEditingMealPath] = useState(null); // { rIdx, mIdx }
+  const [editingMealDesc, setEditingMealDesc] = useState('');
+
+  const handleDeleteActiveRecipe = (rIdx) => {
+    if(window.confirm('Tem certeza que deseja excluir toda essa prescrição?')) {
+      const newRecipes = viewedPatient.recipes.filter((_, i) => i !== rIdx);
+      updatePatient(viewedPatient.id, { recipes: newRecipes });
+    }
+  };
+
+  const handleDeleteActiveMeal = (rIdx, mIdx) => {
+    if(window.confirm('Tem certeza que deseja excluir esta refeição?')) {
+      const newRecipes = [...viewedPatient.recipes];
+      newRecipes[rIdx].meals = newRecipes[rIdx].meals.filter((_, i) => i !== mIdx);
+      updatePatient(viewedPatient.id, { recipes: newRecipes });
+    }
+  };
+
+  const handleSaveActiveMealEdit = (rIdx, mIdx) => {
+    const newRecipes = [...viewedPatient.recipes];
+    newRecipes[rIdx].meals[mIdx].desc = editingMealDesc;
+    updatePatient(viewedPatient.id, { recipes: newRecipes });
+    setEditingMealPath(null);
+  };
+
 
   // Busca/filtro/ordenação — Meus Pacientes
   const [patientSearch, setPatientSearch] = useState('');
@@ -132,6 +165,28 @@ export default function PatientList({
     addNotification(patient.id, `Sua nutri notou que você está há alguns dias sem registrar refeições. Que tal retomar hoje? 💪`);
     setChurnAlertMessage(`Alerta registrado para follow-up manual com ${patient.name} — e uma notificação já foi enviada pro app dele(a). O envio automático por WhatsApp/e-mail ainda não está conectado.`);
     setTimeout(() => setChurnAlertMessage(''), 4500);
+  };
+
+  // Upload de Exames (Nutri)
+  const [showUploadExamModal, setShowUploadExamModal] = useState(false);
+  const [isUploadingExam, setIsUploadingExam] = useState(false);
+  
+  const handleUploadExam = async () => {
+    setIsUploadingExam(true);
+    // Simulating AI extraction for now until we bridge with OpenAI
+    setTimeout(() => {
+      const mockData = {
+        date: new Date().toLocaleDateString('pt-BR'),
+        Glicemia: Math.floor(Math.random() * (110 - 80) + 80),
+        Colesterol: Math.floor(Math.random() * (220 - 150) + 150),
+        VitaminaD: Math.floor(Math.random() * (40 - 20) + 20),
+        aiSummaryProfessional: "Paciente apresenta leve aumento no colesterol LDL, glicemia sob controle. Manter foco em fibras.",
+        aiSummaryPatient: "Sua saúde está no caminho certo! Notamos uma melhora na sua energia, continue com as fibras que conversamos."
+      };
+      addExam(viewedPatient.id, mockData);
+      setIsUploadingExam(false);
+      setShowUploadExamModal(false);
+    }, 2000);
   };
 
   // KPIs para o Dashboard de Retenção
@@ -479,7 +534,15 @@ export default function PatientList({
                 </div>
               )}
 
-              <div style={{ display: 'flex', gap: '24px', flexWrap: 'wrap' }}>
+              {/* TABS DO PRONTUÁRIO */}
+              <div className="results-tabs" style={{ marginBottom: '24px' }}>
+                <button className={prontuarioTab === 'resumo' ? 'results-tab-btn active' : 'results-tab-btn'} onClick={() => setProntuarioTab('resumo')}>Visão Geral</button>
+                <button className={prontuarioTab === 'consultas' ? 'results-tab-btn active' : 'results-tab-btn'} onClick={() => { setProntuarioTab('consultas'); setSelectedHistoryIdx(null); }}>Protocolo Vigente</button>
+                <button className={prontuarioTab === 'exames' ? 'results-tab-btn active' : 'results-tab-btn'} onClick={() => setProntuarioTab('exames')}>Exames & Biomarcadores</button>
+              </div>
+
+              {prontuarioTab === 'resumo' && (
+                <div style={{ display: 'flex', gap: '24px', flexWrap: 'wrap' }}>
                 <div className="crm-card" style={{ flex: '1 1 300px', backgroundColor: 'var(--crm-primary)', color: 'white' }}>
                   <h2 style={{ fontSize: '1.8rem', marginBottom: '8px', color: 'white' }}>{viewedPatient.name}</h2>
                   <p style={{ color: '#94a3b8', marginBottom: '24px' }}>Objetivo: {viewedPatient.objective}</p>
@@ -513,43 +576,39 @@ export default function PatientList({
                     </ul>
                   )}
                 </div>
-              </div>
 
-              <div style={{ display: 'flex', gap: '24px', marginTop: '24px', flexWrap: 'wrap' }}>
-                <div className="crm-card" style={{ flex: '2 1 400px' }}>
-                  <h3 style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '16px' }}>
-                    <Utensils size={20} color="var(--crm-accent)" /> Prescrições Dietéticas Ativas
-                  </h3>
-                  {(!viewedPatient.recipes || viewedPatient.recipes.length === 0) ? (
-                    <p style={{ color: 'var(--crm-text-muted)' }}>Nenhuma dieta cadastrada para este paciente.</p>
-                  ) : (
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-                      {viewedPatient.recipes.map((r, idx) => (
-                        <div key={idx} style={{ padding: '16px', backgroundColor: '#F8FAFC', borderRadius: '8px', border: '1px solid var(--crm-border)' }}>
-                          <strong style={{ fontSize: '1.1rem', display: 'block', marginBottom: '8px' }}>{r.title}</strong>
-                          <ul style={{ margin: 0, paddingLeft: '20px', color: 'var(--crm-text-muted)', fontSize: '0.95rem' }}>
-                            {r.meals?.map((m, midx) => (
-                              <li key={midx} style={{ marginBottom: '8px' }}>
-                                <strong>{m.name}:</strong> {m.desc}
-                              </li>
-                            ))}
-                          </ul>
-                        </div>
-                      ))}
+                {(() => {
+                  const latestEval = viewedPatient.consultations?.slice().reverse().find(c => c.physicalEval && Object.values(c.physicalEval).some(v => v !== ''))?.physicalEval;
+                  if (!latestEval) return null;
+                  return (
+                    <div className="crm-card" style={{ flex: '1 1 300px' }}>
+                      <h3 style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '16px' }}>
+                        <Activity size={20} color="var(--crm-accent)" /> Última Avaliação Física
+                      </h3>
+                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+                        {latestEval.weight && <div><span style={{ color: 'var(--crm-text-muted)', fontSize: '0.85rem' }}>Peso:</span><br/><strong>{latestEval.weight} kg</strong></div>}
+                        {latestEval.height && <div><span style={{ color: 'var(--crm-text-muted)', fontSize: '0.85rem' }}>Altura:</span><br/><strong>{latestEval.height} cm</strong></div>}
+                        {latestEval.bodyFat && <div><span style={{ color: 'var(--crm-text-muted)', fontSize: '0.85rem' }}>% Gordura:</span><br/><strong>{latestEval.bodyFat}%</strong></div>}
+                        {latestEval.muscleMass && <div><span style={{ color: 'var(--crm-text-muted)', fontSize: '0.85rem' }}>% Músculo:</span><br/><strong>{latestEval.muscleMass}%</strong></div>}
+                        {latestEval.waist && <div><span style={{ color: 'var(--crm-text-muted)', fontSize: '0.85rem' }}>Cintura:</span><br/><strong>{latestEval.waist} cm</strong></div>}
+                        {latestEval.hips && <div><span style={{ color: 'var(--crm-text-muted)', fontSize: '0.85rem' }}>Quadril:</span><br/><strong>{latestEval.hips} cm</strong></div>}
+                        {latestEval.tmb && <div><span style={{ color: 'var(--crm-text-muted)', fontSize: '0.85rem' }}>TMB:</span><br/><strong>{latestEval.tmb} kcal</strong></div>}
+                        {latestEval.get && <div><span style={{ color: 'var(--crm-text-muted)', fontSize: '0.85rem' }}>GET:</span><br/><strong>{latestEval.get} kcal</strong></div>}
+                      </div>
                     </div>
-                  )}
-                </div>
-
-                <div className="crm-card" style={{ flex: '1 1 400px' }}>
+                  );
+                })()}
+                
+                <div className="crm-card" style={{ flex: '1 1 100%' }}>
                   <h3 style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '16px' }}>
                     <Camera size={20} color="var(--crm-accent)" /> Diário Alimentar (Análises da IA)
                   </h3>
                   {(!viewedPatient.foodLogs || viewedPatient.foodLogs.length === 0) ? (
                     <p style={{ color: 'var(--crm-text-muted)' }}>Nenhuma refeição registrada com foto ainda.</p>
                   ) : (
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', maxHeight: '400px', overflowY: 'auto', paddingRight: '8px' }}>
+                    <div style={{ display: 'flex', gap: '16px', overflowX: 'auto', paddingBottom: '16px' }}>
                       {viewedPatient.foodLogs.slice().reverse().map((log, idx) => (
-                        <div key={idx} style={{ padding: '16px', backgroundColor: '#F8FAFC', borderRadius: '8px', borderLeft: log.type === 'extra' ? '4px solid #F59E0B' : '4px solid var(--crm-accent)' }}>
+                        <div key={idx} style={{ flex: '0 0 350px', padding: '16px', backgroundColor: '#F8FAFC', borderRadius: '8px', borderLeft: log.type === 'extra' ? '4px solid #F59E0B' : '4px solid var(--crm-accent)' }}>
                           <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
                             <strong style={{ fontSize: '1rem', color: 'var(--crm-text-main)' }}>{log.mealName}</strong>
                             <span style={{ fontSize: '0.85rem', color: 'var(--crm-text-muted)' }}>{log.date} às {log.time}</span>
@@ -563,36 +622,339 @@ export default function PatientList({
                   )}
                 </div>
 
-                <div className="crm-card" style={{ flex: '1 1 300px' }}>
-                  <h3 style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '16px' }}>
-                    <FileText size={20} color="var(--crm-accent)" /> Anotações do Prontuário
-                  </h3>
-                  <div style={{ padding: '16px', backgroundColor: '#FFFBEB', borderLeft: '4px solid #F59E0B', borderRadius: '4px', color: 'var(--crm-text-main)', fontSize: '0.95rem', whiteSpace: 'pre-wrap' }}>
-                    {viewedPatient.records || 'Nenhuma anotação médica disponível.'}
-                  </div>
                 </div>
+              )}
+              
+              {prontuarioTab === 'exames' && (
+                <div style={{ display: 'flex', gap: '24px', flexWrap: 'wrap' }}>
+                  {/* HISTÓRICO DE EXAMES */}
+                <div className="crm-card" style={{ flex: '1 1 500px' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+                    <h3 style={{ display: 'flex', alignItems: 'center', gap: '8px', margin: 0 }}>
+                      <Activity size={20} color="var(--crm-accent)" /> Exames & Biomarcadores (IA)
+                    </h3>
+                  </div>
+                  
+                  {(!viewedPatient.exams || viewedPatient.exams.length === 0) ? (
+                    <p style={{ color: 'var(--crm-text-muted)' }}>Nenhum exame registrado.</p>
+                  ) : (
+                    <div>
 
-                <div className="crm-card" style={{ flex: '1 1 300px' }}>
-                  <h3 style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '16px' }}>
-                    <BookOpen size={20} color="var(--crm-accent)" /> Receitas Bônus
-                  </h3>
-                  {viewedPatient.bonusRecipes?.length > 0 ? (
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginBottom: '16px' }}>
-                      {viewedPatient.bonusRecipes.map(br => (
-                        <div key={br.id} style={{ padding: '12px', border: '1px solid var(--crm-border)', borderRadius: '8px', backgroundColor: '#F8FAFC' }}>
-                          <strong style={{ display: 'block', fontSize: '1rem', color: 'var(--crm-text-main)' }}>{br.title}</strong>
-                          <span style={{ fontSize: '0.8rem', color: 'var(--crm-text-muted)' }}>Adicionado em {br.date}</span>
+                      
+                      {viewedPatient.exams.slice().reverse().map((ex, idx) => (
+                        <div key={ex.id || idx} style={{ padding: '16px', border: '1px solid var(--crm-border)', borderRadius: '8px', marginBottom: '16px', backgroundColor: '#F8FAFC' }}>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '16px', borderBottom: '1px solid #E2E8F0', paddingBottom: '8px' }}>
+                            <strong style={{ fontSize: '1.1rem' }}>Exame de {ex.date}</strong>
+                            <span style={{ fontSize: '0.85rem', color: 'var(--crm-text-muted)', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                              <BrainCircuit size={14} /> Laudo Inteligente
+                            </span>
+                          </div>
+                          <div style={{ fontSize: '0.95rem', color: 'var(--crm-text-main)', lineHeight: '1.6' }}>
+                            <ReactMarkdown remarkPlugins={[remarkGfm]}>{ex.aiSummaryProfessional}</ReactMarkdown>
+                          </div>
                         </div>
                       ))}
                     </div>
-                  ) : (
-                    <p style={{ color: 'var(--crm-text-muted)', fontSize: '0.95rem', marginBottom: '16px' }}>O paciente ainda não possui receitas bônus.</p>
                   )}
-                  <button className="crm-btn-primary" style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }} onClick={() => setShowAttachRecipeModal(true)}>
-                    <ChefHat size={16} /> Anexar Receita da Biblioteca
-                  </button>
                 </div>
-              </div>
+                </div>
+              )}
+
+              {prontuarioTab === 'consultas' && (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+                  <div className="results-tabs" style={{ marginBottom: '0', borderBottom: '1px solid var(--crm-border)' }}>
+                    <button className={protocoloSubTab === 'dieta' ? 'results-tab-btn active' : 'results-tab-btn'} onClick={() => setProtocoloSubTab('dieta')}>Dietética Vigente</button>
+                    <button className={protocoloSubTab === 'avaliacao' ? 'results-tab-btn active' : 'results-tab-btn'} onClick={() => setProtocoloSubTab('avaliacao')}>Avaliação Médica</button>
+                    <button className={protocoloSubTab === 'receitas' ? 'results-tab-btn active' : 'results-tab-btn'} onClick={() => setProtocoloSubTab('receitas')}>Biblioteca de Receitas</button>
+                    <button className={protocoloSubTab === 'historico' ? 'results-tab-btn active' : 'results-tab-btn'} onClick={() => { setProtocoloSubTab('historico'); setSelectedHistoryIdx(null); }}>Histórico de Consultas</button>
+                  </div>
+
+                  {(() => {
+                    const lastCons = viewedPatient.consultations && viewedPatient.consultations.length > 0 
+                      ? viewedPatient.consultations[viewedPatient.consultations.length - 1] 
+                      : null;
+                      
+                    return (
+                      <>
+                        {protocoloSubTab === 'avaliacao' && lastCons && (
+                          <div style={{ display: 'flex', gap: '24px', flexWrap: 'wrap' }}>
+                            {lastCons.anamnesis && (
+                              <div className="crm-card animate-pop-in" style={{ flex: '1 1 300px' }}>
+                                <h3 style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '16px' }}>
+                                  <FileText size={20} color="var(--crm-accent)" /> Anamnese (Última Consulta)
+                                </h3>
+                                <div style={{ padding: '16px', backgroundColor: '#FFFBEB', borderLeft: '4px solid #F59E0B', borderRadius: '4px', color: 'var(--crm-text-main)', fontSize: '0.95rem', whiteSpace: 'pre-wrap' }}>
+                                  {lastCons.anamnesis}
+                                </div>
+                              </div>
+                            )}
+
+                            {lastCons.examResult && (
+                              <div className="crm-card animate-pop-in" style={{ flex: '1 1 400px' }}>
+                                <h3 style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '16px' }}>
+                                  <BrainCircuit size={20} color="var(--crm-accent)" /> Análise Clínica (Última Consulta)
+                                </h3>
+                                <div style={{ padding: '16px', backgroundColor: '#EFF6FF', borderLeft: '4px solid var(--crm-accent)', borderRadius: '4px', color: '#1E3A8A', fontSize: '0.95rem', lineHeight: '1.6' }}>
+                                  <ReactMarkdown remarkPlugins={[remarkGfm]}>{lastCons.examResult}</ReactMarkdown>
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                        )}
+
+                        {protocoloSubTab === 'dieta' && (
+                          <div style={{ display: 'flex', gap: '24px', flexWrap: 'wrap' }}>
+                            <div className="crm-card animate-pop-in" style={{ flex: '2 1 400px' }}>
+                              <h3 style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '16px' }}>
+                                <Utensils size={20} color="var(--crm-accent)" /> Prescrições Dietéticas Ativas
+                              </h3>
+                              {(!viewedPatient.recipes || viewedPatient.recipes.length === 0) ? (
+                                <p style={{ color: 'var(--crm-text-muted)' }}>Nenhuma dieta cadastrada para este paciente.</p>
+                              ) : (
+                                <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                                  {viewedPatient.recipes.map((r, idx) => (
+                                    <div key={idx} style={{ padding: '16px', backgroundColor: '#F8FAFC', borderRadius: '8px', border: '1px solid var(--crm-border)' }}>
+                                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+                                        <strong style={{ fontSize: '1.1rem' }}>{r.title}</strong>
+                                        <button onClick={() => handleDeleteActiveRecipe(idx)} style={{ background: 'none', border: 'none', color: 'var(--crm-danger)', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px', fontSize: '0.85rem' }}>
+                                          <Trash2 size={14} /> Excluir Plano
+                                        </button>
+                                      </div>
+                                      <ul style={{ margin: 0, paddingLeft: '0', color: 'var(--crm-text-muted)', fontSize: '0.95rem', listStyle: 'none' }}>
+                                        {r.meals?.map((m, midx) => {
+                                          const isEditing = editingMealPath?.rIdx === idx && editingMealPath?.mIdx === midx;
+                                          return (
+                                            <li key={midx} style={{ marginBottom: '12px', position: 'relative' }}>
+                                              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                                                <div style={{ flex: 1, paddingRight: '12px' }}>
+                                                  <strong style={{ color: 'var(--crm-text-main)' }}>{m.name}:</strong> 
+                                                  {isEditing ? (
+                                                    <textarea 
+                                                      className="crm-input" 
+                                                      style={{ width: '100%', minHeight: '60px', marginTop: '4px', fontSize: '0.9rem' }} 
+                                                      value={editingMealDesc} 
+                                                      onChange={e => setEditingMealDesc(e.target.value)} 
+                                                    />
+                                                  ) : (
+                                                    <span> {m.desc}</span>
+                                                  )}
+                                                </div>
+                                                <div style={{ display: 'flex', gap: '8px', marginTop: '2px' }}>
+                                                  {isEditing ? (
+                                                    <button onClick={() => handleSaveActiveMealEdit(idx, midx)} className="crm-btn-primary" style={{ padding: '4px 12px', fontSize: '0.8rem' }}>Salvar</button>
+                                                  ) : (
+                                                    <>
+                                                      <button onClick={() => { setEditingMealPath({ rIdx: idx, mIdx: midx }); setEditingMealDesc(m.desc); }} style={{ background: 'none', border: 'none', color: 'var(--crm-accent)', cursor: 'pointer', padding: '4px' }}><Edit3 size={14} /></button>
+                                                      <button onClick={() => handleDeleteActiveMeal(idx, midx)} style={{ background: 'none', border: 'none', color: 'var(--crm-danger)', cursor: 'pointer', padding: '4px' }}><Trash2 size={14} /></button>
+                                                    </>
+                                                  )}
+                                                </div>
+                                              </div>
+                                            </li>
+                                          );
+                                        })}
+                                      </ul>
+                                    </div>
+                                  ))}
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                        )}
+
+                        {protocoloSubTab === 'receitas' && (
+                          <div className="crm-card animate-pop-in">
+                            <h3 style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '16px' }}>
+                              <BookOpen size={20} color="var(--crm-accent)" /> Receitas Bônus Ativas
+                            </h3>
+                            {viewedPatient.bonusRecipes?.length > 0 ? (
+                              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '12px', marginBottom: '16px' }}>
+                                {viewedPatient.bonusRecipes.map(br => (
+                                  <div key={br.id} style={{ flex: '1 1 200px', padding: '12px', border: '1px solid var(--crm-border)', borderRadius: '8px', backgroundColor: '#F8FAFC' }}>
+                                    <strong style={{ display: 'block', fontSize: '1rem', color: 'var(--crm-text-main)' }}>{br.title}</strong>
+                                    <span style={{ fontSize: '0.8rem', color: 'var(--crm-text-muted)' }}>Adicionado em {br.date}</span>
+                                  </div>
+                                ))}
+                              </div>
+                            ) : (
+                              <p style={{ color: 'var(--crm-text-muted)', fontSize: '0.95rem', marginBottom: '16px' }}>O paciente ainda não possui receitas bônus vigentes.</p>
+                            )}
+                            <button className="crm-btn-primary" style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }} onClick={() => setShowAttachRecipeModal(true)}>
+                              <ChefHat size={16} /> Anexar Receita da Biblioteca
+                            </button>
+                          </div>
+                        )}
+                        {protocoloSubTab === 'historico' && (
+                          <div style={{ display: 'flex', gap: '24px', alignItems: 'flex-start' }}>
+                            <div className="crm-card" style={{ flex: '0 0 300px' }}>
+                              <h3 style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '16px' }}>
+                                <Calendar size={20} color="var(--crm-accent)" /> Histórico
+                              </h3>
+                              {(!viewedPatient.consultations || viewedPatient.consultations.length === 0) ? (
+                                <p style={{ color: 'var(--crm-text-muted)' }}>Nenhuma consulta registrada com o novo modelo.</p>
+                              ) : (
+                                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                                  {viewedPatient.consultations.slice().reverse().map((cons, idx) => (
+                                    <div 
+                                      key={idx} 
+                                      onClick={() => setSelectedHistoryIdx(idx)}
+                                      style={{ 
+                                        padding: '12px', 
+                                        backgroundColor: selectedHistoryIdx === idx ? 'var(--crm-accent)' : '#F8FAFC', 
+                                        color: selectedHistoryIdx === idx ? '#FFF' : 'var(--crm-text-main)',
+                                        borderRadius: '8px', 
+                                        border: '1px solid var(--crm-border)', 
+                                        cursor: 'pointer',
+                                        transition: 'all 0.2s'
+                                      }}>
+                                      <strong style={{ display: 'block', fontSize: '1rem' }}>Consulta de {cons.date}</strong>
+                                      <span style={{ fontSize: '0.85rem', color: selectedHistoryIdx === idx ? 'rgba(255,255,255,0.8)' : 'var(--crm-text-muted)' }}>
+                                        {cons.dietTitle ? 'Com dieta prescrita' : 'Acompanhamento'}
+                                      </span>
+                                    </div>
+                                  ))}
+                                </div>
+                              )}
+                            </div>
+
+                            <div style={{ flex: '1' }}>
+                              {selectedHistoryIdx === null ? (
+                                <div className="crm-card" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '48px', color: 'var(--crm-text-muted)' }}>
+                                  <Search size={48} style={{ opacity: 0.2, marginBottom: '16px' }} />
+                                  <p>Selecione uma consulta no menu lateral para visualizar os detalhes.</p>
+                                </div>
+                              ) : (
+                                <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+                                  {(() => {
+                                    const cons = viewedPatient.consultations.slice().reverse()[selectedHistoryIdx];
+                                    return (
+                                      <>
+                                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+                                          <div>
+                                            <h2 style={{ fontSize: '1.5rem', marginBottom: '4px', color: 'var(--crm-text-main)' }}>Visão Histórica: {cons.date}</h2>
+                                            <p style={{ color: 'var(--crm-text-muted)', fontSize: '0.9rem' }}>Modo somente leitura.</p>
+                                          </div>
+                                        </div>
+
+                                        <div className="results-tabs" style={{ marginBottom: '24px', borderBottom: '1px solid var(--crm-border)' }}>
+                                          <button className={historicoSubTab === 'anamnese' ? 'results-tab-btn active' : 'results-tab-btn'} onClick={() => setHistoricoSubTab('anamnese')}>Anamnese</button>
+                                          <button className={historicoSubTab === 'fisica' ? 'results-tab-btn active' : 'results-tab-btn'} onClick={() => setHistoricoSubTab('fisica')}>Avaliação Física</button>
+                                          <button className={historicoSubTab === 'exames' ? 'results-tab-btn active' : 'results-tab-btn'} onClick={() => setHistoricoSubTab('exames')}>Análise Clínica</button>
+                                          <button className={historicoSubTab === 'dieta' ? 'results-tab-btn active' : 'results-tab-btn'} onClick={() => setHistoricoSubTab('dieta')}>Prescrição Dietética</button>
+                                        </div>
+                                        
+                                        <div style={{ display: 'flex', gap: '24px', flexWrap: 'wrap' }}>
+                                            {historicoSubTab === 'anamnese' && (
+                                              <div className="crm-card animate-pop-in" style={{ flex: '1 1 100%' }}>
+                                                <h3 style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '16px' }}>
+                                                  <FileText size={20} color="var(--crm-accent)" /> Anamnese
+                                                </h3>
+                                                {cons.anamnesis ? (
+                                                  <div style={{ padding: '16px', backgroundColor: '#F8FAFC', borderLeft: '4px solid #94A3B8', borderRadius: '4px', color: 'var(--crm-text-main)', fontSize: '0.95rem', whiteSpace: 'pre-wrap' }}>
+                                                    {cons.anamnesis}
+                                                  </div>
+                                                ) : (
+                                                  <p style={{ color: 'var(--crm-text-muted)' }}>Nenhuma anamnese registrada.</p>
+                                                )}
+                                              </div>
+                                            )}
+
+                                            {historicoSubTab === 'fisica' && (
+                                              <div className="crm-card animate-pop-in" style={{ flex: '1 1 100%' }}>
+                                                <h3 style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '16px' }}>
+                                                  <Activity size={20} color="var(--crm-accent)" /> Avaliação Física
+                                                </h3>
+                                                {cons.physicalEval && Object.values(cons.physicalEval).some(v => v !== '') ? (
+                                                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', backgroundColor: '#F8FAFC', padding: '16px', borderRadius: '8px', border: '1px solid var(--crm-border)' }}>
+                                                    {cons.physicalEval.weight && <div><span style={{ color: 'var(--crm-text-muted)', fontSize: '0.85rem' }}>Peso:</span><br/><strong>{cons.physicalEval.weight} kg</strong></div>}
+                                                    {cons.physicalEval.height && <div><span style={{ color: 'var(--crm-text-muted)', fontSize: '0.85rem' }}>Altura:</span><br/><strong>{cons.physicalEval.height} cm</strong></div>}
+                                                    {cons.physicalEval.bodyFat && <div><span style={{ color: 'var(--crm-text-muted)', fontSize: '0.85rem' }}>% Gordura:</span><br/><strong>{cons.physicalEval.bodyFat}%</strong></div>}
+                                                    {cons.physicalEval.muscleMass && <div><span style={{ color: 'var(--crm-text-muted)', fontSize: '0.85rem' }}>% Músculo:</span><br/><strong>{cons.physicalEval.muscleMass}%</strong></div>}
+                                                    {cons.physicalEval.waist && <div><span style={{ color: 'var(--crm-text-muted)', fontSize: '0.85rem' }}>Cintura:</span><br/><strong>{cons.physicalEval.waist} cm</strong></div>}
+                                                    {cons.physicalEval.hips && <div><span style={{ color: 'var(--crm-text-muted)', fontSize: '0.85rem' }}>Quadril:</span><br/><strong>{cons.physicalEval.hips} cm</strong></div>}
+                                                    {cons.physicalEval.tmb && <div><span style={{ color: 'var(--crm-text-muted)', fontSize: '0.85rem' }}>TMB:</span><br/><strong>{cons.physicalEval.tmb} kcal</strong></div>}
+                                                    {cons.physicalEval.get && <div><span style={{ color: 'var(--crm-text-muted)', fontSize: '0.85rem' }}>GET:</span><br/><strong>{cons.physicalEval.get} kcal</strong></div>}
+                                                  </div>
+                                                ) : (
+                                                  <p style={{ color: 'var(--crm-text-muted)' }}>Nenhuma avaliação física registrada nesta consulta.</p>
+                                                )}
+                                              </div>
+                                            )}
+
+                                          {historicoSubTab === 'exames' && (
+                                            <div className="crm-card animate-pop-in" style={{ flex: '1 1 100%' }}>
+                                              <h3 style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '16px' }}>
+                                                <BrainCircuit size={20} color="var(--crm-accent)" /> Análise Clínica
+                                              </h3>
+                                              {cons.examResult ? (
+                                                <div style={{ padding: '16px', backgroundColor: '#F8FAFC', borderLeft: '4px solid #94A3B8', borderRadius: '4px', color: 'var(--crm-text-main)', fontSize: '0.95rem', lineHeight: '1.6' }}>
+                                                  <ReactMarkdown remarkPlugins={[remarkGfm]}>{cons.examResult}</ReactMarkdown>
+                                                </div>
+                                              ) : (
+                                                <p style={{ color: 'var(--crm-text-muted)' }}>Nenhuma análise clínica registrada.</p>
+                                              )}
+                                            </div>
+                                          )}
+
+                                          {historicoSubTab === 'dieta' && (
+                                            <div className="crm-card animate-pop-in" style={{ flex: '1 1 100%' }}>
+                                              <h3 style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '16px' }}>
+                                                <Utensils size={20} color="var(--crm-accent)" /> Prescrição Dietética
+                                              </h3>
+                                              {cons.dietTitle ? (
+                                                <>
+                                                  <div style={{ padding: '16px', backgroundColor: '#F8FAFC', border: '1px solid var(--crm-border)', borderRadius: '8px', marginBottom: '16px' }}>
+                                                    <h4 style={{ fontSize: '1.1rem', color: 'var(--crm-text-main)', marginBottom: '12px' }}>{cons.dietTitle}</h4>
+                                                    
+                                                    {cons.dietDescription && (
+                                                      <div style={{ marginBottom: '16px', fontSize: '0.95rem', color: 'var(--crm-text-main)' }}>
+                                                        <ReactMarkdown>{cons.dietDescription}</ReactMarkdown>
+                                                      </div>
+                                                    )}
+
+                                                    {cons.dietMeals && cons.dietMeals.length > 0 && (
+                                                      <ul style={{ margin: 0, paddingLeft: '0', listStyle: 'none', color: 'var(--crm-text-muted)', fontSize: '0.95rem' }}>
+                                                        {cons.dietMeals.map((m, midx) => (
+                                                          <li key={midx} style={{ marginBottom: '8px', paddingBottom: '8px', borderBottom: '1px solid #E2E8F0' }}>
+                                                            <strong style={{ color: 'var(--crm-text-main)' }}>{m.name}:</strong> {m.desc}
+                                                          </li>
+                                                        ))}
+                                                      </ul>
+                                                    )}
+
+                                                    {cons.dietSupplements && (
+                                                      <div style={{ marginTop: '16px', padding: '12px', backgroundColor: '#EFF6FF', borderRadius: '4px', borderLeft: '4px solid #3B82F6' }}>
+                                                        <strong style={{ display: 'block', marginBottom: '4px', color: '#1E3A8A' }}>Suplementação:</strong>
+                                                        <div style={{ fontSize: '0.9rem', color: '#1E3A8A' }}>
+                                                          <ReactMarkdown>{cons.dietSupplements}</ReactMarkdown>
+                                                        </div>
+                                                      </div>
+                                                    )}
+                                                  </div>
+                                                  <p style={{ color: 'var(--crm-text-muted)', fontSize: '0.85rem' }}>
+                                                    Para ver as refeições ativas e editá-las, consulte a aba "Protocolo Vigente". Esta é uma visão histórica e não pode ser alterada.
+                                                  </p>
+                                                </>
+                                              ) : (
+                                                <p style={{ color: 'var(--crm-text-muted)' }}>Nenhuma dieta prescrita nesta consulta.</p>
+                                              )}
+                                            </div>
+                                          )}
+                                        </div>
+                                      </>
+                                    )
+                                  })()}
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                        )}
+                      </>
+                    );
+                  })()}
+                </div>
+              )}
+
 
             </div>
           )}
@@ -1321,6 +1683,30 @@ export default function PatientList({
             )}
             <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
               <button type="button" className="crm-btn-secondary" onClick={() => setShowAttachRecipeModal(false)}>Fechar</button>
+            </div>
+          </div>
+        </div>
+      )}
+      
+      {/* MODAL UPLOAD EXAME */}
+      {showUploadExamModal && (
+        <div className="crm-modal-overlay">
+          <div className="crm-modal animate-pop-in" style={{ maxWidth: '500px' }}>
+            <h2 style={{ marginBottom: '16px' }}>Analisar Novo Exame (IA)</h2>
+            <p style={{ color: 'var(--crm-text-muted)', marginBottom: '24px', fontSize: '0.95rem' }}>
+              Faça o upload do PDF do exame. A IA vai ler os biomarcadores e gerar a síntese evolutiva automaticamente.
+            </p>
+            <div style={{ position: 'relative', padding: '40px', border: '2px dashed var(--crm-border)', borderRadius: '8px', textAlign: 'center', marginBottom: '24px', backgroundColor: '#F8FAFC' }}>
+              <Upload size={32} color="var(--crm-text-muted)" style={{ margin: '0 auto 16px' }} />
+              <p style={{ margin: 0 }}>Arraste o PDF ou clique para selecionar</p>
+              <input type="file" style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', opacity: 0, cursor: 'pointer' }} />
+            </div>
+            
+            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '12px' }}>
+              <button className="crm-btn-secondary" onClick={() => setShowUploadExamModal(false)} disabled={isUploadingExam}>Cancelar</button>
+              <button className="crm-btn-primary" onClick={handleUploadExam} disabled={isUploadingExam}>
+                {isUploadingExam ? 'Processando (IA)...' : 'Enviar e Analisar'}
+              </button>
             </div>
           </div>
         </div>

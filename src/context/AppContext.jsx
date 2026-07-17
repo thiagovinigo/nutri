@@ -241,6 +241,28 @@ export function AppProvider({ children }) {
     }
   };
 
+
+  const addExam = async (patientId, examData) => {
+    const p = patients.find(pat => pat.id === patientId);
+    if (!p) return;
+    
+    const newExamData = {
+      id: `exam-${Date.now()}`,
+      dateUploaded: new Date().toLocaleDateString('pt-BR'),
+      ...examData
+    };
+    
+    const newExams = [...(p.exams || []), newExamData];
+    setPatients(prev => prev.map(pat => pat.id === patientId ? { ...pat, exams: newExams } : pat));
+    
+    if (!isFirebaseConfigured) return;
+    try {
+      await updateDoc(doc(db, 'patients', patientId), { exams: newExams });
+    } catch(e) {
+      console.warn('Falha ao sincronizar exame com o Firestore (mantido localmente):', e);
+    }
+  };
+
   const addNotification = async (patientId, message) => {
     const notif = { id: `notif-${Date.now()}`, message, date: new Date().toLocaleString('pt-BR'), read: false };
     const p = patients.find(pat => pat.id === patientId);
@@ -390,9 +412,10 @@ export function AppProvider({ children }) {
     <AppContext.Provider value={{
       session, profile,
       patients, activePatientId, setActivePatientId,
+      fetchPatients, fetchAppointments,
       clinicConfig, updateClinicConfig,
       addPatient, updatePatient, deletePatient,
-      addRecipe, markMealDone, addExtraMealLog, addWeight, completeQuest, addWater,
+      addRecipe, markMealDone, addExtraMealLog, addWeight, addExam, completeQuest, addWater,
       addNotification, markNotificationsRead,
       appointments, addAppointment, cancelAppointment, markAppointmentDone,
       dietTemplates, addDietTemplate, deleteDietTemplate,

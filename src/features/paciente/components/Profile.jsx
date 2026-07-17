@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { User, Save, Scale, X } from 'lucide-react';
+import { User, Save, Scale, X, Activity, Upload, Sparkles } from 'lucide-react';
 import { useAppContext } from '../../../context/AppContext';
 
 export default function Profile({ activePatient }) {
@@ -19,6 +19,8 @@ export default function Profile({ activePatient }) {
       setEditCpf(activePatient.cpf || '');
     }
   }, [activePatient]);
+
+  const latestExam = activePatient?.exams?.slice(-1)[0];
 
   const handleSaveProfile = (e) => {
     e.preventDefault();
@@ -76,7 +78,33 @@ export default function Profile({ activePatient }) {
         {weightSaved && <p style={styles.successText}>Peso salvo! Você ganhou +10 XP!</p>}
       </div>
 
-      <div style={{...styles.card}}>
+      <div style={{...styles.card, marginTop: '24px', borderColor: '#8b5cf6', background: 'linear-gradient(145deg, #ffffff 0%, #f3e8ff 100%)' }}>
+        <h4 style={{margin: '0 0 12px 0', display: 'flex', alignItems: 'center', gap: '8px', color: '#6d28d9'}}>
+          <Activity size={20} /> Evolução Clínica VIP
+        </h4>
+        
+        {latestExam && latestExam.aiSummaryPatient ? (
+          <div style={{ marginBottom: '16px' }}>
+            <p style={{ margin: '0 0 8px 0', fontSize: '0.95rem', color: '#4c1d95', lineHeight: '1.5' }}>
+              <Sparkles size={16} style={{ display: 'inline', marginRight: '4px', verticalAlign: 'text-bottom' }} />
+              {latestExam.aiSummaryPatient}
+            </p>
+            <span style={{ fontSize: '0.8rem', color: '#6d28d9' }}>Última análise em {latestExam.dateUploaded}</span>
+          </div>
+        ) : (
+          <p style={{ margin: '0 0 16px 0', fontSize: '0.9rem', color: '#64748b' }}>
+            Nenhum exame analisado recentemente. Envie seus exames para a Nutri acompanhar sua saúde de perto!
+          </p>
+        )}
+        
+        <button className="btn-3d" style={{...styles.actionBtn, backgroundColor: '#8b5cf6', boxShadow: '0 4px 0 #7c3aed', width: '100%', justifyContent: 'center'}} onClick={() => {
+          alert('Exame enviado para a fila da Nutri! Ela avaliará em breve.');
+        }}>
+          <Upload size={20} /> Enviar Novo Exame (PDF/Foto)
+        </button>
+      </div>
+
+      <div style={{...styles.card, marginTop: '24px'}}>
         <h4 style={{margin: '0 0 16px 0'}}>Estatísticas do Game</h4>
         <p>🔥 <strong>Ofensiva:</strong> {activePatient.streak} dias seguidos</p>
         <p>💎 <strong>Total de XP:</strong> {activePatient.xp} XP</p>

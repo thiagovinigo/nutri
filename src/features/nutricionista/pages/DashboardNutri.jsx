@@ -40,6 +40,20 @@ export default function DashboardNutri() {
   const [activeApptId, setActiveApptId] = useState(null);
   const [anamnesis, setAnamnesis] = useState('');
   
+  const [physicalEval, setPhysicalEval] = useState({
+    weight: '',
+    height: '',
+    bodyFat: '',
+    muscleMass: '',
+    waist: '',
+    hips: '',
+    age: '',
+    gender: 'M',
+    activityLevel: '1.2',
+    tmb: '',
+    get: ''
+  });
+  
   const [examUploaded, setExamUploaded] = useState(false);
   const [examAnalyzing, setExamAnalyzing] = useState(false);
   const [examResult, setExamResult] = useState(null);
@@ -139,6 +153,7 @@ export default function DashboardNutri() {
     setActiveApptId(apptId);
     setConsultationStep(1);
     setAnamnesis('');
+    setPhysicalEval({ weight: '', height: '', bodyFat: '', muscleMass: '', waist: '', hips: '', age: '', gender: 'M', activityLevel: '1.2', tmb: '', get: '' });
     setExamUploaded(false);
     setExamResult(null);
     setDietTitle('');
@@ -153,6 +168,7 @@ export default function DashboardNutri() {
     setActivePatientId(p.id);
     setConsultationStep(1);
     setAnamnesis('');
+    setPhysicalEval({ weight: '', height: '', bodyFat: '', muscleMass: '', waist: '', hips: '', age: '', gender: 'M', activityLevel: '1.2', tmb: '', get: '' });
     setExamUploaded(false);
     setExamResult(null);
     setDietTitle('');
@@ -169,8 +185,15 @@ export default function DashboardNutri() {
     setExamError('');
     try {
       let contentArray = [
-        { type: "text", text: `Contexto do paciente: Objetivo é ${activePatient.objective}. Anamnese de hoje: ${anamnesis}.\n\nAnalise os exames anexados:` }
+        { type: "text", text: `Contexto do paciente: Objetivo é ${activePatient.objective}. Anamnese de hoje: ${anamnesis}.\n\n` }
       ];
+
+      if (activePatient.exams && activePatient.exams.length > 0) {
+        contentArray[0].text += `HISTÓRICO DE EXAMES ANTERIORES DO PACIENTE (para comparação evolutiva):\n${JSON.stringify(activePatient.exams)}\n\n`;
+      }
+      
+      contentArray[0].text += `Analise os novos exames anexados e faça a correlação obrigatória com o histórico acima (se houver):`;
+
       
       for (let i = 0; i < files.length; i++) {
         const file = files[i];
@@ -200,19 +223,22 @@ Retorne o resultado OBRIGATORIAMENTE em texto formatado em Markdown, sem texto d
 Use EXATAMENTE as seções com headers ## conforme mostrado abaixo (você deve usar esses exatos títulos):
 
 ## 1. Análise Detalhada
-Liste cada grupo de exames analisados. Indique: Parâmetro | Resultado Encontrado | Valor de Referência | Status (✅ Normal / ⚠️ Alterado / 🚨 Crítico).
+Liste cada grupo de exames analisados. OBRIGATORIAMENTE use o formato de LISTA (não use tabelas Markdown). Formato esperado para cada item:
+- **[Parâmetro]:** [Resultado Encontrado] (Ref: [Valor de Referência]) - Status: [✅ Normal / ⚠️ Alterado / 🚨 Crítico]
 
-## 2. Tradução para o Paciente (Linguagem Leiga)
+## 2. Evolução Clínica (Comparação Histórica)
+Se houver histórico de exames anteriores enviado no contexto, compare os achados de agora com os antigos. Mostre o que melhorou, o que piorou e a tendência. Se não houver histórico, diga "Este é o primeiro exame registrado (Linha de Base)".
+
+## 3. Tradução para o Paciente (Linguagem Leiga)
 Uma explicação simples, clara e empática sobre o que os exames dizem, perfeita para o profissional ler ou copiar para o paciente. Relacione os achados com os sintomas descritos na anamnese.
 
-## 3. Visão do Profissional (Médica / Nutricional)
-Análise técnica profunda. Quais as rotas metabólicas impactadas? Cruzamento de achados e hipóteses diagnósticas avançadas (raciocínio clínico).
-
-## 4. Plano Terapêutico e Exames Complementares
-Sugestões de tratamento, suplementação focada e quais exames extras deveriam ser solicitados para fechar o diagnóstico.
-
-## 5. Referências Bibliográficas
-Cite diretrizes ou referências científicas usadas para basear a sua análise de parâmetros.`,
+## 4. Visão do Profissional (Nutricionista / Comitê MedHub)
+Você atua como um comitê clínico de alta performance onde o Nutricionista é o líder principal. Estruture esta seção OBRIGATORIAMENTE com os seguintes subtópicos:
+- **Raciocínio Clínico e Metabólico:** Análise profunda das rotas impactadas e hipóteses.
+- **Intervenções Dietéticas e Físicas:** Condutas de nutrição (macros, perfil de dieta) e energia para treinos.
+- **Suplementação Estratégica:** Vitaminas, minerais e nutracêuticos.
+- **Exames Complementares:** O que solicitar na próxima consulta para fechar diagnósticos.
+- **Parecer do Comitê Médico:** Não diga apenas "Recomendamos o acionamento de um médico". Você (IA) DEVE ATUAR como o próprio comitê médico (MedHub)! Forneça a análise médica profunda sobre os achados (ex: "O Comitê Médico avalia que a hiperprolactinemia neste cenário indica..."). Ao final do seu parecer médico, adicione uma nota instruindo que o paciente deve ser aconselhado a buscar o especialista presencialmente (ex: Endocrinologista, Cardiologista) para acompanhamento clínico.`,
           messages: [{ role: "user", content: contentArray }]
         })
       });
@@ -237,8 +263,8 @@ Cite diretrizes ou referências científicas usadas para basear a sua análise d
       if (examResult) promptContext += `\nConduta Sugerida pelos Exames:\n${examResult}`;
 
       const systemPrompt = dietDuration > 1 
-        ? `Você é um Nutricionista Clínico de alta performance. Crie um esboço de plano alimentar para ${dietDuration} dias e retorne EXATAMENTE UM JSON contendo um array chamado 'meals'. O plano deve conter refeições completas (ex: Café da Manhã, Almoço, Jantar). Como são múltiplos dias, o 'name' da refeição DEVE incluir o dia, ex: "Dia 1 - Café da Manhã". Ex: { "meals": [ { "name": "Dia 1 - Almoço", "desc": "150g frango" } ] }`
-        : `Você é um Nutricionista Clínico de alta performance. Crie um esboço de plano alimentar para 1 dia e retorne EXATAMENTE UM JSON contendo um array chamado 'meals'. O plano deve conter OBRIGATORIAMENTE refeições completas (ex: Café da Manhã, Almoço, Jantar). Cada item no array deve ter 'name' (Nome da Refeição) e 'desc' (O que o paciente deve comer). Ex: { "meals": [ { "name": "Almoço", "desc": "150g frango" } ] }`;
+        ? `Você é um Nutricionista Clínico de alta performance. Crie um plano alimentar para ${dietDuration} dias. Para CADA DIA, crie EXATAMENTE 6 refeições (Ex: Café da Manhã, Lanche da Manhã, Almoço, Lanche da Tarde, Jantar, Ceia). Retorne EXATAMENTE UM JSON contendo um array chamado 'meals'. Como são múltiplos dias, o 'name' da refeição DEVE incluir o dia, ex: "Dia 1 - Café da Manhã". Ex: { "meals": [ { "name": "Dia 1 - Almoço", "desc": "150g frango" } ] }`
+        : `Você é um Nutricionista Clínico de alta performance. Crie um plano alimentar para 1 dia. Crie EXATAMENTE 6 refeições (Café da Manhã, Lanche da Manhã, Almoço, Lanche da Tarde, Jantar, Ceia). Retorne EXATAMENTE UM JSON contendo um array chamado 'meals'. Cada item no array deve ter 'name' (Nome da Refeição) e 'desc' (O que o paciente deve comer). Ex: { "meals": [ { "name": "Almoço", "desc": "150g frango" } ] }`;
 
       const response = await fetch('/api/openai-bridge', {
         method: 'POST',
@@ -307,14 +333,46 @@ Cite diretrizes ou referências científicas usadas para basear a sua análise d
   };
 
   const finishConsultation = () => {
+    let formattedMeals = [];
     if (dietTitle && dietMeals.length > 0) {
-      const formattedMeals = dietMeals.map(m => ({ ...m, done: false, log: null }));
+      formattedMeals = dietMeals.map(m => ({ ...m, done: false, log: null }));
       addRecipe(activePatient.id, dietTitle, formattedMeals, dietDescription, dietSupplements);
     }
     if (activeApptId) markAppointmentDone(activeApptId);
-    updatePatient(activePatient.id, { records: activePatient.records + `\n\n[Consulta - ${new Date().toLocaleDateString('pt-BR')}]:\n${anamnesis}` });
 
-    setFinishedMessage('Consulta finalizada! Cardápio estruturado enviado ao App do paciente.');
+    const newConsultation = {
+      id: Date.now().toString(),
+      date: new Date().toLocaleDateString('pt-BR'),
+      anamnesis: anamnesis,
+      physicalEval: physicalEval,
+      examResult: examResult,
+      dietTitle: dietTitle,
+      dietMeals: formattedMeals,
+      dietSupplements: dietSupplements,
+      dietDescription: dietDescription
+    };
+    
+    const updatedConsultations = [...(activePatient.consultations || []), newConsultation];
+
+    let updatePayload = { 
+      records: activePatient.records + `\n\n[Consulta - ${new Date().toLocaleDateString('pt-BR')}]:\n${anamnesis}`,
+      consultations: updatedConsultations
+    };
+
+    if (examResult) {
+      const newExam = {
+        id: Date.now().toString() + "_ex",
+        date: new Date().toLocaleDateString('pt-BR'),
+        Glicemia: null,
+        Colesterol: null,
+        aiSummaryProfessional: examResult
+      };
+      updatePayload.exams = [...(activePatient.exams || []), newExam];
+    }
+
+    updatePatient(activePatient.id, updatePayload);
+
+    setFinishedMessage('Consulta finalizada! Cardápio estruturado enviado e histórico salvo.');
     setTimeout(() => { setFinishedMessage(''); setView('agenda'); }, 1800);
   };
 
@@ -325,6 +383,7 @@ Cite diretrizes ou referências científicas usadas para basear a sua análise d
         activeApptId={activeApptId}
         consultationStep={consultationStep} setConsultationStep={setConsultationStep}
         anamnesis={anamnesis} setAnamnesis={setAnamnesis}
+        physicalEval={physicalEval} setPhysicalEval={setPhysicalEval}
         examUploaded={examUploaded} setExamUploaded={setExamUploaded}
         examAnalyzing={examAnalyzing}
         examResult={examResult} setExamTab={setExamTab} examTab={examTab}
