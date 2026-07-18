@@ -421,7 +421,7 @@ export function AppProvider({ children }) {
     <AppContext.Provider value={{
       session, profile,
       patients, activePatientId, setActivePatientId,
-      fetchPatients, fetchAppointments,
+      fetchProfile, fetchPatients, fetchAppointments,
       clinicConfig, updateClinicConfig,
       addPatient, updatePatient, deletePatient,
       addRecipe, markMealDone, addExtraMealLog, addWeight, addExam, completeQuest, addWater, removeWater,

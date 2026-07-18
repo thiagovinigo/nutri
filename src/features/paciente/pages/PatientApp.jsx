@@ -10,7 +10,7 @@ import ChatBot from '../components/ChatBot';
 import Profile from '../components/Profile';
 
 export default function PatientApp() {
-  const { patients, activePatientId, setActivePatientId, markNotificationsRead, session, profile, setBypassPatient } = useAppContext();
+  const { patients, activePatientId, setActivePatientId, markNotificationsRead, session, profile, setBypassPatient, fetchProfile } = useAppContext();
 
   const [isLoggedIn, setIsLoggedIn] = useState(false);
 
@@ -93,6 +93,9 @@ export default function PatientApp() {
             // Deletar o documento temporÃ¡rio para nÃ£o sujar o BD
             await deleteDoc(tempDocRef);
             
+            // Força a atualização do contexto agora que o documento existe
+            await fetchProfile(user.uid);
+
             // Remover o parÃ¢metro da URL
             window.history.replaceState({}, document.title, window.location.pathname);
             setIsLoggedIn(true);
