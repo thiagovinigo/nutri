@@ -417,10 +417,22 @@ export function AppProvider({ children }) {
     }
   };
 
+  const computedPatients = patients.map(p => {
+    let computedStatus = p.status || 'inativo';
+    if (p.xp > 0 || p.streak > 0) {
+      if (p.streak === 0) computedStatus = 'em_risco';
+      else if (p.streak >= 3) computedStatus = 'engajado';
+      else computedStatus = 'ativo';
+    } else {
+      computedStatus = 'inativo';
+    }
+    return { ...p, status: computedStatus };
+  });
+
   return (
     <AppContext.Provider value={{
       session, profile,
-      patients, activePatientId, setActivePatientId,
+      patients: computedPatients, activePatientId, setActivePatientId,
       fetchProfile, fetchPatients, fetchAppointments,
       clinicConfig, updateClinicConfig,
       addPatient, updatePatient, deletePatient,

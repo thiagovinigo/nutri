@@ -123,7 +123,9 @@ export default function PatientApp() {
 
     try {
       const dietContext = currentRecipe ? currentRecipe.meals.map(m => `- ${m.name}: ${m.desc}`).join('\n') : 'Nenhuma dieta estruturada ativa no momento.';
-      const systemPrompt = `VocÃª Ã© a Vytal Bot, assistente clÃ­nica da Vytal. Perfil: MÃ©dica nutricionista, tÃ©cnica e baseada em evidÃªncias. Objetivo: Tirar dÃºvidas sobre o plano alimentar. DADOS: Nome: ${activePatient.name}. Objetivo: ${activePatient.objective}. RestriÃ§Ãµes: ${activePatient.restrictions || 'Nenhuma'}. PLANO ATUAL: ${dietContext}. Responda de forma concisa e em pt-BR.`;
+      const lastWeight = activePatient.weights && activePatient.weights.length > 0 ? activePatient.weights[activePatient.weights.length - 1].value + ' kg' : 'Não informado';
+      const waterIntake = activePatient.waterGlasses ? (activePatient.waterGlasses * 250) + ' ml' : 'Nenhuma água registrada hoje';
+      const systemPrompt = `Você é a Vytal Bot, assistente clínica da Vytal. Perfil: Médica nutricionista, técnica e baseada em evidências. Objetivo: Tirar dúvidas sobre o plano alimentar e evolução. DADOS: Nome: ${activePatient.name}. Objetivo: ${activePatient.objective}. Restrições: ${activePatient.restrictions || 'Nenhuma'}. BIOMETRIA ATUAL -> Peso: ${lastWeight}. Ingestão de Água hoje: ${waterIntake}. PLANO ATUAL: ${dietContext}. Responda de forma concisa e em pt-BR.`;
 
       const response = await fetch('/api/openai-bridge', {
         method: 'POST',

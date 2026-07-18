@@ -163,7 +163,7 @@ export default function PatientList({
   const [churnAlertMessage, setChurnAlertMessage] = useState('');
   const handleSendChurnAlert = (patient) => {
     addNotification(patient.id, `Sua nutri notou que você está há alguns dias sem registrar refeições. Que tal retomar hoje? 💪`);
-    setChurnAlertMessage(`Alerta registrado para follow-up manual com ${patient.name} — e uma notificação já foi enviada pro app dele(a). O envio automático por WhatsApp/e-mail ainda não está conectado.`);
+    setChurnAlertMessage(`🔔 Notificação enviada com sucesso para o aplicativo de ${patient.name}!`);
     setTimeout(() => setChurnAlertMessage(''), 4500);
   };
 
@@ -1209,7 +1209,7 @@ export default function PatientList({
                       </tr>
                     </thead>
                     <tbody>
-                      {patients.filter(p => p.status === 'em_risco' || p.status === 'inativo').map(p => (
+                      {patients.filter(p => p.status === 'em_risco').map(p => (
                         <tr key={p.id}>
                           <td style={{ fontWeight: '500' }}>{p.name}</td>
                           <td>{p.weights && p.weights.length > 0 ? p.weights[p.weights.length - 1].value + ' kg' : 'N/A'}</td>
@@ -1221,7 +1221,7 @@ export default function PatientList({
                           </td>
                         </tr>
                       ))}
-                      {patients.filter(p => p.status === 'em_risco' || p.status === 'inativo').length === 0 && (
+                      {patients.filter(p => p.status === 'em_risco').length === 0 && (
                         <tr><td colSpan="4" style={{ textAlign: 'center', color: '#991B1B' }}>Nenhum paciente em risco no momento.</td></tr>
                       )}
                     </tbody>

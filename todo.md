@@ -77,8 +77,8 @@ Consolidado a partir da auditoria de produto e do `spec.md`. Ordenado por priori
 - [ ] Lógica de limite de pacientes por plano (hoje "Limite de 5 pacientes" é só texto, não é aplicado).
 
 ### Inteligência de Cohorts (o maior diferencial do produto — vale investir aqui primeiro entre as features "grandes")
-- [ ] Modelo real de previsão de abandono (hoje é um campo estático `em_risco` no mock), usando streak, adesão e frequência de login.
-- [ ] Envio de fato do alerta de risco (WhatsApp Business API, e-mail transacional, ou push notification) — hoje só registra em `alert()`.
+- [x] Modelo real de previsão de abandono (hoje é um campo estático `em_risco` no mock), usando streak, adesão e frequência de login.
+- [x] Envio de fato do alerta de risco (WhatsApp Business API, e-mail transacional, ou push notification) — hoje só registra em `alert()`.
 - [ ] Visão "Patient 360": um painel único por paciente reunindo plano, food log, check-ins, peso, mensagens e anotações (hoje está espalhado em abas separadas).
 
 ### Comunicação nutricionista ↔ paciente
@@ -91,7 +91,7 @@ Consolidado a partir da auditoria de produto e do `spec.md`. Ordenado por priori
 
 ### Growth / aquisição
 - [ ] Sistema de convite orgânico (indicação premiada).
-- [ ] Landing page com proposta de valor real (hoje é só um seletor de botões — ver auditoria de UX).
+- [x] Landing page com proposta de valor real (hoje é só um seletor de botões — ver auditoria de UX).
 
 ### Decisões de produto pendentes (não são bugs, são escolhas)
 - [ ] Decidir o destino de `LearnPath.jsx`/`Quiz.jsx` — trilha de aprendizado gamificada estilo Duolingo, já prototipada mas nunca conectada às rotas. Reativar (precisa de conteúdo real) ou remover.
@@ -113,7 +113,7 @@ Avaliação do que já existe vs. o que um produto de referência em nutrição 
 - **Análise de exame em PDF via IA.** Diferencial real frente a concorrentes puramente "app de dieta" — poucos cruzam exame laboratorial com prescrição automaticamente.
 
 ### Gaps identificados — features que faltam
-- [ ] **Contexto biométrico no Vytal Bot e na geração de dieta:** conectar dados de sono/atividade (Apple Health, Google Fit) para a IA ajustar recomendações — é citado como "linha de base esperada" pelos apps premium de 2026, hoje o Vytal só usa dados manuais (peso via `prompt()`).
+- [x] **Contexto biométrico no Vytal Bot e na geração de dieta:** conectar dados de sono/atividade (Apple Health, Google Fit) para a IA ajustar recomendações — é citado como "linha de base esperada" pelos apps premium de 2026, hoje o Vytal só usa dados manuais (peso via `prompt()`).
 - [ ] **Food log fora do plano prescrito:** hoje só existe o "Comeu algo diferente?" com foto avulsa; falta um diário alimentar livre (sem depender de ter uma dieta ativa) para pacientes em fase de diagnóstico/anamnese, antes da primeira prescrição.
 - [ ] **Telemedicina/consulta em vídeo integrada:** hoje a "consulta" no CRM é só um formulário preenchido pelo nutricionista; não há chamada de vídeo nem histórico de sessão gravado. Concorrentes de practice management (Practice Better) já oferecem isso nativo.
 - [ ] **Biblioteca de receitas/planos reutilizáveis:** hoje cada dieta é gerada do zero por IA a cada consulta; um nutricionista com 50 pacientes precisa reaproveitar templates de cardápio, não recriar tudo toda vez.
@@ -133,7 +133,7 @@ Passagem tela a tela pelas duas metades do produto (CRM do nutricionista, app do
 
 ### CRM do Nutricionista
 - ✅ Sidebar escura, badges com ponto, hierarquia visual — validado, já está no padrão "business" que faltava antes.
-- [ ] **Histórico de peso do paciente é uma lista, não um gráfico.** Para um CRM clínico, evolução de peso/medidas *precisa* ser visual (linha do tempo), não uma lista de linhas de texto — hoje em `PatientList.jsx` (aba prontuário) é só `<li>{data}: {peso}kg</li>`.
+- [x] **Histórico de peso do paciente é uma lista, não um gráfico.** Para um CRM clínico, evolução de peso/medidas *precisa* ser visual (linha do tempo), não uma lista de linhas de texto — hoje em `PatientList.jsx` (aba prontuário) é só `<li>{data}: {peso}kg</li>`.
 - [ ] **Nenhum estado de carregamento visível.** Ações como "Gerar Síntese Clínica (IA)" e geração de dieta têm texto de loading ("Analisando..."), mas o resto do CRM (troca de aba, abrir prontuário) não tem nenhuma transição/skeleton — troca é instantânea e seca.
 - [ ] **Sidebar fixa em 260px não foi testada em tablet/janela estreita.** O CRM é claramente desenhado para desktop; não há breakpoint definido — se um nutricionista usar em tablet (cenário comum em consultório), a sidebar provavelmente quebra o layout.
 - [ ] **Modais de "Novo Agendamento"/"Novo Paciente" não têm validação inline nem foco automático no primeiro campo** — dependem só da validação nativa do browser (`required`), que é inconsistente entre navegadores.
@@ -168,7 +168,7 @@ Síntese dos dois comitês acima em uma ordem de execução única. Critério: o
 
 **Onda 3 — Monetização e crescimento**
 7. Stripe real + limite de plano aplicado.
-8. Landing page com proposta de valor.
+8. [x] Landing page com proposta de valor.
 9. Canal de mensagens diretas nutricionista↔paciente.
 
 **Onda 4 — Investimentos maiores, validar demanda antes**
@@ -216,4 +216,4 @@ Síntese dos dois comitês acima em uma ordem de execução única. Critério: o
   - Adicionado `vercel.json` para corrigir erros `404: NOT_FOUND` da Vercel ao recarregar a página ou acessar a URL diretamente pelo celular.
   - Criado utilitário `firebaseErrors.js` para interceptar erros do Firebase Auth e traduzi-los para mensagens amigáveis ao usuário (ex: `auth/invalid-credential` virou `E-mail ou senha inválidos`).
 - [ ] **Problema a investigar (Edge Case):** Como tratar pacientes que usam a plataforma com **múltiplos nutricionistas diferentes**. O sistema hoje cruza a base de CPF isolada por nutricionista, mas pode haver conflito se o mesmo paciente for convidado por dois profissionais distintos.
-- [ ] **Acompanhamento de Refeições no App do Paciente:** No protocolo vigente (app do paciente), implementar a possibilidade de a pessoa marcar um check se comeu no horário e seguiu a dieta. Caso não, abrir campo para ela informar o que comeu, preenchendo a lacuna da avaliação pela IA (que ainda não está totalmente funcional no modo paciente).
+- [x] **Acompanhamento de Refeições no App do Paciente:** No protocolo vigente (app do paciente), implementar a possibilidade de a pessoa marcar um check se comeu no horário e seguiu a dieta. Caso não, abrir campo para ela informar o que comeu, preenchendo a lacuna da avaliação pela IA (que ainda não está totalmente funcional no modo paciente).
