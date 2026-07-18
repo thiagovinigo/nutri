@@ -3,6 +3,7 @@ import { useAppContext } from '../../../context/AppContext';
 import ConsultationFlow from '../components/ConsultationFlow';
 import PatientList from '../components/PatientList';
 import { extractTextFromPDF } from '../../../services/pdfService';
+import tacoData from '../../../data/taco.json';
 
 export default function DashboardNutri() {
   const { 
@@ -51,7 +52,17 @@ export default function DashboardNutri() {
     gender: 'M',
     activityLevel: '1.2',
     tmb: '',
-    get: ''
+    get: '',
+    protocoloDobras: 'nenhum',
+    triceps: '',
+    peitoral: '',
+    subescapular: '',
+    axilar: '',
+    suprailiaca: '',
+    abdomen: '',
+    coxa: '',
+    massaGorda: '',
+    massaMagra: ''
   });
   
   const [examUploaded, setExamUploaded] = useState(false);
@@ -153,7 +164,7 @@ export default function DashboardNutri() {
     setActiveApptId(apptId);
     setConsultationStep(1);
     setAnamnesis('');
-    setPhysicalEval({ weight: '', height: '', bodyFat: '', muscleMass: '', waist: '', hips: '', age: '', gender: 'M', activityLevel: '1.2', tmb: '', get: '' });
+    setPhysicalEval({ weight: '', height: '', bodyFat: '', muscleMass: '', waist: '', hips: '', age: '', gender: 'M', activityLevel: '1.2', tmb: '', get: '', protocoloDobras: 'nenhum', triceps: '', peitoral: '', subescapular: '', axilar: '', suprailiaca: '', abdomen: '', coxa: '', massaGorda: '', massaMagra: '' });
     setExamUploaded(false);
     setExamResult(null);
     setDietTitle('');
@@ -168,7 +179,7 @@ export default function DashboardNutri() {
     setActivePatientId(p.id);
     setConsultationStep(1);
     setAnamnesis('');
-    setPhysicalEval({ weight: '', height: '', bodyFat: '', muscleMass: '', waist: '', hips: '', age: '', gender: 'M', activityLevel: '1.2', tmb: '', get: '' });
+    setPhysicalEval({ weight: '', height: '', bodyFat: '', muscleMass: '', waist: '', hips: '', age: '', gender: 'M', activityLevel: '1.2', tmb: '', get: '', protocoloDobras: 'nenhum', triceps: '', peitoral: '', subescapular: '', axilar: '', suprailiaca: '', abdomen: '', coxa: '', massaGorda: '', massaMagra: '' });
     setExamUploaded(false);
     setExamResult(null);
     setDietTitle('');
@@ -262,9 +273,22 @@ Você atua como um comitê clínico de alta performance onde o Nutricionista é 
       if (anamnesis) promptContext += `\nAnamnese: ${anamnesis}`;
       if (examResult) promptContext += `\nConduta Sugerida pelos Exames:\n${examResult}`;
 
+      const miniTaco = tacoData.map(f => ({ id: f.id, name: f.name, kcal: f.kcal, carb: f.carb, ptn: f.protein, fat: f.fat }));
+      promptContext += `\n\nBANCO DE DADOS DE ALIMENTOS PERMITIDOS (TACO - Valores por 100g):\n${JSON.stringify(miniTaco)}`;
+
+      const formatInstruction = `Você deve retornar EXATAMENTE UM JSON contendo um array chamado 'meals'. Cada item no array deve ter 'name' (Nome da Refeição), 'desc' (Instruções gerais) e um array 'foods'.
+Para cada alimento em 'foods', você DEVE buscar um item correspondente no BANCO DE DADOS DE ALIMENTOS PERMITIDOS e retornar:
+- foodId: id do alimento no banco
+- name: nome exato do alimento no banco
+- amount: quantidade recomendada em gramas (number)
+- kcal, carb, protein, fat: os valores nutricionais multiplicados pela quantidade recomendada (se 100g tem 100kcal, 50g terá 50kcal) (number)
+
+Exemplo de formato:
+{ "meals": [ { "name": "Almoço", "desc": "Não pular", "foods": [ { "foodId": "14", "name": "Frango, peito, sem pele, grelhado", "amount": 150, "kcal": 238.5, "carb": 0, "protein": 48, "fat": 3.75 } ] } ] }`;
+
       const systemPrompt = dietDuration > 1 
-        ? `Você é um Nutricionista Clínico de alta performance. Crie um plano alimentar para ${dietDuration} dias. Para CADA DIA, crie EXATAMENTE 6 refeições (Ex: Café da Manhã, Lanche da Manhã, Almoço, Lanche da Tarde, Jantar, Ceia). Retorne EXATAMENTE UM JSON contendo um array chamado 'meals'. Como são múltiplos dias, o 'name' da refeição DEVE incluir o dia, ex: "Dia 1 - Café da Manhã". Ex: { "meals": [ { "name": "Dia 1 - Almoço", "desc": "150g frango" } ] }`
-        : `Você é um Nutricionista Clínico de alta performance. Crie um plano alimentar para 1 dia. Crie EXATAMENTE 6 refeições (Café da Manhã, Lanche da Manhã, Almoço, Lanche da Tarde, Jantar, Ceia). Retorne EXATAMENTE UM JSON contendo um array chamado 'meals'. Cada item no array deve ter 'name' (Nome da Refeição) e 'desc' (O que o paciente deve comer). Ex: { "meals": [ { "name": "Almoço", "desc": "150g frango" } ] }`;
+        ? `Você é um Nutricionista Clínico de alta performance. Crie um plano alimentar para ${dietDuration} dias (EXATAMENTE 6 refeições por dia). Como são múltiplos dias, o 'name' da refeição DEVE incluir o dia, ex: "Dia 1 - Café da Manhã".\n\n${formatInstruction}`
+        : `Você é um Nutricionista Clínico de alta performance. Crie um plano alimentar para 1 dia. Crie EXATAMENTE 6 refeições.\n\n${formatInstruction}`;
 
       const response = await fetch('/api/openai-bridge', {
         method: 'POST',

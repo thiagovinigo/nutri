@@ -2,6 +2,9 @@ import { defineConfig, loadEnv } from 'vite';
 import react from '@vitejs/plugin-react';
 import { VitePWA } from 'vite-plugin-pwa';
 
+// Use body-parser internally since node req raw streams can get complicated handling very large payloads manually.
+import bodyParser from 'body-parser';
+
 // `api/openai-bridge.js` é uma Vercel Serverless Function — só roda quando
 // publicada na Vercel (ou via `vercel dev`). Rodando com `npm run dev`
 // (Vite puro), essa rota não existe de verdade, e o fetch do frontend caía
@@ -13,15 +16,16 @@ function openaiBridgeDevMiddleware(env) {
   return {
     name: 'openai-bridge-dev-middleware',
     configureServer(server) {
+      // Use express-like body parser for the specific route to support large payloads (Base64 images)
+      server.middlewares.use('/api/openai-bridge', bodyParser.json({ limit: '50mb' }));
+      
       server.middlewares.use('/api/openai-bridge', async (req, res) => {
         if (req.method === 'OPTIONS') { res.statusCode = 200; res.end(); return; }
         if (req.method !== 'POST') { res.statusCode = 405; res.end(JSON.stringify({ error: 'Method Not Allowed' })); return; }
 
-        let body = '';
-        for await (const chunk of req) body += chunk;
-
         try {
-          const { messages, system_prompt, format_json } = JSON.parse(body || '{}');
+          const body = req.body || {};
+          const { messages, system_prompt, format_json } = body;
           const OPENAI_API_KEY = env.OPENAI_API_KEY;
           if (!OPENAI_API_KEY) {
             throw new Error('OPENAI_API_KEY não configurada no .env (variável de servidor, sem prefixo VITE_).');
@@ -29,7 +33,8 @@ function openaiBridgeDevMiddleware(env) {
 
           const requestBody = {
             model: 'gpt-4o-mini',
-            messages: [{ role: 'system', content: system_prompt || 'Você é um assistente.' }, ...(messages || [])]
+            messages: [{ role: 'system', content: system_prompt || 'Você é um assistente.' }, ...(messages || [])],
+            max_tokens: 400
           };
           if (format_json) requestBody.response_format = { type: 'json_object' };
 
@@ -39,8 +44,14 @@ function openaiBridgeDevMiddleware(env) {
             body: JSON.stringify(requestBody)
           });
           const data = await apiResponse.json();
+          if (apiResponse.status !== 200) {
+            console.error("OpenAI API Error Status:", apiResponse.status);
+            console.error("OpenAI API Error Data:", JSON.stringify(data, null, 2));
+          } else {
+            console.log("OpenAI API Success. Returned choices length:", data.choices?.length);
+          }
           res.setHeader('Content-Type', 'application/json');
-          res.statusCode = 200;
+          res.statusCode = apiResponse.status;
           res.end(JSON.stringify(data));
         } catch (error) {
           res.setHeader('Content-Type', 'application/json');

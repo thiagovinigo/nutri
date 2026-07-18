@@ -1,3 +1,11 @@
+export const config = {
+  api: {
+    bodyParser: {
+      sizeLimit: '50mb',
+    },
+  },
+};
+
 export default async function handler(req, res) {
   // CORS Headers para requisições de outras origens (caso necessário)
   res.setHeader('Access-Control-Allow-Credentials', true);
@@ -29,7 +37,8 @@ export default async function handler(req, res) {
       messages: [
         { role: 'system', content: system_prompt || 'Você é um assistente.' },
         ...messages
-      ]
+      ],
+      max_tokens: 400
     };
 
     if (format_json) {
@@ -46,7 +55,7 @@ export default async function handler(req, res) {
     });
 
     const data = await response.json();
-    res.status(200).json(data);
+    res.status(response.status).json(data);
   } catch (error) {
     console.error("Erro na OpenAI API Bridge:", error);
     res.status(500).json({ error: error.message });

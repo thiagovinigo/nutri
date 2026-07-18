@@ -205,16 +205,16 @@ export function AppProvider({ children }) {
     await updatePatient(patientId, { recipes: newRecipes, foodLogs: newFoodLogs });
   };
 
-  const addExtraMealLog = async (patientId, aiFeedback) => {
+  const addExtraMealLog = async (patientId, aiFeedback, mealName = 'Refeição Livre') => {
     const p = patients.find(pat => pat.id === patientId);
     if (!p) return;
 
     const time = new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
     const date = new Date().toLocaleDateString('pt-BR');
-    const newFoodLog = { id: `food-${Date.now()}`, type: 'extra', date, time, mealName: 'Refeição Livre', log: aiFeedback };
+    const newFoodLog = { id: `food-${Date.now()}`, type: 'extra', date, time, mealName, log: aiFeedback };
     const newFoodLogs = [...(p.foodLogs || []), newFoodLog];
 
-    const newExtraLogs = [...(p.extraLogs || []), { time, log: aiFeedback }];
+    const newExtraLogs = [...(p.extraLogs || []), { time, log: aiFeedback, mealName }];
 
     await updatePatient(patientId, { extraLogs: newExtraLogs, foodLogs: newFoodLogs });
   };
@@ -222,6 +222,15 @@ export function AppProvider({ children }) {
     setPatients(prev => prev.map(p => {
       if (p.id === patientId) {
         return { ...p, waterGlasses: (p.waterGlasses || 0) + 1 };
+      }
+      return p;
+    }));
+  };
+
+  const removeWater = (patientId) => {
+    setPatients(prev => prev.map(p => {
+      if (p.id === patientId) {
+        return { ...p, waterGlasses: Math.max(0, (p.waterGlasses || 0) - 1) };
       }
       return p;
     }));
@@ -415,13 +424,17 @@ export function AppProvider({ children }) {
       fetchPatients, fetchAppointments,
       clinicConfig, updateClinicConfig,
       addPatient, updatePatient, deletePatient,
-      addRecipe, markMealDone, addExtraMealLog, addWeight, addExam, completeQuest, addWater,
+      addRecipe, markMealDone, addExtraMealLog, addWeight, addExam, completeQuest, addWater, removeWater,
       addNotification, markNotificationsRead,
       appointments, addAppointment, cancelAppointment, markAppointmentDone,
       dietTemplates, addDietTemplate, deleteDietTemplate,
       recipeLibrary, addLibraryRecipe, deleteLibraryRecipe,
       addBonusRecipe,
-      isFirebaseConfigured
+      isFirebaseConfigured,
+      setBypassPatient: (mockPat) => {
+        setPatients([mockPat]);
+        setActivePatientId(mockPat.id);
+      }
     }}>
       {children}
     </AppContext.Provider>

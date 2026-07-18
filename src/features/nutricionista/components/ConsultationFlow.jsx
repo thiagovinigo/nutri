@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { FileText, Activity, Sparkles, Edit3, Send, Plus, X, Upload, CheckCircle, Trash2, GripVertical, Download } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
+import MealBuilder from './MealBuilder';
 
 function normTitle(s) {
   return (s || '').toLowerCase()
@@ -108,11 +109,59 @@ export default function ConsultationFlow({
         const newTmb = Math.round(tmbCalc).toString();
         const newGet = Math.round(getCalc).toString();
 
-        if (physicalEval.tmb !== newTmb || physicalEval.get !== newGet) {
+        let newBodyFat = physicalEval.bodyFat;
+        let newMassaGorda = physicalEval.massaGorda;
+        let newMassaMagra = physicalEval.massaMagra;
+
+        const protocolo = physicalEval.protocoloDobras;
+        if (protocolo === 'pollock3' || protocolo === 'pollock7') {
+          const triceps = parseFloat(physicalEval.triceps || 0);
+          const peitoral = parseFloat(physicalEval.peitoral || 0);
+          const subescapular = parseFloat(physicalEval.subescapular || 0);
+          const axilar = parseFloat(physicalEval.axilar || 0);
+          const suprailiaca = parseFloat(physicalEval.suprailiaca || 0);
+          const abdomen = parseFloat(physicalEval.abdomen || 0);
+          const coxa = parseFloat(physicalEval.coxa || 0);
+
+          let sum = 0;
+          let bd = 0;
+
+          if (protocolo === 'pollock3') {
+            if (gender === 'M') {
+              sum = peitoral + abdomen + coxa;
+              if (sum > 0) bd = 1.10938 - (0.0008267 * sum) + (0.0000016 * Math.pow(sum, 2)) - (0.0002574 * age);
+            } else {
+              sum = triceps + suprailiaca + coxa;
+              if (sum > 0) bd = 1.0994921 - (0.0009929 * sum) + (0.0000023 * Math.pow(sum, 2)) - (0.0001392 * age);
+            }
+          } else if (protocolo === 'pollock7') {
+            sum = triceps + peitoral + subescapular + axilar + suprailiaca + abdomen + coxa;
+            if (gender === 'M') {
+              if (sum > 0) bd = 1.112 - (0.00043499 * sum) + (0.00000055 * Math.pow(sum, 2)) - (0.00028826 * age);
+            } else {
+              if (sum > 0) bd = 1.097 - (0.00046971 * sum) + (0.00000056 * Math.pow(sum, 2)) - (0.00012828 * age);
+            }
+          }
+
+          if (bd > 0) {
+            const fatPerc = (495 / bd) - 450;
+            if (fatPerc > 0 && fatPerc < 100) {
+              newBodyFat = fatPerc.toFixed(1);
+              const mg = (weight * fatPerc) / 100;
+              newMassaGorda = mg.toFixed(1);
+              newMassaMagra = (weight - mg).toFixed(1);
+            }
+          }
+        }
+
+        if (physicalEval.tmb !== newTmb || physicalEval.get !== newGet || physicalEval.bodyFat !== newBodyFat || physicalEval.massaGorda !== newMassaGorda || physicalEval.massaMagra !== newMassaMagra) {
           setPhysicalEval(prev => ({
             ...prev,
             tmb: newTmb,
-            get: newGet
+            get: newGet,
+            bodyFat: newBodyFat,
+            massaGorda: newMassaGorda,
+            massaMagra: newMassaMagra
           }));
         }
       } else if (physicalEval.tmb || physicalEval.get) {
@@ -123,7 +172,11 @@ export default function ConsultationFlow({
         }));
       }
     }
-  }, [physicalEval?.weight, physicalEval?.height, physicalEval?.age, physicalEval?.gender, physicalEval?.activityLevel]);
+  }, [
+    physicalEval?.weight, physicalEval?.height, physicalEval?.age, physicalEval?.gender, physicalEval?.activityLevel,
+    physicalEval?.protocoloDobras, physicalEval?.triceps, physicalEval?.peitoral, physicalEval?.subescapular,
+    physicalEval?.axilar, physicalEval?.suprailiaca, physicalEval?.abdomen, physicalEval?.coxa
+  ]);
 
   const handleDragStart = (e, recipe) => {
     setDraggedRecipe(recipe);
@@ -209,40 +262,150 @@ export default function ConsultationFlow({
                     <option value="1.9">Extremamente Ativo (Atleta/treino 2x dia)</option>
                   </select>
                 </div>
-                <div>
-                  <label className="crm-label">% Gordura Corporal</label>
-                  <input type="number" className="crm-input" value={physicalEval?.bodyFat || ''} onChange={(e) => setPhysicalEval({...physicalEval, bodyFat: e.target.value})} placeholder="Ex: 15" />
                 </div>
-                <div>
-                  <label className="crm-label">% Massa Muscular</label>
-                  <input type="number" className="crm-input" value={physicalEval?.muscleMass || ''} onChange={(e) => setPhysicalEval({...physicalEval, muscleMass: e.target.value})} placeholder="Ex: 40" />
-                </div>
-                <div>
-                  <label className="crm-label">Circ. Cintura (cm)</label>
-                  <input type="number" className="crm-input" value={physicalEval?.waist || ''} onChange={(e) => setPhysicalEval({...physicalEval, waist: e.target.value})} placeholder="Ex: 80" />
-                </div>
-                <div>
-                  <label className="crm-label">Circ. Quadril (cm)</label>
-                  <input type="number" className="crm-input" value={physicalEval?.hips || ''} onChange={(e) => setPhysicalEval({...physicalEval, hips: e.target.value})} placeholder="Ex: 100" />
+
+              <div style={{ marginTop: '24px', marginBottom: '24px', backgroundColor: '#F8FAFC', padding: '16px', borderRadius: '8px', border: '1px solid var(--crm-border)' }}>
+                <h3 style={{ fontSize: '1rem', marginBottom: '16px', color: 'var(--crm-text-main)' }}>Perímetros (cm)</h3>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 1fr', gap: '16px' }}>
+                  <div>
+                    <label className="crm-label">Cintura</label>
+                    <input type="number" className="crm-input" value={physicalEval?.waist || ''} onChange={(e) => setPhysicalEval({...physicalEval, waist: e.target.value})} placeholder="Ex: 80" />
+                  </div>
+                  <div>
+                    <label className="crm-label">Abdômen</label>
+                    <input type="number" className="crm-input" value={physicalEval?.abdomenCirc || ''} onChange={(e) => setPhysicalEval({...physicalEval, abdomenCirc: e.target.value})} placeholder="Ex: 85" />
+                  </div>
+                  <div>
+                    <label className="crm-label">Quadril</label>
+                    <input type="number" className="crm-input" value={physicalEval?.hips || ''} onChange={(e) => setPhysicalEval({...physicalEval, hips: e.target.value})} placeholder="Ex: 100" />
+                  </div>
+                  <div>
+                    <label className="crm-label">Braço Dir.</label>
+                    <input type="number" className="crm-input" value={physicalEval?.armRight || ''} onChange={(e) => setPhysicalEval({...physicalEval, armRight: e.target.value})} placeholder="Ex: 30" />
+                  </div>
+                  <div>
+                    <label className="crm-label">Braço Esq.</label>
+                    <input type="number" className="crm-input" value={physicalEval?.armLeft || ''} onChange={(e) => setPhysicalEval({...physicalEval, armLeft: e.target.value})} placeholder="Ex: 30" />
+                  </div>
+                  <div>
+                    <label className="crm-label">Coxa Dir.</label>
+                    <input type="number" className="crm-input" value={physicalEval?.thighRight || ''} onChange={(e) => setPhysicalEval({...physicalEval, thighRight: e.target.value})} placeholder="Ex: 55" />
+                  </div>
+                  <div>
+                    <label className="crm-label">Coxa Esq.</label>
+                    <input type="number" className="crm-input" value={physicalEval?.thighLeft || ''} onChange={(e) => setPhysicalEval({...physicalEval, thighLeft: e.target.value})} placeholder="Ex: 55" />
+                  </div>
+                  <div>
+                    <label className="crm-label">Panturrilha Dir.</label>
+                    <input type="number" className="crm-input" value={physicalEval?.calfRight || ''} onChange={(e) => setPhysicalEval({...physicalEval, calfRight: e.target.value})} placeholder="Ex: 35" />
+                  </div>
+                  <div>
+                    <label className="crm-label">Panturrilha Esq.</label>
+                    <input type="number" className="crm-input" value={physicalEval?.calfLeft || ''} onChange={(e) => setPhysicalEval({...physicalEval, calfLeft: e.target.value})} placeholder="Ex: 35" />
+                  </div>
                 </div>
               </div>
 
-              {physicalEval?.tmb && physicalEval?.get && (
+              <div style={{ marginTop: '24px', marginBottom: '24px', backgroundColor: '#F8FAFC', padding: '16px', borderRadius: '8px', border: '1px solid var(--crm-border)' }}>
+                <h3 style={{ fontSize: '1rem', marginBottom: '16px', color: 'var(--crm-text-main)' }}>Bioimpedância</h3>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '16px' }}>
+                  <div>
+                    <label className="crm-label">% Gordura Corporal</label>
+                    <input type="number" className="crm-input" value={physicalEval?.bodyFat || ''} onChange={(e) => setPhysicalEval({...physicalEval, bodyFat: e.target.value})} placeholder="Ex: 15" />
+                  </div>
+                  <div>
+                    <label className="crm-label">% Massa Muscular</label>
+                    <input type="number" className="crm-input" value={physicalEval?.muscleMass || ''} onChange={(e) => setPhysicalEval({...physicalEval, muscleMass: e.target.value})} placeholder="Ex: 40" />
+                  </div>
+                  <div>
+                    <label className="crm-label">Massa Óssea (kg)</label>
+                    <input type="number" className="crm-input" value={physicalEval?.boneMass || ''} onChange={(e) => setPhysicalEval({...physicalEval, boneMass: e.target.value})} placeholder="Ex: 3.5" />
+                  </div>
+                  <div>
+                    <label className="crm-label">Água Corporal (%)</label>
+                    <input type="number" className="crm-input" value={physicalEval?.bodyWater || ''} onChange={(e) => setPhysicalEval({...physicalEval, bodyWater: e.target.value})} placeholder="Ex: 55" />
+                  </div>
+                  <div>
+                    <label className="crm-label">Gordura Visceral</label>
+                    <input type="number" className="crm-input" value={physicalEval?.visceralFat || ''} onChange={(e) => setPhysicalEval({...physicalEval, visceralFat: e.target.value})} placeholder="Ex: 4" />
+                  </div>
+                </div>
+              </div>
+
+              <div style={{ marginTop: '24px', marginBottom: '24px', backgroundColor: '#F8FAFC', padding: '16px', borderRadius: '8px', border: '1px solid var(--crm-border)' }}>
+                <h3 style={{ fontSize: '1rem', marginBottom: '16px', color: 'var(--crm-text-main)' }}>Protocolo de Dobras Cutâneas (Plicometria)</h3>
+                <div style={{ marginBottom: '16px' }}>
+                  <label className="crm-label">Protocolo Utilizado</label>
+                  <select className="crm-input" style={{ width: '300px' }} value={physicalEval?.protocoloDobras || 'nenhum'} onChange={(e) => setPhysicalEval({...physicalEval, protocoloDobras: e.target.value})}>
+                    <option value="nenhum">Nenhum (Inserir % Gordura Manualmente)</option>
+                    <option value="pollock3">Jackson & Pollock (3 Dobras)</option>
+                    <option value="pollock7">Jackson & Pollock (7 Dobras)</option>
+                  </select>
+                </div>
+
+                {physicalEval?.protocoloDobras !== 'nenhum' && (
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 1fr', gap: '16px' }}>
+                    {(physicalEval?.protocoloDobras === 'pollock7' || (physicalEval?.protocoloDobras === 'pollock3' && physicalEval?.gender === 'F')) && (
+                      <div><label className="crm-label">Tríceps (mm)</label><input type="number" className="crm-input" value={physicalEval?.triceps || ''} onChange={(e) => setPhysicalEval({...physicalEval, triceps: e.target.value})} /></div>
+                    )}
+                    {(physicalEval?.protocoloDobras === 'pollock7' || (physicalEval?.protocoloDobras === 'pollock3' && physicalEval?.gender === 'M')) && (
+                      <div><label className="crm-label">Peitoral (mm)</label><input type="number" className="crm-input" value={physicalEval?.peitoral || ''} onChange={(e) => setPhysicalEval({...physicalEval, peitoral: e.target.value})} /></div>
+                    )}
+                    {(physicalEval?.protocoloDobras === 'pollock7') && (
+                      <div><label className="crm-label">Subescapular (mm)</label><input type="number" className="crm-input" value={physicalEval?.subescapular || ''} onChange={(e) => setPhysicalEval({...physicalEval, subescapular: e.target.value})} /></div>
+                    )}
+                    {(physicalEval?.protocoloDobras === 'pollock7') && (
+                      <div><label className="crm-label">Axilar Média (mm)</label><input type="number" className="crm-input" value={physicalEval?.axilar || ''} onChange={(e) => setPhysicalEval({...physicalEval, axilar: e.target.value})} /></div>
+                    )}
+                    {(physicalEval?.protocoloDobras === 'pollock7' || (physicalEval?.protocoloDobras === 'pollock3' && physicalEval?.gender === 'F')) && (
+                      <div><label className="crm-label">Suprailíaca (mm)</label><input type="number" className="crm-input" value={physicalEval?.suprailiaca || ''} onChange={(e) => setPhysicalEval({...physicalEval, suprailiaca: e.target.value})} /></div>
+                    )}
+                    {(physicalEval?.protocoloDobras === 'pollock7' || (physicalEval?.protocoloDobras === 'pollock3' && physicalEval?.gender === 'M')) && (
+                      <div><label className="crm-label">Abdominal (mm)</label><input type="number" className="crm-input" value={physicalEval?.abdomen || ''} onChange={(e) => setPhysicalEval({...physicalEval, abdomen: e.target.value})} /></div>
+                    )}
+                    {(physicalEval?.protocoloDobras === 'pollock7' || physicalEval?.protocoloDobras === 'pollock3') && (
+                      <div><label className="crm-label">Coxa (mm)</label><input type="number" className="crm-input" value={physicalEval?.coxa || ''} onChange={(e) => setPhysicalEval({...physicalEval, coxa: e.target.value})} /></div>
+                    )}
+                  </div>
+                )}
+              </div>
+
+              {(physicalEval?.tmb || physicalEval?.massaMagra) && (
                 <div style={{ backgroundColor: '#EFF6FF', border: '1px solid #BFDBFE', borderRadius: '12px', padding: '20px', marginBottom: '24px', display: 'flex', gap: '24px', alignItems: 'center' }}>
                   <div style={{ padding: '12px', backgroundColor: '#DBEAFE', borderRadius: '50%' }}>
                     <Sparkles size={24} color="#1D4ED8" />
                   </div>
                   <div style={{ flex: 1 }}>
-                    <h3 style={{ color: '#1E3A8A', marginBottom: '8px', fontSize: '1.1rem' }}>Gasto Energético (Harris-Benedict)</h3>
-                    <div style={{ display: 'flex', gap: '32px' }}>
-                      <div>
-                        <span style={{ fontSize: '0.85rem', color: '#3B82F6', textTransform: 'uppercase', fontWeight: 600 }}>TMB (Basal)</span>
-                        <div style={{ fontSize: '1.5rem', fontWeight: 700, color: '#1E3A8A' }}>{physicalEval.tmb} kcal</div>
-                      </div>
-                      <div>
-                        <span style={{ fontSize: '0.85rem', color: '#3B82F6', textTransform: 'uppercase', fontWeight: 600 }}>GET (Total)</span>
-                        <div style={{ fontSize: '1.5rem', fontWeight: 700, color: '#1E3A8A' }}>{physicalEval.get} kcal</div>
-                      </div>
+                    <h3 style={{ color: '#1E3A8A', marginBottom: '16px', fontSize: '1.1rem' }}>Estimativas Biométricas Automáticas</h3>
+                    <div style={{ display: 'flex', gap: '32px', flexWrap: 'wrap' }}>
+                      {physicalEval?.tmb && (
+                        <>
+                          <div>
+                            <span style={{ fontSize: '0.85rem', color: '#3B82F6', textTransform: 'uppercase', fontWeight: 600 }}>TMB (Basal)</span>
+                            <div style={{ fontSize: '1.5rem', fontWeight: 700, color: '#1E3A8A' }}>{physicalEval.tmb} kcal</div>
+                          </div>
+                          <div>
+                            <span style={{ fontSize: '0.85rem', color: '#3B82F6', textTransform: 'uppercase', fontWeight: 600 }}>GET (Total)</span>
+                            <div style={{ fontSize: '1.5rem', fontWeight: 700, color: '#1E3A8A' }}>{physicalEval.get} kcal</div>
+                          </div>
+                        </>
+                      )}
+                      {physicalEval?.protocoloDobras !== 'nenhum' && physicalEval?.bodyFat && (
+                        <>
+                          <div>
+                            <span style={{ fontSize: '0.85rem', color: '#3B82F6', textTransform: 'uppercase', fontWeight: 600 }}>% Gordura Calculado</span>
+                            <div style={{ fontSize: '1.5rem', fontWeight: 700, color: '#1E3A8A' }}>{physicalEval.bodyFat}%</div>
+                          </div>
+                          <div>
+                            <span style={{ fontSize: '0.85rem', color: '#3B82F6', textTransform: 'uppercase', fontWeight: 600 }}>Massa Magra</span>
+                            <div style={{ fontSize: '1.5rem', fontWeight: 700, color: '#1E3A8A' }}>{physicalEval.massaMagra} kg</div>
+                          </div>
+                          <div>
+                            <span style={{ fontSize: '0.85rem', color: '#3B82F6', textTransform: 'uppercase', fontWeight: 600 }}>Massa Gorda</span>
+                            <div style={{ fontSize: '1.5rem', fontWeight: 700, color: '#1E3A8A' }}>{physicalEval.massaGorda} kg</div>
+                          </div>
+                        </>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -378,7 +541,10 @@ export default function ConsultationFlow({
                             <option value={15}>15 Dias</option>
                             <option value={30}>30 Dias</option>
                           </select>
-                          <button className="crm-btn-primary" onClick={generateDietFromAI} disabled={isGenerating} style={{ flex: 1, backgroundColor: '#10B981', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '8px', padding: '12px' }}>
+                          <button className="crm-btn-primary" onClick={async () => {
+                            await generateDietFromAI();
+                            setPrescriptionTab('cardapio');
+                          }} disabled={isGenerating} style={{ flex: 1, backgroundColor: '#10B981', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '8px', padding: '12px' }}>
                             <Sparkles size={16} color="#FFF" /> {isGenerating ? 'Analisando...' : 'Sugerir com IA'}
                           </button>
                         </div>
@@ -388,30 +554,7 @@ export default function ConsultationFlow({
                           </p>
                         )}
                       </div>
-                      <div style={{ flex: '1 1 300px' }}>
-                        <select 
-                          className="crm-input" 
-                          style={{ width: '100%', padding: '12px', borderColor: '#10B981', color: '#166534', cursor: 'pointer', backgroundColor: '#FFF' }}
-                          onChange={e => {
-                            const tpl = dietTemplates?.find(t => t.id === e.target.value);
-                            if (tpl) {
-                              if (!dietTitle) setDietTitle(tpl.title);
-                              const newMeals = tpl.days 
-                                ? tpl.days.flatMap(d => d.meals.map(m => ({ ...m, name: `Dia ${d.dayIndex} - ${m.name}` }))) 
-                                : (tpl.meals || []);
-                              
-                              setDietMeals(prev => [...prev, ...newMeals]);
-                              e.target.value = "";
-                            }
-                          }}
-                          defaultValue=""
-                        >
-                          <option value="" disabled>Carregar Template Salvo...</option>
-                          {dietTemplates?.map(t => (
-                            <option key={t.id} value={t.id}>{t.title}</option>
-                          ))}
-                        </select>
-                      </div>
+
                     </div>
                   </div>
                   
@@ -419,7 +562,7 @@ export default function ConsultationFlow({
                     <h3 style={{ fontSize: '1.1rem', color: 'var(--crm-text-main)', marginBottom: '8px', display: 'flex', alignItems: 'center', gap: '8px' }}>
                       <GripVertical size={18} /> Receitas Salvas
                     </h3>
-                    <p style={{ fontSize: '0.85rem', color: 'var(--crm-text-muted)', marginBottom: '16px' }}>Para utilizar, arraste uma receita desta lista para dentro de uma refeição na aba "Refeições do Cardápio".</p>
+                    <p style={{ fontSize: '0.85rem', color: 'var(--crm-text-muted)', marginBottom: '16px' }}>Para utilizar, clique em <strong>Adicionar</strong> para incluir a receita como uma nova refeição no cardápio.</p>
                     
                     {(!recipeLibrary || recipeLibrary.length === 0) ? (
                       <p style={{ fontSize: '0.85rem', color: 'var(--crm-text-muted)', textAlign: 'center', padding: '20px 0' }}>Sua biblioteca está vazia.</p>
@@ -429,16 +572,25 @@ export default function ConsultationFlow({
                           <div 
                             key={rec.id} 
                             className="recipe-draggable"
-                            draggable
-                            onDragStart={e => {
-                              handleDragStart(e, rec);
-                              setPrescriptionTab('cardapio'); // Auto muda de aba para facilitar o drop
-                            }}
+                            style={{ display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}
                           >
-                            <strong>{rec.title}</strong>
-                            <div style={{ fontSize: '0.75rem', color: 'var(--crm-text-muted)', marginTop: '4px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                              {rec.ingredients}
+                            <div>
+                              <strong>{rec.title}</strong>
+                              <div style={{ fontSize: '0.75rem', color: 'var(--crm-text-muted)', marginTop: '4px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                                {rec.ingredients}
+                              </div>
                             </div>
+                            <button 
+                              className="crm-btn-primary" 
+                              style={{ marginTop: '8px', padding: '4px 8px', fontSize: '0.8rem', width: '100%' }}
+                              onClick={() => {
+                                const newMeal = { name: rec.title, desc: rec.ingredients, foods: [] };
+                                setDietMeals([...dietMeals, newMeal]);
+                                setPrescriptionTab('cardapio');
+                              }}
+                            >
+                              <Plus size={14} style={{ marginRight: '4px' }}/> Adicionar
+                            </button>
                           </div>
                         ))}
                       </div>
@@ -475,6 +627,29 @@ export default function ConsultationFlow({
                   
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
                     <h3 style={{ fontSize: '1.1rem', color: 'var(--crm-text-main)' }}>Refeições do Cardápio</h3>
+                    
+                    {(() => {
+                      let totalKcal = 0, totalCarb = 0, totalPtn = 0, totalFat = 0;
+                      dietMeals.forEach(m => {
+                        if (m.foods) {
+                          m.foods.forEach(f => {
+                            totalKcal += f.kcal;
+                            totalCarb += f.carb;
+                            totalPtn += f.protein;
+                            totalFat += f.fat;
+                          });
+                        }
+                      });
+                      
+                      return (totalKcal > 0) ? (
+                        <div style={{ display: 'flex', gap: '12px', fontSize: '0.85rem', backgroundColor: '#F8FAFC', padding: '8px 12px', borderRadius: '8px', border: '1px solid var(--crm-border)' }}>
+                          <div><strong>Kcal Total:</strong> <span style={{color: 'var(--crm-accent)'}}>{totalKcal.toFixed(0)}</span></div>
+                          <div><strong>Carb:</strong> {totalCarb.toFixed(0)}g</div>
+                          <div><strong>Ptn:</strong> {totalPtn.toFixed(0)}g</div>
+                          <div><strong>Gord:</strong> {totalFat.toFixed(0)}g</div>
+                        </div>
+                      ) : null;
+                    })()}
                   </div>
 
                   {dietMeals.length === 0 ? (
@@ -484,27 +659,17 @@ export default function ConsultationFlow({
                   ) : (
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
                       {dietMeals.map((meal, idx) => (
-                        <div 
-                          key={idx} 
-                          className="meal-dropzone"
-                          onDragOver={e => e.preventDefault()}
+                        <MealBuilder 
+                          key={idx}
+                          meal={meal}
+                          onChange={(updatedMeal) => {
+                            const newMeals = [...dietMeals];
+                            newMeals[idx] = updatedMeal;
+                            setDietMeals(newMeals);
+                          }}
+                          onDelete={() => setDietMeals(dietMeals.filter((_, i) => i !== idx))}
                           onDrop={e => handleDropToMeal(e, idx)}
-                          style={{ padding: '16px', backgroundColor: '#FFF', border: '2px dashed var(--crm-border)', borderRadius: '8px', position: 'relative' }}
-                        >
-                          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
-                            <input type="text" className="crm-input" style={{ fontWeight: '600', border: 'none', padding: 0, borderBottom: '1px solid transparent', borderRadius: 0, width: '80%', background: 'transparent' }} value={meal.name} onChange={(e) => {
-                              const newMeals = [...dietMeals];
-                              newMeals[idx].name = e.target.value;
-                              setDietMeals(newMeals);
-                            }} placeholder="Nome da Refeição" />
-                            <button onClick={() => setDietMeals(dietMeals.filter((_, i) => i !== idx))} style={{ background: 'none', border: 'none', color: 'var(--crm-danger)', cursor: 'pointer' }}><Trash2 size={16} /></button>
-                          </div>
-                          <textarea className="crm-input" style={{ width: '100%', minHeight: '80px', resize: 'vertical', background: 'transparent', border: '1px solid var(--crm-border)' }} value={meal.desc} onChange={(e) => {
-                              const newMeals = [...dietMeals];
-                              newMeals[idx].desc = e.target.value;
-                              setDietMeals(newMeals);
-                          }} placeholder="Descreva os alimentos ou arraste uma receita aqui..." />
-                        </div>
+                        />
                       ))}
                     </div>
                   )}
@@ -524,19 +689,7 @@ export default function ConsultationFlow({
                       </button>
                     )}
                     
-                    <button 
-                      className="crm-btn-secondary" 
-                      onClick={() => {
-                        if (dietTitle && dietMeals.length > 0) {
-                          addDietTemplate(dietTitle, dietMeals);
-                          alert('Template salvo com sucesso na sua biblioteca!');
-                        } else {
-                          alert('Preencha o título e as refeições antes de salvar.');
-                        }
-                      }}
-                    >
-                      <Download size={16} color="var(--crm-text-main)" /> Salvar como Template
-                    </button>
+
                   </div>
                 </div>
               )}

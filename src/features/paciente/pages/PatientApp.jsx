@@ -10,7 +10,7 @@ import ChatBot from '../components/ChatBot';
 import Profile from '../components/Profile';
 
 export default function PatientApp() {
-  const { patients, activePatientId, setActivePatientId, markNotificationsRead, session, profile } = useAppContext();
+  const { patients, activePatientId, setActivePatientId, markNotificationsRead, session, profile, setBypassPatient } = useAppContext();
 
   const [isLoggedIn, setIsLoggedIn] = useState(false);
 
@@ -37,7 +37,7 @@ export default function PatientApp() {
     mealsCompleted: [],
     xp: 450,
     streak: 3,
-    notifications: [{ id: 1, text: 'Aviso: não esqueça da água hoje!', read: false }],
+    notifications: [{ id: 1, text: 'Aviso: nÃ£o esqueÃ§a da Ã¡gua hoje!', read: false }],
     recipes: [{
       date: new Date().toISOString(),
       meals: [
@@ -47,12 +47,17 @@ export default function PatientApp() {
     }]
   };
 
-  const activePatient = useMock ? bypassPatient : (patients.find(p => p.id === activePatientId) || patients[0]);
+  // We now use the global activePatient from context so it can receive updates
+  const activePatient = patients.find(p => p.id === activePatientId) || patients[0];
   const currentRecipe = activePatient?.recipes?.length > 0 ? activePatient.recipes[activePatient.recipes.length - 1] : null;
 
   const handleLogin = async (e) => {
     e.preventDefault();
     setLoginError('');
+    if (useMock) {
+      // Mock já foi setado pelo botão
+      return;
+    }
     try {
       // 1. Tenta logar no Firebase com o CPF como senha
       const { signInWithEmailAndPassword, createUserWithEmailAndPassword } = await import('firebase/auth');
@@ -63,16 +68,16 @@ export default function PatientApp() {
         await signInWithEmailAndPassword(auth, loginEmail, loginCpf);
         setIsLoggedIn(true);
       } catch (authError) {
-        // Se der erro (usuário não encontrado ou credencial inválida), verifica se há link de vínculo
+        // Se der erro (usuÃ¡rio nÃ£o encontrado ou credencial invÃ¡lida), verifica se hÃ¡ link de vÃ­nculo
         const params = new URLSearchParams(window.location.search);
         const vincularId = params.get('vincular');
         
         if (vincularId) {
-          // É o primeiro acesso, vamos registrar o paciente com o CPF sendo a senha
+          // Ã‰ o primeiro acesso, vamos registrar o paciente com o CPF sendo a senha
           const userCredential = await createUserWithEmailAndPassword(auth, loginEmail, loginCpf);
           const user = userCredential.user;
           
-          // Buscar o doc temporário no Firestore criado pelo Nutricionista
+          // Buscar o doc temporÃ¡rio no Firestore criado pelo Nutricionista
           const tempDocRef = doc(db, 'patients', vincularId);
           const tempDocSnap = await getDoc(tempDocRef);
           
@@ -85,22 +90,22 @@ export default function PatientApp() {
             // Mover os dados da ficha para o ID do Firebase Auth
             await setDoc(doc(db, 'patients', user.uid), { ...data, id: user.uid });
             
-            // Deletar o documento temporário para não sujar o BD
+            // Deletar o documento temporÃ¡rio para nÃ£o sujar o BD
             await deleteDoc(tempDocRef);
             
-            // Remover o parâmetro da URL
+            // Remover o parÃ¢metro da URL
             window.history.replaceState({}, document.title, window.location.pathname);
             setIsLoggedIn(true);
           } else {
-            setLoginError('Link de convite inválido ou já utilizado.');
+            setLoginError('Link de convite invÃ¡lido ou jÃ¡ utilizado.');
           }
         } else {
-          setLoginError('Paciente não encontrado. Verifique seu E-mail e CPF ou acesse pelo link enviado pela sua Nutri no primeiro acesso.');
+          setLoginError('Paciente nÃ£o encontrado. Verifique seu E-mail e CPF ou acesse pelo link enviado pela sua Nutri no primeiro acesso.');
         }
       }
     } catch (error) {
       console.error(error);
-      setLoginError('Erro de conexão ao tentar fazer login.');
+      setLoginError('Erro de conexÃ£o ao tentar fazer login.');
     }
   };
 
@@ -115,7 +120,7 @@ export default function PatientApp() {
 
     try {
       const dietContext = currentRecipe ? currentRecipe.meals.map(m => `- ${m.name}: ${m.desc}`).join('\n') : 'Nenhuma dieta estruturada ativa no momento.';
-      const systemPrompt = `Você é a Vytal Bot, assistente clínica da Vytal. Perfil: Médica nutricionista, técnica e baseada em evidências. Objetivo: Tirar dúvidas sobre o plano alimentar. DADOS: Nome: ${activePatient.name}. Objetivo: ${activePatient.objective}. Restrições: ${activePatient.restrictions || 'Nenhuma'}. PLANO ATUAL: ${dietContext}. Responda de forma concisa e em pt-BR.`;
+      const systemPrompt = `VocÃª Ã© a Vytal Bot, assistente clÃ­nica da Vytal. Perfil: MÃ©dica nutricionista, tÃ©cnica e baseada em evidÃªncias. Objetivo: Tirar dÃºvidas sobre o plano alimentar. DADOS: Nome: ${activePatient.name}. Objetivo: ${activePatient.objective}. RestriÃ§Ãµes: ${activePatient.restrictions || 'Nenhuma'}. PLANO ATUAL: ${dietContext}. Responda de forma concisa e em pt-BR.`;
 
       const response = await fetch('/api/openai-bridge', {
         method: 'POST',
@@ -126,7 +131,7 @@ export default function PatientApp() {
       const data = await response.json();
       setChatHistory([...newHistory, { role: 'assistant', content: data.choices[0].message.content }]);
     } catch (error) {
-      setChatHistory([...newHistory, { role: 'assistant', content: "Erro de conexão clínica. Tente mais tarde." }]);
+      setChatHistory([...newHistory, { role: 'assistant', content: "Erro de conexÃ£o clÃ­nica. Tente mais tarde." }]);
     } finally {
       setIsChatLoading(false);
     }
@@ -162,7 +167,11 @@ export default function PatientApp() {
           
           {import.meta.env.DEV && (
             <button 
-              onClick={() => { setUseMock(true); setIsLoggedIn(true); }} 
+              onClick={() => { 
+                setBypassPatient(bypassPatient); 
+                setUseMock(true); 
+                setIsLoggedIn(true); 
+              }} 
               className="btn-3d" 
               style={{width: '100%', marginTop: '16px', background: 'var(--glass-panel)', border: '1px solid var(--glass-border)', color: 'var(--patient-text)'}}
             >
@@ -196,3 +205,4 @@ export default function PatientApp() {
     </div>
   );
 }
+

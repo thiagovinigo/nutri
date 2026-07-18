@@ -258,9 +258,7 @@ export default function PatientList({
           <button className={`crm-nav-btn ${view === 'pacientes' ? 'active' : ''}`} onClick={() => {setView('pacientes'); setViewingPatientId(null); setSynthesisResult('');}}>
             <Users size={18} /> Meus Pacientes
           </button>
-          <button className={`crm-nav-btn ${view === 'biblioteca' ? 'active' : ''}`} onClick={() => {setView('biblioteca'); setViewingPatientId(null); setSynthesisResult('');}}>
-            <BookOpen size={18} /> Biblioteca de Dietas
-          </button>
+
           <button className={`crm-nav-btn ${view === 'receitas' ? 'active' : ''}`} onClick={() => {setView('receitas'); setViewingPatientId(null); setSynthesisResult('');}}>
             <ChefHat size={18} /> Biblioteca de Receitas
           </button>
@@ -559,39 +557,104 @@ export default function PatientList({
                   </div>
                 </div>
 
-                <div className="crm-card" style={{ flex: '1 1 300px' }}>
-                  <h3 style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '16px' }}>
-                    <TrendingUp size={20} color="var(--crm-accent)" /> Histórico de Peso
-                  </h3>
-                  {(!viewedPatient.weights || viewedPatient.weights.length === 0) ? (
-                    <p style={{ color: 'var(--crm-text-muted)' }}>Nenhuma medição registrada.</p>
-                  ) : (
-                    <ul style={{ listStyle: 'none', padding: 0 }}>
-                      {viewedPatient.weights.slice().reverse().map((w, idx) => (
-                        <li key={idx} style={{ display: 'flex', justifyContent: 'space-between', padding: '12px 0', borderBottom: '1px solid var(--crm-border)' }}>
-                          <span style={{ color: 'var(--crm-text-muted)' }}>{w.date}</span>
-                          <strong style={{ fontSize: '1.1rem' }}>{w.value} kg</strong>
-                        </li>
-                      ))}
-                    </ul>
-                  )}
-                </div>
+                {(() => {
+                  // Prepare data for the chart
+                  let chartData = [];
+                  
+                  // Add weights from activePatient.weights
+                  if (viewedPatient.weights) {
+                    viewedPatient.weights.forEach(w => {
+                      chartData.push({ date: w.date, Peso: parseFloat(w.value) });
+                    });
+                  }
+                  
+                  // Add weights and bodyFat from consultations
+                  if (viewedPatient.consultations) {
+                    viewedPatient.consultations.forEach(c => {
+                      if (c.physicalEval) {
+                        const date = c.date;
+                        const existing = chartData.find(d => d.date === date);
+                        const weight = c.physicalEval.weight ? parseFloat(c.physicalEval.weight) : null;
+                        const bodyFat = c.physicalEval.bodyFat ? parseFloat(c.physicalEval.bodyFat) : null;
+                        
+                        if (existing) {
+                          if (weight) existing.Peso = weight;
+                          if (bodyFat) existing.Gordura = bodyFat;
+                        } else {
+                          if (weight || bodyFat) {
+                            chartData.push({ date, Peso: weight, Gordura: bodyFat });
+                          }
+                        }
+                      }
+                    });
+                  }
+
+                  // Sort by date (assuming dd/mm/yyyy format)
+                  chartData.sort((a, b) => {
+                    const [d1, m1, y1] = a.date.split('/');
+                    const [d2, m2, y2] = b.date.split('/');
+                    return new Date(`${y1}-${m1}-${d1}`) - new Date(`${y2}-${m2}-${d2}`);
+                  });
+
+                  return (
+                    <div className="crm-card" style={{ flex: '1 1 100%' }}>
+                      <h3 style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '16px' }}>
+                        <TrendingUp size={20} color="var(--crm-accent)" /> Evolução Clínica
+                      </h3>
+                      {chartData.length === 0 ? (
+                        <p style={{ color: 'var(--crm-text-muted)' }}>Nenhuma medição registrada.</p>
+                      ) : (
+                        <div style={{ width: '100%', height: 300 }}>
+                          <ResponsiveContainer width="100%" height="100%">
+                            <LineChart data={chartData} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
+                              <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
+                              <XAxis dataKey="date" stroke="#94a3b8" />
+                              <YAxis yAxisId="left" stroke="#8b5cf6" label={{ value: 'Peso (kg)', angle: -90, position: 'insideLeft', fill: '#8b5cf6' }} />
+                              <YAxis yAxisId="right" orientation="right" stroke="#f43f5e" label={{ value: '% Gordura', angle: 90, position: 'insideRight', fill: '#f43f5e' }} />
+                              <RechartsTooltip contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)' }} />
+                              <Legend />
+                              <Line yAxisId="left" type="monotone" dataKey="Peso" stroke="#8b5cf6" strokeWidth={3} activeDot={{ r: 8 }} />
+                              <Line yAxisId="right" type="monotone" dataKey="Gordura" stroke="#f43f5e" strokeWidth={3} activeDot={{ r: 8 }} />
+                            </LineChart>
+                          </ResponsiveContainer>
+                        </div>
+                      )}
+                    </div>
+                  );
+                })()}
 
                 {(() => {
                   const latestEval = viewedPatient.consultations?.slice().reverse().find(c => c.physicalEval && Object.values(c.physicalEval).some(v => v !== ''))?.physicalEval;
                   if (!latestEval) return null;
                   return (
-                    <div className="crm-card" style={{ flex: '1 1 300px' }}>
+                    <div className="crm-card" style={{ flex: '1 1 100%' }}>
                       <h3 style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '16px' }}>
-                        <Activity size={20} color="var(--crm-accent)" /> Última Avaliação Física
+                        <Activity size={20} color="var(--crm-accent)" /> Última Avaliação Física Completa
                       </h3>
-                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+                      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))', gap: '16px' }}>
                         {latestEval.weight && <div><span style={{ color: 'var(--crm-text-muted)', fontSize: '0.85rem' }}>Peso:</span><br/><strong>{latestEval.weight} kg</strong></div>}
                         {latestEval.height && <div><span style={{ color: 'var(--crm-text-muted)', fontSize: '0.85rem' }}>Altura:</span><br/><strong>{latestEval.height} cm</strong></div>}
+                        
+                        {/* Bioimpedância e Dobras */}
                         {latestEval.bodyFat && <div><span style={{ color: 'var(--crm-text-muted)', fontSize: '0.85rem' }}>% Gordura:</span><br/><strong>{latestEval.bodyFat}%</strong></div>}
                         {latestEval.muscleMass && <div><span style={{ color: 'var(--crm-text-muted)', fontSize: '0.85rem' }}>% Músculo:</span><br/><strong>{latestEval.muscleMass}%</strong></div>}
+                        {latestEval.boneMass && <div><span style={{ color: 'var(--crm-text-muted)', fontSize: '0.85rem' }}>Massa Óssea:</span><br/><strong>{latestEval.boneMass} kg</strong></div>}
+                        {latestEval.bodyWater && <div><span style={{ color: 'var(--crm-text-muted)', fontSize: '0.85rem' }}>Água Corporal:</span><br/><strong>{latestEval.bodyWater}%</strong></div>}
+                        {latestEval.visceralFat && <div><span style={{ color: 'var(--crm-text-muted)', fontSize: '0.85rem' }}>Gordura Visceral:</span><br/><strong>{latestEval.visceralFat}</strong></div>}
+                        {latestEval.massaMagra && <div><span style={{ color: 'var(--crm-text-muted)', fontSize: '0.85rem' }}>Massa Magra Calc:</span><br/><strong>{latestEval.massaMagra} kg</strong></div>}
+                        {latestEval.massaGorda && <div><span style={{ color: 'var(--crm-text-muted)', fontSize: '0.85rem' }}>Massa Gorda Calc:</span><br/><strong>{latestEval.massaGorda} kg</strong></div>}
+                        
+                        {/* Perímetros */}
                         {latestEval.waist && <div><span style={{ color: 'var(--crm-text-muted)', fontSize: '0.85rem' }}>Cintura:</span><br/><strong>{latestEval.waist} cm</strong></div>}
+                        {latestEval.abdomenCirc && <div><span style={{ color: 'var(--crm-text-muted)', fontSize: '0.85rem' }}>Abdômen:</span><br/><strong>{latestEval.abdomenCirc} cm</strong></div>}
                         {latestEval.hips && <div><span style={{ color: 'var(--crm-text-muted)', fontSize: '0.85rem' }}>Quadril:</span><br/><strong>{latestEval.hips} cm</strong></div>}
+                        {latestEval.armRight && <div><span style={{ color: 'var(--crm-text-muted)', fontSize: '0.85rem' }}>Braço Dir:</span><br/><strong>{latestEval.armRight} cm</strong></div>}
+                        {latestEval.armLeft && <div><span style={{ color: 'var(--crm-text-muted)', fontSize: '0.85rem' }}>Braço Esq:</span><br/><strong>{latestEval.armLeft} cm</strong></div>}
+                        {latestEval.thighRight && <div><span style={{ color: 'var(--crm-text-muted)', fontSize: '0.85rem' }}>Coxa Dir:</span><br/><strong>{latestEval.thighRight} cm</strong></div>}
+                        {latestEval.thighLeft && <div><span style={{ color: 'var(--crm-text-muted)', fontSize: '0.85rem' }}>Coxa Esq:</span><br/><strong>{latestEval.thighLeft} cm</strong></div>}
+                        {latestEval.calfRight && <div><span style={{ color: 'var(--crm-text-muted)', fontSize: '0.85rem' }}>Panturrilha Dir:</span><br/><strong>{latestEval.calfRight} cm</strong></div>}
+                        {latestEval.calfLeft && <div><span style={{ color: 'var(--crm-text-muted)', fontSize: '0.85rem' }}>Panturrilha Esq:</span><br/><strong>{latestEval.calfLeft} cm</strong></div>}
+                        
                         {latestEval.tmb && <div><span style={{ color: 'var(--crm-text-muted)', fontSize: '0.85rem' }}>TMB:</span><br/><strong>{latestEval.tmb} kcal</strong></div>}
                         {latestEval.get && <div><span style={{ color: 'var(--crm-text-muted)', fontSize: '0.85rem' }}>GET:</span><br/><strong>{latestEval.get} kcal</strong></div>}
                       </div>
@@ -874,6 +937,8 @@ export default function PatientList({
                                                     {cons.physicalEval.hips && <div><span style={{ color: 'var(--crm-text-muted)', fontSize: '0.85rem' }}>Quadril:</span><br/><strong>{cons.physicalEval.hips} cm</strong></div>}
                                                     {cons.physicalEval.tmb && <div><span style={{ color: 'var(--crm-text-muted)', fontSize: '0.85rem' }}>TMB:</span><br/><strong>{cons.physicalEval.tmb} kcal</strong></div>}
                                                     {cons.physicalEval.get && <div><span style={{ color: 'var(--crm-text-muted)', fontSize: '0.85rem' }}>GET:</span><br/><strong>{cons.physicalEval.get} kcal</strong></div>}
+                                                    {cons.physicalEval.massaMagra && <div><span style={{ color: 'var(--crm-text-muted)', fontSize: '0.85rem' }}>Massa Magra:</span><br/><strong>{cons.physicalEval.massaMagra} kg</strong></div>}
+                                                    {cons.physicalEval.massaGorda && <div><span style={{ color: 'var(--crm-text-muted)', fontSize: '0.85rem' }}>Massa Gorda:</span><br/><strong>{cons.physicalEval.massaGorda} kg</strong></div>}
                                                   </div>
                                                 ) : (
                                                   <p style={{ color: 'var(--crm-text-muted)' }}>Nenhuma avaliação física registrada nesta consulta.</p>
@@ -956,155 +1021,6 @@ export default function PatientList({
               )}
 
 
-            </div>
-          )}
-
-          {/* BIBLIOTECA DE DIETAS */}
-          {view === 'biblioteca' && (
-            <div className="animate-pop-in">
-              {!showDietBuilder ? (
-                <>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '32px' }}>
-                    <div>
-                      <h1 style={{ fontSize: '1.8rem', fontWeight: '700', color: 'var(--crm-text-main)', marginBottom: '8px' }}>Biblioteca de Dietas</h1>
-                      <p style={{ color: 'var(--crm-text-muted)' }}>Gerencie seus templates de dieta reutilizáveis.</p>
-                    </div>
-                    <button className="crm-btn-primary" style={{ display: 'flex', alignItems: 'center', gap: '8px' }} onClick={initDietBuilder}>
-                      <Plus size={16} /> Novo Template Day-by-Day
-                    </button>
-                  </div>
-
-                  {dietTemplates?.length === 0 ? (
-                    <div style={{ padding: '40px', textAlign: 'center', backgroundColor: '#F8FAFC', borderRadius: '12px', border: '2px dashed var(--crm-border)' }}>
-                      <BookOpen size={48} color="var(--crm-text-muted)" style={{ marginBottom: '16px' }} />
-                      <h3 style={{ color: 'var(--crm-text-main)', marginBottom: '8px' }}>Nenhum template salvo</h3>
-                      <p style={{ color: 'var(--crm-text-muted)' }}>Você pode criar templates Day-by-Day clicando em "Novo Template".</p>
-                    </div>
-                  ) : (
-                    <div style={{ display: 'flex', gap: '24px', flexWrap: 'wrap' }}>
-                      {dietTemplates.map(tpl => (
-                        <div key={tpl.id} className="crm-card" style={{ flex: '1 1 300px', padding: '24px' }}>
-                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '16px' }}>
-                            <h3 style={{ fontSize: '1.2rem', color: 'var(--crm-text-main)', margin: 0 }}>{tpl.title}</h3>
-                            <button onClick={() => { if(window.confirm('Excluir template?')) deleteDietTemplate(tpl.id) }} style={{ background: 'none', border: 'none', color: 'var(--crm-danger)', cursor: 'pointer', padding: '4px' }} title="Excluir Template">
-                              <Trash2 size={18} />
-                            </button>
-                          </div>
-                          <div style={{ color: 'var(--crm-text-muted)', fontSize: '0.9rem', marginBottom: '16px' }}>
-                            {tpl.duration ? `${tpl.duration} dias configurados` : (tpl.days ? `${tpl.days.length} dias configurados` : `${tpl.meals?.length || 0} refeições`)}
-                          </div>
-                          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', maxHeight: '150px', overflowY: 'auto' }}>
-                            {/* Mostrar preview do dia 1 ou refeições antigas */}
-                            {tpl.days ? (
-                              tpl.days[0].meals.map((m, midx) => (
-                                <div key={midx} style={{ fontSize: '0.85rem', color: 'var(--crm-text-main)' }}>
-                                  <strong>{m.name}:</strong> <span style={{ color: 'var(--crm-text-muted)' }}>{m.desc?.length > 50 ? m.desc.substring(0, 50) + '...' : m.desc}</span>
-                                </div>
-                              ))
-                            ) : (
-                              tpl.meals?.map((m, midx) => (
-                                <div key={midx} style={{ fontSize: '0.85rem', color: 'var(--crm-text-main)' }}>
-                                  <strong>{m.name}:</strong> <span style={{ color: 'var(--crm-text-muted)' }}>{m.desc?.length > 50 ? m.desc.substring(0, 50) + '...' : m.desc}</span>
-                                </div>
-                              ))
-                            )}
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </>
-              ) : (
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', borderBottom: '1px solid var(--crm-border)', paddingBottom: '16px' }}>
-                    <div style={{ display: 'flex', gap: '16px', alignItems: 'center' }}>
-                      <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                        <label className="crm-label">Nome do Template</label>
-                        <input type="text" className="crm-input-modern" placeholder="Ex: Dieta Hipertrofia..." value={dietBuilderTitle} onChange={e => setDietBuilderTitle(e.target.value)} style={{ width: '300px' }} />
-                      </div>
-                      <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                        <label className="crm-label">Duração</label>
-                        <select className="crm-input-modern" value={dietBuilderDuration} onChange={e => {
-                          const val = Number(e.target.value);
-                          setDietBuilderDuration(val);
-                          generateInitialDietDays(val);
-                          setSelectedDayIndex(1);
-                        }}>
-                          <option value={7}>7 Dias</option>
-                          <option value={30}>30 Dias</option>
-                        </select>
-                      </div>
-                    </div>
-                    <div style={{ display: 'flex', gap: '12px' }}>
-                      <button className="crm-btn-secondary" onClick={() => setShowDietBuilder(false)}>Cancelar</button>
-                      <button className="crm-btn-primary" onClick={handleSaveDietBuilder}>Salvar Template</button>
-                    </div>
-                  </div>
-
-                  <div style={{ display: 'flex', gap: '24px', alignItems: 'flex-start' }}>
-                    {/* Menu Lateral de Dias */}
-                    <div style={{ flex: '0 0 150px', display: 'flex', flexDirection: 'column', gap: '4px', borderRight: '1px solid var(--crm-border)', paddingRight: '16px', maxHeight: '600px', overflowY: 'auto' }}>
-                      {dietBuilderDays.map(d => (
-                        <button key={d.dayIndex} 
-                          onClick={() => setSelectedDayIndex(d.dayIndex)}
-                          style={{
-                            padding: '10px 16px',
-                            textAlign: 'left',
-                            borderRadius: '8px',
-                            border: 'none',
-                            backgroundColor: selectedDayIndex === d.dayIndex ? 'var(--crm-primary)' : 'transparent',
-                            color: selectedDayIndex === d.dayIndex ? 'white' : 'var(--crm-text-main)',
-                            fontWeight: selectedDayIndex === d.dayIndex ? 'bold' : 'normal',
-                            cursor: 'pointer',
-                            transition: 'all 0.2s'
-                          }}>
-                          Dia {d.dayIndex}
-                        </button>
-                      ))}
-                    </div>
-
-                    {/* Conteúdo do Dia */}
-                    <div style={{ flex: 1 }}>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
-                        <h2 style={{ fontSize: '1.4rem' }}>Cardápio - Dia {selectedDayIndex}</h2>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                          {dietBuilderMessage && <span style={{ color: 'var(--crm-good)', fontSize: '0.82rem', fontWeight: 600 }}>{dietBuilderMessage}</span>}
-                          {selectedDayIndex !== 1 && (
-                            <button className="crm-btn-secondary" onClick={handleCopyDay1} style={{ fontSize: '0.85rem', padding: '6px 12px' }}>
-                              Copiar do Dia 1 para todos
-                            </button>
-                          )}
-                        </div>
-                      </div>
-
-                      <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-                        {dietBuilderDays[selectedDayIndex - 1]?.meals.map((meal, midx) => (
-                          <div key={midx} style={{ padding: '16px', border: '1px solid var(--crm-border)', borderRadius: '8px', backgroundColor: '#F8FAFC' }}>
-                            <div style={{ display: 'flex', gap: '16px', marginBottom: '12px' }}>
-                              <input type="time" className="crm-input-modern" value={meal.time || ''} onChange={e => handleUpdateMeal(selectedDayIndex-1, midx, 'time', e.target.value)} style={{ width: '120px' }} />
-                              <input type="text" className="crm-input-modern" value={meal.name} onChange={e => handleUpdateMeal(selectedDayIndex-1, midx, 'name', e.target.value)} placeholder="Nome da Refeição" style={{ flex: 1 }} />
-                              <button onClick={() => {
-                                setDietBuilderDays(prev => {
-                                  const newDays = [...prev];
-                                  newDays[selectedDayIndex-1].meals.splice(midx, 1);
-                                  return newDays;
-                                });
-                              }} style={{ background: 'none', border: 'none', color: 'var(--crm-danger)', cursor: 'pointer' }}>
-                                <Trash2 size={18} />
-                              </button>
-                            </div>
-                            <textarea className="crm-input-modern" rows="3" value={meal.desc} onChange={e => handleUpdateMeal(selectedDayIndex-1, midx, 'desc', e.target.value)} placeholder="Opções e alimentos..." style={{ width: '100%' }} />
-                          </div>
-                        ))}
-                      </div>
-                      
-                      <button className="crm-btn-secondary" onClick={() => handleAddMeal(selectedDayIndex - 1)} style={{ marginTop: '24px', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                        <Plus size={16} /> Adicionar Refeição Extra
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              )}
             </div>
           )}
 

@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { User, Save, Scale, X, Activity, Upload, Sparkles } from 'lucide-react';
+import { User, Save, Scale, X, Activity, Upload, Sparkles, TrendingUp } from 'lucide-react';
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, Legend, ResponsiveContainer } from 'recharts';
 import { useAppContext } from '../../../context/AppContext';
 
 export default function Profile({ activePatient }) {
@@ -22,6 +23,41 @@ export default function Profile({ activePatient }) {
 
   const latestExam = activePatient?.exams?.slice(-1)[0];
 
+  // Prepare data for the chart
+  let chartData = [];
+  
+  if (activePatient?.weights) {
+    activePatient.weights.forEach(w => {
+      chartData.push({ date: w.date, Peso: parseFloat(w.value) });
+    });
+  }
+  
+  if (activePatient?.consultations) {
+    activePatient.consultations.forEach(c => {
+      if (c.physicalEval) {
+        const date = c.date;
+        const existing = chartData.find(d => d.date === date);
+        const weight = c.physicalEval.weight ? parseFloat(c.physicalEval.weight) : null;
+        const bodyFat = c.physicalEval.bodyFat ? parseFloat(c.physicalEval.bodyFat) : null;
+        
+        if (existing) {
+          if (weight) existing.Peso = weight;
+          if (bodyFat) existing.Gordura = bodyFat;
+        } else {
+          if (weight || bodyFat) {
+            chartData.push({ date, Peso: weight, Gordura: bodyFat });
+          }
+        }
+      }
+    });
+  }
+
+  // Sort by date (assuming dd/mm/yyyy format)
+  chartData.sort((a, b) => {
+    const [d1, m1, y1] = a.date.split('/');
+    const [d2, m2, y2] = b.date.split('/');
+    return new Date(`${y1}-${m1}-${d1}`) - new Date(`${y2}-${m2}-${d2}`);
+  });
   const handleSaveProfile = (e) => {
     e.preventDefault();
     if(activePatient) {
@@ -78,6 +114,29 @@ export default function Profile({ activePatient }) {
         {weightSaved && <p style={styles.successText}>Peso salvo! Você ganhou +10 XP!</p>}
       </div>
 
+      <div style={{...styles.card, marginTop: '24px'}}>
+        <h4 style={{margin: '0 0 16px 0', display: 'flex', alignItems: 'center', gap: '8px', color: '#1e293b'}}>
+          <TrendingUp size={20} color="#8b5cf6" /> Meu Progresso
+        </h4>
+        {chartData.length === 0 ? (
+          <p style={{ color: '#64748b', fontSize: '0.9rem' }}>Nenhuma medição registrada ainda.</p>
+        ) : (
+          <div style={{ width: '100%', height: 250, marginTop: '16px' }}>
+            <ResponsiveContainer width="100%" height="100%">
+              <LineChart data={chartData} margin={{ top: 5, right: 10, left: -20, bottom: 5 }}>
+                <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
+                <XAxis dataKey="date" stroke="#94a3b8" fontSize={12} />
+                <YAxis yAxisId="left" stroke="#8b5cf6" fontSize={12} />
+                <YAxis yAxisId="right" orientation="right" stroke="#f43f5e" fontSize={12} />
+                <RechartsTooltip contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)', fontSize: '0.85rem' }} />
+                <Legend wrapperStyle={{ fontSize: '0.85rem' }} />
+                <Line yAxisId="left" type="monotone" dataKey="Peso" stroke="#8b5cf6" strokeWidth={3} activeDot={{ r: 6 }} />
+                <Line yAxisId="right" type="monotone" dataKey="Gordura" stroke="#f43f5e" strokeWidth={3} activeDot={{ r: 6 }} />
+              </LineChart>
+            </ResponsiveContainer>
+          </div>
+        )}
+      </div>
       <div style={{...styles.card, marginTop: '24px', borderColor: '#8b5cf6', background: 'linear-gradient(145deg, #ffffff 0%, #f3e8ff 100%)' }}>
         <h4 style={{margin: '0 0 12px 0', display: 'flex', alignItems: 'center', gap: '8px', color: '#6d28d9'}}>
           <Activity size={20} /> Evolução Clínica VIP

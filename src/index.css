@@ -85,6 +85,26 @@ body { overflow-x: hidden; -webkit-font-smoothing: antialiased; font-family: var
 .animate-slide-up { animation: slideUp 0.4s ease-out forwards; }
 
 /* ----------------------------------------------------
+   MARKDOWN CONTENT 
+------------------------------------------------------- */
+.markdown-content p {
+  margin-bottom: 0.5em;
+}
+.markdown-content p:last-child {
+  margin-bottom: 0;
+}
+.markdown-content ul, .markdown-content ol {
+  padding-left: 20px;
+  margin-bottom: 0.5em;
+}
+.markdown-content li {
+  margin-bottom: 4px;
+}
+.markdown-content strong {
+  color: var(--primary-color);
+}
+
+/* ----------------------------------------------------
    SAAS CRM UI (Dashboard do Nutricionista) 
 ------------------------------------------------------- */
 .crm-container {
