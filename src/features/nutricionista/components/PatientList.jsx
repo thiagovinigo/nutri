@@ -18,7 +18,7 @@ export default function PatientList({
   handleCreateAppointment, cancelAppointment, startConsultation,
   showPatientModal, setShowPatientModal,
   openNewPatientModal, openEditPatientModal, editingPatient, handleDeletePatient,
-  patName, setPatName, patObj, setPatObj, patRest, setPatRest, patCpf, setPatCpf, patEmail, setPatEmail, handleSavePatient,
+  patName, setPatName, patObj, setPatObj, patRest, setPatRest, patCpf, setPatCpf, patEmail, setPatEmail, patAversions, setPatAversions, patMedications, setPatMedications, handleSavePatient,
   viewingPatientId, setViewingPatientId,
   synthesisResult, setSynthesisResult, isSynthesizing, generatePatientSynthesis, synthesisError,
   addNotification, addExam,
@@ -1523,8 +1523,18 @@ export default function PatientList({
                 <input type="text" className="crm-input" placeholder="Ex: Emagrecimento, Hipertrofia..." value={patObj} onChange={e => setPatObj(e.target.value)} required />
               </div>
               <div style={{ marginBottom: '24px' }}>
-                <label className="crm-label">Restrições (Opcional)</label>
+                <label className="crm-label">Restrições Gerais (Opcional)</label>
                 <input type="text" className="crm-input" placeholder="Ex: Sem lactose, Vegano..." value={patRest} onChange={e => setPatRest(e.target.value)} />
+              </div>
+              <div style={{ display: 'flex', gap: '16px', marginBottom: '24px' }}>
+                <div style={{ flex: 1 }}>
+                  <label className="crm-label">Alimentos que NÃO come (Aversões)</label>
+                  <textarea className="crm-input" placeholder="Ex: Pimentão, coentro, fígado..." value={patAversions} onChange={e => setPatAversions(e.target.value)} style={{ minHeight: '80px', resize: 'vertical' }} />
+                </div>
+                <div style={{ flex: 1 }}>
+                  <label className="crm-label">Medicamentos em Uso</label>
+                  <textarea className="crm-input" placeholder="Ex: Ritalina, Ozempic..." value={patMedications} onChange={e => setPatMedications(e.target.value)} style={{ minHeight: '80px', resize: 'vertical' }} />
+                </div>
               </div>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 {editingPatient ? (

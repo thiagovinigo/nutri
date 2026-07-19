@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Trash2, Plus, Search } from 'lucide-react';
 import tacoData from '../../../data/taco.json';
 
-export default function MealBuilder({ meal, onChange, onDelete, onDrop }) {
+export default function MealBuilder({ meal, onChange, onDelete, onDrop, aversions }) {
   const [searchTerm, setSearchTerm] = useState('');
   const [searchResults, setSearchResults] = useState([]);
   const [selectedFood, setSelectedFood] = useState(null);
@@ -39,6 +39,16 @@ export default function MealBuilder({ meal, onChange, onDelete, onDrop }) {
     }
     
     const factor = amount / 100;
+    
+    if (aversions && selectedFood.name) {
+      const aversionList = aversions.split(/[,;\n]+/).map(a => a.trim().toLowerCase()).filter(a => a);
+      const foodNameLower = selectedFood.name.toLowerCase();
+      const hasAversion = aversionList.some(av => foodNameLower.includes(av));
+      if (hasAversion) {
+        alert(`⚠️ Atenção: "${selectedFood.name}" contém uma palavra que está na lista de aversões do paciente!`);
+      }
+    }
+
     const newFoodEntry = {
       foodId: selectedFood.id,
       name: selectedFood.name,

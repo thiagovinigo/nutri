@@ -32,6 +32,8 @@ export default function DashboardNutri() {
   const [patRest, setPatRest] = useState('');
   const [patCpf, setPatCpf] = useState('');
   const [patEmail, setPatEmail] = useState('');
+  const [patAversions, setPatAversions] = useState('');
+  const [patMedications, setPatMedications] = useState('');
 
   const [viewingPatientId, setViewingPatientId] = useState(null);
   const [isSynthesizing, setIsSynthesizing] = useState(false);
@@ -96,13 +98,13 @@ export default function DashboardNutri() {
 
   const openNewPatientModal = () => {
     setEditingPatient(null);
-    setPatName(''); setPatObj(''); setPatRest(''); setPatCpf(''); setPatEmail('');
+    setPatName(''); setPatObj(''); setPatRest(''); setPatCpf(''); setPatEmail(''); setPatAversions(''); setPatMedications('');
     setShowPatientModal(true);
   };
 
   const openEditPatientModal = (p) => {
     setEditingPatient(p.id);
-    setPatName(p.name); setPatObj(p.objective); setPatRest(p.restrictions); setPatCpf(p.cpf || ''); setPatEmail(p.email || '');
+    setPatName(p.name); setPatObj(p.objective); setPatRest(p.restrictions); setPatCpf(p.cpf || ''); setPatEmail(p.email || ''); setPatAversions(p.aversions || ''); setPatMedications(p.medications || '');
     setShowPatientModal(true);
   };
 
@@ -130,9 +132,9 @@ export default function DashboardNutri() {
     }
 
     if (editingPatient) {
-      await updatePatient(editingPatient, { name: patName, objective: patObj, restrictions: patRest, cpf: patCpf, email: patEmail });
+      await updatePatient(editingPatient, { name: patName, objective: patObj, restrictions: patRest, cpf: patCpf, email: patEmail, aversions: patAversions, medications: patMedications });
     } else {
-      const newId = await addPatient(patName, patObj, patRest, patCpf, patEmail);
+      const newId = await addPatient(patName, patObj, patRest, patCpf, patEmail, patAversions, patMedications);
       if (patEmail && newId) {
         const link = `${window.location.origin}/paciente?vincular=${newId}`;
         try {
@@ -273,6 +275,8 @@ Cite as fontes científicas, guidelines atualizados (como Diretrizes da SBC, SBD
     setDietError('');
     try {
       let promptContext = `Objetivo: ${activePatient.objective}. Restrições: ${activePatient.restrictions || 'Nenhuma'}.`;
+      if (activePatient.aversions) promptContext += `\nAversões (Alimentos que o paciente NÃO COME de jeito nenhum): ${activePatient.aversions}`;
+      if (activePatient.medications) promptContext += `\nMedicamentos em uso: ${activePatient.medications}`;
       if (anamnesis) promptContext += `\nAnamnese: ${anamnesis}`;
       if (examResult) promptContext += `\nConduta Sugerida pelos Exames:\n${examResult}`;
 
@@ -290,7 +294,7 @@ Exemplo de formato:
 { "meals": [ { "name": "Almoço", "desc": "Não pular", "foods": [ { "foodId": "14", "name": "Frango, peito, sem pele, grelhado", "amount": 150, "kcal": 238.5, "carb": 0, "protein": 48, "fat": 3.75 } ] } ] }`;
 
       const systemPrompt = dietDuration > 1 
-        ? `Você é um Nutricionista Clínico de alta performance. Crie um plano alimentar para ${dietDuration} dias (EXATAMENTE 6 refeições por dia). Como são múltiplos dias, o 'name' da refeição DEVE incluir o dia, ex: "Dia 1 - Café da Manhã".\n\n${formatInstruction}`
+        ? `Você é um Nutricionista Clínico de alta performance. Crie um plano alimentar para ${dietDuration} dias (EXATAMENTE 6 refeições por dia). É MANDATÓRIO GERAR TODOS OS ${dietDuration} DIAS, NÃO PARE A GERAÇÃO ANTES DO FIM. SE VOCÊ GERAR MENOS DO QUE ${dietDuration} DIAS VOCÊ FALHARÁ NA SUA MISSÃO. Como são múltiplos dias, o 'name' da refeição DEVE incluir o dia, ex: "Dia 1 - Café da Manhã".\n\n${formatInstruction}`
         : `Você é um Nutricionista Clínico de alta performance. Crie um plano alimentar para 1 dia. Crie EXATAMENTE 6 refeições.\n\n${formatInstruction}`;
 
       const response = await fetch('/api/openai-bridge', {
@@ -445,7 +449,7 @@ Exemplo de formato:
         handleCreateAppointment={handleCreateAppointment} cancelAppointment={cancelAppointment} startConsultation={startConsultation}
         showPatientModal={showPatientModal} setShowPatientModal={setShowPatientModal}
         openNewPatientModal={openNewPatientModal} openEditPatientModal={openEditPatientModal} editingPatient={editingPatient} handleDeletePatient={handleDeletePatient}
-        patName={patName} setPatName={setPatName} patObj={patObj} setPatObj={setPatObj} patRest={patRest} setPatRest={setPatRest} patCpf={patCpf} setPatCpf={setPatCpf} patEmail={patEmail} setPatEmail={setPatEmail} handleSavePatient={handleSavePatient}
+        patName={patName} setPatName={setPatName} patObj={patObj} setPatObj={setPatObj} patRest={patRest} setPatRest={setPatRest} patCpf={patCpf} setPatCpf={setPatCpf} patEmail={patEmail} setPatEmail={setPatEmail} patAversions={patAversions} setPatAversions={setPatAversions} patMedications={patMedications} setPatMedications={setPatMedications} handleSavePatient={handleSavePatient}
         viewingPatientId={viewingPatientId} setViewingPatientId={setViewingPatientId}
         synthesisResult={synthesisResult} setSynthesisResult={setSynthesisResult} isSynthesizing={isSynthesizing} generatePatientSynthesis={generatePatientSynthesis}
         synthesisError={synthesisError}

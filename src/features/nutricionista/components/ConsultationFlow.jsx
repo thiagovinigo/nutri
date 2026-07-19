@@ -666,6 +666,7 @@ export default function ConsultationFlow({
                         <MealBuilder 
                           key={idx}
                           meal={meal}
+                          aversions={activePatient?.aversions}
                           onChange={(updatedMeal) => {
                             const newMeals = [...dietMeals];
                             newMeals[idx] = updatedMeal;

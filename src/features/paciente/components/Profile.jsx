@@ -8,6 +8,8 @@ export default function Profile({ activePatient }) {
   const [editName, setEditName] = useState('');
   const [editEmail, setEditEmail] = useState('');
   const [editCpf, setEditCpf] = useState('');
+  const [editAversions, setEditAversions] = useState('');
+  const [editMedications, setEditMedications] = useState('');
   const [profileSaved, setProfileSaved] = useState(false);
   const [showWeightModal, setShowWeightModal] = useState(false);
   const [weightInput, setWeightInput] = useState('');
@@ -18,6 +20,8 @@ export default function Profile({ activePatient }) {
       setEditName(activePatient.name || '');
       setEditEmail(activePatient.email || '');
       setEditCpf(activePatient.cpf || '');
+      setEditAversions(activePatient.aversions || '');
+      setEditMedications(activePatient.medications || '');
     }
   }, [activePatient]);
 
@@ -66,7 +70,7 @@ export default function Profile({ activePatient }) {
   const handleSaveProfile = (e) => {
     e.preventDefault();
     if(activePatient) {
-      updatePatient(activePatient.id, { ...activePatient, name: editName, email: editEmail, cpf: editCpf });
+      updatePatient(activePatient.id, { ...activePatient, name: editName, email: editEmail, cpf: editCpf, aversions: editAversions, medications: editMedications });
       setProfileSaved(true);
       setTimeout(() => setProfileSaved(false), 3000);
     }
@@ -110,6 +114,14 @@ export default function Profile({ activePatient }) {
         <div>
           <label style={{display: 'block', marginBottom: '6px', fontSize: '0.9rem', color: '#64748b'}}>CPF</label>
           <input type="text" value={editCpf} onChange={e => setEditCpf(e.target.value)} style={{width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid #cbd5e1', boxSizing: 'border-box'}} />
+        </div>
+        <div>
+          <label style={{display: 'block', marginBottom: '6px', fontSize: '0.9rem', color: '#64748b'}}>Alimentos que não como de jeito nenhum (Aversões)</label>
+          <textarea value={editAversions} onChange={e => setEditAversions(e.target.value)} style={{width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid #cbd5e1', boxSizing: 'border-box', minHeight: '60px', resize: 'vertical'}} placeholder="Ex: pimentão, fígado, coentro..." />
+        </div>
+        <div>
+          <label style={{display: 'block', marginBottom: '6px', fontSize: '0.9rem', color: '#64748b'}}>Medicamentos em uso</label>
+          <textarea value={editMedications} onChange={e => setEditMedications(e.target.value)} style={{width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid #cbd5e1', boxSizing: 'border-box', minHeight: '60px', resize: 'vertical'}} placeholder="Ex: Ritalina, Ozempic, Sertralina..." />
         </div>
         <button type="submit" className="btn-3d" style={{...styles.actionBtn, backgroundColor: '#8b5cf6', boxShadow: '0 4px 0 #7c3aed', justifyContent: 'center'}}>
           <Save size={18} /> Salvar Alterações
