@@ -201,12 +201,12 @@ export default function QuestBoard({ activePatient }) {
         <button onClick={handleNextDay} className="btn-3d btn-secondary" style={{ padding: '8px' }}><ChevronRight size={20} /></button>
       </div>
 
-      <div className="patient-card patient-glass" style={{display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '20px'}}>
+      <div className="patient-card patient-glass" style={{display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '20px', position: 'relative', zIndex: 50}}>
         <div>
           <h3 style={{margin: 0, color: 'var(--primary-color)', display: 'flex', alignItems: 'center', gap: '8px'}}><Droplets size={20}/> Hidratação</h3>
           <p style={{margin: '4px 0 0 0', color: 'var(--patient-text-muted)'}}>{currentWaterMl} ml consumidos</p>
         </div>
-        <div style={{display: 'flex', gap: '8px', position: 'relative'}}>
+        <div style={{display: 'flex', gap: '8px', position: 'relative', zIndex: 50}}>
           <button className="btn-3d btn-secondary" style={{padding: '10px', fontSize: '0.9rem'}} onClick={handleRemoveWater} disabled={currentWaterMl === 0}>
             -
           </button>
