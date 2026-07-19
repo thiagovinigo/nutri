@@ -249,7 +249,10 @@ Você atua como um comitê clínico de alta performance onde o Nutricionista é 
 - **Intervenções Dietéticas e Físicas:** Condutas de nutrição (macros, perfil de dieta) e energia para treinos.
 - **Suplementação Estratégica:** Vitaminas, minerais e nutracêuticos.
 - **Exames Complementares:** O que solicitar na próxima consulta para fechar diagnósticos.
-- **Parecer do Comitê Médico:** Não diga apenas "Recomendamos o acionamento de um médico". Você (IA) DEVE ATUAR como o próprio comitê médico (MedHub)! Forneça a análise médica profunda sobre os achados (ex: "O Comitê Médico avalia que a hiperprolactinemia neste cenário indica..."). Ao final do seu parecer médico, adicione uma nota instruindo que o paciente deve ser aconselhado a buscar o especialista presencialmente (ex: Endocrinologista, Cardiologista) para acompanhamento clínico.`,
+- **Parecer do Comitê Médico:** Não diga apenas "Recomendamos o acionamento de um médico". Você (IA) DEVE ATUAR como o próprio comitê médico (MedHub)! Forneça a análise médica profunda sobre os achados (ex: "O Comitê Médico avalia que a hiperprolactinemia neste cenário indica..."). Ao final do seu parecer médico, adicione uma nota instruindo que o paciente deve ser aconselhado a buscar o especialista presencialmente (ex: Endocrinologista, Cardiologista) para acompanhamento clínico.
+
+## 5. Referências Clínicas
+Cite as fontes científicas, guidelines atualizados (como Diretrizes da SBC, SBD, ASPEN, ESPEN, ou artigos pubmed relevantes) que basearam as análises e intervenções sugeridas acima. Cite pelo menos 2 referências.`,
           messages: [{ role: "user", content: contentArray }]
         })
       });
