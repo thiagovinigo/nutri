@@ -1,46 +1,48 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Nunito:wght@400;600;700;800;900&display=swap');
 
 :root {
-  /* Premium Dark Fitness Design System - App Paciente */
-  --patient-bg: #0B0D12;
-  --patient-surface: #151821;
-  --patient-surface-2: #1E222D;
-  --patient-text: #F8FAFC;
-  --patient-text-muted: #94A3B8;
-  --primary-color: #00E5FF; /* Neon Cyan */
-  --primary-hover: #33EAFF;
-  --primary-shadow: #0099AA;
-  --secondary-color: #7B1FA2; /* Deep Purple */
-  --secondary-shadow: #4A148C;
-  --accent-color: #FF0055; /* Neon Pink */
-  --glass-bg: rgba(21, 24, 33, 0.7);
-  --glass-border: rgba(255, 255, 255, 0.06);
+  /* Premium Light Wellness Design System - App Paciente */
+  --patient-bg: #F8FAFC; /* Slate 50 */
+  --patient-surface: #FFFFFF; 
+  --patient-surface-2: #F1F5F9; /* Slate 100 */
+  --patient-text: #0F172A; /* Slate 900 */
+  --patient-text-muted: #64748B; /* Slate 500 */
+  --primary-color: #10B981; /* Emerald 500 */
+  --primary-hover: #34D399; /* Emerald 400 */
+  --primary-shadow: #047857; /* Emerald 700 */
+  --secondary-color: #0F766E; /* Teal 700 */
+  --secondary-shadow: #0D9488;
+  --accent-color: #F59E0B; /* Amber 500 for gamification/quests */
+  --glass-bg: rgba(255, 255, 255, 0.7);
+  --glass-border: rgba(15, 23, 42, 0.08);
   --font-family-patient: 'Inter', sans-serif;
+  --font-family-heading: 'Outfit', 'Inter', sans-serif;
 
   /* SaaS CRM Premium Design System - Dashboard Nutricionista */
-  --crm-bg: #F4F5F7;
+  --crm-bg: #F8FAFC; /* Slate 50 */
   --crm-surface: #FFFFFF;
-  --crm-border: #E4E7EC;
-  --crm-text-main: #14171F;
-  --crm-text-muted: #667085;
-  --crm-primary: #14171F;
-  --crm-primary-hover: #2B2F3A;
-  --crm-accent: #3949AB; /* índigo profundo — accent autoral do CRM */
-  --crm-accent-soft: #EEF0FB;
-  --crm-danger: #D9432E;
-  --crm-good: #1A7F5A;
-  --crm-warn: #B4650A;
+  --crm-border: #E2E8F0; /* Slate 200 */
+  --crm-text-main: #0F172A; /* Slate 900 */
+  --crm-text-muted: #64748B; /* Slate 500 */
+  --crm-primary: #10B981; /* Emerald 500 */
+  --crm-primary-hover: #059669; /* Emerald 600 */
+  --crm-accent: #047857; /* Emerald 700 */
+  --crm-accent-soft: #D1FAE5; /* Emerald 100 */
+  --crm-danger: #EF4444; /* Red 500 */
+  --crm-good: #10B981;
+  --crm-warn: #F59E0B;
   --crm-font-family: 'Inter', sans-serif;
-  --crm-shadow-sm: 0 1px 2px 0 rgb(15 23 42 / 0.04);
-  --crm-shadow-md: 0 2px 8px -2px rgb(15 23 42 / 0.10);
-  --crm-shadow-lg: 0 16px 32px -12px rgb(15 23 42 / 0.18);
+  --crm-font-heading: 'Outfit', 'Inter', sans-serif;
+  --crm-shadow-sm: 0 1px 2px 0 rgba(15, 23, 42, 0.05);
+  --crm-shadow-md: 0 4px 6px -1px rgba(15, 23, 42, 0.1), 0 2px 4px -1px rgba(15, 23, 42, 0.06);
+  --crm-shadow-lg: 0 10px 15px -3px rgba(15, 23, 42, 0.1), 0 4px 6px -2px rgba(15, 23, 42, 0.05);
 
   /* Sidebar escura do CRM */
-  --crm-sidebar-bg: #12141C;
-  --crm-sidebar-bg-2: #1A1D28;
-  --crm-sidebar-text: #C7CAD6;
-  --crm-sidebar-text-dim: #74788A;
-  --crm-sidebar-active: #ffffff;
+  --crm-sidebar-bg: #0F172A;
+  --crm-sidebar-bg-2: #1E293B;
+  --crm-sidebar-text: #CBD5E1;
+  --crm-sidebar-text-dim: #94A3B8;
+  --crm-sidebar-active: #FFFFFF;
 }
 
 * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -61,7 +63,7 @@ body { overflow-x: hidden; -webkit-font-smoothing: antialiased; font-family: var
   border: 1px solid var(--glass-border);
   border-radius: 20px;
   padding: 20px;
-  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
+  box-shadow: 0 8px 32px 0 rgba(15, 23, 42, 0.08);
 }
 .patient-glass {
   background: var(--glass-bg);
@@ -71,15 +73,15 @@ body { overflow-x: hidden; -webkit-font-smoothing: antialiased; font-family: var
 }
 
 .btn-3d { display: inline-flex; align-items: center; justify-content: center; font-family: var(--font-family-patient); font-weight: 700; font-size: 1rem; letter-spacing: 0.5px; border-radius: 12px; border: none; cursor: pointer; padding: 12px 24px; transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1); user-select: none; position: relative; text-decoration: none; }
-.btn-primary { background: linear-gradient(135deg, var(--primary-color) 0%, #00B4D8 100%); color: #000; box-shadow: 0 4px 15px rgba(0, 229, 255, 0.3); }
-.btn-primary:active { transform: scale(0.96); box-shadow: 0 2px 8px rgba(0, 229, 255, 0.2); }
+.btn-primary { background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-shadow) 100%); color: #FFF; box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3); }
+.btn-primary:active { transform: scale(0.96); box-shadow: 0 2px 8px rgba(16, 185, 129, 0.2); }
 .btn-secondary { background-color: var(--patient-surface-2); color: var(--patient-text); border: 1px solid var(--glass-border); }
-.btn-secondary:active { transform: scale(0.96); background-color: #2A303C; }
+.btn-secondary:active { transform: scale(0.96); background-color: #1E293B; }
 
 /* Animações CSS para feedback visual */
 @keyframes popIn { 0% { transform: scale(0.9); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
 .animate-pop-in { animation: popIn 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
-@keyframes pulseGlow { 0% { box-shadow: 0 0 0 0 rgba(0, 229, 255, 0.4); } 70% { box-shadow: 0 0 0 15px rgba(0, 229, 255, 0); } 100% { box-shadow: 0 0 0 0 rgba(0, 229, 255, 0); } }
+@keyframes pulseGlow { 0% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.4); } 70% { box-shadow: 0 0 0 15px rgba(16, 185, 129, 0); } 100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); } }
 .animate-pulse-glow { animation: pulseGlow 2s infinite; }
 @keyframes slideUp { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
 .animate-slide-up { animation: slideUp 0.4s ease-out forwards; }
@@ -139,8 +141,8 @@ body { overflow-x: hidden; -webkit-font-smoothing: antialiased; font-family: var
 .crm-sidebar-tag {
   margin: 8px 8px 0;
   display: inline-block;
-  background-color: rgba(57, 73, 171, 0.25);
-  color: #B7C0FF;
+  background-color: rgba(16, 185, 129, 0.15); /* Emerald tint */
+  color: #34D399; /* Emerald 400 */
   padding: 3px 10px;
   border-radius: 16px;
   font-size: 0.72rem;

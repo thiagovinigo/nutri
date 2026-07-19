@@ -136,15 +136,15 @@ export default function WeeklyCalendar({
                 const isConcluido = appt.status === 'concluido';
                 return (
                   <div key={`${wd.isoDate}-${time}`} style={{ borderBottom: '1px solid var(--crm-border)', borderRight: '1px solid var(--crm-border)', padding: '4px' }}>
-                    <div style={{ backgroundColor: isConcluido ? '#dcfce7' : '#e0e7ff', borderLeft: `4px solid ${isConcluido ? '#22c55e' : '#3b82f6'}`, borderRadius: '4px', padding: '8px', height: '100%', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+                    <div style={{ backgroundColor: isConcluido ? '#dcfce7' : 'var(--crm-accent-soft)', borderLeft: `4px solid ${isConcluido ? '#22c55e' : 'var(--crm-primary)'}`, borderRadius: '4px', padding: '8px', height: '100%', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
                       <div>
                         <div style={{ fontWeight: '600', fontSize: '0.85rem', color: 'var(--crm-text-main)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{pat?.name || 'Desconhecido'}</div>
                         <div style={{ fontSize: '0.75rem', color: 'var(--crm-text-muted)' }}>{appt.type}</div>
                       </div>
                       {!isConcluido && (
                         <div style={{ display: 'flex', gap: '8px', marginTop: '8px' }}>
-                          <button onClick={() => startConsultation(pat?.id, appt.id)} style={{ background: 'none', border: 'none', color: '#3b82f6', cursor: 'pointer', padding: 0 }} title="Iniciar"><PlayCircle size={16} /></button>
-                          <button onClick={() => cancelAppointment(appt.id)} style={{ background: 'none', border: 'none', color: '#ef4444', cursor: 'pointer', padding: 0 }} title="Cancelar"><Trash2 size={16} /></button>
+                          <button onClick={() => startConsultation(pat?.id, appt.id)} style={{ background: 'none', border: 'none', color: 'var(--crm-primary)', cursor: 'pointer', padding: 0 }} title="Iniciar"><PlayCircle size={16} /></button>
+                          <button onClick={() => cancelAppointment(appt.id)} style={{ background: 'none', border: 'none', color: 'var(--crm-danger)', cursor: 'pointer', padding: 0 }} title="Cancelar"><Trash2 size={16} /></button>
                         </div>
                       )}
                     </div>

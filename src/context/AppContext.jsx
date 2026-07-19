@@ -81,7 +81,15 @@ export function AppProvider({ children }) {
         const docRef = doc(db, 'patients', profile.id);
         const docSnap = await getDoc(docRef);
         if (docSnap.exists()) {
-          setPatients([{ id: docSnap.id, ...docSnap.data() }]);
+          const patData = docSnap.data();
+          if (patData.nutricionista_id) {
+             const nutriRef = doc(db, 'users', patData.nutricionista_id);
+             const nutriSnap = await getDoc(nutriRef);
+             if (nutriSnap.exists()) {
+               patData.nutriName = nutriSnap.data().name;
+             }
+          }
+          setPatients([{ id: docSnap.id, ...patData }]);
           setActivePatientId(docSnap.id);
         }
       } else {
@@ -188,52 +196,36 @@ export function AppProvider({ children }) {
     }
   };
 
-  const markMealDone = async (patientId, recipeIdx, mealIdx, aiFeedback, mealName = 'Refeição') => {
-    const p = patients.find(pat => pat.id === patientId);
-    if (!p || !p.recipes || !p.recipes[recipeIdx]) return;
-
-    const newRecipes = [...p.recipes];
-    const newMeals = [...newRecipes[recipeIdx].meals];
-    newMeals[mealIdx] = { ...newMeals[mealIdx], done: true, log: aiFeedback };
-    newRecipes[recipeIdx] = { ...newRecipes[recipeIdx], meals: newMeals };
-
-    const time = new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
-    const date = new Date().toLocaleDateString('pt-BR');
-    const newFoodLog = { id: `food-${Date.now()}`, type: 'plano', date, time, mealName, log: aiFeedback };
-    const newFoodLogs = [...(p.foodLogs || []), newFoodLog];
-
-    await updatePatient(patientId, { recipes: newRecipes, foodLogs: newFoodLogs });
-  };
-
-  const addExtraMealLog = async (patientId, aiFeedback, mealName = 'Refeição Livre') => {
+  const markMealDone = async (patientId, recipeIdx, mealIdx, aiFeedback, mealName = 'Refeição', date = new Date().toLocaleDateString('pt-BR')) => {
     const p = patients.find(pat => pat.id === patientId);
     if (!p) return;
 
     const time = new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
-    const date = new Date().toLocaleDateString('pt-BR');
+    const newFoodLog = { id: `food-${Date.now()}`, type: 'plano', date, time, mealName, log: aiFeedback, mealIdx, recipeIdx };
+    const newFoodLogs = [...(p.foodLogs || []), newFoodLog];
+
+    await updatePatient(patientId, { foodLogs: newFoodLogs });
+  };
+
+  const addExtraMealLog = async (patientId, aiFeedback, mealName = 'Refeição Livre', date = new Date().toLocaleDateString('pt-BR')) => {
+    const p = patients.find(pat => pat.id === patientId);
+    if (!p) return;
+
+    const time = new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
     const newFoodLog = { id: `food-${Date.now()}`, type: 'extra', date, time, mealName, log: aiFeedback };
     const newFoodLogs = [...(p.foodLogs || []), newFoodLog];
 
-    const newExtraLogs = [...(p.extraLogs || []), { time, log: aiFeedback, mealName }];
-
-    await updatePatient(patientId, { extraLogs: newExtraLogs, foodLogs: newFoodLogs });
-  };
-  const addWater = (patientId) => {
-    setPatients(prev => prev.map(p => {
-      if (p.id === patientId) {
-        return { ...p, waterGlasses: (p.waterGlasses || 0) + 1 };
-      }
-      return p;
-    }));
+    await updatePatient(patientId, { foodLogs: newFoodLogs });
   };
 
-  const removeWater = (patientId) => {
-    setPatients(prev => prev.map(p => {
-      if (p.id === patientId) {
-        return { ...p, waterGlasses: Math.max(0, (p.waterGlasses || 0) - 1) };
-      }
-      return p;
-    }));
+  const updateWater = async (patientId, date, amountMl) => {
+    const p = patients.find(pat => pat.id === patientId);
+    if (!p) return;
+    const currentWaterLogs = p.waterLogs || {};
+    const currentVal = currentWaterLogs[date] || 0;
+    const newVal = Math.max(0, currentVal + amountMl);
+    const newWaterLogs = { ...currentWaterLogs, [date]: newVal };
+    await updatePatient(patientId, { waterLogs: newWaterLogs });
   };
 
   const addWeight = async (patientId, value) => {
@@ -436,7 +428,7 @@ export function AppProvider({ children }) {
       fetchProfile, fetchPatients, fetchAppointments,
       clinicConfig, updateClinicConfig,
       addPatient, updatePatient, deletePatient,
-      addRecipe, markMealDone, addExtraMealLog, addWeight, addExam, completeQuest, addWater, removeWater,
+      addRecipe, markMealDone, addExtraMealLog, addWeight, addExam, completeQuest, updateWater,
       addNotification, markNotificationsRead,
       appointments, addAppointment, cancelAppointment, markAppointmentDone,
       dietTemplates, addDietTemplate, deleteDietTemplate,

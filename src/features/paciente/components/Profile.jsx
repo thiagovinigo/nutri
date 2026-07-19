@@ -28,7 +28,12 @@ export default function Profile({ activePatient }) {
   
   if (activePatient?.weights) {
     activePatient.weights.forEach(w => {
-      chartData.push({ date: w.date, Peso: parseFloat(w.value) });
+      const existing = chartData.find(d => d.date === w.date);
+      if (existing) {
+        existing.Peso = parseFloat(w.value);
+      } else {
+        chartData.push({ date: w.date, Peso: parseFloat(w.value) });
+      }
     });
   }
   
@@ -83,6 +88,15 @@ export default function Profile({ activePatient }) {
   return (
     <div className="animate-pop-in">
       <h2 style={styles.sectionTitle}><User color="#8b5cf6" /> Seu Perfil Pessoal</h2>
+
+      {activePatient?.nutriName && (
+        <div style={{...styles.card, backgroundColor: '#f8fafc', borderColor: '#e2e8f0', marginBottom: '24px'}}>
+          <p style={{margin: 0, fontSize: '0.9rem', color: '#64748b'}}>Nutricionista Responsável</p>
+          <h4 style={{margin: '4px 0 0 0', color: '#1e293b', display: 'flex', alignItems: 'center', gap: '8px'}}>
+            <Sparkles size={16} color="#8b5cf6"/> {activePatient.nutriName}
+          </h4>
+        </div>
+      )}
       
       <form onSubmit={handleSaveProfile} style={{...styles.card, display: 'flex', flexDirection: 'column', gap: '16px'}}>
         <div>
