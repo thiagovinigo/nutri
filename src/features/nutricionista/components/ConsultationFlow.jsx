@@ -13,25 +13,29 @@ function normTitle(s) {
 function parseMarkdownTabs(markdown) {
   if (!markdown) return {};
   const chunks = [];
-  let cur = null;
+  let cur = { title: 'analise detalhada', lines: [] };
+  
   const lines = markdown.split('\n');
   for (let line of lines) {
     const cleanLine = line.trim();
-    let headerMatch = cleanLine.match(/^#{1,6}\s+(.*)$/);
-    if (!headerMatch) {
-      headerMatch = cleanLine.match(/^\*\*(.*?)\*\*:?$/);
-    }
-    
+    // Tenta capturar headers como "## Titulo", "**Titulo**", "1. Titulo", "1. **Titulo**", "### **Titulo**"
+    let headerMatch = cleanLine.match(/^#{1,6}\s+(?:(?:[0-9]+\.)?\s*)?(?:\*\*)?(.*?)(?:\*\*)?:?$/) || 
+                      cleanLine.match(/^(?:[0-9]+\.)?\s*\*\*(.*?)\*\*:?$/) ||
+                      cleanLine.match(/^[0-9]+\.\s+(.*)$/);
+                      
     if (headerMatch) {
-      if (cur) chunks.push(cur);
-      cur = { title: normTitle(headerMatch[1]), lines: [] };
-    } else if (cur) {
-      cur.lines.push(line);
-    } else if (cleanLine !== '') {
-      cur = { title: 'analise detalhada', lines: [line] };
-    }
+      const parsedTitle = normTitle(headerMatch[1]);
+      // Verifica se o header bate com nossas abas esperadas para não quebrar em listas numeradas comuns
+      if (['analise', 'evolucao', 'traducao', 'visao', 'comite', 'leiga', 'profissional', 'referencias', 'historico'].some(k => parsedTitle.includes(k))) {
+        chunks.push(cur);
+        cur = { title: parsedTitle, lines: [] };
+        continue;
+      }
+    } 
+    
+    cur.lines.push(line);
   }
-  if (cur) chunks.push(cur);
+  chunks.push(cur);
 
   const find = (...keys) => {
     const c = chunks.filter(c => keys.some(k => c.title.includes(k)));
@@ -39,10 +43,10 @@ function parseMarkdownTabs(markdown) {
   };
 
   const parsed = {
-    detalhada: find('analise detalhada', 'exames'),
+    detalhada: find('analise', 'exames'),
     evolucao: find('evolucao', 'comparacao', 'historico'),
-    leiga: find('traducao para o paciente', 'linguagem leiga', 'leiga', 'paciente'),
-    profissional: find('visao do profissional', 'medica', 'nutricional', 'tecnica'),
+    leiga: find('traducao', 'leiga', 'paciente'),
+    profissional: find('visao', 'medica', 'nutricional', 'tecnica', 'profissional', 'comite'),
     referencias: find('referencias bibliograficas', 'referencias'),
   };
 
