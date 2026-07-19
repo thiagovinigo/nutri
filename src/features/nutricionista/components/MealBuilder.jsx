@@ -1,4 +1,4 @@
-﻿import React, { useState } from 'react';
+import React, { useState } from 'react';
 import { Trash2, Plus, Search } from 'lucide-react';
 import tacoData from '../../../data/taco.json';
 
@@ -23,31 +23,41 @@ export default function MealBuilder({ meal, onChange, onDelete, onDrop }) {
     setSelectedFood(food);
     setSearchTerm(food.name);
     setSearchResults([]);
+    if (!amount) {
+      setAmount('100');
+    }
   };
 
   const handleAddFood = () => {
-    if (selectedFood && amount > 0) {
-      const factor = amount / 100;
-      const newFoodEntry = {
-        foodId: selectedFood.id,
-        name: selectedFood.name,
-        amount: Number(amount),
-        kcal: Number((selectedFood.kcal * factor).toFixed(1)),
-        carb: Number((selectedFood.carb * factor).toFixed(1)),
-        protein: Number((selectedFood.protein * factor).toFixed(1)),
-        fat: Number((selectedFood.fat * factor).toFixed(1)),
-      };
-
-      const currentFoods = meal.foods || [];
-      onChange({
-        ...meal,
-        foods: [...currentFoods, newFoodEntry]
-      });
-
-      setSelectedFood(null);
-      setSearchTerm('');
-      setAmount('');
+    if (!selectedFood) {
+      alert("Por favor, selecione um alimento na lista que aparece ao digitar.");
+      return;
     }
+    if (!amount || Number(amount) <= 0) {
+      alert("Por favor, informe a quantidade em gramas.");
+      return;
+    }
+    
+    const factor = amount / 100;
+    const newFoodEntry = {
+      foodId: selectedFood.id,
+      name: selectedFood.name,
+      amount: Number(amount),
+      kcal: Number((selectedFood.kcal * factor).toFixed(1)),
+      carb: Number((selectedFood.carb * factor).toFixed(1)),
+      protein: Number((selectedFood.protein * factor).toFixed(1)),
+      fat: Number((selectedFood.fat * factor).toFixed(1)),
+    };
+
+    const currentFoods = meal.foods || [];
+    onChange({
+      ...meal,
+      foods: [...currentFoods, newFoodEntry]
+    });
+
+    setSelectedFood(null);
+    setSearchTerm('');
+    setAmount('');
   };
 
   const handleRemoveFood = (idx) => {
@@ -125,7 +135,6 @@ export default function MealBuilder({ meal, onChange, onDelete, onDrop }) {
         <button 
           onClick={handleAddFood} 
           style={{ padding: '8px 12px', backgroundColor: 'var(--crm-accent)', color: '#FFF', border: 'none', borderRadius: '4px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px' }}
-          disabled={!selectedFood || !amount}
         >
           <Plus size={16} /> Add
         </button>
