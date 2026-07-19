@@ -38,7 +38,7 @@ export default async function handler(req, res) {
         { role: 'system', content: system_prompt || 'Você é um assistente.' },
         ...messages
       ],
-      max_tokens: 400
+      max_tokens: 3500
     };
 
     if (format_json) {

@@ -34,7 +34,7 @@ function openaiBridgeDevMiddleware(env) {
           const requestBody = {
             model: 'gpt-4o-mini',
             messages: [{ role: 'system', content: system_prompt || 'Você é um assistente.' }, ...(messages || [])],
-            max_tokens: 400
+            max_tokens: 3500
           };
           if (format_json) requestBody.response_format = { type: 'json_object' };
 
