@@ -8,6 +8,7 @@ import DietPlan from '../components/DietPlan';
 import BonusRecipes from '../components/BonusRecipes';
 import ChatBot from '../components/ChatBot';
 import Profile from '../components/Profile';
+import PwaInstallPrompt from '../components/PwaInstallPrompt';
 
 export default function PatientApp() {
   const { patients, activePatientId, setActivePatientId, markNotificationsRead, session, profile, setBypassPatient, fetchProfile } = useAppContext();
@@ -206,6 +207,7 @@ export default function PatientApp() {
         {currentView === 'quests' && <ChatBot activePatient={activePatient} currentRecipe={currentRecipe} chatHistory={chatHistory} setChatHistory={setChatHistory} chatInput={chatInput} setChatInput={setChatInput} isChatLoading={isChatLoading} setIsChatLoading={setIsChatLoading} handleSendChatMessage={handleSendChatMessage} />}
         {currentView === 'profile' && <Profile activePatient={activePatient} />}
       </div>
+      <PwaInstallPrompt />
       <BottomNav currentView={currentView} setCurrentView={setCurrentView} />
     </div>
   );
