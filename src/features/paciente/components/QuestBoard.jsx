@@ -189,7 +189,7 @@ export default function QuestBoard({ activePatient }) {
 
   return (
     <div className="animate-pop-in">
-      <input type="file" accept="image/*" capture="environment" ref={fileInputRef} style={{ display: 'none' }} onChange={handleFileChange} />
+      <input type="file" accept="image/*" ref={fileInputRef} style={{ display: 'none' }} onChange={handleFileChange} />
       
       {showMilestone && <ShareableMilestone onClose={() => setShowMilestone(false)} />}
 
