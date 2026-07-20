@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { Users, Calendar, PlayCircle, Trash2, Plus, Eye, Edit3, TrendingUp, Utensils, FileText, BrainCircuit, Play, Sparkles, Activity, Settings, CreditCard, Palette, AlertTriangle, Trophy, Star, Zap, LayoutDashboard, Search, ChevronUp, ChevronDown, ArrowRight, UserCog, BookOpen, ChefHat, Link as LinkIcon, Camera, Upload, Moon } from 'lucide-react';
+import { Users, Calendar, PlayCircle, Trash2, Plus, Eye, Edit3, TrendingUp, Utensils, FileText, BrainCircuit, Play, Sparkles, Activity, Settings, CreditCard, Palette, AlertTriangle, Trophy, Star, Zap, LayoutDashboard, Search, ChevronUp, ChevronDown, ArrowRight, UserCog, BookOpen, ChefHat, Link as LinkIcon, Camera, Upload, Moon, Dumbbell } from 'lucide-react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, Legend, ResponsiveContainer } from 'recharts';
 import { useNavigate } from 'react-router-dom';
 import { useAppContext } from '../../../context/AppContext';
@@ -775,6 +775,7 @@ export default function PatientList({
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
                   <div className="results-tabs" style={{ marginBottom: '0', borderBottom: '1px solid var(--crm-border)' }}>
                     <button className={protocoloSubTab === 'dieta' ? 'results-tab-btn active' : 'results-tab-btn'} onClick={() => setProtocoloSubTab('dieta')}>Dietética Vigente</button>
+                    <button className={protocoloSubTab === 'treino' ? 'results-tab-btn active' : 'results-tab-btn'} onClick={() => setProtocoloSubTab('treino')}>Plano de Treino</button>
                     <button className={protocoloSubTab === 'avaliacao' ? 'results-tab-btn active' : 'results-tab-btn'} onClick={() => setProtocoloSubTab('avaliacao')}>Avaliação Médica</button>
                     <button className={protocoloSubTab === 'receitas' ? 'results-tab-btn active' : 'results-tab-btn'} onClick={() => setProtocoloSubTab('receitas')}>Biblioteca de Receitas</button>
                     <button className={protocoloSubTab === 'historico' ? 'results-tab-btn active' : 'results-tab-btn'} onClick={() => { setProtocoloSubTab('historico'); setSelectedHistoryIdx(null); }}>Histórico de Consultas</button>
@@ -867,6 +868,27 @@ export default function PatientList({
                                       </ul>
                                     </div>
                                   ))}
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                        )}
+
+                        {protocoloSubTab === 'treino' && (
+                          <div style={{ display: 'flex', gap: '24px', flexWrap: 'wrap' }}>
+                            <div className="crm-card animate-pop-in" style={{ flex: '2 1 400px' }}>
+                              <h3 style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '16px' }}>
+                                <Dumbbell size={20} color="var(--crm-accent)" /> Plano de Treino
+                              </h3>
+                              {(!viewedPatient.workoutPlan) ? (
+                                <p style={{ color: 'var(--crm-text-muted)' }}>Nenhum plano de treino cadastrado para este paciente.</p>
+                              ) : (
+                                <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                                  <div style={{ padding: '16px', backgroundColor: '#F8FAFC', borderRadius: '8px', border: '1px solid var(--crm-border)' }}>
+                                    <div style={{ fontSize: '0.95rem', color: 'var(--crm-text-main)', whiteSpace: 'pre-wrap', lineHeight: '1.6' }}>
+                                      <ReactMarkdown remarkPlugins={[remarkGfm]}>{viewedPatient.workoutPlan}</ReactMarkdown>
+                                    </div>
+                                  </div>
                                 </div>
                               )}
                             </div>
