@@ -6,7 +6,7 @@ import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 
 export default function QuestBoard({ activePatient }) {
-  const { completeQuest, markMealDone, addExtraMealLog, updateWater, addSleepLog } = useAppContext();
+  const { completeQuest, markMealDone, addExtraMealLog, updateWater, addSleepLog, updatePatient } = useAppContext();
   
   const [selectedDateObj, setSelectedDateObj] = useState(new Date());
   
@@ -43,10 +43,12 @@ export default function QuestBoard({ activePatient }) {
 
   // Mostra milestone quando atinge 100%
   useEffect(() => {
-    if (progressPercent === 100 && totalMeals > 0 && !activePatient.milestoneShownToday) {
+    const shownDates = activePatient.milestoneShownDates || [];
+    if (progressPercent === 100 && totalMeals > 0 && !shownDates.includes(selectedDateFormatted)) {
       setShowMilestone(true);
+      updatePatient(activePatient.id, { milestoneShownDates: [...shownDates, selectedDateFormatted] });
     }
-  }, [progressPercent, totalMeals, activePatient.milestoneShownToday]);
+  }, [progressPercent, totalMeals, selectedDateFormatted, activePatient.milestoneShownDates, activePatient.id, updatePatient]);
 
   const handlePrevDay = () => {
     const newDate = new Date(selectedDateObj);
