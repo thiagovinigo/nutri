@@ -7,7 +7,6 @@ export default function BottomNav({ currentView, setCurrentView }) {
     { id: 'diet', icon: <ClipboardList size={28} />, label: 'Plano' },
     { id: 'workout', icon: <Dumbbell size={28} />, label: 'Treino' },
     { id: 'recipes', icon: <BookOpen size={28} />, label: 'Receitas' },
-    { id: 'chat', icon: <MessageSquare size={28} />, label: 'Nutri' },
     { id: 'quests', icon: <MessageCircle size={28} />, label: 'IA' },
     { id: 'profile', icon: <User size={28} />, label: 'Perfil' }
   ];

@@ -546,7 +546,6 @@ export default function PatientList({
                 <button className={prontuarioTab === 'resumo' ? 'results-tab-btn active' : 'results-tab-btn'} onClick={() => setProntuarioTab('resumo')}>Visão Geral</button>
                 <button className={prontuarioTab === 'consultas' ? 'results-tab-btn active' : 'results-tab-btn'} onClick={() => { setProntuarioTab('consultas'); setSelectedHistoryIdx(null); }}>Protocolo Vigente</button>
                 <button className={prontuarioTab === 'exames' ? 'results-tab-btn active' : 'results-tab-btn'} onClick={() => setProntuarioTab('exames')}>Exames & Biomarcadores</button>
-                <button className={prontuarioTab === 'chat' ? 'results-tab-btn active' : 'results-tab-btn'} onClick={() => setProntuarioTab('chat')}>Chat / Mensagens</button>
               </div>
 
               {prontuarioTab === 'resumo' && (
@@ -769,62 +768,6 @@ export default function PatientList({
                     </div>
                   )}
                 </div>
-                </div>
-              )}
-
-              {prontuarioTab === 'chat' && (
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
-                  <div className="crm-card" style={{ flex: '1 1 500px', display: 'flex', flexDirection: 'column', height: '500px' }}>
-                    <div style={{ paddingBottom: '16px', borderBottom: '1px solid var(--crm-border)', marginBottom: '16px' }}>
-                      <h3 style={{ margin: 0, color: 'var(--crm-text-main)' }}>Chat Direto: {viewedPatient.name}</h3>
-                      <p style={{ fontSize: '0.85rem', color: 'var(--crm-text-muted)', margin: '4px 0 0 0' }}>Comunicação em tempo real no app do paciente.</p>
-                    </div>
-                    
-                    <div style={{ flex: 1, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '12px', paddingRight: '8px' }}>
-                      {(directMessages || []).filter(m => m.patientId === viewedPatient.id).length === 0 ? (
-                        <p style={{ color: 'var(--crm-text-muted)', textAlign: 'center', marginTop: 'auto', marginBottom: 'auto' }}>Nenhuma mensagem ainda. Envie a primeira mensagem!</p>
-                      ) : (
-                        (directMessages || []).filter(m => m.patientId === viewedPatient.id).map(msg => (
-                          <div key={msg.id} style={{ 
-                            alignSelf: msg.sender === 'nutri' ? 'flex-end' : 'flex-start',
-                            backgroundColor: msg.sender === 'nutri' ? '#E0F2FE' : '#F1F5F9',
-                            color: 'var(--crm-text-main)',
-                            padding: '12px 16px',
-                            borderRadius: msg.sender === 'nutri' ? '12px 12px 0 12px' : '12px 12px 12px 0',
-                            maxWidth: '75%',
-                            border: msg.sender === 'nutri' ? '1px solid #BAE6FD' : '1px solid #E2E8F0'
-                          }}>
-                            <div style={{ fontSize: '0.95rem' }}>{msg.text}</div>
-                            <div style={{ fontSize: '0.7rem', color: 'var(--crm-text-muted)', marginTop: '4px', textAlign: 'right' }}>
-                              {new Date(msg.date).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
-                            </div>
-                          </div>
-                        ))
-                      )}
-                    </div>
-                    
-                    <form 
-                      onSubmit={(e) => {
-                        e.preventDefault();
-                        if (!chatInput.trim()) return;
-                        sendDirectMessage(viewedPatient.id, 'nutri', chatInput.trim());
-                        setChatInput('');
-                      }} 
-                      style={{ display: 'flex', gap: '8px', marginTop: '16px', paddingTop: '16px', borderTop: '1px solid var(--crm-border)' }}
-                    >
-                      <input 
-                        type="text" 
-                        className="crm-input" 
-                        placeholder="Digite sua mensagem..." 
-                        value={chatInput} 
-                        onChange={e => setChatInput(e.target.value)} 
-                        style={{ flex: 1 }}
-                      />
-                      <button type="submit" className="crm-btn-primary" style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '0 20px' }}>
-                        <Send size={16} /> Enviar
-                      </button>
-                    </form>
-                  </div>
                 </div>
               )}
 

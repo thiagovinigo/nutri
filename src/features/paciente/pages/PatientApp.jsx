@@ -8,7 +8,6 @@ import DietPlan from '../components/DietPlan';
 import WorkoutPlan from '../components/WorkoutPlan';
 import BonusRecipes from '../components/BonusRecipes';
 import ChatBot from '../components/ChatBot';
-import DirectChat from '../components/DirectChat';
 import Profile from '../components/Profile';
 import PwaInstallPrompt from '../components/PwaInstallPrompt';
 import { getFirebaseErrorMessage } from '../../../utils/firebaseErrors';
@@ -210,7 +209,6 @@ export default function PatientApp() {
         {currentView === 'diet' && <DietPlan activePatient={activePatient} />}
         {currentView === 'workout' && <WorkoutPlan activePatient={activePatient} />}
         {currentView === 'recipes' && <BonusRecipes activePatient={activePatient} />}
-        {currentView === 'chat' && <DirectChat activePatient={activePatient} />}
         {currentView === 'quests' && <ChatBot activePatient={activePatient} currentRecipe={currentRecipe} chatHistory={chatHistory} setChatHistory={setChatHistory} chatInput={chatInput} setChatInput={setChatInput} isChatLoading={isChatLoading} setIsChatLoading={setIsChatLoading} handleSendChatMessage={handleSendChatMessage} />}
         {currentView === 'profile' && <Profile activePatient={activePatient} />}
       </div>
