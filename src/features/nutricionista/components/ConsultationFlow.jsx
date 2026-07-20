@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { FileText, Activity, Sparkles, Edit3, Send, Plus, X, Upload, CheckCircle, Trash2, GripVertical, Download } from 'lucide-react';
+import { FileText, Activity, Sparkles, Edit3, Send, Plus, X, Upload, CheckCircle, Trash2, GripVertical, Download, Dumbbell } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import MealBuilder from './MealBuilder';
@@ -79,9 +79,11 @@ export default function ConsultationFlow({
   dietSupplements, setDietSupplements,
   dietDuration, setDietDuration,
   dietMeals, setDietMeals,
+  workoutPlan, setWorkoutPlan,
   isGenerating,
   analyzeExamWithAI,
   generateDietFromAI,
+  generateWorkoutFromAI,
   finishConsultation,
   examError, dietError, finishedMessage,
   onSuspend,
@@ -96,8 +98,8 @@ export default function ConsultationFlow({
     if (physicalEval) {
       const weight = parseFloat(physicalEval.weight);
       const height = parseFloat(physicalEval.height);
-      const age = parseInt(physicalEval.age, 10);
-      const gender = physicalEval.gender || 'M';
+      const age = parseInt(activePatient?.age, 10);
+      const gender = activePatient?.gender || 'M';
       const activityLevel = parseFloat(physicalEval.activityLevel || '1.2');
 
       if (!isNaN(weight) && !isNaN(height) && !isNaN(age)) {
@@ -143,7 +145,7 @@ export default function ConsultationFlow({
             if (gender === 'M') {
               if (sum > 0) bd = 1.112 - (0.00043499 * sum) + (0.00000055 * Math.pow(sum, 2)) - (0.00028826 * age);
             } else {
-              if (sum > 0) bd = 1.097 - (0.00046971 * sum) + (0.00000056 * Math.pow(sum, 2)) - (0.00012828 * age);
+              if (sum > 0) bd = 1.097 - (0.00046971 * sum) + (0.0000056 * Math.pow(sum, 2)) - (0.00012828 * age);
             }
           }
 
@@ -177,7 +179,7 @@ export default function ConsultationFlow({
       }
     }
   }, [
-    physicalEval?.weight, physicalEval?.height, physicalEval?.age, physicalEval?.gender, physicalEval?.activityLevel,
+    physicalEval?.weight, physicalEval?.height, activePatient?.age, activePatient?.gender, physicalEval?.activityLevel,
     physicalEval?.protocoloDobras, physicalEval?.triceps, physicalEval?.peitoral, physicalEval?.subescapular,
     physicalEval?.axilar, physicalEval?.suprailiaca, physicalEval?.abdomen, physicalEval?.coxa
   ]);
@@ -236,18 +238,7 @@ export default function ConsultationFlow({
             <div className="crm-card animate-pop-in">
               <h2 style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '24px' }}><Activity color="var(--crm-accent)" /> Avaliação Física e Antropometria</h2>
               
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginBottom: '24px' }}>
-                <div>
-                  <label className="crm-label">Idade (anos)</label>
-                  <input type="number" className="crm-input" value={physicalEval?.age || ''} onChange={(e) => setPhysicalEval({...physicalEval, age: e.target.value})} placeholder="Ex: 30" />
-                </div>
-                <div>
-                  <label className="crm-label">Sexo</label>
-                  <select className="crm-input" value={physicalEval?.gender || 'M'} onChange={(e) => setPhysicalEval({...physicalEval, gender: e.target.value})}>
-                    <option value="M">Masculino</option>
-                    <option value="F">Feminino</option>
-                  </select>
-                </div>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '16px', marginBottom: '24px' }}>
                 <div>
                   <label className="crm-label">Peso Atual (kg)</label>
                   <input type="number" className="crm-input" value={physicalEval?.weight || ''} onChange={(e) => setPhysicalEval({...physicalEval, weight: e.target.value})} placeholder="Ex: 75.5" />
@@ -521,6 +512,7 @@ export default function ConsultationFlow({
               <div className="results-tabs">
                 <button className={prescriptionTab === 'cardapio' ? 'results-tab-btn active' : 'results-tab-btn'} onClick={() => setPrescriptionTab('cardapio')}>Refeições do Cardápio</button>
                 <button className={prescriptionTab === 'suplementos' ? 'results-tab-btn active' : 'results-tab-btn'} onClick={() => setPrescriptionTab('suplementos')}>Vitaminas e Suplementos</button>
+                <button className={prescriptionTab === 'treino' ? 'results-tab-btn active' : 'results-tab-btn'} onClick={() => setPrescriptionTab('treino')}>Ficha de Treino</button>
                 <button className={prescriptionTab === 'ferramentas' ? 'results-tab-btn active' : 'results-tab-btn'} onClick={() => setPrescriptionTab('ferramentas')}>Ferramentas e Assistentes</button>
               </div>
 
@@ -558,8 +550,59 @@ export default function ConsultationFlow({
                           </p>
                         )}
                       </div>
-
                     </div>
+                  </div>
+
+                  <div style={{ marginBottom: '32px', backgroundColor: '#FFF', border: '1px solid var(--crm-border)', borderRadius: '12px', padding: '16px' }}>
+                    <h3 style={{ fontSize: '1.1rem', color: 'var(--crm-text-main)', marginBottom: '8px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      <FileText size={18} /> Meus Templates de Dieta
+                    </h3>
+                    <p style={{ fontSize: '0.85rem', color: 'var(--crm-text-muted)', marginBottom: '16px' }}>Carregue um plano alimentar pré-estruturado do seu Diet Builder.</p>
+                    
+                    {(!dietTemplates || dietTemplates.length === 0) ? (
+                      <p style={{ fontSize: '0.85rem', color: 'var(--crm-text-muted)', textAlign: 'center', padding: '20px 0' }}>Nenhum template salvo.</p>
+                    ) : (
+                      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: '12px' }}>
+                        {dietTemplates.map(tpl => (
+                          <div key={tpl.id} style={{ border: '1px solid var(--crm-border)', borderRadius: '8px', padding: '12px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+                            <div>
+                              <strong style={{ fontSize: '0.95rem', color: 'var(--crm-text-main)' }}>{tpl.title}</strong>
+                              <div style={{ fontSize: '0.8rem', color: 'var(--crm-text-muted)', marginTop: '4px' }}>Duração: {tpl.duration} dias</div>
+                            </div>
+                            <button 
+                              className="crm-btn-secondary" 
+                              style={{ marginTop: '12px', padding: '6px', fontSize: '0.85rem', width: '100%' }}
+                              onClick={() => {
+                                if(window.confirm(`Aplicar o template "${tpl.title}"? As refeições atuais serão substituídas.`)) {
+                                  setDietTitle(tpl.title);
+                                  setDietDuration(tpl.duration);
+                                  
+                                  const allMeals = [];
+                                  if (tpl.days && Array.isArray(tpl.days)) {
+                                    tpl.days.forEach(d => {
+                                      if (d.meals && Array.isArray(d.meals)) {
+                                        d.meals.forEach(m => {
+                                          allMeals.push({
+                                            name: tpl.days.length > 1 ? `Dia ${d.dayIndex} - ${m.name}` : m.name,
+                                            time: m.time || '',
+                                            desc: m.desc || m.items || ''
+                                          });
+                                        });
+                                      }
+                                    });
+                                  }
+                                  
+                                  setDietMeals(allMeals);
+                                  setPrescriptionTab('cardapio');
+                                }
+                              }}
+                            >
+                              Aplicar Template
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                    )}
                   </div>
                   
                   <div style={{ backgroundColor: '#FFF', border: '1px solid var(--crm-border)', borderRadius: '12px', padding: '16px' }}>
@@ -616,6 +659,41 @@ export default function ConsultationFlow({
                     onChange={e => setDietSupplements(e.target.value)} 
                     style={{ minHeight: '250px', resize: 'vertical' }} 
                   />
+                </div>
+              )}
+
+              {prescriptionTab === 'treino' && (
+                <div className="animate-pop-in" style={{ marginBottom: '32px' }}>
+                  <div style={{ padding: '24px', backgroundColor: '#F8FAFC', border: '1px solid #E2E8F0', borderRadius: '12px', marginBottom: '24px' }}>
+                    <h3 style={{ fontSize: '1.1rem', color: '#1E293B', marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      <Dumbbell size={18} color="#3B82F6" /> Gerador de Ficha de Treino (IA Personal)
+                    </h3>
+                    <p style={{ color: '#64748B', fontSize: '0.95rem', marginBottom: '16px' }}>
+                      A IA usará os dados de anamnese, peso e objetivo do paciente para montar uma periodização de exercícios inteligente.
+                    </p>
+                    <button className="crm-btn-primary" onClick={async () => {
+                      await generateWorkoutFromAI();
+                    }} disabled={isGenerating} style={{ width: '100%', backgroundColor: '#3B82F6', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '8px', padding: '12px' }}>
+                      <Sparkles size={16} color="#FFF" /> {isGenerating ? 'Gerando Treino...' : 'Gerar Ficha de Treino com IA'}
+                    </button>
+                  </div>
+
+                  {workoutPlan && (
+                    <div style={{ padding: '24px', backgroundColor: '#FFF', border: '1px solid #E2E8F0', borderRadius: '12px' }}>
+                      <h4 style={{ color: '#1E293B', marginBottom: '16px', fontSize: '1.2rem' }}>{workoutPlan.title}</h4>
+                      {workoutPlan.days?.map((d, i) => (
+                        <div key={i} style={{ marginBottom: '16px', padding: '16px', backgroundColor: '#F1F5F9', borderRadius: '8px' }}>
+                          <strong style={{ color: '#3B82F6', display: 'block', marginBottom: '8px' }}>{d.dayName}</strong>
+                          <ul style={{ margin: 0, paddingLeft: '20px', color: '#334155' }}>
+                            {d.exercises?.map((ex, j) => (
+                              <li key={j} style={{ marginBottom: '4px' }}>{ex}</li>
+                            ))}
+                          </ul>
+                        </div>
+                      ))}
+                      <button onClick={() => setWorkoutPlan(null)} style={{ background: 'transparent', border: '1px solid #EF4444', color: '#EF4444', padding: '6px 12px', borderRadius: '8px', cursor: 'pointer', marginTop: '16px' }}>Limpar Treino</button>
+                    </div>
+                  )}
                 </div>
               )}
 

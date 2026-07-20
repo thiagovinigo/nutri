@@ -32,6 +32,8 @@ export default function DashboardNutri() {
   const [patRest, setPatRest] = useState('');
   const [patCpf, setPatCpf] = useState('');
   const [patEmail, setPatEmail] = useState('');
+  const [patAge, setPatAge] = useState('');
+  const [patGender, setPatGender] = useState('M');
   const [patAversions, setPatAversions] = useState('');
   const [patMedications, setPatMedications] = useState('');
 
@@ -77,6 +79,7 @@ export default function DashboardNutri() {
   const [dietSupplements, setDietSupplements] = useState('');
   const [dietDuration, setDietDuration] = useState(1);
   const [dietMeals, setDietMeals] = useState([]);
+  const [workoutPlan, setWorkoutPlan] = useState(null);
   const [isGenerating, setIsGenerating] = useState(false);
 
   const [examError, setExamError] = useState('');
@@ -98,13 +101,13 @@ export default function DashboardNutri() {
 
   const openNewPatientModal = () => {
     setEditingPatient(null);
-    setPatName(''); setPatObj(''); setPatRest(''); setPatCpf(''); setPatEmail(''); setPatAversions(''); setPatMedications('');
+    setPatName(''); setPatObj(''); setPatRest(''); setPatCpf(''); setPatEmail(''); setPatAge(''); setPatGender('M'); setPatAversions(''); setPatMedications('');
     setShowPatientModal(true);
   };
 
   const openEditPatientModal = (p) => {
     setEditingPatient(p.id);
-    setPatName(p.name); setPatObj(p.objective); setPatRest(p.restrictions); setPatCpf(p.cpf || ''); setPatEmail(p.email || ''); setPatAversions(p.aversions || ''); setPatMedications(p.medications || '');
+    setPatName(p.name); setPatObj(p.objective); setPatRest(p.restrictions); setPatCpf(p.cpf || ''); setPatEmail(p.email || ''); setPatAge(p.age || ''); setPatGender(p.gender || 'M'); setPatAversions(p.aversions || ''); setPatMedications(p.medications || '');
     setShowPatientModal(true);
   };
 
@@ -132,9 +135,9 @@ export default function DashboardNutri() {
     }
 
     if (editingPatient) {
-      await updatePatient(editingPatient, { name: patName, objective: patObj, restrictions: patRest, cpf: patCpf, email: patEmail, aversions: patAversions, medications: patMedications });
+      await updatePatient(editingPatient, { name: patName, objective: patObj, restrictions: patRest, cpf: patCpf, email: patEmail, age: patAge, gender: patGender, aversions: patAversions, medications: patMedications });
     } else {
-      const newId = await addPatient(patName, patObj, patRest, patCpf, patEmail, patAversions, patMedications);
+      const newId = await addPatient(patName, patObj, patRest, patCpf, patEmail, patAversions, patMedications, patAge, patGender);
       if (patEmail && newId) {
         const link = `${window.location.origin}/paciente?vincular=${newId}`;
         try {
@@ -166,7 +169,8 @@ export default function DashboardNutri() {
     setActiveApptId(apptId);
     setConsultationStep(1);
     setAnamnesis('');
-    setPhysicalEval({ weight: '', height: '', bodyFat: '', muscleMass: '', waist: '', hips: '', age: '', gender: 'M', activityLevel: '1.2', tmb: '', get: '', protocoloDobras: 'nenhum', triceps: '', peitoral: '', subescapular: '', axilar: '', suprailiaca: '', abdomen: '', coxa: '', massaGorda: '', massaMagra: '' });
+    const pat = patients.find(p => p.id === patientId);
+    setPhysicalEval({ weight: '', height: '', bodyFat: '', muscleMass: '', waist: '', hips: '', age: pat?.age || '', gender: pat?.gender || 'M', activityLevel: '1.2', tmb: '', get: '', protocoloDobras: 'nenhum', triceps: '', peitoral: '', subescapular: '', axilar: '', suprailiaca: '', abdomen: '', coxa: '', massaGorda: '', massaMagra: '' });
     setExamUploaded(false);
     setExamResult(null);
     setDietTitle('');
@@ -181,7 +185,7 @@ export default function DashboardNutri() {
     setActivePatientId(p.id);
     setConsultationStep(1);
     setAnamnesis('');
-    setPhysicalEval({ weight: '', height: '', bodyFat: '', muscleMass: '', waist: '', hips: '', age: '', gender: 'M', activityLevel: '1.2', tmb: '', get: '', protocoloDobras: 'nenhum', triceps: '', peitoral: '', subescapular: '', axilar: '', suprailiaca: '', abdomen: '', coxa: '', massaGorda: '', massaMagra: '' });
+    setPhysicalEval({ weight: '', height: '', bodyFat: '', muscleMass: '', waist: '', hips: '', age: p.age || '', gender: p.gender || 'M', activityLevel: '1.2', tmb: '', get: '', protocoloDobras: 'nenhum', triceps: '', peitoral: '', subescapular: '', axilar: '', suprailiaca: '', abdomen: '', coxa: '', massaGorda: '', massaMagra: '' });
     setExamUploaded(false);
     setExamResult(null);
     setDietTitle('');
@@ -274,9 +278,21 @@ Cite as fontes científicas, guidelines atualizados (como Diretrizes da SBC, SBD
     setIsGenerating(true);
     setDietError('');
     try {
-      let promptContext = `Objetivo: ${activePatient.objective}. Restrições: ${activePatient.restrictions || 'Nenhuma'}.`;
+      let promptContext = `Objetivo: ${activePatient.objective}. Restrições: ${activePatient.restrictions || 'Nenhuma'}. Idade: ${activePatient.age || 'Não informada'}. Sexo: ${activePatient.gender === 'M' ? 'Masculino' : 'Feminino'}.`;
       if (activePatient.aversions) promptContext += `\nAversões (Alimentos que o paciente NÃO COME de jeito nenhum): ${activePatient.aversions}`;
       if (activePatient.medications) promptContext += `\nMedicamentos em uso: ${activePatient.medications}`;
+      
+      const physicalSummary = [];
+      if (physicalEval.weight) physicalSummary.push(`Peso: ${physicalEval.weight}kg`);
+      if (physicalEval.height) physicalSummary.push(`Altura: ${physicalEval.height}cm`);
+      if (physicalEval.bodyFat) physicalSummary.push(`% de Gordura: ${physicalEval.bodyFat}%`);
+      if (physicalEval.tmb) physicalSummary.push(`TMB: ${physicalEval.tmb} kcal`);
+      if (physicalEval.get) physicalSummary.push(`GET: ${physicalEval.get} kcal`);
+      
+      if (physicalSummary.length > 0) {
+        promptContext += `\nAvaliação Física Atual: ${physicalSummary.join(', ')}`;
+      }
+
       if (anamnesis) promptContext += `\nAnamnese: ${anamnesis}`;
       if (examResult) promptContext += `\nConduta Sugerida pelos Exames:\n${examResult}`;
 
@@ -324,6 +340,55 @@ Exemplo de formato:
       });
     } catch (error) {
       setDietError(error.message || 'Erro ao gerar dieta com IA.');
+    } finally {
+      setIsGenerating(false);
+    }
+  };
+
+  const generateWorkoutFromAI = async () => {
+    setIsGenerating(true);
+    setDietError('');
+    try {
+      let promptContext = `Objetivo: ${activePatient.objective}. Idade: ${activePatient.age || 'Não informada'}. Sexo: ${activePatient.gender === 'M' ? 'Masculino' : 'Feminino'}.`;
+      
+      const physicalSummary = [];
+      if (physicalEval.weight) physicalSummary.push(`Peso: ${physicalEval.weight}kg`);
+      if (physicalEval.height) physicalSummary.push(`Altura: ${physicalEval.height}cm`);
+      if (physicalEval.bodyFat) physicalSummary.push(`% de Gordura: ${physicalEval.bodyFat}%`);
+      if (physicalSummary.length > 0) {
+        promptContext += `\nAvaliação Física Atual: ${physicalSummary.join(', ')}`;
+      }
+
+      if (anamnesis) promptContext += `\nAnamnese: ${anamnesis}`;
+
+      const systemPrompt = `Você é um Personal Trainer de elite e fisiologista do exercício (nível Balestrini/Muzy).
+Sua missão é criar uma Ficha de Treino perfeitamente estruturada para o paciente com base nos dados fornecidos.
+
+Você deve retornar EXATAMENTE UM JSON contendo os seguintes campos:
+- title: O nome da periodização (Ex: "Hipertrofia - ABC", "Emagrecimento - FullBody")
+- days: Um array de objetos representando cada dia de treino da rotina.
+Cada objeto em 'days' deve ter:
+  - dayName: O nome do dia ou divisão (Ex: "Treino A - Peito e Tríceps", "Treino B - Costas")
+  - exercises: Um array de strings, onde cada string é um exercício formatado. (Ex: "Supino Reto 4x10 a 12 (Descanso 60s)")
+
+Não inclua textos fora do JSON. Apenas o JSON puro.`;
+
+      const response = await fetch('/api/openai-bridge', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          system_prompt: systemPrompt,
+          messages: [{ role: "user", content: `Crie a ficha de treino para:\n\n${promptContext}` }],
+          format_json: true
+        })
+      });
+      if (!response.ok) throw new Error("Erro na rede ou na API.");
+      const data = await response.json();
+      const parsed = JSON.parse(data.choices[0].message.content);
+      
+      setWorkoutPlan(parsed);
+    } catch (error) {
+      setDietError(error.message || 'Erro ao gerar treino com IA.');
     } finally {
       setIsGenerating(false);
     }
@@ -390,6 +455,10 @@ Exemplo de formato:
       consultations: updatedConsultations
     };
 
+    if (workoutPlan) {
+      updatePayload.workoutPlan = workoutPlan;
+    }
+
     if (examResult) {
       const newExam = {
         id: Date.now().toString() + "_ex",
@@ -423,9 +492,11 @@ Exemplo de formato:
         dietSupplements={dietSupplements} setDietSupplements={setDietSupplements}
         dietDuration={dietDuration} setDietDuration={setDietDuration}
         dietMeals={dietMeals} setDietMeals={setDietMeals}
+        workoutPlan={workoutPlan} setWorkoutPlan={setWorkoutPlan}
         isGenerating={isGenerating}
         analyzeExamWithAI={analyzeExamWithAI}
         generateDietFromAI={generateDietFromAI}
+        generateWorkoutFromAI={generateWorkoutFromAI}
         finishConsultation={finishConsultation}
         examError={examError} dietError={dietError} finishedMessage={finishedMessage}
         onSuspend={() => setView(activeApptId ? 'agenda' : 'pacientes')}
@@ -449,7 +520,7 @@ Exemplo de formato:
         handleCreateAppointment={handleCreateAppointment} cancelAppointment={cancelAppointment} startConsultation={startConsultation}
         showPatientModal={showPatientModal} setShowPatientModal={setShowPatientModal}
         openNewPatientModal={openNewPatientModal} openEditPatientModal={openEditPatientModal} editingPatient={editingPatient} handleDeletePatient={handleDeletePatient}
-        patName={patName} setPatName={setPatName} patObj={patObj} setPatObj={setPatObj} patRest={patRest} setPatRest={setPatRest} patCpf={patCpf} setPatCpf={setPatCpf} patEmail={patEmail} setPatEmail={setPatEmail} patAversions={patAversions} setPatAversions={setPatAversions} patMedications={patMedications} setPatMedications={setPatMedications} handleSavePatient={handleSavePatient}
+        patName={patName} setPatName={setPatName} patObj={patObj} setPatObj={setPatObj} patRest={patRest} setPatRest={setPatRest} patCpf={patCpf} setPatCpf={setPatCpf} patEmail={patEmail} setPatEmail={setPatEmail} patAge={patAge} setPatAge={setPatAge} patGender={patGender} setPatGender={setPatGender} patAversions={patAversions} setPatAversions={setPatAversions} patMedications={patMedications} setPatMedications={setPatMedications} handleSavePatient={handleSavePatient}
         viewingPatientId={viewingPatientId} setViewingPatientId={setViewingPatientId}
         synthesisResult={synthesisResult} setSynthesisResult={setSynthesisResult} isSynthesizing={isSynthesizing} generatePatientSynthesis={generatePatientSynthesis}
         synthesisError={synthesisError}

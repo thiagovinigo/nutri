@@ -1,12 +1,14 @@
 import React from 'react';
-import { Home, ClipboardList, BookOpen, User, MessageCircle } from 'lucide-react';
+import { Home, ClipboardList, BookOpen, User, MessageCircle, MessageSquare, Dumbbell } from 'lucide-react';
 
 export default function BottomNav({ currentView, setCurrentView }) {
   const navItems = [
     { id: 'home', icon: <Home size={28} />, label: 'Início' },
     { id: 'diet', icon: <ClipboardList size={28} />, label: 'Plano' },
+    { id: 'workout', icon: <Dumbbell size={28} />, label: 'Treino' },
     { id: 'recipes', icon: <BookOpen size={28} />, label: 'Receitas' },
-    { id: 'quests', icon: <MessageCircle size={28} />, label: 'Nutri-Bot' },
+    { id: 'chat', icon: <MessageSquare size={28} />, label: 'Nutri' },
+    { id: 'quests', icon: <MessageCircle size={28} />, label: 'IA' },
     { id: 'profile', icon: <User size={28} />, label: 'Perfil' }
   ];
 

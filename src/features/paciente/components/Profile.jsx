@@ -8,6 +8,8 @@ export default function Profile({ activePatient }) {
   const [editName, setEditName] = useState('');
   const [editEmail, setEditEmail] = useState('');
   const [editCpf, setEditCpf] = useState('');
+  const [editAge, setEditAge] = useState('');
+  const [editGender, setEditGender] = useState('M');
   const [editAversions, setEditAversions] = useState('');
   const [editMedications, setEditMedications] = useState('');
   const [profileSaved, setProfileSaved] = useState(false);
@@ -20,6 +22,8 @@ export default function Profile({ activePatient }) {
       setEditName(activePatient.name || '');
       setEditEmail(activePatient.email || '');
       setEditCpf(activePatient.cpf || '');
+      setEditAge(activePatient.age || '');
+      setEditGender(activePatient.gender || 'M');
       setEditAversions(activePatient.aversions || '');
       setEditMedications(activePatient.medications || '');
     }
@@ -70,7 +74,7 @@ export default function Profile({ activePatient }) {
   const handleSaveProfile = (e) => {
     e.preventDefault();
     if(activePatient) {
-      updatePatient(activePatient.id, { ...activePatient, name: editName, email: editEmail, cpf: editCpf, aversions: editAversions, medications: editMedications });
+      updatePatient(activePatient.id, { ...activePatient, name: editName, email: editEmail, cpf: editCpf, age: editAge, gender: editGender, aversions: editAversions, medications: editMedications });
       setProfileSaved(true);
       setTimeout(() => setProfileSaved(false), 3000);
     }
@@ -114,6 +118,19 @@ export default function Profile({ activePatient }) {
         <div>
           <label style={{display: 'block', marginBottom: '6px', fontSize: '0.9rem', color: '#64748b'}}>CPF</label>
           <input type="text" value={editCpf} onChange={e => setEditCpf(e.target.value)} style={{width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid #cbd5e1', boxSizing: 'border-box'}} />
+        </div>
+        <div style={{ display: 'flex', gap: '16px' }}>
+          <div style={{ flex: 1 }}>
+            <label style={{display: 'block', marginBottom: '6px', fontSize: '0.9rem', color: '#64748b'}}>Idade (anos)</label>
+            <input type="number" value={editAge} onChange={e => setEditAge(e.target.value)} style={{width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid #cbd5e1', boxSizing: 'border-box'}} />
+          </div>
+          <div style={{ flex: 1 }}>
+            <label style={{display: 'block', marginBottom: '6px', fontSize: '0.9rem', color: '#64748b'}}>Sexo Genético</label>
+            <select value={editGender} onChange={e => setEditGender(e.target.value)} style={{width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid #cbd5e1', boxSizing: 'border-box'}}>
+              <option value="M">Masculino</option>
+              <option value="F">Feminino</option>
+            </select>
+          </div>
         </div>
         <div>
           <label style={{display: 'block', marginBottom: '6px', fontSize: '0.9rem', color: '#64748b'}}>Alimentos que não como de jeito nenhum (Aversões)</label>

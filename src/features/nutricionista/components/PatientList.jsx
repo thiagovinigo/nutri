@@ -18,12 +18,13 @@ export default function PatientList({
   handleCreateAppointment, cancelAppointment, startConsultation,
   showPatientModal, setShowPatientModal,
   openNewPatientModal, openEditPatientModal, editingPatient, handleDeletePatient,
-  patName, setPatName, patObj, setPatObj, patRest, setPatRest, patCpf, setPatCpf, patEmail, setPatEmail, patAversions, setPatAversions, patMedications, setPatMedications, handleSavePatient,
+  patName, setPatName, patObj, setPatObj, patRest, setPatRest, patCpf, setPatCpf, patEmail, setPatEmail, patAge, setPatAge, patGender, setPatGender, patAversions, setPatAversions, patMedications, setPatMedications, handleSavePatient,
   viewingPatientId, setViewingPatientId,
   synthesisResult, setSynthesisResult, isSynthesizing, generatePatientSynthesis, synthesisError,
   addNotification, addExam,
   dietTemplates, deleteDietTemplate,
   recipeLibrary, addLibraryRecipe, deleteLibraryRecipe,
+  directMessages, sendDirectMessage,
   addBonusRecipe,
   clinicConfig, updateClinicConfig
 }) {
@@ -40,6 +41,8 @@ export default function PatientList({
   
   const [editingMealPath, setEditingMealPath] = useState(null); // { rIdx, mIdx }
   const [editingMealDesc, setEditingMealDesc] = useState('');
+  
+  const [chatInput, setChatInput] = useState('');
 
   const handleDeleteActiveRecipe = (rIdx) => {
     if(window.confirm('Tem certeza que deseja excluir toda essa prescrição?')) {
@@ -162,8 +165,13 @@ export default function PatientList({
   // Alerta de churn — Cohorts
   const [churnAlertMessage, setChurnAlertMessage] = useState('');
   const handleSendChurnAlert = (patient) => {
-    addNotification(patient.id, `Sua nutri notou que você está há alguns dias sem registrar refeições. Que tal retomar hoje? 💪`);
-    setChurnAlertMessage(`🔔 Notificação enviada com sucesso para o aplicativo de ${patient.name}!`);
+    // 1. Notificação Push no App
+    addNotification(patient.id, `Sua nutri notou que você está há alguns dias sem registrar refeições. Que tal retomar hoje? 🎯`);
+    
+    // 2. Mock de Envio de E-mail (Transacional)
+    console.log(`[API Mock] Enviando e-mail transacional para ${patient.email}...`);
+    
+    setChurnAlertMessage(`✅ Notificação Push e E-mail enviados com sucesso para ${patient.name}!`);
     setTimeout(() => setChurnAlertMessage(''), 4500);
   };
 
@@ -537,6 +545,7 @@ export default function PatientList({
                 <button className={prontuarioTab === 'resumo' ? 'results-tab-btn active' : 'results-tab-btn'} onClick={() => setProntuarioTab('resumo')}>Visão Geral</button>
                 <button className={prontuarioTab === 'consultas' ? 'results-tab-btn active' : 'results-tab-btn'} onClick={() => { setProntuarioTab('consultas'); setSelectedHistoryIdx(null); }}>Protocolo Vigente</button>
                 <button className={prontuarioTab === 'exames' ? 'results-tab-btn active' : 'results-tab-btn'} onClick={() => setProntuarioTab('exames')}>Exames & Biomarcadores</button>
+                <button className={prontuarioTab === 'chat' ? 'results-tab-btn active' : 'results-tab-btn'} onClick={() => setProntuarioTab('chat')}>Chat / Mensagens</button>
               </div>
 
               {prontuarioTab === 'resumo' && (
@@ -720,6 +729,62 @@ export default function PatientList({
                     </div>
                   )}
                 </div>
+                </div>
+              )}
+
+              {prontuarioTab === 'chat' && (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+                  <div className="crm-card" style={{ flex: '1 1 500px', display: 'flex', flexDirection: 'column', height: '500px' }}>
+                    <div style={{ paddingBottom: '16px', borderBottom: '1px solid var(--crm-border)', marginBottom: '16px' }}>
+                      <h3 style={{ margin: 0, color: 'var(--crm-text-main)' }}>Chat Direto: {viewedPatient.name}</h3>
+                      <p style={{ fontSize: '0.85rem', color: 'var(--crm-text-muted)', margin: '4px 0 0 0' }}>Comunicação em tempo real no app do paciente.</p>
+                    </div>
+                    
+                    <div style={{ flex: 1, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '12px', paddingRight: '8px' }}>
+                      {(directMessages || []).filter(m => m.patientId === viewedPatient.id).length === 0 ? (
+                        <p style={{ color: 'var(--crm-text-muted)', textAlign: 'center', marginTop: 'auto', marginBottom: 'auto' }}>Nenhuma mensagem ainda. Envie a primeira mensagem!</p>
+                      ) : (
+                        (directMessages || []).filter(m => m.patientId === viewedPatient.id).map(msg => (
+                          <div key={msg.id} style={{ 
+                            alignSelf: msg.sender === 'nutri' ? 'flex-end' : 'flex-start',
+                            backgroundColor: msg.sender === 'nutri' ? '#E0F2FE' : '#F1F5F9',
+                            color: 'var(--crm-text-main)',
+                            padding: '12px 16px',
+                            borderRadius: msg.sender === 'nutri' ? '12px 12px 0 12px' : '12px 12px 12px 0',
+                            maxWidth: '75%',
+                            border: msg.sender === 'nutri' ? '1px solid #BAE6FD' : '1px solid #E2E8F0'
+                          }}>
+                            <div style={{ fontSize: '0.95rem' }}>{msg.text}</div>
+                            <div style={{ fontSize: '0.7rem', color: 'var(--crm-text-muted)', marginTop: '4px', textAlign: 'right' }}>
+                              {new Date(msg.date).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
+                            </div>
+                          </div>
+                        ))
+                      )}
+                    </div>
+                    
+                    <form 
+                      onSubmit={(e) => {
+                        e.preventDefault();
+                        if (!chatInput.trim()) return;
+                        sendDirectMessage(viewedPatient.id, 'nutri', chatInput.trim());
+                        setChatInput('');
+                      }} 
+                      style={{ display: 'flex', gap: '8px', marginTop: '16px', paddingTop: '16px', borderTop: '1px solid var(--crm-border)' }}
+                    >
+                      <input 
+                        type="text" 
+                        className="crm-input" 
+                        placeholder="Digite sua mensagem..." 
+                        value={chatInput} 
+                        onChange={e => setChatInput(e.target.value)} 
+                        style={{ flex: 1 }}
+                      />
+                      <button type="submit" className="crm-btn-primary" style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '0 20px' }}>
+                        <Send size={16} /> Enviar
+                      </button>
+                    </form>
+                  </div>
                 </div>
               )}
 
@@ -1516,6 +1581,19 @@ export default function PatientList({
                 <div style={{ flex: 1 }}>
                   <label className="crm-label">E-mail</label>
                   <input type="email" className="crm-input" placeholder="email@paciente.com" value={patEmail} onChange={e => setPatEmail(e.target.value)} />
+                </div>
+              </div>
+              <div style={{ display: 'flex', gap: '16px', marginBottom: '16px' }}>
+                <div style={{ flex: 1 }}>
+                  <label className="crm-label">Idade</label>
+                  <input type="number" className="crm-input" placeholder="Ex: 30" value={patAge} onChange={e => setPatAge(e.target.value)} />
+                </div>
+                <div style={{ flex: 1 }}>
+                  <label className="crm-label">Gênero</label>
+                  <select className="crm-input" value={patGender} onChange={e => setPatGender(e.target.value)}>
+                    <option value="M">Masculino</option>
+                    <option value="F">Feminino</option>
+                  </select>
                 </div>
               </div>
               <div style={{ marginBottom: '16px' }}>

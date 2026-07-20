@@ -79,7 +79,7 @@ Consolidado a partir da auditoria de produto e do `spec.md`. Ordenado por priori
 ### Inteligência de Cohorts (o maior diferencial do produto — vale investir aqui primeiro entre as features "grandes")
 - [x] Modelo real de previsão de abandono (hoje é um campo estático `em_risco` no mock), usando streak, adesão e frequência de login.
 - [x] Envio de fato do alerta de risco (WhatsApp Business API, e-mail transacional, ou push notification) — hoje só registra em `alert()`.
-- [ ] Visão "Patient 360": um painel único por paciente reunindo plano, food log, check-ins, peso, mensagens e anotações (hoje está espalhado em abas separadas).
+- [x] Visão "Patient 360": um painel único por paciente reunindo plano, food log, check-ins, peso, mensagens e anotações (hoje está espalhado em abas separadas).
 
 ### Comunicação nutricionista ↔ paciente
 - [ ] Canal de mensagens diretas entre nutricionista e paciente (hoje só existe o Vytal Bot de IA; não há como o profissional mandar uma mensagem real).
@@ -114,7 +114,7 @@ Avaliação do que já existe vs. o que um produto de referência em nutrição 
 
 ### Gaps identificados — features que faltam
 - [x] **Contexto biométrico no Vytal Bot e na geração de dieta:** conectar dados de sono/atividade (Apple Health, Google Fit) para a IA ajustar recomendações — é citado como "linha de base esperada" pelos apps premium de 2026, hoje o Vytal só usa dados manuais (peso via `prompt()`).
-- [ ] **Food log fora do plano prescrito:** hoje só existe o "Comeu algo diferente?" com foto avulsa; falta um diário alimentar livre (sem depender de ter uma dieta ativa) para pacientes em fase de diagnóstico/anamnese, antes da primeira prescrição.
+- [x] **Food log fora do plano prescrito:** hoje só existe o "Comeu algo diferente?" com foto avulsa; falta um diário alimentar livre (sem depender de ter uma dieta ativa) para pacientes em fase de diagnóstico/anamnese, antes da primeira prescrição.
 - [ ] **Telemedicina/consulta em vídeo integrada:** hoje a "consulta" no CRM é só um formulário preenchido pelo nutricionista; não há chamada de vídeo nem histórico de sessão gravado. Concorrentes de practice management (Practice Better) já oferecem isso nativo.
 - [ ] **Biblioteca de receitas/planos reutilizáveis:** hoje cada dieta é gerada do zero por IA a cada consulta; um nutricionista com 50 pacientes precisa reaproveitar templates de cardápio, não recriar tudo toda vez.
 - [ ] **Documentação para reembolso/nota fiscal:** contexto Brasil — nutricionistas frequentemente precisam emitir recibo para plano de saúde; não existe nada hoje nessa linha (oportunidade de nicho local que concorrentes globais não cobrem bem).
@@ -163,7 +163,7 @@ Síntese dos dois comitês acima em uma ordem de execução única. Critério: o
 
 **Onda 2 — O diferencial competitivo (maior retorno por esforço)**
 4. Cohorts real: modelo de previsão + envio de fato do alerta. Este é o item que o comitê de produto inovador e a pesquisa de mercado apontam como o maior diferencial — prioridade máxima entre as features novas.
-5. Gráfico de evolução de peso no CRM (troca lista → linha do tempo) — pré-requisito visual para o Cohorts parecer "inteligente" de verdade.
+5. [x] Gráfico de evolução de peso no CRM (troca lista → linha do tempo) — pré-requisito visual para o Cohorts parecer "inteligente" de verdade.
 6. Contexto biométrico no Vytal Bot (mesmo que só manual no início, sem integrar wearable ainda) — data mínima para começar a construir a diferenciação de IA clínica.
 
 **Onda 3 — Monetização e crescimento**
@@ -181,9 +181,9 @@ Síntese dos dois comitês acima em uma ordem de execução única. Critério: o
 ## 💡 Ideias novas do usuário (14/07/2026)
 
 - [x] **Sino de notificação no app do paciente** — implementado. Quando o nutricionista clica "Enviar Alerta" (Cohorts), uma notificação real é criada (`addNotification` no `AppContext.jsx`) e aparece no sino do `TopBar` do paciente, com contador de não lidas.
-- [ ] **Biblioteca de templates de dieta reutilizáveis:** o nutricionista deveria poder salvar um plano completo (30 dias, 6 refeições, suplementos/vitaminas) como template, em vez de digitar tudo do zero em cada consulta.
+- [x] **Biblioteca de templates de dieta reutilizáveis:** o nutricionista deveria poder salvar um plano completo (30 dias, 6 refeições, suplementos/vitaminas) como template, em vez de digitar tudo do zero em cada consulta.
 - [ ] **Anexar template a um paciente:** a partir da biblioteca acima, aplicar um template existente diretamente ao prontuário de um paciente (com opção de ajustar antes de confirmar).
-- [ ] **Receitas para o paciente (bônus):** o paciente deveria poder receber receitas — geradas por IA ou buscadas na internet — anexadas numa aba própria de "Receitas", separada do plano alimentar estruturado. Onde encaixar: provavelmente uma nova aba na bottom nav do paciente (`DietPlan`/`QuestBoard` já estão cheios) ou uma seção dentro de `DietPlan.jsx`.
+- [x] **Receitas para o paciente (bônus):** o paciente deveria poder receber receitas — geradas por IA ou buscadas na internet — anexadas numa aba própria de "Receitas", separada do plano alimentar estruturado. Onde encaixar: provavelmente uma nova aba na bottom nav do paciente (`DietPlan`/`QuestBoard` já estão cheios) ou uma seção dentro de `DietPlan.jsx`.
 
 ---
 

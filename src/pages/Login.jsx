@@ -4,8 +4,10 @@ import { auth, db } from '../services/firebase';
 import { signInWithEmailAndPassword } from 'firebase/auth';
 import { doc, getDoc, setDoc } from 'firebase/firestore';
 import { getFirebaseErrorMessage } from '../utils/firebaseErrors';
+import { useAppContext } from '../context/AppContext';
 
 export default function Login() {
+  const { patients, bypassLoginAsPatient } = useAppContext();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
@@ -110,22 +112,35 @@ export default function Login() {
           {import.meta.env.DEV && (
             <div style={{ marginTop: '32px', paddingTop: '24px', borderTop: '1px solid #e2e8f0', textAlign: 'center' }}>
               <p style={{ color: '#64748b', fontSize: '0.9rem', marginBottom: '16px' }}>Ou teste as interfaces sem login (visível só em dev):</p>
-              <div style={{ display: 'flex', gap: '12px', justifyContent: 'center' }}>
-                <button
-                  type="button"
-                  onClick={() => navigate('/nutri')}
-                  style={{ padding: '8px 16px', backgroundColor: '#f1f5f9', color: '#334155', borderRadius: '6px', border: '1px solid #cbd5e1', cursor: 'pointer', fontSize: '0.9rem', fontWeight: '500' }}
-                >
-                  Modo Nutricionista
-                </button>
-                <button
-                  type="button"
-                  onClick={() => navigate('/paciente')}
-                  style={{ padding: '8px 16px', backgroundColor: '#f1f5f9', color: '#334155', borderRadius: '6px', border: '1px solid #cbd5e1', cursor: 'pointer', fontSize: '0.9rem', fontWeight: '500' }}
-                >
-                  Modo Paciente
-                </button>
-              </div>
+                <div style={{ display: 'flex', gap: '12px', justifyContent: 'center', flexWrap: 'wrap' }}>
+                  <button
+                    type="button"
+                    onClick={() => navigate('/nutri')}
+                    style={{ padding: '8px 16px', backgroundColor: '#f1f5f9', color: '#334155', borderRadius: '6px', border: '1px solid #cbd5e1', cursor: 'pointer', fontSize: '0.9rem', fontWeight: '500' }}
+                  >
+                    Modo Nutricionista
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => navigate('/paciente')}
+                    style={{ padding: '8px 16px', backgroundColor: '#f1f5f9', color: '#334155', borderRadius: '6px', border: '1px solid #cbd5e1', cursor: 'pointer', fontSize: '0.9rem', fontWeight: '500' }}
+                  >
+                    Modo Paciente
+                  </button>
+                  {patients.find(p => p.name && p.name.toLowerCase().includes('lucas')) && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const lucas = patients.find(p => p.name && p.name.toLowerCase().includes('lucas'));
+                        bypassLoginAsPatient(lucas);
+                        navigate('/paciente');
+                      }}
+                      style={{ padding: '8px 16px', backgroundColor: '#dcfce7', color: '#166534', borderRadius: '6px', border: '1px solid #bbf7d0', cursor: 'pointer', fontSize: '0.9rem', fontWeight: 'bold' }}
+                    >
+                      BYPASS MODO TESTE (DEV)
+                    </button>
+                  )}
+                </div>
             </div>
           )}
         </form>
