@@ -9,6 +9,7 @@ import BonusRecipes from '../components/BonusRecipes';
 import ChatBot from '../components/ChatBot';
 import Profile from '../components/Profile';
 import PwaInstallPrompt from '../components/PwaInstallPrompt';
+import { getFirebaseErrorMessage } from '../../../utils/firebaseErrors';
 
 export default function PatientApp() {
   const { patients, activePatientId, setActivePatientId, markNotificationsRead, session, profile, setBypassPatient, fetchProfile } = useAppContext();
@@ -60,25 +61,27 @@ export default function PatientApp() {
       return;
     }
     try {
+      const normalizedEmail = loginEmail.trim().toLowerCase();
+      
       // 1. Tenta logar no Firebase com o CPF como senha
       const { signInWithEmailAndPassword, createUserWithEmailAndPassword } = await import('firebase/auth');
       const { auth, db } = await import('../../../services/firebase');
       const { doc, getDoc, setDoc, deleteDoc } = await import('firebase/firestore');
       
       try {
-        await signInWithEmailAndPassword(auth, loginEmail, loginCpf);
+        await signInWithEmailAndPassword(auth, normalizedEmail, loginCpf);
         setIsLoggedIn(true);
       } catch (authError) {
-        // Se der erro (usuÃ¡rio nÃ£o encontrado ou credencial invÃ¡lida), verifica se hÃ¡ link de vÃ­nculo
+        // Se der erro (usuário não encontrado ou credencial inválida), verifica se há link de vínculo
         const params = new URLSearchParams(window.location.search);
         const vincularId = params.get('vincular');
         
         if (vincularId) {
-          // Ã‰ o primeiro acesso, vamos registrar o paciente com o CPF sendo a senha
-          const userCredential = await createUserWithEmailAndPassword(auth, loginEmail, loginCpf);
+          // É o primeiro acesso, vamos registrar o paciente com o CPF sendo a senha
+          const userCredential = await createUserWithEmailAndPassword(auth, normalizedEmail, loginCpf);
           const user = userCredential.user;
           
-          // Buscar o doc temporÃ¡rio no Firestore criado pelo Nutricionista
+          // Buscar o doc temporário no Firestore criado pelo Nutricionista
           const tempDocRef = doc(db, 'patients', vincularId);
           const tempDocSnap = await getDoc(tempDocRef);
           
@@ -86,12 +89,12 @@ export default function PatientApp() {
             const data = tempDocSnap.data();
             
             // Criar o perfil de acesso como paciente
-            await setDoc(doc(db, 'users', user.uid), { role: 'paciente', email: loginEmail });
+            await setDoc(doc(db, 'users', user.uid), { role: 'paciente', email: normalizedEmail });
             
             // Mover os dados da ficha para o ID do Firebase Auth
             await setDoc(doc(db, 'patients', user.uid), { ...data, id: user.uid });
             
-            // Deletar o documento temporÃ¡rio para nÃ£o sujar o BD
+            // Deletar o documento temporário para não sujar o BD
             await deleteDoc(tempDocRef);
             
             // Força a atualização do contexto agora que o documento existe
@@ -101,15 +104,15 @@ export default function PatientApp() {
             window.history.replaceState({}, document.title, window.location.pathname);
             setIsLoggedIn(true);
           } else {
-            setLoginError('Link de convite invÃ¡lido ou jÃ¡ utilizado.');
+            setLoginError('Link de convite inválido ou já utilizado.');
           }
         } else {
-          setLoginError('Paciente nÃ£o encontrado. Verifique seu E-mail e CPF ou acesse pelo link enviado pela sua Nutri no primeiro acesso.');
+          setLoginError('Paciente não encontrado. Verifique seu E-mail e CPF ou acesse pelo link enviado pela sua Nutri no primeiro acesso.');
         }
       }
     } catch (error) {
-      console.error(error);
-      setLoginError('Erro de conexÃ£o ao tentar fazer login.');
+      console.error("Erro no login:", error);
+      setLoginError(getFirebaseErrorMessage(error));
     }
   };
 
@@ -137,7 +140,7 @@ export default function PatientApp() {
       const data = await response.json();
       setChatHistory([...newHistory, { role: 'assistant', content: data.choices[0].message.content }]);
     } catch (error) {
-      setChatHistory([...newHistory, { role: 'assistant', content: "Erro de conexÃ£o clÃ­nica. Tente mais tarde." }]);
+      setChatHistory([...newHistory, { role: 'assistant', content: "Erro de conexão clínica. Tente mais tarde." }]);
     } finally {
       setIsChatLoading(false);
     }
