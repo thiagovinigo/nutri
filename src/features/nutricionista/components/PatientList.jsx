@@ -34,6 +34,7 @@ export default function PatientList({
 
   const [copiedGeneralLink, setCopiedGeneralLink] = useState(false);
   const [copiedPatientLink, setCopiedPatientLink] = useState(false);
+  const [foodDiaryDate, setFoodDiaryDate] = useState(new Date());
   const [prontuarioTab, setProntuarioTab] = useState('resumo');
   const [protocoloSubTab, setProtocoloSubTab] = useState('dieta');
   const [historicoSubTab, setHistoricoSubTab] = useState('anamnese');
@@ -693,26 +694,44 @@ export default function PatientList({
                 </div>
                 
                 <div className="crm-card" style={{ flex: '1 1 100%' }}>
-                  <h3 style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '16px' }}>
-                    <Camera size={20} color="var(--crm-accent)" /> Diário Alimentar (Análises da IA)
-                  </h3>
-                  {(!viewedPatient.foodLogs || viewedPatient.foodLogs.length === 0) ? (
-                    <p style={{ color: 'var(--crm-text-muted)' }}>Nenhuma refeição registrada com foto ainda.</p>
-                  ) : (
-                    <div style={{ display: 'flex', gap: '16px', overflowX: 'auto', paddingBottom: '16px' }}>
-                      {viewedPatient.foodLogs.slice().reverse().map((log, idx) => (
-                        <div key={idx} style={{ flex: '0 0 350px', padding: '16px', backgroundColor: '#F8FAFC', borderRadius: '8px', borderLeft: log.type === 'extra' ? '4px solid #F59E0B' : '4px solid var(--crm-accent)' }}>
-                          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
-                            <strong style={{ fontSize: '1rem', color: 'var(--crm-text-main)' }}>{log.mealName}</strong>
-                            <span style={{ fontSize: '0.85rem', color: 'var(--crm-text-muted)' }}>{log.date} às {log.time}</span>
-                          </div>
-                          <div style={{ fontSize: '0.95rem', color: 'var(--crm-text-muted)', whiteSpace: 'pre-wrap', lineHeight: '1.5' }}>
-                            {log.log}
-                          </div>
-                        </div>
-                      ))}
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+                    <h3 style={{ margin: 0, display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      <Camera size={20} color="var(--crm-accent)" /> Diário Alimentar (Análises da IA)
+                    </h3>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px', backgroundColor: '#F8FAFC', padding: '6px 12px', borderRadius: '8px', border: '1px solid var(--crm-border)' }}>
+                      <button onClick={() => { const d = new Date(foodDiaryDate); d.setDate(d.getDate() - 1); setFoodDiaryDate(d); }} style={{ background: 'none', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center' }} title="Dia Anterior"><ChevronUp size={18} style={{ transform: 'rotate(-90deg)', color: 'var(--crm-text-main)' }} /></button>
+                      <span style={{ fontSize: '0.9rem', fontWeight: 600, color: 'var(--crm-text-main)', minWidth: '85px', textAlign: 'center' }}>
+                        {foodDiaryDate.toLocaleDateString('pt-BR') === new Date().toLocaleDateString('pt-BR') ? 'Hoje' : foodDiaryDate.toLocaleDateString('pt-BR').slice(0,5)}
+                      </span>
+                      <button onClick={() => { const d = new Date(foodDiaryDate); d.setDate(d.getDate() + 1); setFoodDiaryDate(d); }} style={{ background: 'none', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center' }} disabled={foodDiaryDate.toLocaleDateString('pt-BR') === new Date().toLocaleDateString('pt-BR')} title="Próximo Dia"><ChevronUp size={18} style={{ transform: 'rotate(90deg)', color: foodDiaryDate.toLocaleDateString('pt-BR') === new Date().toLocaleDateString('pt-BR') ? 'var(--crm-text-muted)' : 'var(--crm-text-main)' }} /></button>
                     </div>
-                  )}
+                  </div>
+                  {(() => {
+                    const targetDateStr = foodDiaryDate.toLocaleDateString('pt-BR');
+                    const dayLogs = (viewedPatient.foodLogs || []).filter(log => log.date === targetDateStr);
+                    
+                    if (!viewedPatient.foodLogs || viewedPatient.foodLogs.length === 0) {
+                      return <p style={{ color: 'var(--crm-text-muted)' }}>Nenhuma refeição registrada com foto ainda.</p>;
+                    }
+                    if (dayLogs.length === 0) {
+                      return <p style={{ color: 'var(--crm-text-muted)' }}>Nenhum diário alimentar registrado para este dia.</p>;
+                    }
+                    return (
+                      <div style={{ display: 'flex', gap: '16px', overflowX: 'auto', paddingBottom: '16px' }}>
+                        {dayLogs.slice().reverse().map((log, idx) => (
+                          <div key={idx} style={{ flex: '0 0 350px', padding: '16px', backgroundColor: '#F8FAFC', borderRadius: '8px', borderLeft: log.type === 'extra' ? '4px solid #F59E0B' : '4px solid var(--crm-accent)' }}>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
+                              <strong style={{ fontSize: '1rem', color: 'var(--crm-text-main)' }}>{log.mealName}</strong>
+                              <span style={{ fontSize: '0.85rem', color: 'var(--crm-text-muted)' }}>{log.date} às {log.time}</span>
+                            </div>
+                            <div style={{ fontSize: '0.95rem', color: 'var(--crm-text-muted)', whiteSpace: 'pre-wrap', lineHeight: '1.5' }}>
+                              {log.log}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    );
+                  })()}
                 </div>
 
                 </div>
