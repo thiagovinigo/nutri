@@ -1,12 +1,12 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Target, Check, Camera, Sparkles, Flame, Droplets, AlertCircle, X, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Target, Check, Camera, Sparkles, Flame, Droplets, AlertCircle, X, ChevronLeft, ChevronRight, Moon } from 'lucide-react';
 import { useAppContext } from '../../../context/AppContext';
 import ShareableMilestone from './ShareableMilestone';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 
 export default function QuestBoard({ activePatient }) {
-  const { completeQuest, markMealDone, addExtraMealLog, updateWater } = useAppContext();
+  const { completeQuest, markMealDone, addExtraMealLog, updateWater, addSleepLog } = useAppContext();
   
   const [selectedDateObj, setSelectedDateObj] = useState(new Date());
   
@@ -21,6 +21,9 @@ export default function QuestBoard({ activePatient }) {
   const [showMilestone, setShowMilestone] = useState(false);
   const [showExtraMealSelector, setShowExtraMealSelector] = useState(false);
   const [showWaterSelector, setShowWaterSelector] = useState(false);
+  const [showSleepModal, setShowSleepModal] = useState(false);
+  const [sleepHours, setSleepHours] = useState(8);
+  const [sleepQuality, setSleepQuality] = useState('Bom');
   const [selectedExtraMealName, setSelectedExtraMealName] = useState('Refeição Livre');
   const fileInputRef = useRef(null);
 
@@ -61,6 +64,12 @@ export default function QuestBoard({ activePatient }) {
     updateWater(activePatient.id, selectedDateFormatted, ml);
     completeQuest(activePatient.id, 2);
     setShowWaterSelector(false);
+  };
+
+  const handleSaveSleep = () => {
+    addSleepLog(activePatient.id, sleepHours, sleepQuality);
+    completeQuest(activePatient.id, 10);
+    setShowSleepModal(false);
   };
 
   const handleRemoveWater = () => {
@@ -223,9 +232,36 @@ export default function QuestBoard({ activePatient }) {
             </div>
           )}
         </div>
-      </div>
+        </div>
 
-      {analysisError && (
+        {/* Sleep Tracker */}
+        {(() => {
+          const sleepLog = (activePatient?.sleepLogs || []).find(log => log.date === selectedDateFormatted);
+          
+          return (
+            <div className="patient-card patient-glass" style={{display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '20px', position: 'relative', zIndex: 40}}>
+              <div>
+                <h3 style={{margin: 0, color: 'var(--primary-color)', display: 'flex', alignItems: 'center', gap: '8px'}}><Moon size={20}/> Sono e Recuperação</h3>
+                <p style={{margin: '4px 0 0 0', color: 'var(--patient-text-muted)'}}>
+                  {sleepLog ? `${sleepLog.hours}h de sono (${sleepLog.quality})` : 'Não registrado hoje'}
+                </p>
+              </div>
+              <div>
+                {sleepLog ? (
+                  <span style={{ backgroundColor: '#D1FAE5', color: '#059669', padding: '6px 12px', borderRadius: '12px', fontSize: '0.85rem', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                    <Check size={16} /> Feito
+                  </span>
+                ) : (
+                  <button className="btn-3d btn-primary" style={{padding: '10px 16px', fontSize: '0.9rem'}} onClick={() => setShowSleepModal(true)}>
+                    REGISTRAR
+                  </button>
+                )}
+              </div>
+            </div>
+          );
+        })()}
+
+        {analysisError && (
         <div role="alert" className="patient-card" style={{borderColor: 'var(--accent-color)', backgroundColor: 'rgba(245, 158, 11, 0.1)', display: 'flex', alignItems: 'center', gap: '10px', color: 'var(--accent-color)', marginBottom: '20px'}}>
           <AlertCircle size={20} style={{ flexShrink: 0 }} />
           <span>{analysisError}</span>
@@ -394,6 +430,75 @@ export default function QuestBoard({ activePatient }) {
           <AlertCircle size={48} color="var(--glass-border)" style={{marginBottom: '16px'}} />
           <h3 style={{color: 'var(--patient-text)'}}>Sem Plano Ativo</h3>
           <p>O seu nutricionista ainda não liberou seu cardápio de Alta Performance.</p>
+        </div>
+      )}
+
+      {/* Modal de Sono */}
+      {showSleepModal && (
+        <div style={{
+          position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, 
+          backgroundColor: 'rgba(15, 23, 42, 0.8)', 
+          display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 1000,
+          backdropFilter: 'blur(4px)'
+        }}>
+          <div className="animate-pop-in" style={{
+            backgroundColor: 'var(--patient-surface)', padding: '24px', borderRadius: '24px', 
+            width: '90%', maxWidth: '400px', border: '1px solid var(--glass-border)'
+          }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+              <h3 style={{ margin: 0, color: 'var(--patient-text)', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <Moon size={24} color="var(--primary-color)" /> Como você dormiu?
+              </h3>
+              <button onClick={() => setShowSleepModal(false)} style={{ background: 'none', border: 'none', color: 'var(--patient-text-muted)', cursor: 'pointer' }}>
+                <X size={24} />
+              </button>
+            </div>
+            
+            <div style={{ marginBottom: '20px' }}>
+              <label style={{ display: 'block', marginBottom: '8px', color: 'var(--patient-text-muted)', fontSize: '0.9rem' }}>Horas de sono</label>
+              <div style={{ display: 'flex', gap: '8px', overflowX: 'auto', paddingBottom: '8px' }}>
+                {[4, 5, 6, 7, 8, 9, 10, 11, 12].map(h => (
+                  <button 
+                    key={h}
+                    onClick={() => setSleepHours(h)}
+                    style={{
+                      flex: '0 0 auto',
+                      width: '40px', height: '40px', borderRadius: '50%', border: 'none',
+                      backgroundColor: sleepHours === h ? 'var(--primary-color)' : 'var(--patient-bg)',
+                      color: sleepHours === h ? '#fff' : 'var(--patient-text-muted)',
+                      fontWeight: 'bold', cursor: 'pointer', transition: 'all 0.2s'
+                    }}
+                  >
+                    {h}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div style={{ marginBottom: '24px' }}>
+              <label style={{ display: 'block', marginBottom: '8px', color: 'var(--patient-text-muted)', fontSize: '0.9rem' }}>Qualidade do sono</label>
+              <div style={{ display: 'flex', gap: '8px' }}>
+                {['Ruim', 'Razoável', 'Bom', 'Excelente'].map(q => (
+                  <button 
+                    key={q}
+                    onClick={() => setSleepQuality(q)}
+                    style={{
+                      flex: 1, padding: '10px 0', borderRadius: '12px', border: 'none',
+                      backgroundColor: sleepQuality === q ? 'var(--primary-color)' : 'var(--patient-bg)',
+                      color: sleepQuality === q ? '#fff' : 'var(--patient-text-muted)',
+                      fontSize: '0.85rem', fontWeight: 'bold', cursor: 'pointer', transition: 'all 0.2s'
+                    }}
+                  >
+                    {q}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <button onClick={handleSaveSleep} className="btn-3d btn-primary" style={{ width: '100%', padding: '14px', fontSize: '1rem' }}>
+              Salvar Registro
+            </button>
+          </div>
         </div>
       )}
     </div>

@@ -266,6 +266,16 @@ export function AppProvider({ children }) {
     }
   };
 
+  const addSleepLog = async (patientId, hours, quality) => {
+    const date = new Date().toLocaleDateString('pt-BR');
+    const p = patients.find(pat => pat.id === patientId);
+    if (!p) return;
+    const newSleepLogs = [...(p.sleepLogs || []), { date, hours: parseFloat(hours), quality }];
+    setPatients(prev => prev.map(pat => pat.id === patientId ? { ...pat, sleepLogs: newSleepLogs } : pat));
+    
+    await updatePatient(patientId, { sleepLogs: newSleepLogs });
+  };
+
 
   const addExam = async (patientId, examData) => {
     const p = patients.find(pat => pat.id === patientId);
@@ -464,7 +474,7 @@ export function AppProvider({ children }) {
       fetchProfile, fetchPatients, fetchAppointments,
       clinicConfig, updateClinicConfig,
       addPatient, updatePatient, deletePatient,
-      addRecipe, markMealDone, addExtraMealLog, markWorkoutDone, addWeight, addExam, completeQuest, updateWater,
+      addRecipe, markMealDone, addExtraMealLog, markWorkoutDone, addWeight, addSleepLog, addExam, completeQuest, updateWater,
       addNotification, markNotificationsRead,
       appointments, addAppointment, cancelAppointment, markAppointmentDone,
       dietTemplates, addDietTemplate, deleteDietTemplate,

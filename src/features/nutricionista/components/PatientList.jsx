@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { Users, Calendar, PlayCircle, Trash2, Plus, Eye, Edit3, TrendingUp, Utensils, FileText, BrainCircuit, Play, Sparkles, Activity, Settings, CreditCard, Palette, AlertTriangle, Trophy, Star, Zap, LayoutDashboard, Search, ChevronUp, ChevronDown, ArrowRight, UserCog, BookOpen, ChefHat, Link as LinkIcon, Camera, Upload } from 'lucide-react';
+import { Users, Calendar, PlayCircle, Trash2, Plus, Eye, Edit3, TrendingUp, Utensils, FileText, BrainCircuit, Play, Sparkles, Activity, Settings, CreditCard, Palette, AlertTriangle, Trophy, Star, Zap, LayoutDashboard, Search, ChevronUp, ChevronDown, ArrowRight, UserCog, BookOpen, ChefHat, Link as LinkIcon, Camera, Upload, Moon } from 'lucide-react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, Legend, ResponsiveContainer } from 'recharts';
 import { useNavigate } from 'react-router-dom';
 import { useAppContext } from '../../../context/AppContext';
@@ -670,6 +670,27 @@ export default function PatientList({
                     </div>
                   );
                 })()}
+
+                <div className="crm-card" style={{ flex: '1 1 100%' }}>
+                  <h3 style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '16px' }}>
+                    <Moon size={20} color="var(--crm-accent)" /> Histórico de Sono
+                  </h3>
+                  {(!viewedPatient.sleepLogs || viewedPatient.sleepLogs.length === 0) ? (
+                    <p style={{ color: 'var(--crm-text-muted)' }}>Nenhum registro de sono no momento.</p>
+                  ) : (
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: '16px' }}>
+                      {[...viewedPatient.sleepLogs].reverse().slice(0, 7).map((log, i) => (
+                        <div key={i} style={{ padding: '12px', border: '1px solid #e2e8f0', borderRadius: '8px', backgroundColor: '#f8fafc' }}>
+                          <div style={{ fontSize: '0.85rem', color: '#64748b', marginBottom: '4px' }}>{log.date}</div>
+                          <div style={{ fontWeight: 'bold', fontSize: '1.1rem' }}>{log.hours} horas</div>
+                          <div style={{ fontSize: '0.9rem', color: log.quality === 'Ruim' ? '#ef4444' : log.quality === 'Razoável' ? '#f59e0b' : '#10b981', display: 'flex', alignItems: 'center', gap: '4px', marginTop: '4px' }}>
+                            Qualidade: {log.quality}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
                 
                 <div className="crm-card" style={{ flex: '1 1 100%' }}>
                   <h3 style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '16px' }}>
