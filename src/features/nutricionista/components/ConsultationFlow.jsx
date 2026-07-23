@@ -241,11 +241,11 @@ export default function ConsultationFlow({
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '16px', marginBottom: '24px' }}>
                 <div>
                   <label className="crm-label">Peso Atual (kg)</label>
-                  <input type="number" className="crm-input" value={physicalEval?.weight || ''} onChange={(e) => setPhysicalEval({...physicalEval, weight: e.target.value})} placeholder="Ex: 75.5" />
+                  <input type="number" step="0.01" className="crm-input" value={physicalEval?.weight || ''} onChange={(e) => setPhysicalEval({...physicalEval, weight: e.target.value})} placeholder="Ex: 75.5" />
                 </div>
                 <div>
                   <label className="crm-label">Altura (cm)</label>
-                  <input type="number" className="crm-input" value={physicalEval?.height || ''} onChange={(e) => setPhysicalEval({...physicalEval, height: e.target.value})} placeholder="Ex: 175" />
+                  <input type="number" step="0.01" className="crm-input" value={physicalEval?.height || ''} onChange={(e) => setPhysicalEval({...physicalEval, height: e.target.value})} placeholder="Ex: 175" />
                 </div>
                 <div>
                   <label className="crm-label">Fator de Atividade</label>
@@ -264,39 +264,39 @@ export default function ConsultationFlow({
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 1fr', gap: '16px' }}>
                   <div>
                     <label className="crm-label">Cintura</label>
-                    <input type="number" className="crm-input" value={physicalEval?.waist || ''} onChange={(e) => setPhysicalEval({...physicalEval, waist: e.target.value})} placeholder="Ex: 80" />
+                    <input type="number" step="0.01" className="crm-input" value={physicalEval?.waist || ''} onChange={(e) => setPhysicalEval({...physicalEval, waist: e.target.value})} placeholder="Ex: 80" />
                   </div>
                   <div>
                     <label className="crm-label">Abdômen</label>
-                    <input type="number" className="crm-input" value={physicalEval?.abdomenCirc || ''} onChange={(e) => setPhysicalEval({...physicalEval, abdomenCirc: e.target.value})} placeholder="Ex: 85" />
+                    <input type="number" step="0.01" className="crm-input" value={physicalEval?.abdomenCirc || ''} onChange={(e) => setPhysicalEval({...physicalEval, abdomenCirc: e.target.value})} placeholder="Ex: 85" />
                   </div>
                   <div>
                     <label className="crm-label">Quadril</label>
-                    <input type="number" className="crm-input" value={physicalEval?.hips || ''} onChange={(e) => setPhysicalEval({...physicalEval, hips: e.target.value})} placeholder="Ex: 100" />
+                    <input type="number" step="0.01" className="crm-input" value={physicalEval?.hips || ''} onChange={(e) => setPhysicalEval({...physicalEval, hips: e.target.value})} placeholder="Ex: 100" />
                   </div>
                   <div>
                     <label className="crm-label">Braço Dir.</label>
-                    <input type="number" className="crm-input" value={physicalEval?.armRight || ''} onChange={(e) => setPhysicalEval({...physicalEval, armRight: e.target.value})} placeholder="Ex: 30" />
+                    <input type="number" step="0.01" className="crm-input" value={physicalEval?.armRight || ''} onChange={(e) => setPhysicalEval({...physicalEval, armRight: e.target.value})} placeholder="Ex: 30" />
                   </div>
                   <div>
                     <label className="crm-label">Braço Esq.</label>
-                    <input type="number" className="crm-input" value={physicalEval?.armLeft || ''} onChange={(e) => setPhysicalEval({...physicalEval, armLeft: e.target.value})} placeholder="Ex: 30" />
+                    <input type="number" step="0.01" className="crm-input" value={physicalEval?.armLeft || ''} onChange={(e) => setPhysicalEval({...physicalEval, armLeft: e.target.value})} placeholder="Ex: 30" />
                   </div>
                   <div>
                     <label className="crm-label">Coxa Dir.</label>
-                    <input type="number" className="crm-input" value={physicalEval?.thighRight || ''} onChange={(e) => setPhysicalEval({...physicalEval, thighRight: e.target.value})} placeholder="Ex: 55" />
+                    <input type="number" step="0.01" className="crm-input" value={physicalEval?.thighRight || ''} onChange={(e) => setPhysicalEval({...physicalEval, thighRight: e.target.value})} placeholder="Ex: 55" />
                   </div>
                   <div>
                     <label className="crm-label">Coxa Esq.</label>
-                    <input type="number" className="crm-input" value={physicalEval?.thighLeft || ''} onChange={(e) => setPhysicalEval({...physicalEval, thighLeft: e.target.value})} placeholder="Ex: 55" />
+                    <input type="number" step="0.01" className="crm-input" value={physicalEval?.thighLeft || ''} onChange={(e) => setPhysicalEval({...physicalEval, thighLeft: e.target.value})} placeholder="Ex: 55" />
                   </div>
                   <div>
                     <label className="crm-label">Panturrilha Dir.</label>
-                    <input type="number" className="crm-input" value={physicalEval?.calfRight || ''} onChange={(e) => setPhysicalEval({...physicalEval, calfRight: e.target.value})} placeholder="Ex: 35" />
+                    <input type="number" step="0.01" className="crm-input" value={physicalEval?.calfRight || ''} onChange={(e) => setPhysicalEval({...physicalEval, calfRight: e.target.value})} placeholder="Ex: 35" />
                   </div>
                   <div>
                     <label className="crm-label">Panturrilha Esq.</label>
-                    <input type="number" className="crm-input" value={physicalEval?.calfLeft || ''} onChange={(e) => setPhysicalEval({...physicalEval, calfLeft: e.target.value})} placeholder="Ex: 35" />
+                    <input type="number" step="0.01" className="crm-input" value={physicalEval?.calfLeft || ''} onChange={(e) => setPhysicalEval({...physicalEval, calfLeft: e.target.value})} placeholder="Ex: 35" />
                   </div>
                 </div>
               </div>
@@ -306,23 +306,23 @@ export default function ConsultationFlow({
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '16px' }}>
                   <div>
                     <label className="crm-label">% Gordura Corporal</label>
-                    <input type="number" className="crm-input" value={physicalEval?.bodyFat || ''} onChange={(e) => setPhysicalEval({...physicalEval, bodyFat: e.target.value})} placeholder="Ex: 15" />
+                    <input type="number" step="0.01" className="crm-input" value={physicalEval?.bodyFat || ''} onChange={(e) => setPhysicalEval({...physicalEval, bodyFat: e.target.value})} placeholder="Ex: 15" />
                   </div>
                   <div>
                     <label className="crm-label">% Massa Muscular</label>
-                    <input type="number" className="crm-input" value={physicalEval?.muscleMass || ''} onChange={(e) => setPhysicalEval({...physicalEval, muscleMass: e.target.value})} placeholder="Ex: 40" />
+                    <input type="number" step="0.01" className="crm-input" value={physicalEval?.muscleMass || ''} onChange={(e) => setPhysicalEval({...physicalEval, muscleMass: e.target.value})} placeholder="Ex: 40" />
                   </div>
                   <div>
                     <label className="crm-label">Massa Óssea (kg)</label>
-                    <input type="number" className="crm-input" value={physicalEval?.boneMass || ''} onChange={(e) => setPhysicalEval({...physicalEval, boneMass: e.target.value})} placeholder="Ex: 3.5" />
+                    <input type="number" step="0.01" className="crm-input" value={physicalEval?.boneMass || ''} onChange={(e) => setPhysicalEval({...physicalEval, boneMass: e.target.value})} placeholder="Ex: 3.5" />
                   </div>
                   <div>
                     <label className="crm-label">Água Corporal (%)</label>
-                    <input type="number" className="crm-input" value={physicalEval?.bodyWater || ''} onChange={(e) => setPhysicalEval({...physicalEval, bodyWater: e.target.value})} placeholder="Ex: 55" />
+                    <input type="number" step="0.01" className="crm-input" value={physicalEval?.bodyWater || ''} onChange={(e) => setPhysicalEval({...physicalEval, bodyWater: e.target.value})} placeholder="Ex: 55" />
                   </div>
                   <div>
                     <label className="crm-label">Gordura Visceral</label>
-                    <input type="number" className="crm-input" value={physicalEval?.visceralFat || ''} onChange={(e) => setPhysicalEval({...physicalEval, visceralFat: e.target.value})} placeholder="Ex: 4" />
+                    <input type="number" step="0.01" className="crm-input" value={physicalEval?.visceralFat || ''} onChange={(e) => setPhysicalEval({...physicalEval, visceralFat: e.target.value})} placeholder="Ex: 4" />
                   </div>
                 </div>
               </div>
@@ -341,25 +341,25 @@ export default function ConsultationFlow({
                 {physicalEval?.protocoloDobras !== 'nenhum' && (
                   <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 1fr', gap: '16px' }}>
                     {(physicalEval?.protocoloDobras === 'pollock7' || (physicalEval?.protocoloDobras === 'pollock3' && physicalEval?.gender === 'F')) && (
-                      <div><label className="crm-label">Tríceps (mm)</label><input type="number" className="crm-input" value={physicalEval?.triceps || ''} onChange={(e) => setPhysicalEval({...physicalEval, triceps: e.target.value})} /></div>
+                      <div><label className="crm-label">Tríceps (mm)</label><input type="number" step="0.01" className="crm-input" value={physicalEval?.triceps || ''} onChange={(e) => setPhysicalEval({...physicalEval, triceps: e.target.value})} /></div>
                     )}
                     {(physicalEval?.protocoloDobras === 'pollock7' || (physicalEval?.protocoloDobras === 'pollock3' && physicalEval?.gender === 'M')) && (
-                      <div><label className="crm-label">Peitoral (mm)</label><input type="number" className="crm-input" value={physicalEval?.peitoral || ''} onChange={(e) => setPhysicalEval({...physicalEval, peitoral: e.target.value})} /></div>
+                      <div><label className="crm-label">Peitoral (mm)</label><input type="number" step="0.01" className="crm-input" value={physicalEval?.peitoral || ''} onChange={(e) => setPhysicalEval({...physicalEval, peitoral: e.target.value})} /></div>
                     )}
                     {(physicalEval?.protocoloDobras === 'pollock7') && (
-                      <div><label className="crm-label">Subescapular (mm)</label><input type="number" className="crm-input" value={physicalEval?.subescapular || ''} onChange={(e) => setPhysicalEval({...physicalEval, subescapular: e.target.value})} /></div>
+                      <div><label className="crm-label">Subescapular (mm)</label><input type="number" step="0.01" className="crm-input" value={physicalEval?.subescapular || ''} onChange={(e) => setPhysicalEval({...physicalEval, subescapular: e.target.value})} /></div>
                     )}
                     {(physicalEval?.protocoloDobras === 'pollock7') && (
-                      <div><label className="crm-label">Axilar Média (mm)</label><input type="number" className="crm-input" value={physicalEval?.axilar || ''} onChange={(e) => setPhysicalEval({...physicalEval, axilar: e.target.value})} /></div>
+                      <div><label className="crm-label">Axilar Média (mm)</label><input type="number" step="0.01" className="crm-input" value={physicalEval?.axilar || ''} onChange={(e) => setPhysicalEval({...physicalEval, axilar: e.target.value})} /></div>
                     )}
                     {(physicalEval?.protocoloDobras === 'pollock7' || (physicalEval?.protocoloDobras === 'pollock3' && physicalEval?.gender === 'F')) && (
-                      <div><label className="crm-label">Suprailíaca (mm)</label><input type="number" className="crm-input" value={physicalEval?.suprailiaca || ''} onChange={(e) => setPhysicalEval({...physicalEval, suprailiaca: e.target.value})} /></div>
+                      <div><label className="crm-label">Suprailíaca (mm)</label><input type="number" step="0.01" className="crm-input" value={physicalEval?.suprailiaca || ''} onChange={(e) => setPhysicalEval({...physicalEval, suprailiaca: e.target.value})} /></div>
                     )}
                     {(physicalEval?.protocoloDobras === 'pollock7' || (physicalEval?.protocoloDobras === 'pollock3' && physicalEval?.gender === 'M')) && (
-                      <div><label className="crm-label">Abdominal (mm)</label><input type="number" className="crm-input" value={physicalEval?.abdomen || ''} onChange={(e) => setPhysicalEval({...physicalEval, abdomen: e.target.value})} /></div>
+                      <div><label className="crm-label">Abdominal (mm)</label><input type="number" step="0.01" className="crm-input" value={physicalEval?.abdomen || ''} onChange={(e) => setPhysicalEval({...physicalEval, abdomen: e.target.value})} /></div>
                     )}
                     {(physicalEval?.protocoloDobras === 'pollock7' || physicalEval?.protocoloDobras === 'pollock3') && (
-                      <div><label className="crm-label">Coxa (mm)</label><input type="number" className="crm-input" value={physicalEval?.coxa || ''} onChange={(e) => setPhysicalEval({...physicalEval, coxa: e.target.value})} /></div>
+                      <div><label className="crm-label">Coxa (mm)</label><input type="number" step="0.01" className="crm-input" value={physicalEval?.coxa || ''} onChange={(e) => setPhysicalEval({...physicalEval, coxa: e.target.value})} /></div>
                     )}
                   </div>
                 )}
@@ -686,7 +686,7 @@ export default function ConsultationFlow({
                           <strong style={{ color: '#3B82F6', display: 'block', marginBottom: '8px' }}>{d.dayName}</strong>
                           <ul style={{ margin: 0, paddingLeft: '20px', color: '#334155' }}>
                             {d.exercises?.map((ex, j) => (
-                              <li key={j} style={{ marginBottom: '4px' }}>{ex}</li>
+                              <li key={j} style={{ marginBottom: '4px' }}>{typeof ex === 'object' ? `${ex.name} - ${ex.sets}x${ex.reps}` : ex}</li>
                             ))}
                           </ul>
                         </div>

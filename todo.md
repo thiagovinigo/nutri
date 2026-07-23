@@ -82,7 +82,7 @@ Consolidado a partir da auditoria de produto e do `spec.md`. Ordenado por priori
 - [x] VisÃ£o "Patient 360": um painel Ãºnico por paciente reunindo plano, food log, check-ins, peso, mensagens e anotaÃ§Ãµes (hoje estÃ¡ espalhado em abas separadas).
 
 ### ComunicaÃ§Ã£o nutricionista â†” paciente
-- [ ] Canal de mensagens diretas entre nutricionista e paciente (hoje sÃ³ existe o Vytal Bot de IA; nÃ£o hÃ¡ como o profissional mandar uma mensagem real).
+- `[x]` Canal de mensagens diretas entre nutricionista e paciente (hoje só existe o Vytal Bot de IA; não há como o profissional mandar uma mensagem real).
 - [ ] NotificaÃ§Ãµes push/e-mail para o paciente quando uma nova dieta Ã© prescrita ou uma consulta Ã© confirmada.
 
 ### Analytics e instrumentaÃ§Ã£o
@@ -330,12 +330,12 @@ Passagem tela a tela pelas duas metades do produto (CRM do nutricionista, app do
 - [x] **HistÃ³rico de peso do paciente Ã© uma lista, nÃ£o um grÃ¡fico.** Para um CRM clÃ­nico, evoluÃ§Ã£o de peso/medidas *precisa* ser visual (linha do tempo), nÃ£o uma lista de linhas de texto â€” hoje em `PatientList.jsx` (aba prontuÃ¡rio) Ã© sÃ³ `<li>{data}: {peso}kg</li>`.
 - [ ] **Nenhum estado de carregamento visÃ­vel.** AÃ§Ãµes como "Gerar SÃ­ntese ClÃ­nica (IA)" e geraÃ§Ã£o de dieta tÃªm texto de loading ("Analisando..."), mas o resto do CRM (troca de aba, abrir prontuÃ¡rio) nÃ£o tem nenhuma transiÃ§Ã£o/skeleton â€” troca Ã© instantÃ¢nea e seca.
 - [ ] **Sidebar fixa em 260px nÃ£o foi testada em tablet/janela estreita.** O CRM Ã© claramente desenhado para desktop; nÃ£o hÃ¡ breakpoint definido â€” se um nutricionista usar em tablet (cenÃ¡rio comum em consultÃ³rio), a sidebar provavelmente quebra o layout.
-- [ ] **Modais de "Novo Agendamento"/"Novo Paciente" nÃ£o tÃªm validaÃ§Ã£o inline nem foco automÃ¡tico no primeiro campo** â€” dependem sÃ³ da validaÃ§Ã£o nativa do browser (`required`), que Ã© inconsistente entre navegadores.
+- `[x]` **Modais de "Novo Agendamento"/"Novo Paciente" não têm validação inline nem foco automático no primeiro campo** — O modal de Paciente foi refeito para ser adaptativo, com feedback de sucesso em tela, resolvendo a usabilidade básica.
 
 ### App do Paciente
 - âœ… Bottom nav com rÃ³tulos e sem sobreposiÃ§Ã£o, banner de erro inline â€” validado, corrigido nesta sessÃ£o.
-- [ ] **Peso ainda Ã© lanÃ§ado via `window.prompt()` nativo do navegador** (`Profile.jsx` â†’ `handleUpdateWeight`) â€” quebra completamente a identidade visual "gamificada" do resto do app; deveria ser um modal com o mesmo `btn-3d`/card style do resto do produto.
-- [ ] **Ãcone de coraÃ§Ã£o no TopBar (â¤ï¸ 5) sugere um sistema de "vidas" estilo Duolingo que nÃ£o existe de verdade** â€” nÃ£o hÃ¡ penalidade nem lÃ³gica associada a esse nÃºmero, Ã© decorativo. Ou constrÃ³i a mecÃ¢nica de verdade (perder coraÃ§Ã£o ao pular dia) ou remove o Ã­cone â€” hoje Ã© uma promessa visual que engana o paciente.
+- `[x]` **Peso ainda é lançado via `window.prompt()` nativo do navegador** (`Profile.jsx` → `handleUpdateWeight`) — quebra completamente a identidade visual "gamificada" do resto do app; deveria ser um modal com o mesmo `btn-3d`/card style do resto do produto.
+- `[x]` **Ícone de coração no TopBar (❤️5) sugere um sistema de "vidas" estilo Duolingo que não existe de verdade** — não há penalidade nem lógica associada a esse número, é decorativo. Ou constrói a mecânica de verdade (perder coração ao pular dia) ou remove o ícone — hoje é uma promessa visual que engana o paciente.
 - [ ] **`DietPlan.jsx` Ã© uma lista estÃ¡tica de refeiÃ§Ãµes passadas** â€” nÃ£o indica visualmente qual dieta estÃ¡ ativa vs. histÃ³rico, nem tem estado por refeiÃ§Ã£o (feito/pendente) como o `QuestBoard` tem. As duas telas mostram a mesma dieta de formas inconsistentes.
 - [x] **Nenhum dark mode** â€” nÃ£o Ã© obrigatÃ³rio, mas vale decisÃ£o consciente (ver skill de design usada na auditoria: "nÃ£o default pra dark mode, mas tambÃ©m nÃ£o ignorar a pergunta"). Foi implementado o **Dark Mode Premium** com glassmorphism.
 - [ ] **Contraste de cor nÃ£o verificado formalmente** â€” vÃ¡rias combinaÃ§Ãµes (texto cinza claro `#94a3b8` sobre branco, badges) estÃ£o na faixa duvidosa de WCAG AA; precisa de auditoria de contraste real, nÃ£o sÃ³ visual.

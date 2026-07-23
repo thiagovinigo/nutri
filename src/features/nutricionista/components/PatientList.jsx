@@ -15,6 +15,8 @@ export default function PatientList({
   apptTime, setApptTime,
   apptDate, setApptDate,
   apptType, setApptType,
+  apptLocationType, setApptLocationType,
+  apptMeetingLink, setApptMeetingLink,
   handleCreateAppointment, cancelAppointment, startConsultation,
   showPatientModal, setShowPatientModal,
   openNewPatientModal, openEditPatientModal, editingPatient, handleDeletePatient,
@@ -29,7 +31,7 @@ export default function PatientList({
   clinicConfig, updateClinicConfig
 }) {
   const navigate = useNavigate();
-  const { profile, updatePatient } = useAppContext();
+  const { profile, updateProfile, updatePatient, theme, toggleTheme } = useAppContext();
   const viewedPatient = patients.find(p => p.id === viewingPatientId);
 
   const [copiedGeneralLink, setCopiedGeneralLink] = useState(false);
@@ -42,6 +44,9 @@ export default function PatientList({
   
   const [editingMealPath, setEditingMealPath] = useState(null); // { rIdx, mIdx }
   const [editingMealDesc, setEditingMealDesc] = useState('');
+  
+  const [editingExercisePath, setEditingExercisePath] = useState(null); // { dIdx, eIdx }
+  const [editingExerciseData, setEditingExerciseData] = useState({name: '', sets: '', reps: ''});
   
   const [chatInput, setChatInput] = useState('');
 
@@ -67,6 +72,43 @@ export default function PatientList({
     setEditingMealPath(null);
   };
 
+  const handleCreateEmptyWorkout = () => {
+    const emptyPlan = {
+      title: 'Plano de Treino',
+      days: [
+        { dayName: 'Treino A', exercises: [] },
+        { dayName: 'Treino B', exercises: [] },
+        { dayName: 'Treino C', exercises: [] }
+      ]
+    };
+    updatePatient(viewedPatient.id, { workoutPlan: emptyPlan });
+  };
+
+  const handleDeleteWorkout = () => {
+    if(window.confirm('Tem certeza que deseja excluir todo o plano de treino?')) {
+      updatePatient(viewedPatient.id, { workoutPlan: null });
+    }
+  };
+
+  const handleDeleteExercise = (dIdx, eIdx) => {
+    if(window.confirm('Excluir este exercício?')) {
+      const newPlan = { ...viewedPatient.workoutPlan };
+      newPlan.days[dIdx].exercises = newPlan.days[dIdx].exercises.filter((_, i) => i !== eIdx);
+      updatePatient(viewedPatient.id, { workoutPlan: newPlan });
+    }
+  };
+
+  const handleSaveExercise = (dIdx, eIdx) => {
+    const newPlan = { ...viewedPatient.workoutPlan };
+    if (eIdx === -1) {
+      newPlan.days[dIdx].exercises.push({ ...editingExerciseData });
+    } else {
+      newPlan.days[dIdx].exercises[eIdx] = { ...editingExerciseData };
+    }
+    updatePatient(viewedPatient.id, { workoutPlan: newPlan });
+    setEditingExercisePath(null);
+  };
+
 
   // Busca/filtro/ordenação — Meus Pacientes
   const [patientSearch, setPatientSearch] = useState('');
@@ -79,10 +121,18 @@ export default function PatientList({
 
   // Perfil do profissional — Configurações
   const [activeSettingsTab, setActiveSettingsTab] = useState('perfil');
-  const [profName, setProfName] = useState('');
-  const [profCrn, setProfCrn] = useState('');
-  const [profSpecialty, setProfSpecialty] = useState('');
+  const [profName, setProfName] = useState(profile?.name || '');
+  const [profCrn, setProfCrn] = useState(profile?.crn || '');
+  const [profSpecialty, setProfSpecialty] = useState(profile?.specialty || '');
   const [profSaved, setProfSaved] = useState(false);
+  
+  React.useEffect(() => {
+    if (profile) {
+      setProfName(profile.name || '');
+      setProfCrn(profile.crn || '');
+      setProfSpecialty(profile.specialty || '');
+    }
+  }, [profile]);
 
   // Receitas
   const [showRecipeModal, setShowRecipeModal] = useState(false);
@@ -199,7 +249,7 @@ export default function PatientList({
   };
 
   // KPIs para o Dashboard de Retenção
-  const activePatients = patients.filter(p => p.status !== 'inativo');
+  const activePatients = patients; // Alterado para contabilizar todos os pacientes cadastrados
   const totalXP = activePatients.reduce((sum, p) => sum + (p.xp || 0), 0);
   const avgStreak = activePatients.length > 0
     ? Math.round(activePatients.reduce((sum, p) => sum + (p.streak || 0), 0) / activePatients.length)
@@ -243,6 +293,9 @@ export default function PatientList({
 
   const handleSaveProfessionalProfile = (e) => {
     e.preventDefault();
+    if (updateProfile) {
+      updateProfile({ name: profName, crn: profCrn, specialty: profSpecialty });
+    }
     setProfSaved(true);
     setTimeout(() => setProfSaved(false), 3000);
   };
@@ -277,6 +330,16 @@ export default function PatientList({
           <div style={{ margin: '16px 8px', height: '1px', backgroundColor: 'rgba(255,255,255,0.08)' }} />
           <button className={`crm-nav-btn ${view === 'settings' ? 'active' : ''}`} onClick={() => {setView('settings'); setViewingPatientId(null); setSynthesisResult('');}}>
             <Settings size={18} /> Configurações
+          </button>
+
+          <div style={{ margin: '16px 8px', height: '1px', backgroundColor: 'rgba(255,255,255,0.08)' }} />
+          <button className="crm-nav-btn" onClick={toggleTheme} style={{ display: 'flex', justifyContent: 'space-between' }}>
+            <span style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <Moon size={18} /> Dark Mode
+            </span>
+            <div style={{ width: '36px', height: '20px', backgroundColor: theme === 'dark' ? 'var(--crm-primary)' : 'rgba(255,255,255,0.2)', borderRadius: '10px', position: 'relative', transition: 'background-color 0.3s' }}>
+              <div style={{ width: '16px', height: '16px', backgroundColor: '#FFF', borderRadius: '50%', position: 'absolute', top: '2px', left: theme === 'dark' ? '18px' : '2px', transition: 'left 0.3s' }} />
+            </div>
           </button>
         </nav>
       </div>
@@ -848,7 +911,18 @@ export default function PatientList({
                                                       onChange={e => setEditingMealDesc(e.target.value)} 
                                                     />
                                                   ) : (
-                                                    <span> {m.desc}</span>
+                                                    <div>
+                                                      {m.desc && <span>{m.desc}</span>}
+                                                      {m.foods && m.foods.length > 0 && (
+                                                        <div style={{ marginTop: '8px', padding: '8px', backgroundColor: '#FFF', borderRadius: '4px', border: '1px solid #E2E8F0' }}>
+                                                          {m.foods.map((f, fIdx) => (
+                                                            <div key={fIdx} style={{ fontSize: '0.85rem', color: '#475569', marginBottom: '4px' }}>
+                                                              <strong>{f.amount}g</strong> - {f.name} <span style={{color: '#94A3B8'}}>({f.kcal} kcal)</span>
+                                                            </div>
+                                                          ))}
+                                                        </div>
+                                                      )}
+                                                    </div>
                                                   )}
                                                 </div>
                                                 <div style={{ display: 'flex', gap: '8px', marginTop: '2px' }}>
@@ -881,13 +955,82 @@ export default function PatientList({
                                 <Dumbbell size={20} color="var(--crm-accent)" /> Plano de Treino
                               </h3>
                               {(!viewedPatient.workoutPlan) ? (
-                                <p style={{ color: 'var(--crm-text-muted)' }}>Nenhum plano de treino cadastrado para este paciente.</p>
+                                <div style={{ textAlign: 'center', padding: '24px', backgroundColor: '#F8FAFC', borderRadius: '8px', border: '1px dashed var(--crm-border)' }}>
+                                  <p style={{ color: 'var(--crm-text-muted)', marginBottom: '16px' }}>Nenhum plano de treino cadastrado para este paciente.</p>
+                                  <button className="crm-btn-primary" onClick={handleCreateEmptyWorkout} style={{ display: 'inline-flex', alignItems: 'center', gap: '8px' }}>
+                                    <Plus size={16} /> Criar Plano Manualmente
+                                  </button>
+                                </div>
                               ) : (
                                 <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
                                   <div style={{ padding: '16px', backgroundColor: '#F8FAFC', borderRadius: '8px', border: '1px solid var(--crm-border)' }}>
-                                    <div style={{ fontSize: '0.95rem', color: 'var(--crm-text-main)', whiteSpace: 'pre-wrap', lineHeight: '1.6' }}>
+                                    {typeof viewedPatient.workoutPlan === 'string' ? (
                                       <ReactMarkdown remarkPlugins={[remarkGfm]}>{viewedPatient.workoutPlan}</ReactMarkdown>
-                                    </div>
+                                    ) : (
+                                      <div style={{ color: 'var(--crm-text)' }}>
+                                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+                                          <h4 style={{ margin: 0, fontSize: '1.2rem' }}>{viewedPatient.workoutPlan.title}</h4>
+                                          <button onClick={handleDeleteWorkout} style={{ background: 'none', border: 'none', color: 'var(--crm-danger)', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px', fontSize: '0.85rem' }}>
+                                            <Trash2 size={14} /> Excluir Plano
+                                          </button>
+                                        </div>
+                                        {viewedPatient.workoutPlan.days?.map((d, i) => (
+                                          <div key={i} style={{ marginBottom: '16px', backgroundColor: '#FFFFFF', padding: '16px', borderRadius: '8px', border: '1px solid var(--crm-border)' }}>
+                                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
+                                              <strong style={{ fontSize: '1.05rem', color: 'var(--crm-text-main)' }}>{d.dayName}</strong>
+                                              <button onClick={() => { setEditingExercisePath({ dIdx: i, eIdx: -1 }); setEditingExerciseData({name: '', sets: '', reps: ''}); }} style={{ background: 'none', border: 'none', color: 'var(--crm-primary)', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px', fontSize: '0.85rem' }}>
+                                                <Plus size={14} /> Adicionar Exercício
+                                              </button>
+                                            </div>
+                                            <ul style={{ paddingLeft: '0', listStyle: 'none', margin: 0 }}>
+                                              {d.exercises?.map((ex, j) => {
+                                                const isEditing = editingExercisePath?.dIdx === i && editingExercisePath?.eIdx === j;
+                                                return (
+                                                  <li key={j} style={{ marginBottom: '12px', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', paddingBottom: '8px', borderBottom: '1px solid #E2E8F0' }}>
+                                                    {isEditing ? (
+                                                      <div style={{ flex: 1, display: 'flex', gap: '8px', marginRight: '12px' }}>
+                                                        <input type="text" className="crm-input" placeholder="Nome do Exercício" value={editingExerciseData.name} onChange={e => setEditingExerciseData({...editingExerciseData, name: e.target.value})} style={{ flex: 2, padding: '4px 8px', fontSize: '0.9rem' }} />
+                                                        <input type="text" className="crm-input" placeholder="Séries (ex: 3)" value={editingExerciseData.sets} onChange={e => setEditingExerciseData({...editingExerciseData, sets: e.target.value})} style={{ flex: 1, padding: '4px 8px', fontSize: '0.9rem' }} />
+                                                        <input type="text" className="crm-input" placeholder="Reps (ex: 10-12)" value={editingExerciseData.reps} onChange={e => setEditingExerciseData({...editingExerciseData, reps: e.target.value})} style={{ flex: 1, padding: '4px 8px', fontSize: '0.9rem' }} />
+                                                      </div>
+                                                    ) : (
+                                                      <div style={{ flex: 1 }}>
+                                                        {typeof ex === 'string' ? (
+                                                          <span style={{ color: 'var(--crm-text-main)' }}>{ex}</span>
+                                                        ) : (
+                                                          <><strong style={{ color: 'var(--crm-text-main)' }}>{ex.name}</strong> - <span style={{ color: 'var(--crm-text-muted)' }}>{ex.sets}x{ex.reps}</span></>
+                                                        )}
+                                                      </div>
+                                                    )}
+                                                    <div style={{ display: 'flex', gap: '8px' }}>
+                                                      {isEditing ? (
+                                                        <button onClick={() => handleSaveExercise(i, j)} className="crm-btn-primary" style={{ padding: '4px 12px', fontSize: '0.8rem' }}>Salvar</button>
+                                                      ) : (
+                                                        <>
+                                                          <button onClick={() => { setEditingExercisePath({ dIdx: i, eIdx: j }); setEditingExerciseData({name: ex.name, sets: ex.sets, reps: ex.reps}); }} style={{ background: 'none', border: 'none', color: 'var(--crm-accent)', cursor: 'pointer', padding: '4px' }}><Edit3 size={14} /></button>
+                                                          <button onClick={() => handleDeleteExercise(i, j)} style={{ background: 'none', border: 'none', color: 'var(--crm-danger)', cursor: 'pointer', padding: '4px' }}><Trash2 size={14} /></button>
+                                                        </>
+                                                      )}
+                                                    </div>
+                                                  </li>
+                                                );
+                                              })}
+                                              {/* Add new exercise form */}
+                                              {editingExercisePath?.dIdx === i && editingExercisePath?.eIdx === -1 && (
+                                                <li style={{ marginTop: '12px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                                  <div style={{ flex: 1, display: 'flex', gap: '8px', marginRight: '12px' }}>
+                                                    <input type="text" className="crm-input" placeholder="Nome do Exercício" value={editingExerciseData.name} onChange={e => setEditingExerciseData({...editingExerciseData, name: e.target.value})} style={{ flex: 2, padding: '4px 8px', fontSize: '0.9rem' }} />
+                                                    <input type="text" className="crm-input" placeholder="Séries (ex: 3)" value={editingExerciseData.sets} onChange={e => setEditingExerciseData({...editingExerciseData, sets: e.target.value})} style={{ flex: 1, padding: '4px 8px', fontSize: '0.9rem' }} />
+                                                    <input type="text" className="crm-input" placeholder="Reps (ex: 10-12)" value={editingExerciseData.reps} onChange={e => setEditingExerciseData({...editingExerciseData, reps: e.target.value})} style={{ flex: 1, padding: '4px 8px', fontSize: '0.9rem' }} />
+                                                  </div>
+                                                  <button onClick={() => handleSaveExercise(i, -1)} className="crm-btn-primary" style={{ padding: '4px 12px', fontSize: '0.8rem' }}>Salvar</button>
+                                                </li>
+                                              )}
+                                            </ul>
+                                          </div>
+                                        ))}
+                                      </div>
+                                    )}
                                   </div>
                                 </div>
                               )}
@@ -974,6 +1117,7 @@ export default function PatientList({
                                           <button className={historicoSubTab === 'fisica' ? 'results-tab-btn active' : 'results-tab-btn'} onClick={() => setHistoricoSubTab('fisica')}>Avaliação Física</button>
                                           <button className={historicoSubTab === 'exames' ? 'results-tab-btn active' : 'results-tab-btn'} onClick={() => setHistoricoSubTab('exames')}>Análise Clínica</button>
                                           <button className={historicoSubTab === 'dieta' ? 'results-tab-btn active' : 'results-tab-btn'} onClick={() => setHistoricoSubTab('dieta')}>Prescrição Dietética</button>
+                                          <button className={historicoSubTab === 'treino' ? 'results-tab-btn active' : 'results-tab-btn'} onClick={() => setHistoricoSubTab('treino')}>Plano de Treino</button>
                                         </div>
                                         
                                         <div style={{ display: 'flex', gap: '24px', flexWrap: 'wrap' }}>
@@ -1072,6 +1216,40 @@ export default function PatientList({
                                                 </>
                                               ) : (
                                                 <p style={{ color: 'var(--crm-text-muted)' }}>Nenhuma dieta prescrita nesta consulta.</p>
+                                              )}
+                                            </div>
+                                          )}
+
+                                          {historicoSubTab === 'treino' && (
+                                            <div className="crm-card animate-pop-in" style={{ flex: '1 1 100%' }}>
+                                              <h3 style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '16px' }}>
+                                                <Dumbbell size={20} color="var(--crm-accent)" /> Plano de Treino
+                                              </h3>
+                                              {cons.workoutPlan ? (
+                                                <>
+                                                  <div style={{ padding: '16px', backgroundColor: '#F8FAFC', border: '1px solid var(--crm-border)', borderRadius: '8px', marginBottom: '16px' }}>
+                                                    {typeof cons.workoutPlan === 'string' ? (
+                                                      <ReactMarkdown remarkPlugins={[remarkGfm]}>{cons.workoutPlan}</ReactMarkdown>
+                                                    ) : (
+                                                      <div>
+                                                        <h4 style={{ marginBottom: '12px', fontSize: '1.1rem', color: 'var(--crm-text-main)' }}>{cons.workoutPlan.title}</h4>
+                                                        {cons.workoutPlan.days?.map((d, i) => (
+                                                          <div key={i} style={{ marginBottom: '12px' }}>
+                                                            <strong style={{ display: 'block', marginBottom: '4px', color: 'var(--crm-text-main)' }}>{d.dayName}</strong>
+                                                            <ul style={{ margin: 0, paddingLeft: '20px', color: 'var(--crm-text-muted)', fontSize: '0.95rem' }}>
+                                                              {d.exercises?.map((ex, exI) => <li key={exI}>{ex}</li>)}
+                                                            </ul>
+                                                          </div>
+                                                        ))}
+                                                      </div>
+                                                    )}
+                                                  </div>
+                                                  <p style={{ color: 'var(--crm-text-muted)', fontSize: '0.85rem' }}>
+                                                    Para ver o treino ativo, consulte a aba "Protocolo Vigente". Esta é uma visão histórica.
+                                                  </p>
+                                                </>
+                                              ) : (
+                                                <p style={{ color: 'var(--crm-text-muted)' }}>Nenhum plano de treino prescrito nesta consulta.</p>
                                               )}
                                             </div>
                                           )}
@@ -1560,6 +1738,25 @@ export default function PatientList({
                   <option>Avaliação Expressa</option>
                 </select>
               </div>
+              <div style={{ marginBottom: '16px' }}>
+                <label className="crm-label">Local</label>
+                <div style={{ display: 'flex', gap: '12px', marginTop: '8px' }}>
+                  <label style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <input type="radio" name="locationType" value="local" checked={apptLocationType === 'local'} onChange={() => setApptLocationType('local')} />
+                    Presencial
+                  </label>
+                  <label style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <input type="radio" name="locationType" value="online" checked={apptLocationType === 'online'} onChange={() => setApptLocationType('online')} />
+                    Online
+                  </label>
+                </div>
+              </div>
+              {apptLocationType === 'online' && (
+                <div style={{ marginBottom: '24px' }}>
+                  <label className="crm-label">Link da Reunião (Zoom, Meet, etc)</label>
+                  <input type="url" className="crm-input" placeholder="https://meet.google.com/..." value={apptMeetingLink} onChange={e => setApptMeetingLink(e.target.value)} />
+                </div>
+              )}
               <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '12px' }}>
                 <button type="button" className="crm-btn-secondary" onClick={() => setShowApptModal(false)}>Cancelar</button>
                 <button type="submit" className="crm-btn-primary">Salvar Agendamento</button>
@@ -1571,7 +1768,7 @@ export default function PatientList({
 
       {showPatientModal && (
         <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 9999 }}>
-          <div className="crm-card" style={{ width: '400px', animation: 'popIn 0.2s ease-out' }}>
+          <div className="crm-card" style={{ width: '400px', maxHeight: '90vh', overflowY: 'auto', animation: 'popIn 0.2s ease-out' }}>
             <h3 style={{ marginBottom: '24px' }}>{editingPatient ? 'Editar Paciente' : 'Novo Paciente'}</h3>
             <form onSubmit={handleSavePatient}>
               <div style={{ marginBottom: '16px' }}>

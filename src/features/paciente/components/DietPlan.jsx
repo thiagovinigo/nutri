@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { createPortal } from 'react-dom';
 import { Utensils, RefreshCw, X, ShoppingCart, Printer } from 'lucide-react';
 import tacoData from '../../../data/taco.json';
 
@@ -9,10 +10,11 @@ export default function DietPlan({ activePatient }) {
 
   const handleOpenSub = (food) => {
     // Find alternatives in the same category
-    const alts = tacoData.filter(t => t.category === tacoData.find(db => db.id === food.foodId)?.category && t.id !== food.foodId);
+    const baseForAlts = tacoData.find(db => String(db.id) === String(food.foodId) || db.name === food.name);
+    const alts = tacoData.filter(t => t.category === baseForAlts?.category && String(t.id) !== String(food.foodId));
     
     // Calculate new amounts to match the main macro (or kcal)
-    const baseDbFood = tacoData.find(db => db.id === food.foodId);
+    const baseDbFood = tacoData.find(db => String(db.id) === String(food.foodId) || db.name === food.name);
     if (!baseDbFood) return;
 
     let mainMacro = 'kcal';
@@ -48,7 +50,7 @@ export default function DietPlan({ activePatient }) {
     currentRecipe.meals.forEach(m => {
       if (m.foods) {
         m.foods.forEach(f => {
-          const dbFood = tacoData.find(db => db.id === f.foodId);
+          const dbFood = tacoData.find(db => String(db.id) === String(f.foodId) || db.name === f.name);
           const category = dbFood ? dbFood.category : 'Outros';
           
           if (!aggregated[f.name]) {
@@ -135,7 +137,7 @@ export default function DietPlan({ activePatient }) {
       )}
 
       {/* Substitutions Modal */}
-      {subModal && (
+      {subModal && createPortal(
         <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.5)', zIndex: 999, display: 'flex', justifyContent: 'center', alignItems: 'flex-end' }} onClick={() => setSubModal(null)}>
           <div className="animate-pop-in" style={{ backgroundColor: '#FFF', width: '100%', maxWidth: '600px', borderRadius: '20px 20px 0 0', padding: '24px', maxHeight: '80vh', overflowY: 'auto' }} onClick={e => e.stopPropagation()}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
@@ -159,11 +161,12 @@ export default function DietPlan({ activePatient }) {
               )}
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
 
       {/* Shopping List Modal */}
-      {showShoppingList && (
+      {showShoppingList && createPortal(
         <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.5)', zIndex: 999, display: 'flex', justifyContent: 'center', alignItems: 'flex-end' }} onClick={() => setShowShoppingList(false)}>
           <div className="animate-pop-in" style={{ backgroundColor: '#FFF', width: '100%', maxWidth: '600px', borderRadius: '20px 20px 0 0', padding: '24px', maxHeight: '85vh', overflowY: 'auto' }} onClick={e => e.stopPropagation()}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
@@ -203,7 +206,8 @@ export default function DietPlan({ activePatient }) {
               <Printer size={18} /> Imprimir / Salvar PDF
             </button>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
 
       <h2 style={{...styles.sectionTitle, marginTop: '32px'}}><Utensils color="#f59e0b" /> Histórico de Refeições (IA)</h2>
