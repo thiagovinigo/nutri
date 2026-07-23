@@ -13,7 +13,7 @@ import PwaInstallPrompt from '../components/PwaInstallPrompt';
 import { getFirebaseErrorMessage } from '../../../utils/firebaseErrors';
 
 export default function PatientApp() {
-  const { patients, activePatientId, setActivePatientId, markNotificationsRead, session, profile, setBypassPatient, fetchProfile } = useAppContext();
+  const { patients, activePatientId, setActivePatientId, markNotificationsRead, session, profile, setBypassPatient, fetchProfile, updatePatient } = useAppContext();
 
   const [isLoggedIn, setIsLoggedIn] = useState(false);
 
@@ -125,6 +125,17 @@ export default function PatientApp() {
     setChatHistory(newHistory);
     setChatInput('');
     setIsChatLoading(true);
+
+    const userMessageLower = userMessage.toLowerCase();
+    const keywords = ['doce', 'doces', 'chocolate', 'jacada', 'açúcar', 'ansiedade', 'compulsão', 'acucar'];
+    if (keywords.some(kw => userMessageLower.includes(kw))) {
+      if (activePatient.sleepLogs && activePatient.sleepLogs.length > 0) {
+        const latestSleep = [...activePatient.sleepLogs].reverse()[0];
+        if (latestSleep.quality === 'Ruim' || parseFloat(latestSleep.hours) < 6) {
+           updatePatient(activePatient.id, { behavioral_risk: true });
+        }
+      }
+    }
 
     try {
       const dietContext = currentRecipe ? currentRecipe.meals.map(m => `- ${m.name}: ${m.desc}`).join('\n') : 'Nenhuma dieta estruturada ativa no momento.';

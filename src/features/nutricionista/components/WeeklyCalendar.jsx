@@ -109,8 +109,8 @@ export default function WeeklyCalendar({
               
               if (wd.isBlocked) {
                 return (
-                  <div key={`${wd.isoDate}-${time}`} style={{ backgroundColor: '#f1f5f9', borderBottom: '1px solid var(--crm-border)', borderRight: '1px solid var(--crm-border)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                    <span style={{ color: '#94a3b8', fontSize: '0.8rem', transform: 'rotate(-45deg)' }}>Bloqueado</span>
+                  <div key={`${wd.isoDate}-${time}`} style={{ backgroundColor: 'var(--crm-surface-2)', borderBottom: '1px solid var(--crm-border)', borderRight: '1px solid var(--crm-border)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <span style={{ color: 'var(--crm-text-muted)', fontSize: '0.8rem', transform: 'rotate(-45deg)' }}>Bloqueado</span>
                   </div>
                 );
               }

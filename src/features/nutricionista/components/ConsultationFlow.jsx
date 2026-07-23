@@ -3,6 +3,7 @@ import { FileText, Activity, Sparkles, Edit3, Send, Plus, X, Upload, CheckCircle
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import MealBuilder from './MealBuilder';
+import { useAppContext } from '../../../context/AppContext';
 
 function normTitle(s) {
   return (s || '').toLowerCase()
@@ -87,9 +88,10 @@ export default function ConsultationFlow({
   finishConsultation,
   examError, dietError, finishedMessage,
   onSuspend,
-  dietTemplates, addDietTemplate,
+  dietTemplates,
   recipeLibrary
 }) {
+  const { addDietTemplate } = useAppContext();
   const [draggedRecipe, setDraggedRecipe] = useState(null);
   const [selectedExamFiles, setSelectedExamFiles] = useState([]);
   const [prescriptionTab, setPrescriptionTab] = useState('cardapio');
@@ -207,7 +209,7 @@ export default function ConsultationFlow({
           ← Suspender Consulta
         </button>
         
-        <div className="crm-card" style={{ padding: '16px', marginBottom: '24px', backgroundColor: '#F8FAFC' }}>
+        <div className="crm-card" style={{ padding: '16px', marginBottom: '24px', backgroundColor: 'var(--crm-surface-2, var(--crm-bg))' }}>
           <strong style={{ fontSize: '1.1rem' }}>{activePatient.name}</strong>
           <p style={{ fontSize: '0.85rem', color: 'var(--crm-text-muted)', marginTop: '4px' }}>Obj: {activePatient.objective}</p>
         </div>
@@ -259,7 +261,7 @@ export default function ConsultationFlow({
                 </div>
                 </div>
 
-              <div style={{ marginTop: '24px', marginBottom: '24px', backgroundColor: '#F8FAFC', padding: '16px', borderRadius: '8px', border: '1px solid var(--crm-border)' }}>
+              <div style={{ marginTop: '24px', marginBottom: '24px', backgroundColor: 'var(--crm-surface-2, var(--crm-bg))', padding: '16px', borderRadius: '8px', border: '1px solid var(--crm-border)' }}>
                 <h3 style={{ fontSize: '1rem', marginBottom: '16px', color: 'var(--crm-text-main)' }}>Perímetros (cm)</h3>
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 1fr', gap: '16px' }}>
                   <div>
@@ -301,7 +303,7 @@ export default function ConsultationFlow({
                 </div>
               </div>
 
-              <div style={{ marginTop: '24px', marginBottom: '24px', backgroundColor: '#F8FAFC', padding: '16px', borderRadius: '8px', border: '1px solid var(--crm-border)' }}>
+              <div style={{ marginTop: '24px', marginBottom: '24px', backgroundColor: 'var(--crm-surface-2, var(--crm-bg))', padding: '16px', borderRadius: '8px', border: '1px solid var(--crm-border)' }}>
                 <h3 style={{ fontSize: '1rem', marginBottom: '16px', color: 'var(--crm-text-main)' }}>Bioimpedância</h3>
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '16px' }}>
                   <div>
@@ -327,7 +329,7 @@ export default function ConsultationFlow({
                 </div>
               </div>
 
-              <div style={{ marginTop: '24px', marginBottom: '24px', backgroundColor: '#F8FAFC', padding: '16px', borderRadius: '8px', border: '1px solid var(--crm-border)' }}>
+              <div style={{ marginTop: '24px', marginBottom: '24px', backgroundColor: 'var(--crm-surface-2, var(--crm-bg))', padding: '16px', borderRadius: '8px', border: '1px solid var(--crm-border)' }}>
                 <h3 style={{ fontSize: '1rem', marginBottom: '16px', color: 'var(--crm-text-main)' }}>Protocolo de Dobras Cutâneas (Plicometria)</h3>
                 <div style={{ marginBottom: '16px' }}>
                   <label className="crm-label">Protocolo Utilizado</label>
@@ -366,22 +368,22 @@ export default function ConsultationFlow({
               </div>
 
               {(physicalEval?.tmb || physicalEval?.massaMagra) && (
-                <div style={{ backgroundColor: '#EFF6FF', border: '1px solid #BFDBFE', borderRadius: '12px', padding: '20px', marginBottom: '24px', display: 'flex', gap: '24px', alignItems: 'center' }}>
+                <div style={{ backgroundColor: 'var(--crm-surface-2, var(--crm-bg))', border: '1px solid #BFDBFE', borderRadius: '12px', padding: '20px', marginBottom: '24px', display: 'flex', gap: '24px', alignItems: 'center' }}>
                   <div style={{ padding: '12px', backgroundColor: '#DBEAFE', borderRadius: '50%' }}>
                     <Sparkles size={24} color="#1D4ED8" />
                   </div>
                   <div style={{ flex: 1 }}>
-                    <h3 style={{ color: '#1E3A8A', marginBottom: '16px', fontSize: '1.1rem' }}>Estimativas Biométricas Automáticas</h3>
+                    <h3 style={{ color: 'var(--crm-text-main)', marginBottom: '16px', fontSize: '1.1rem' }}>Estimativas Biométricas Automáticas</h3>
                     <div style={{ display: 'flex', gap: '32px', flexWrap: 'wrap' }}>
                       {physicalEval?.tmb && (
                         <>
                           <div>
                             <span style={{ fontSize: '0.85rem', color: '#3B82F6', textTransform: 'uppercase', fontWeight: 600 }}>TMB (Basal)</span>
-                            <div style={{ fontSize: '1.5rem', fontWeight: 700, color: '#1E3A8A' }}>{physicalEval.tmb} kcal</div>
+                            <div style={{ fontSize: '1.5rem', fontWeight: 700, color: 'var(--crm-text-main)' }}>{physicalEval.tmb} kcal</div>
                           </div>
                           <div>
                             <span style={{ fontSize: '0.85rem', color: '#3B82F6', textTransform: 'uppercase', fontWeight: 600 }}>GET (Total)</span>
-                            <div style={{ fontSize: '1.5rem', fontWeight: 700, color: '#1E3A8A' }}>{physicalEval.get} kcal</div>
+                            <div style={{ fontSize: '1.5rem', fontWeight: 700, color: 'var(--crm-text-main)' }}>{physicalEval.get} kcal</div>
                           </div>
                         </>
                       )}
@@ -389,15 +391,15 @@ export default function ConsultationFlow({
                         <>
                           <div>
                             <span style={{ fontSize: '0.85rem', color: '#3B82F6', textTransform: 'uppercase', fontWeight: 600 }}>% Gordura Calculado</span>
-                            <div style={{ fontSize: '1.5rem', fontWeight: 700, color: '#1E3A8A' }}>{physicalEval.bodyFat}%</div>
+                            <div style={{ fontSize: '1.5rem', fontWeight: 700, color: 'var(--crm-text-main)' }}>{physicalEval.bodyFat}%</div>
                           </div>
                           <div>
                             <span style={{ fontSize: '0.85rem', color: '#3B82F6', textTransform: 'uppercase', fontWeight: 600 }}>Massa Magra</span>
-                            <div style={{ fontSize: '1.5rem', fontWeight: 700, color: '#1E3A8A' }}>{physicalEval.massaMagra} kg</div>
+                            <div style={{ fontSize: '1.5rem', fontWeight: 700, color: 'var(--crm-text-main)' }}>{physicalEval.massaMagra} kg</div>
                           </div>
                           <div>
                             <span style={{ fontSize: '0.85rem', color: '#3B82F6', textTransform: 'uppercase', fontWeight: 600 }}>Massa Gorda</span>
-                            <div style={{ fontSize: '1.5rem', fontWeight: 700, color: '#1E3A8A' }}>{physicalEval.massaGorda} kg</div>
+                            <div style={{ fontSize: '1.5rem', fontWeight: 700, color: 'var(--crm-text-main)' }}>{physicalEval.massaGorda} kg</div>
                           </div>
                         </>
                       )}
@@ -418,7 +420,7 @@ export default function ConsultationFlow({
               <h2 style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '24px' }}><Activity color="var(--crm-accent)" /> Análise de Exames (Powered by OpenAI)</h2>
               {!examUploaded && !examAnalyzing && (
                 <div>
-                  <div style={{ padding: '40px 20px', border: '2px dashed var(--crm-border)', borderRadius: '12px', backgroundColor: '#F8FAFC', textAlign: 'center', position: 'relative' }}>
+                  <div style={{ padding: '40px 20px', border: '2px dashed var(--crm-border)', borderRadius: '12px', backgroundColor: 'var(--crm-surface-2, var(--crm-bg))', textAlign: 'center', position: 'relative' }}>
                     <Upload size={40} color="var(--crm-text-muted)" style={{ marginBottom: '16px' }} />
                     <h3 style={{ color: 'var(--crm-text-main)', marginBottom: '8px' }}>
                       {selectedExamFiles.length > 0 ? `${selectedExamFiles.length} arquivo(s) adicionado(s) — arraste mais ou clique` : 'Adicione todos os arquivos de uma vez'}
@@ -457,7 +459,7 @@ export default function ConsultationFlow({
                       </div>
                       <div style={{ marginTop: '24px', display: 'flex', justifyContent: 'flex-end' }}>
                         <button className="crm-btn-primary" onClick={() => analyzeExamWithAI(selectedExamFiles)}>
-                          <Sparkles size={16} color="#FFF" style={{ marginRight: '8px' }} /> Analisar {selectedExamFiles.length} arquivo(s) com IA
+                          <Sparkles size={16} color='var(--crm-surface)' style={{ marginRight: '8px' }} /> Analisar {selectedExamFiles.length} arquivo(s) com IA
                         </button>
                       </div>
                     </div>
@@ -465,7 +467,7 @@ export default function ConsultationFlow({
                 </div>
               )}
               {examError && (
-                <div role="alert" style={{ marginTop: '16px', padding: '14px 16px', backgroundColor: '#FEF2F2', border: '1px solid #FCA5A5', borderRadius: '8px', color: '#991B1B', fontSize: '0.9rem' }}>
+                <div role="alert" style={{ marginTop: '16px', padding: '14px 16px', backgroundColor: 'var(--crm-danger-soft, #FEE2E2)', border: '1px solid #FCA5A5', borderRadius: '8px', color: '#991B1B', fontSize: '0.9rem' }}>
                   {examError}
                 </div>
               )}
@@ -487,7 +489,7 @@ export default function ConsultationFlow({
                       </button>
                     ))}
                   </div>
-                  <div style={{ padding: '24px', backgroundColor: '#FFF', borderRadius: '0 0 12px 12px', minHeight: '300px', border: '1px solid var(--crm-border)', borderTop: 'none' }}>
+                  <div style={{ padding: '24px', backgroundColor: 'var(--crm-surface)', borderRadius: '0 0 12px 12px', minHeight: '300px', border: '1px solid var(--crm-border)', borderTop: 'none' }}>
                     {parseMarkdownTabs(examResult)[examTab] ? (
                       <div className="markdown-body">
                         <ReactMarkdown remarkPlugins={[remarkGfm]}>{parseMarkdownTabs(examResult)[examTab]}</ReactMarkdown>
@@ -528,7 +530,7 @@ export default function ConsultationFlow({
                         <div style={{ display: 'flex', gap: '8px' }}>
                           <select 
                             className="crm-input" 
-                            style={{ width: '100px', borderColor: '#10B981', color: '#166534', backgroundColor: '#FFF' }}
+                            style={{ width: '100px', borderColor: '#10B981', color: '#166534', backgroundColor: 'var(--crm-surface)' }}
                             value={dietDuration}
                             onChange={e => setDietDuration(Number(e.target.value))}
                           >
@@ -541,7 +543,7 @@ export default function ConsultationFlow({
                             await generateDietFromAI();
                             setPrescriptionTab('cardapio');
                           }} disabled={isGenerating} style={{ flex: 1, backgroundColor: '#10B981', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '8px', padding: '12px' }}>
-                            <Sparkles size={16} color="#FFF" /> {isGenerating ? 'Analisando...' : 'Sugerir com IA'}
+                            <Sparkles size={16} color='var(--crm-surface)' /> {isGenerating ? 'Analisando...' : 'Sugerir com IA'}
                           </button>
                         </div>
                         {examResult && (
@@ -553,7 +555,7 @@ export default function ConsultationFlow({
                     </div>
                   </div>
 
-                  <div style={{ marginBottom: '32px', backgroundColor: '#FFF', border: '1px solid var(--crm-border)', borderRadius: '12px', padding: '16px' }}>
+                  <div style={{ marginBottom: '32px', backgroundColor: 'var(--crm-surface)', border: '1px solid var(--crm-border)', borderRadius: '12px', padding: '16px' }}>
                     <h3 style={{ fontSize: '1.1rem', color: 'var(--crm-text-main)', marginBottom: '8px', display: 'flex', alignItems: 'center', gap: '8px' }}>
                       <FileText size={18} /> Meus Templates de Dieta
                     </h3>
@@ -605,7 +607,7 @@ export default function ConsultationFlow({
                     )}
                   </div>
                   
-                  <div style={{ backgroundColor: '#FFF', border: '1px solid var(--crm-border)', borderRadius: '12px', padding: '16px' }}>
+                  <div style={{ backgroundColor: 'var(--crm-surface)', border: '1px solid var(--crm-border)', borderRadius: '12px', padding: '16px' }}>
                     <h3 style={{ fontSize: '1.1rem', color: 'var(--crm-text-main)', marginBottom: '8px', display: 'flex', alignItems: 'center', gap: '8px' }}>
                       <GripVertical size={18} /> Receitas Salvas
                     </h3>
@@ -664,27 +666,27 @@ export default function ConsultationFlow({
 
               {prescriptionTab === 'treino' && (
                 <div className="animate-pop-in" style={{ marginBottom: '32px' }}>
-                  <div style={{ padding: '24px', backgroundColor: '#F8FAFC', border: '1px solid #E2E8F0', borderRadius: '12px', marginBottom: '24px' }}>
-                    <h3 style={{ fontSize: '1.1rem', color: '#1E293B', marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <div style={{ padding: '24px', backgroundColor: 'var(--crm-surface-2, var(--crm-bg))', border: '1px solid #E2E8F0', borderRadius: '12px', marginBottom: '24px' }}>
+                    <h3 style={{ fontSize: '1.1rem', color: 'var(--crm-text-main)', marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '8px' }}>
                       <Dumbbell size={18} color="#3B82F6" /> Gerador de Ficha de Treino (IA Personal)
                     </h3>
-                    <p style={{ color: '#64748B', fontSize: '0.95rem', marginBottom: '16px' }}>
+                    <p style={{ color: 'var(--crm-text-muted)', fontSize: '0.95rem', marginBottom: '16px' }}>
                       A IA usará os dados de anamnese, peso e objetivo do paciente para montar uma periodização de exercícios inteligente.
                     </p>
                     <button className="crm-btn-primary" onClick={async () => {
                       await generateWorkoutFromAI();
                     }} disabled={isGenerating} style={{ width: '100%', backgroundColor: '#3B82F6', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '8px', padding: '12px' }}>
-                      <Sparkles size={16} color="#FFF" /> {isGenerating ? 'Gerando Treino...' : 'Gerar Ficha de Treino com IA'}
+                      <Sparkles size={16} color='var(--crm-surface)' /> {isGenerating ? 'Gerando Treino...' : 'Gerar Ficha de Treino com IA'}
                     </button>
                   </div>
 
                   {workoutPlan && (
-                    <div style={{ padding: '24px', backgroundColor: '#FFF', border: '1px solid #E2E8F0', borderRadius: '12px' }}>
-                      <h4 style={{ color: '#1E293B', marginBottom: '16px', fontSize: '1.2rem' }}>{workoutPlan.title}</h4>
+                    <div style={{ padding: '24px', backgroundColor: 'var(--crm-surface)', border: '1px solid #E2E8F0', borderRadius: '12px' }}>
+                      <h4 style={{ color: 'var(--crm-text-main)', marginBottom: '16px', fontSize: '1.2rem' }}>{workoutPlan.title}</h4>
                       {workoutPlan.days?.map((d, i) => (
-                        <div key={i} style={{ marginBottom: '16px', padding: '16px', backgroundColor: '#F1F5F9', borderRadius: '8px' }}>
+                        <div key={i} style={{ marginBottom: '16px', padding: '16px', backgroundColor: 'var(--crm-surface-2)', borderRadius: '8px' }}>
                           <strong style={{ color: '#3B82F6', display: 'block', marginBottom: '8px' }}>{d.dayName}</strong>
-                          <ul style={{ margin: 0, paddingLeft: '20px', color: '#334155' }}>
+                          <ul style={{ margin: 0, paddingLeft: '20px', color: 'var(--crm-text-main)' }}>
                             {d.exercises?.map((ex, j) => (
                               <li key={j} style={{ marginBottom: '4px' }}>{typeof ex === 'object' ? `${ex.name} - ${ex.sets}x${ex.reps}` : ex}</li>
                             ))}
@@ -724,7 +726,7 @@ export default function ConsultationFlow({
                       });
                       
                       return (totalKcal > 0) ? (
-                        <div style={{ display: 'flex', gap: '12px', fontSize: '0.85rem', backgroundColor: '#F8FAFC', padding: '8px 12px', borderRadius: '8px', border: '1px solid var(--crm-border)' }}>
+                        <div style={{ display: 'flex', gap: '12px', fontSize: '0.85rem', backgroundColor: 'var(--crm-surface-2, var(--crm-bg))', padding: '8px 12px', borderRadius: '8px', border: '1px solid var(--crm-border)' }}>
                           <div><strong>Kcal Total:</strong> <span style={{color: 'var(--crm-accent)'}}>{totalKcal.toFixed(0)}</span></div>
                           <div><strong>Carb:</strong> {totalCarb.toFixed(0)}g</div>
                           <div><strong>Ptn:</strong> {totalPtn.toFixed(0)}g</div>
@@ -735,7 +737,7 @@ export default function ConsultationFlow({
                   </div>
 
                   {dietMeals.length === 0 ? (
-                    <div style={{ padding: '40px', textAlign: 'center', backgroundColor: '#FFF', border: '2px dashed var(--crm-border)', borderRadius: '8px' }}>
+                    <div style={{ padding: '40px', textAlign: 'center', backgroundColor: 'var(--crm-surface)', border: '2px dashed var(--crm-border)', borderRadius: '8px' }}>
                       <p style={{ color: 'var(--crm-text-muted)' }}>Nenhuma refeição cadastrada. Adicione manualmente ou use a aba de Ferramentas.</p>
                     </div>
                   ) : (
@@ -772,13 +774,27 @@ export default function ConsultationFlow({
                       </button>
                     )}
                     
+                    {dietMeals.length > 0 && (
+                      <button className="crm-btn-primary" onClick={() => {
+                        if(!dietTitle) {
+                           setDietError('Para salvar como template, dê um título à dieta acima.');
+                           return;
+                        }
+                        if(window.confirm('Salvar dieta atual como um Template reutilizável?')) {
+                           addDietTemplate(dietTitle, dietDuration, [{ dayIndex: 1, meals: dietMeals }]);
+                           alert('Template salvo com sucesso!');
+                        }
+                      }}>
+                        <Sparkles size={16} /> Salvar como Template
+                      </button>
+                    )}
 
                   </div>
                 </div>
               )}
               
               {dietError && (
-                <div role="alert" style={{ marginBottom: '24px', padding: '14px 16px', backgroundColor: '#FEF2F2', border: '1px solid #FCA5A5', borderRadius: '8px', color: '#991B1B', fontSize: '0.9rem' }}>
+                <div role="alert" style={{ marginBottom: '24px', padding: '14px 16px', backgroundColor: 'var(--crm-danger-soft, #FEE2E2)', border: '1px solid #FCA5A5', borderRadius: '8px', color: '#991B1B', fontSize: '0.9rem' }}>
                   {dietError}
                 </div>
               )}
@@ -793,7 +809,7 @@ export default function ConsultationFlow({
           {consultationStep === 5 && (
             <div className="crm-card animate-pop-in">
               <h2 style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '24px' }}><CheckCircle color="var(--crm-accent)" /> Resumo e Entrega</h2>
-              <div style={{ backgroundColor: '#F8FAFC', padding: '24px', borderRadius: '12px', border: '1px solid var(--crm-border)' }}>
+              <div style={{ backgroundColor: 'var(--crm-surface-2, var(--crm-bg))', padding: '24px', borderRadius: '12px', border: '1px solid var(--crm-border)' }}>
                 <h3 style={{ marginBottom: '16px' }}>Pronto para enviar para {activePatient.name}?</h3>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', fontSize: '0.95rem' }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}><CheckCircle size={16} color="var(--crm-accent)"/> Anamnese salva no histórico.</div>

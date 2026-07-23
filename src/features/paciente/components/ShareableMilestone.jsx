@@ -23,13 +23,13 @@ export default function ShareableMilestone({ onClose }) {
   return (
     <div style={styles.overlay} className="animate-pop-in">
       <div style={styles.cardContainer} ref={cardRef}>
-        <button onClick={onClose} style={styles.closeBtn}><X size={24} color="#fff" /></button>
+        <button onClick={onClose} style={styles.closeBtn}><X size={24} color='var(--crm-surface)' /></button>
         
         <div style={styles.hologramCard} className="animate-pulse-glow">
           <div style={styles.shineLayer}></div>
           <Star size={48} color="#FFD700" fill="#FFD700" style={{marginBottom: '16px'}} />
           <h2 style={{fontSize: '2rem', margin: '0 0 8px 0', textTransform: 'uppercase', letterSpacing: '2px', background: 'linear-gradient(90deg, #FFD700, #FFA500)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent'}}>100% Concluído</h2>
-          <p style={{fontSize: '1.1rem', color: '#E2E8F0', margin: '0 0 24px 0'}}>Dia Perfeito de Alta Performance</p>
+          <p style={{fontSize: '1.1rem', color: 'var(--crm-border)', margin: '0 0 24px 0'}}>Dia Perfeito de Alta Performance</p>
           
           <div style={styles.statsRow}>
             <div style={styles.statBox}>
@@ -42,7 +42,7 @@ export default function ShareableMilestone({ onClose }) {
             </div>
           </div>
           
-          <p style={{fontSize: '0.8rem', color: '#94A3B8', marginTop: '24px', letterSpacing: '1px'}}>VYTAL PERFORMANCE</p>
+          <p style={{fontSize: '0.8rem', color: 'var(--crm-text-muted)', marginTop: '24px', letterSpacing: '1px'}}>VYTAL PERFORMANCE</p>
         </div>
 
         <button className="btn-3d btn-primary" style={{width: '100%', marginTop: '24px', fontSize: '1.2rem', padding: '16px'}} onClick={handleShare}>
@@ -84,6 +84,6 @@ const styles = {
   },
   statsRow: { display: 'flex', gap: '20px', width: '100%', justifyContent: 'center' },
   statBox: { backgroundColor: 'rgba(0,0,0,0.3)', padding: '12px 20px', borderRadius: '16px', display: 'flex', flexDirection: 'column', border: '1px solid rgba(255,255,255,0.05)' },
-  statVal: { fontSize: '1.5rem', fontWeight: '900', color: '#fff' },
-  statLbl: { fontSize: '0.75rem', color: '#94A3B8', textTransform: 'uppercase', letterSpacing: '1px' }
+  statVal: { fontSize: '1.5rem', fontWeight: '900', color: 'var(--crm-surface)' },
+  statLbl: { fontSize: '0.75rem', color: 'var(--crm-text-muted)', textTransform: 'uppercase', letterSpacing: '1px' }
 };

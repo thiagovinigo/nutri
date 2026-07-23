@@ -338,7 +338,7 @@ export default function PatientList({
               <Moon size={18} /> Dark Mode
             </span>
             <div style={{ width: '36px', height: '20px', backgroundColor: theme === 'dark' ? 'var(--crm-primary)' : 'rgba(255,255,255,0.2)', borderRadius: '10px', position: 'relative', transition: 'background-color 0.3s' }}>
-              <div style={{ width: '16px', height: '16px', backgroundColor: '#FFF', borderRadius: '50%', position: 'absolute', top: '2px', left: theme === 'dark' ? '18px' : '2px', transition: 'left 0.3s' }} />
+              <div style={{ width: '16px', height: '16px', backgroundColor: 'var(--crm-surface)', borderRadius: '50%', position: 'absolute', top: '2px', left: theme === 'dark' ? '18px' : '2px', transition: 'left 0.3s' }} />
             </div>
           </button>
         </nav>
@@ -534,7 +534,16 @@ export default function PatientList({
                     )}
                     {sortedFilteredPatients.map(p => (
                       <tr key={p.id}>
-                        <td style={{ fontWeight: '500' }}>{p.name}</td>
+                        <td style={{ fontWeight: '500' }}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                            {p.name}
+                            {p.behavioral_risk && (
+                              <span style={{ padding: '2px 8px', borderRadius: '12px', fontSize: '0.7rem', fontWeight: 'bold', backgroundColor: '#EDE9FE', color: '#7C3AED', border: '1px solid #C4B5FD' }} title="Alerta: Risco de ansiedade alimentar (detectado pela IA)">
+                                Risco Comportamental
+                              </span>
+                            )}
+                          </div>
+                        </td>
                         <td style={{ color: 'var(--crm-text-muted)', fontSize: '0.9rem' }}>{p.objective}</td>
                         <td>🔥 {p.streak} dias</td>
                         <td>
@@ -588,17 +597,17 @@ export default function PatientList({
               </div>
 
               {synthesisError && (
-                <div role="alert" className="crm-card animate-pop-in" style={{ marginBottom: '24px', borderLeft: '4px solid var(--crm-danger)', backgroundColor: '#FEF2F2', color: '#991B1B' }}>
+                <div role="alert" className="crm-card animate-pop-in" style={{ marginBottom: '24px', borderLeft: '4px solid var(--crm-danger)', backgroundColor: 'var(--crm-danger-soft, #FEE2E2)', color: '#991B1B' }}>
                   {synthesisError}
                 </div>
               )}
 
               {synthesisResult && (
-                <div className="crm-card animate-pop-in" style={{ marginBottom: '24px', borderLeft: '4px solid var(--crm-accent)', backgroundColor: '#EFF6FF' }}>
-                  <h3 style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px', color: '#1E3A8A' }}>
+                <div className="crm-card animate-pop-in" style={{ marginBottom: '24px', borderLeft: '4px solid var(--crm-accent)', backgroundColor: 'var(--crm-surface-2, var(--crm-bg))' }}>
+                  <h3 style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px', color: 'var(--crm-text-main)' }}>
                     <Sparkles size={20} /> Resumo Analítico da IA
                   </h3>
-                  <div style={{ whiteSpace: 'pre-wrap', lineHeight: '1.6', fontSize: '0.95rem', color: '#1E3A8A' }}>
+                  <div style={{ whiteSpace: 'pre-wrap', lineHeight: '1.6', fontSize: '0.95rem', color: 'var(--crm-text-main)' }}>
                     {synthesisResult}
                   </div>
                 </div>
@@ -615,15 +624,15 @@ export default function PatientList({
                 <div style={{ display: 'flex', gap: '24px', flexWrap: 'wrap' }}>
                 <div className="crm-card" style={{ flex: '1 1 300px', backgroundColor: 'var(--crm-primary)', color: 'white' }}>
                   <h2 style={{ fontSize: '1.8rem', marginBottom: '8px', color: 'white' }}>{viewedPatient.name}</h2>
-                  <p style={{ color: '#94a3b8', marginBottom: '24px' }}>Objetivo: {viewedPatient.objective}</p>
+                  <p style={{ color: 'var(--crm-text-muted)', marginBottom: '24px' }}>Objetivo: {viewedPatient.objective}</p>
                   
                   <div style={{ display: 'flex', gap: '24px' }}>
                     <div>
-                      <div style={{ fontSize: '0.85rem', color: '#94a3b8', textTransform: 'uppercase' }}>Ofensiva App</div>
+                      <div style={{ fontSize: '0.85rem', color: 'var(--crm-text-muted)', textTransform: 'uppercase' }}>Ofensiva App</div>
                       <div style={{ fontSize: '1.5rem', fontWeight: 'bold' }}>🔥 {viewedPatient.streak} dias</div>
                     </div>
                     <div>
-                      <div style={{ fontSize: '0.85rem', color: '#94a3b8', textTransform: 'uppercase' }}>Gamificação</div>
+                      <div style={{ fontSize: '0.85rem', color: 'var(--crm-text-muted)', textTransform: 'uppercase' }}>Gamificação</div>
                       <div style={{ fontSize: '1.5rem', fontWeight: 'bold' }}>💎 {viewedPatient.xp} XP</div>
                     </div>
                   </div>
@@ -679,8 +688,8 @@ export default function PatientList({
                         <div style={{ width: '100%', height: 300 }}>
                           <ResponsiveContainer width="100%" height="100%">
                             <LineChart data={chartData} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
-                              <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
-                              <XAxis dataKey="date" stroke="#94a3b8" />
+                              <CartesianGrid strokeDasharray="3 3" stroke='var(--crm-border)' />
+                              <XAxis dataKey="date" stroke='var(--crm-text-muted)' />
                               <YAxis yAxisId="left" stroke="#8b5cf6" label={{ value: 'Peso (kg)', angle: -90, position: 'insideLeft', fill: '#8b5cf6' }} />
                               <YAxis yAxisId="right" orientation="right" stroke="#f43f5e" label={{ value: '% Gordura', angle: 90, position: 'insideRight', fill: '#f43f5e' }} />
                               <RechartsTooltip contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)' }} />
@@ -743,8 +752,8 @@ export default function PatientList({
                   ) : (
                     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: '16px' }}>
                       {[...viewedPatient.sleepLogs].reverse().slice(0, 7).map((log, i) => (
-                        <div key={i} style={{ padding: '12px', border: '1px solid #e2e8f0', borderRadius: '8px', backgroundColor: '#f8fafc' }}>
-                          <div style={{ fontSize: '0.85rem', color: '#64748b', marginBottom: '4px' }}>{log.date}</div>
+                        <div key={i} style={{ padding: '12px', border: '1px solid #e2e8f0', borderRadius: '8px', backgroundColor: 'var(--crm-surface-2, var(--crm-bg))' }}>
+                          <div style={{ fontSize: '0.85rem', color: 'var(--crm-text-muted)', marginBottom: '4px' }}>{log.date}</div>
                           <div style={{ fontWeight: 'bold', fontSize: '1.1rem' }}>{log.hours} horas</div>
                           <div style={{ fontSize: '0.9rem', color: log.quality === 'Ruim' ? '#ef4444' : log.quality === 'Razoável' ? '#f59e0b' : '#10b981', display: 'flex', alignItems: 'center', gap: '4px', marginTop: '4px' }}>
                             Qualidade: {log.quality}
@@ -760,7 +769,7 @@ export default function PatientList({
                     <h3 style={{ margin: 0, display: 'flex', alignItems: 'center', gap: '8px' }}>
                       <Camera size={20} color="var(--crm-accent)" /> Diário Alimentar (Análises da IA)
                     </h3>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px', backgroundColor: '#F8FAFC', padding: '6px 12px', borderRadius: '8px', border: '1px solid var(--crm-border)' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px', backgroundColor: 'var(--crm-surface-2, var(--crm-bg))', padding: '6px 12px', borderRadius: '8px', border: '1px solid var(--crm-border)' }}>
                       <button onClick={() => { const d = new Date(foodDiaryDate); d.setDate(d.getDate() - 1); setFoodDiaryDate(d); }} style={{ background: 'none', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center' }} title="Dia Anterior"><ChevronUp size={18} style={{ transform: 'rotate(-90deg)', color: 'var(--crm-text-main)' }} /></button>
                       <span style={{ fontSize: '0.9rem', fontWeight: 600, color: 'var(--crm-text-main)', minWidth: '85px', textAlign: 'center' }}>
                         {foodDiaryDate.toLocaleDateString('pt-BR') === new Date().toLocaleDateString('pt-BR') ? 'Hoje' : foodDiaryDate.toLocaleDateString('pt-BR').slice(0,5)}
@@ -781,7 +790,7 @@ export default function PatientList({
                     return (
                       <div style={{ display: 'flex', gap: '16px', overflowX: 'auto', paddingBottom: '16px' }}>
                         {dayLogs.slice().reverse().map((log, idx) => (
-                          <div key={idx} style={{ flex: '0 0 350px', padding: '16px', backgroundColor: '#F8FAFC', borderRadius: '8px', borderLeft: log.type === 'extra' ? '4px solid #F59E0B' : '4px solid var(--crm-accent)' }}>
+                          <div key={idx} style={{ flex: '0 0 350px', padding: '16px', backgroundColor: 'var(--crm-surface-2, var(--crm-bg))', borderRadius: '8px', borderLeft: log.type === 'extra' ? '4px solid #F59E0B' : '4px solid var(--crm-accent)' }}>
                             <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
                               <strong style={{ fontSize: '1rem', color: 'var(--crm-text-main)' }}>{log.mealName}</strong>
                               <span style={{ fontSize: '0.85rem', color: 'var(--crm-text-muted)' }}>{log.date} às {log.time}</span>
@@ -814,24 +823,38 @@ export default function PatientList({
                   ) : (
                     <div>
 
-                      
                       {viewedPatient.exams.slice().reverse().map((ex, idx) => (
-                        <div key={ex.id || idx} style={{ padding: '16px', border: '1px solid var(--crm-border)', borderRadius: '8px', marginBottom: '16px', backgroundColor: '#F8FAFC' }}>
+                        <div key={ex.id || idx} style={{ padding: '16px', border: '1px solid var(--crm-border)', borderRadius: '8px', marginBottom: '16px', backgroundColor: 'var(--crm-surface-2, var(--crm-bg))' }}>
                           <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '16px', borderBottom: '1px solid #E2E8F0', paddingBottom: '8px' }}>
-                            <strong style={{ fontSize: '1.1rem' }}>Exame de {ex.date}</strong>
-                            <span style={{ fontSize: '0.85rem', color: 'var(--crm-text-muted)', display: 'flex', alignItems: 'center', gap: '4px' }}>
-                              <BrainCircuit size={14} /> Laudo Inteligente
-                            </span>
+                            <strong style={{ fontSize: '1.1rem' }}>
+                              {ex.filename ? `Arquivo: ${ex.filename}` : `Exame de ${ex.date || ex.dateUploaded}`}
+                            </strong>
+                            <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                              {ex.url && (
+                                <a href={ex.url} target="_blank" rel="noopener noreferrer" className="crm-btn-secondary" style={{ padding: '4px 8px', fontSize: '0.8rem', textDecoration: 'none' }}>
+                                  <FileText size={14} style={{ marginRight: '4px' }} /> Ver PDF
+                                </a>
+                              )}
+                              <span style={{ fontSize: '0.85rem', color: 'var(--crm-text-muted)', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                                <BrainCircuit size={14} /> Laudo Inteligente
+                              </span>
+                            </div>
                           </div>
-                          <div style={{ fontSize: '0.95rem', color: 'var(--crm-text-main)', lineHeight: '1.6' }}>
-                            <ReactMarkdown remarkPlugins={[remarkGfm]}>{ex.aiSummaryProfessional}</ReactMarkdown>
+                          <div className="markdown-body ai-synthesis">
+                            {ex.aiSummaryProfessional ? (
+                              <ReactMarkdown remarkPlugins={[remarkGfm]}>{ex.aiSummaryProfessional}</ReactMarkdown>
+                            ) : (
+                              <p style={{ color: 'var(--crm-text-muted)', fontStyle: 'italic' }}>
+                                Este exame ainda não possui análise de IA. (Acesse Nova Consulta para anexar e rodar o Co-pilot).
+                              </p>
+                            )}
                           </div>
                         </div>
                       ))}
                     </div>
                   )}
                 </div>
-                </div>
+              </div>
               )}
 
               {prontuarioTab === 'consultas' && (
@@ -858,7 +881,7 @@ export default function PatientList({
                                 <h3 style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '16px' }}>
                                   <FileText size={20} color="var(--crm-accent)" /> Anamnese (Última Consulta)
                                 </h3>
-                                <div style={{ padding: '16px', backgroundColor: '#FFFBEB', borderLeft: '4px solid #F59E0B', borderRadius: '4px', color: 'var(--crm-text-main)', fontSize: '0.95rem', whiteSpace: 'pre-wrap' }}>
+                                <div style={{ padding: '16px', backgroundColor: 'var(--crm-warn-soft, #FEF3C7)', borderLeft: '4px solid #F59E0B', borderRadius: '4px', color: 'var(--crm-text-main)', fontSize: '0.95rem', whiteSpace: 'pre-wrap' }}>
                                   {lastCons.anamnesis}
                                 </div>
                               </div>
@@ -869,7 +892,7 @@ export default function PatientList({
                                 <h3 style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '16px' }}>
                                   <BrainCircuit size={20} color="var(--crm-accent)" /> Análise Clínica (Última Consulta)
                                 </h3>
-                                <div style={{ padding: '16px', backgroundColor: '#EFF6FF', borderLeft: '4px solid var(--crm-accent)', borderRadius: '4px', color: '#1E3A8A', fontSize: '0.95rem', lineHeight: '1.6' }}>
+                                <div style={{ padding: '16px', backgroundColor: 'var(--crm-surface-2, var(--crm-bg))', borderLeft: '4px solid var(--crm-accent)', borderRadius: '4px', color: 'var(--crm-text-main)', fontSize: '0.95rem', lineHeight: '1.6' }}>
                                   <ReactMarkdown remarkPlugins={[remarkGfm]}>{lastCons.examResult}</ReactMarkdown>
                                 </div>
                               </div>
@@ -888,7 +911,7 @@ export default function PatientList({
                               ) : (
                                 <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
                                   {viewedPatient.recipes.map((r, idx) => (
-                                    <div key={idx} style={{ padding: '16px', backgroundColor: '#F8FAFC', borderRadius: '8px', border: '1px solid var(--crm-border)' }}>
+                                    <div key={idx} style={{ padding: '16px', backgroundColor: 'var(--crm-surface-2, var(--crm-bg))', borderRadius: '8px', border: '1px solid var(--crm-border)' }}>
                                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
                                         <strong style={{ fontSize: '1.1rem' }}>{r.title}</strong>
                                         <button onClick={() => handleDeleteActiveRecipe(idx)} style={{ background: 'none', border: 'none', color: 'var(--crm-danger)', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px', fontSize: '0.85rem' }}>
@@ -914,10 +937,10 @@ export default function PatientList({
                                                     <div>
                                                       {m.desc && <span>{m.desc}</span>}
                                                       {m.foods && m.foods.length > 0 && (
-                                                        <div style={{ marginTop: '8px', padding: '8px', backgroundColor: '#FFF', borderRadius: '4px', border: '1px solid #E2E8F0' }}>
+                                                        <div style={{ marginTop: '8px', padding: '8px', backgroundColor: 'var(--crm-surface)', borderRadius: '4px', border: '1px solid #E2E8F0' }}>
                                                           {m.foods.map((f, fIdx) => (
-                                                            <div key={fIdx} style={{ fontSize: '0.85rem', color: '#475569', marginBottom: '4px' }}>
-                                                              <strong>{f.amount}g</strong> - {f.name} <span style={{color: '#94A3B8'}}>({f.kcal} kcal)</span>
+                                                            <div key={fIdx} style={{ fontSize: '0.85rem', color: 'var(--crm-text-main)', marginBottom: '4px' }}>
+                                                              <strong>{f.amount}g</strong> - {f.name} <span style={{color: 'var(--crm-text-muted)'}}>({f.kcal} kcal)</span>
                                                             </div>
                                                           ))}
                                                         </div>
@@ -955,7 +978,7 @@ export default function PatientList({
                                 <Dumbbell size={20} color="var(--crm-accent)" /> Plano de Treino
                               </h3>
                               {(!viewedPatient.workoutPlan) ? (
-                                <div style={{ textAlign: 'center', padding: '24px', backgroundColor: '#F8FAFC', borderRadius: '8px', border: '1px dashed var(--crm-border)' }}>
+                                <div style={{ textAlign: 'center', padding: '24px', backgroundColor: 'var(--crm-surface-2, var(--crm-bg))', borderRadius: '8px', border: '1px dashed var(--crm-border)' }}>
                                   <p style={{ color: 'var(--crm-text-muted)', marginBottom: '16px' }}>Nenhum plano de treino cadastrado para este paciente.</p>
                                   <button className="crm-btn-primary" onClick={handleCreateEmptyWorkout} style={{ display: 'inline-flex', alignItems: 'center', gap: '8px' }}>
                                     <Plus size={16} /> Criar Plano Manualmente
@@ -963,7 +986,7 @@ export default function PatientList({
                                 </div>
                               ) : (
                                 <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-                                  <div style={{ padding: '16px', backgroundColor: '#F8FAFC', borderRadius: '8px', border: '1px solid var(--crm-border)' }}>
+                                  <div style={{ padding: '16px', backgroundColor: 'var(--crm-surface-2, var(--crm-bg))', borderRadius: '8px', border: '1px solid var(--crm-border)' }}>
                                     {typeof viewedPatient.workoutPlan === 'string' ? (
                                       <ReactMarkdown remarkPlugins={[remarkGfm]}>{viewedPatient.workoutPlan}</ReactMarkdown>
                                     ) : (
@@ -975,7 +998,7 @@ export default function PatientList({
                                           </button>
                                         </div>
                                         {viewedPatient.workoutPlan.days?.map((d, i) => (
-                                          <div key={i} style={{ marginBottom: '16px', backgroundColor: '#FFFFFF', padding: '16px', borderRadius: '8px', border: '1px solid var(--crm-border)' }}>
+                                          <div key={i} style={{ marginBottom: '16px', backgroundColor: 'var(--crm-surface)', padding: '16px', borderRadius: '8px', border: '1px solid var(--crm-border)' }}>
                                             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
                                               <strong style={{ fontSize: '1.05rem', color: 'var(--crm-text-main)' }}>{d.dayName}</strong>
                                               <button onClick={() => { setEditingExercisePath({ dIdx: i, eIdx: -1 }); setEditingExerciseData({name: '', sets: '', reps: ''}); }} style={{ background: 'none', border: 'none', color: 'var(--crm-primary)', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px', fontSize: '0.85rem' }}>
@@ -1046,7 +1069,7 @@ export default function PatientList({
                             {viewedPatient.bonusRecipes?.length > 0 ? (
                               <div style={{ display: 'flex', flexWrap: 'wrap', gap: '12px', marginBottom: '16px' }}>
                                 {viewedPatient.bonusRecipes.map(br => (
-                                  <div key={br.id} style={{ flex: '1 1 200px', padding: '12px', border: '1px solid var(--crm-border)', borderRadius: '8px', backgroundColor: '#F8FAFC' }}>
+                                  <div key={br.id} style={{ flex: '1 1 200px', padding: '12px', border: '1px solid var(--crm-border)', borderRadius: '8px', backgroundColor: 'var(--crm-surface-2, var(--crm-bg))' }}>
                                     <strong style={{ display: 'block', fontSize: '1rem', color: 'var(--crm-text-main)' }}>{br.title}</strong>
                                     <span style={{ fontSize: '0.8rem', color: 'var(--crm-text-muted)' }}>Adicionado em {br.date}</span>
                                   </div>
@@ -1076,8 +1099,8 @@ export default function PatientList({
                                       onClick={() => setSelectedHistoryIdx(idx)}
                                       style={{ 
                                         padding: '12px', 
-                                        backgroundColor: selectedHistoryIdx === idx ? 'var(--crm-accent)' : '#F8FAFC', 
-                                        color: selectedHistoryIdx === idx ? '#FFF' : 'var(--crm-text-main)',
+                                        backgroundColor: selectedHistoryIdx === idx ? 'var(--crm-accent)' : 'var(--crm-surface-2, var(--crm-bg))', 
+                                        color: selectedHistoryIdx === idx ? 'var(--crm-surface)' : 'var(--crm-text-main)',
                                         borderRadius: '8px', 
                                         border: '1px solid var(--crm-border)', 
                                         cursor: 'pointer',
@@ -1127,7 +1150,7 @@ export default function PatientList({
                                                   <FileText size={20} color="var(--crm-accent)" /> Anamnese
                                                 </h3>
                                                 {cons.anamnesis ? (
-                                                  <div style={{ padding: '16px', backgroundColor: '#F8FAFC', borderLeft: '4px solid #94A3B8', borderRadius: '4px', color: 'var(--crm-text-main)', fontSize: '0.95rem', whiteSpace: 'pre-wrap' }}>
+                                                  <div style={{ padding: '16px', backgroundColor: 'var(--crm-surface-2, var(--crm-bg))', borderLeft: '4px solid #94A3B8', borderRadius: '4px', color: 'var(--crm-text-main)', fontSize: '0.95rem', whiteSpace: 'pre-wrap' }}>
                                                     {cons.anamnesis}
                                                   </div>
                                                 ) : (
@@ -1142,7 +1165,7 @@ export default function PatientList({
                                                   <Activity size={20} color="var(--crm-accent)" /> Avaliação Física
                                                 </h3>
                                                 {cons.physicalEval && Object.values(cons.physicalEval).some(v => v !== '') ? (
-                                                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', backgroundColor: '#F8FAFC', padding: '16px', borderRadius: '8px', border: '1px solid var(--crm-border)' }}>
+                                                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', backgroundColor: 'var(--crm-surface-2, var(--crm-bg))', padding: '16px', borderRadius: '8px', border: '1px solid var(--crm-border)' }}>
                                                     {cons.physicalEval.weight && <div><span style={{ color: 'var(--crm-text-muted)', fontSize: '0.85rem' }}>Peso:</span><br/><strong>{cons.physicalEval.weight} kg</strong></div>}
                                                     {cons.physicalEval.height && <div><span style={{ color: 'var(--crm-text-muted)', fontSize: '0.85rem' }}>Altura:</span><br/><strong>{cons.physicalEval.height} cm</strong></div>}
                                                     {cons.physicalEval.bodyFat && <div><span style={{ color: 'var(--crm-text-muted)', fontSize: '0.85rem' }}>% Gordura:</span><br/><strong>{cons.physicalEval.bodyFat}%</strong></div>}
@@ -1166,7 +1189,7 @@ export default function PatientList({
                                                 <BrainCircuit size={20} color="var(--crm-accent)" /> Análise Clínica
                                               </h3>
                                               {cons.examResult ? (
-                                                <div style={{ padding: '16px', backgroundColor: '#F8FAFC', borderLeft: '4px solid #94A3B8', borderRadius: '4px', color: 'var(--crm-text-main)', fontSize: '0.95rem', lineHeight: '1.6' }}>
+                                                <div style={{ padding: '16px', backgroundColor: 'var(--crm-surface-2, var(--crm-bg))', borderLeft: '4px solid #94A3B8', borderRadius: '4px', color: 'var(--crm-text-main)', fontSize: '0.95rem', lineHeight: '1.6' }}>
                                                   <ReactMarkdown remarkPlugins={[remarkGfm]}>{cons.examResult}</ReactMarkdown>
                                                 </div>
                                               ) : (
@@ -1182,7 +1205,7 @@ export default function PatientList({
                                               </h3>
                                               {cons.dietTitle ? (
                                                 <>
-                                                  <div style={{ padding: '16px', backgroundColor: '#F8FAFC', border: '1px solid var(--crm-border)', borderRadius: '8px', marginBottom: '16px' }}>
+                                                  <div style={{ padding: '16px', backgroundColor: 'var(--crm-surface-2, var(--crm-bg))', border: '1px solid var(--crm-border)', borderRadius: '8px', marginBottom: '16px' }}>
                                                     <h4 style={{ fontSize: '1.1rem', color: 'var(--crm-text-main)', marginBottom: '12px' }}>{cons.dietTitle}</h4>
                                                     
                                                     {cons.dietDescription && (
@@ -1202,9 +1225,9 @@ export default function PatientList({
                                                     )}
 
                                                     {cons.dietSupplements && (
-                                                      <div style={{ marginTop: '16px', padding: '12px', backgroundColor: '#EFF6FF', borderRadius: '4px', borderLeft: '4px solid #3B82F6' }}>
-                                                        <strong style={{ display: 'block', marginBottom: '4px', color: '#1E3A8A' }}>Suplementação:</strong>
-                                                        <div style={{ fontSize: '0.9rem', color: '#1E3A8A' }}>
+                                                      <div style={{ marginTop: '16px', padding: '12px', backgroundColor: 'var(--crm-surface-2, var(--crm-bg))', borderRadius: '4px', borderLeft: '4px solid #3B82F6' }}>
+                                                        <strong style={{ display: 'block', marginBottom: '4px', color: 'var(--crm-text-main)' }}>Suplementação:</strong>
+                                                        <div style={{ fontSize: '0.9rem', color: 'var(--crm-text-main)' }}>
                                                           <ReactMarkdown>{cons.dietSupplements}</ReactMarkdown>
                                                         </div>
                                                       </div>
@@ -1227,7 +1250,7 @@ export default function PatientList({
                                               </h3>
                                               {cons.workoutPlan ? (
                                                 <>
-                                                  <div style={{ padding: '16px', backgroundColor: '#F8FAFC', border: '1px solid var(--crm-border)', borderRadius: '8px', marginBottom: '16px' }}>
+                                                  <div style={{ padding: '16px', backgroundColor: 'var(--crm-surface-2, var(--crm-bg))', border: '1px solid var(--crm-border)', borderRadius: '8px', marginBottom: '16px' }}>
                                                     {typeof cons.workoutPlan === 'string' ? (
                                                       <ReactMarkdown remarkPlugins={[remarkGfm]}>{cons.workoutPlan}</ReactMarkdown>
                                                     ) : (
@@ -1324,14 +1347,14 @@ export default function PatientList({
               </div>
 
               {isGeneratingRecipe && (
-                <div style={{ padding: '24px', textAlign: 'center', backgroundColor: '#EFF6FF', borderRadius: '12px', border: '1px solid #BFDBFE', marginBottom: '24px' }}>
+                <div style={{ padding: '24px', textAlign: 'center', backgroundColor: 'var(--crm-surface-2, var(--crm-bg))', borderRadius: '12px', border: '1px solid #BFDBFE', marginBottom: '24px' }}>
                   <Sparkles size={32} color="#3B82F6" className="animate-pulse" style={{ marginBottom: '16px' }} />
                   <div style={{ color: '#1D4ED8', fontWeight: '600' }}>A Inteligência Artificial está criando uma nova receita criativa...</div>
                 </div>
               )}
 
               {recipeLibrary?.length === 0 ? (
-                <div style={{ padding: '40px', textAlign: 'center', backgroundColor: '#F8FAFC', borderRadius: '12px', border: '2px dashed var(--crm-border)' }}>
+                <div style={{ padding: '40px', textAlign: 'center', backgroundColor: 'var(--crm-surface-2, var(--crm-bg))', borderRadius: '12px', border: '2px dashed var(--crm-border)' }}>
                   <ChefHat size={48} color="var(--crm-text-muted)" style={{ marginBottom: '16px' }} />
                   <h3 style={{ color: 'var(--crm-text-main)', marginBottom: '8px' }}>Nenhuma receita salva</h3>
                   <p style={{ color: 'var(--crm-text-muted)' }}>Comece criando uma receita manualmente ou peça ajuda da IA.</p>
@@ -1376,7 +1399,7 @@ export default function PatientList({
               {/* KPIs de Gamificação */}
               <div style={{ display: 'flex', gap: '24px', marginBottom: '32px', flexWrap: 'wrap' }}>
                 <div className="crm-card" style={{ flex: '1 1 200px', display: 'flex', alignItems: 'center', gap: '16px' }}>
-                  <div style={{ padding: '16px', backgroundColor: '#EFF6FF', borderRadius: '50%', color: '#3B82F6' }}>
+                  <div style={{ padding: '16px', backgroundColor: 'var(--crm-surface-2, var(--crm-bg))', borderRadius: '50%', color: '#3B82F6' }}>
                     <Zap size={32} />
                   </div>
                   <div>
@@ -1419,8 +1442,8 @@ export default function PatientList({
                   ) : (
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
                       {topEngagedPatients.map((p, idx) => (
-                        <div key={p.id} style={{ display: 'flex', alignItems: 'center', gap: '16px', padding: '12px', backgroundColor: idx === 0 ? '#FEFCE8' : '#F8FAFC', borderRadius: '8px', border: idx === 0 ? '1px solid #FEF08A' : '1px solid var(--crm-border)' }}>
-                          <div style={{ width: '32px', height: '32px', borderRadius: '50%', backgroundColor: idx === 0 ? '#EAB308' : '#CBD5E1', color: idx === 0 ? 'white' : '#475569', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 'bold', fontSize: '1.1rem' }}>
+                        <div key={p.id} style={{ display: 'flex', alignItems: 'center', gap: '16px', padding: '12px', backgroundColor: idx === 0 ? '#FEFCE8' : 'var(--crm-surface-2, var(--crm-bg))', borderRadius: '8px', border: idx === 0 ? '1px solid #FEF08A' : '1px solid var(--crm-border)' }}>
+                          <div style={{ width: '32px', height: '32px', borderRadius: '50%', backgroundColor: idx === 0 ? '#EAB308' : 'var(--crm-border)', color: idx === 0 ? 'white' : 'var(--crm-text-main)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 'bold', fontSize: '1.1rem' }}>
                             {idx + 1}
                           </div>
                           <div style={{ flex: 1 }}>
@@ -1437,13 +1460,13 @@ export default function PatientList({
                 </div>
 
                 {/* PACIENTES EM RISCO DE CHURN */}
-                <div className="crm-card" style={{ flex: '2 1 400px', backgroundColor: '#FEF2F2', border: '1px solid #FCA5A5' }}>
+                <div className="crm-card" style={{ flex: '2 1 400px', backgroundColor: 'var(--crm-danger-soft, #FEE2E2)', border: '1px solid #FCA5A5' }}>
                   <h3 style={{ color: '#DC2626', display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '16px' }}>
                     <AlertTriangle size={20} /> Pacientes em Risco de Abandono (Churn)
                   </h3>
                   <p style={{ color: '#991B1B', marginBottom: '16px', fontSize: '0.95rem' }}>O Vytal identificou pacientes com queda abrupta de engajamento na última semana.</p>
                   {churnAlertMessage && (
-                    <div role="status" style={{ marginBottom: '16px', padding: '10px 14px', backgroundColor: '#FFFFFF', border: '1px solid #FCA5A5', borderRadius: '8px', color: '#991B1B', fontSize: '0.85rem' }}>
+                    <div role="status" style={{ marginBottom: '16px', padding: '10px 14px', backgroundColor: 'var(--crm-surface)', border: '1px solid #FCA5A5', borderRadius: '8px', color: '#991B1B', fontSize: '0.85rem' }}>
                       {churnAlertMessage}
                     </div>
                   )}
@@ -1603,7 +1626,7 @@ export default function PatientList({
                           }}>Bloquear Data</button>
                         </div>
                         {clinicConfig.scheduleConfig?.blockedDates?.length > 0 && (
-                          <div style={{ marginTop: '16px', backgroundColor: '#f8fafc', padding: '16px', borderRadius: '8px' }}>
+                          <div style={{ marginTop: '16px', backgroundColor: 'var(--crm-surface-2, var(--crm-bg))', padding: '16px', borderRadius: '8px' }}>
                             <strong style={{ display: 'block', marginBottom: '8px', fontSize: '0.9rem' }}>Datas Bloqueadas:</strong>
                             <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
                               {clinicConfig.scheduleConfig.blockedDates.map(bd => (
@@ -1636,7 +1659,7 @@ export default function PatientList({
                       </div>
                       <div className="settings-fieldset">
                         <label className="crm-label">Cor Principal da Marca</label>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '16px', backgroundColor: '#f8fafc', padding: '16px', borderRadius: '8px', border: '1px solid var(--crm-border)' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '16px', backgroundColor: 'var(--crm-surface-2, var(--crm-bg))', padding: '16px', borderRadius: '8px', border: '1px solid var(--crm-border)' }}>
                           <input type="color" value={clinicConfig?.primaryColor || '#2563eb'} onChange={e => updateClinicConfig({ primaryColor: e.target.value })} style={{ width: '48px', height: '48px', padding: '0', border: 'none', borderRadius: '8px', cursor: 'pointer' }} />
                           <div>
                             <div style={{ fontFamily: 'monospace', fontSize: '1.1rem', fontWeight: 600 }}>{clinicConfig?.primaryColor}</div>
@@ -1657,7 +1680,7 @@ export default function PatientList({
                         <p>Gerencie o plano da sua conta Vytal.</p>
                       </div>
                       
-                      <div style={{ padding: '24px', backgroundColor: '#F8FAFC', borderRadius: '12px', border: '1px solid var(--crm-border)', marginBottom: '32px' }}>
+                      <div style={{ padding: '24px', backgroundColor: 'var(--crm-surface-2, var(--crm-bg))', borderRadius: '12px', border: '1px solid var(--crm-border)', marginBottom: '32px' }}>
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '16px' }}>
                           <div>
                             <div style={{ fontSize: '0.9rem', textTransform: 'uppercase', letterSpacing: '0.05em', color: 'var(--crm-text-muted)', fontWeight: 600, marginBottom: '4px' }}>Plano Atual</div>
@@ -1673,7 +1696,7 @@ export default function PatientList({
                           <h4 style={{ fontWeight: '700', fontSize: '1.2rem', marginBottom: '8px' }}>Vytal Premium</h4>
                           <p style={{ color: 'var(--crm-text-muted)', fontSize: '0.95rem', margin: 0 }}>Pacientes ilimitados, White-label completo, relatórios customizados e IA preditiva de Cohorts.</p>
                         </div>
-                        <div style={{ padding: '24px', backgroundColor: '#f8fafc', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <div style={{ padding: '24px', backgroundColor: 'var(--crm-surface-2, var(--crm-bg))', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                           <div>
                             <div style={{ fontSize: '1.8rem', fontWeight: 800 }}>R$ 149<span style={{ fontSize: '1rem', color: 'var(--crm-text-muted)', fontWeight: 500 }}>/mês</span></div>
                           </div>
@@ -1902,7 +1925,7 @@ export default function PatientList({
             <p style={{ color: 'var(--crm-text-muted)', marginBottom: '24px', fontSize: '0.95rem' }}>
               Faça o upload do PDF do exame. A IA vai ler os biomarcadores e gerar a síntese evolutiva automaticamente.
             </p>
-            <div style={{ position: 'relative', padding: '40px', border: '2px dashed var(--crm-border)', borderRadius: '8px', textAlign: 'center', marginBottom: '24px', backgroundColor: '#F8FAFC' }}>
+            <div style={{ position: 'relative', padding: '40px', border: '2px dashed var(--crm-border)', borderRadius: '8px', textAlign: 'center', marginBottom: '24px', backgroundColor: 'var(--crm-surface-2, var(--crm-bg))' }}>
               <Upload size={32} color="var(--crm-text-muted)" style={{ margin: '0 auto 16px' }} />
               <p style={{ margin: 0 }}>Arraste o PDF ou clique para selecionar</p>
               <input type="file" style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', opacity: 0, cursor: 'pointer' }} />
