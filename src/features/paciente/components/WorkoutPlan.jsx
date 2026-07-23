@@ -106,7 +106,7 @@ export default function WorkoutPlan({ activePatient }) {
                           textDecoration: isExChecked ? 'line-through' : 'none',
                           opacity: isExChecked ? 0.7 : 1
                         }}>
-                          {ex}
+                          {typeof ex === 'object' ? `${ex.name} - ${ex.sets}x${ex.reps}` : ex}
                         </span>
                       </div>
                     );

@@ -69,7 +69,7 @@ export default function QuestBoard({ activePatient }) {
   };
 
   const handleSaveSleep = () => {
-    addSleepLog(activePatient.id, sleepHours, sleepQuality);
+    addSleepLog(activePatient.id, selectedDateFormatted, sleepHours, sleepQuality);
     completeQuest(activePatient.id, 10);
     setShowSleepModal(false);
   };

@@ -16,6 +16,19 @@ export function AppProvider({ children }) {
   const [directMessages, setDirectMessages] = useState([]);
   const [activePatientId, setActivePatientId] = useState(null);
 
+  const [theme, setTheme] = useState(() => {
+    return localStorage.getItem('vytal-theme') || 'light';
+  });
+
+  useEffect(() => {
+    document.documentElement.setAttribute('data-theme', theme);
+    localStorage.setItem('vytal-theme', theme);
+  }, [theme]);
+
+  const toggleTheme = () => {
+    setTheme(prev => prev === 'light' ? 'dark' : 'light');
+  };
+
   const [clinicConfig, setClinicConfig] = useState({
     name: 'Vytal',
     primaryColor: '#3949AB',
@@ -80,6 +93,19 @@ export function AppProvider({ children }) {
       }
     } catch(e) {
       console.log('Erro ao buscar perfil:', e);
+    }
+  };
+
+  const updateProfile = async (updates) => {
+    if (!profile?.id) return;
+    try {
+      setProfile(prev => ({ ...prev, ...updates }));
+      if (!isFirebaseConfigured) return;
+      const { doc, updateDoc } = await import('firebase/firestore');
+      const { db } = await import('../services/firebase');
+      await updateDoc(doc(db, 'users', profile.id), updates);
+    } catch (e) {
+      console.error('Erro ao atualizar perfil:', e);
     }
   };
 
@@ -266,11 +292,21 @@ export function AppProvider({ children }) {
     }
   };
 
-  const addSleepLog = async (patientId, hours, quality) => {
-    const date = new Date().toLocaleDateString('pt-BR');
+  const addSleepLog = async (patientId, date, hours, quality) => {
     const p = patients.find(pat => pat.id === patientId);
     if (!p) return;
-    const newSleepLogs = [...(p.sleepLogs || []), { date, hours: parseFloat(hours), quality }];
+    
+    const existingLogs = p.sleepLogs || [];
+    const logIndex = existingLogs.findIndex(log => log.date === date);
+    
+    let newSleepLogs;
+    if (logIndex >= 0) {
+      newSleepLogs = [...existingLogs];
+      newSleepLogs[logIndex] = { date, hours: parseFloat(hours), quality };
+    } else {
+      newSleepLogs = [...existingLogs, { date, hours: parseFloat(hours), quality }];
+    }
+
     setPatients(prev => prev.map(pat => pat.id === patientId ? { ...pat, sleepLogs: newSleepLogs } : pat));
     
     await updatePatient(patientId, { sleepLogs: newSleepLogs });
@@ -346,9 +382,9 @@ export function AppProvider({ children }) {
     }));
   };
 
-  const addAppointment = async (patientId, date, time, type) => {
+  const addAppointment = async (patientId, date, time, type, locationType = 'local', meetingLink = '') => {
     const localId = `local-${Date.now()}`;
-    const newAppt = { patientId, date, time, type, status: 'agendado' };
+    const newAppt = { patientId, date, time, type, status: 'agendado', locationType, meetingLink };
     if (profile) newAppt.nutricionista_id = profile.id;
 
     setAppointments(prev => [...prev, { id: localId, ...newAppt }]);
@@ -471,7 +507,7 @@ export function AppProvider({ children }) {
     <AppContext.Provider value={{
       session, profile,
       patients: computedPatients, activePatientId, setActivePatientId,
-      fetchProfile, fetchPatients, fetchAppointments,
+      fetchProfile, fetchPatients, fetchAppointments, updateProfile,
       clinicConfig, updateClinicConfig,
       addPatient, updatePatient, deletePatient,
       addRecipe, markMealDone, addExtraMealLog, markWorkoutDone, addWeight, addSleepLog, addExam, completeQuest, updateWater,
@@ -486,7 +522,9 @@ export function AppProvider({ children }) {
       setBypassPatient: (mockPat) => {
         setPatients([mockPat]);
         setActivePatientId(mockPat.id);
-      }
+      },
+      theme,
+      toggleTheme
     }}>
       {children}
     </AppContext.Provider>

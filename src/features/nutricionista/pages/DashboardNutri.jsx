@@ -24,6 +24,8 @@ export default function DashboardNutri() {
   const [apptTime, setApptTime] = useState('');
   const [apptDate, setApptDate] = useState('');
   const [apptType, setApptType] = useState('Retorno');
+  const [apptLocationType, setApptLocationType] = useState('local');
+  const [apptMeetingLink, setApptMeetingLink] = useState('');
 
   const [showPatientModal, setShowPatientModal] = useState(false);
   const [editingPatient, setEditingPatient] = useState(null);
@@ -92,10 +94,12 @@ export default function DashboardNutri() {
   const handleCreateAppointment = (e) => {
     e.preventDefault();
     if (apptPatientId && apptDate && apptTime) {
-      addAppointment(apptPatientId, apptDate, apptTime, apptType);
+      addAppointment(apptPatientId, apptDate, apptTime, apptType, apptLocationType, apptMeetingLink);
       setShowApptModal(false);
       setApptTime('');
       setApptDate('');
+      setApptLocationType('local');
+      setApptMeetingLink('');
     }
   };
 
@@ -137,7 +141,7 @@ export default function DashboardNutri() {
     if (editingPatient) {
       await updatePatient(editingPatient, { name: patName, objective: patObj, restrictions: patRest, cpf: patCpf, email: patEmail, age: patAge, gender: patGender, aversions: patAversions, medications: patMedications });
     } else {
-      const newId = await addPatient(patName, patObj, patRest, patCpf, patEmail, patAversions, patMedications, patAge, patGender);
+      const newId = await addPatient(patName, patObj, patRest, patCpf, normalizeEmail(patEmail), patAversions, patMedications, patAge, patGender);
       if (patEmail && newId) {
         const link = `${window.location.origin}/paciente?vincular=${newId}`;
         try {
@@ -151,6 +155,7 @@ export default function DashboardNutri() {
         }
         // Abre o perfil do paciente recém-criado onde o link de cópia rápida está disponível no topo
         setViewingPatientId(newId);
+        alert('Paciente cadastrado com sucesso!');
       }
     }
     setShowPatientModal(false);
@@ -369,7 +374,10 @@ Você deve retornar EXATAMENTE UM JSON contendo os seguintes campos:
 - days: Um array de objetos representando cada dia de treino da rotina.
 Cada objeto em 'days' deve ter:
   - dayName: O nome do dia ou divisão (Ex: "Treino A - Peito e Tríceps", "Treino B - Costas")
-  - exercises: Um array de strings, onde cada string é um exercício formatado. (Ex: "Supino Reto 4x10 a 12 (Descanso 60s)")
+  - exercises: Um array de objetos. Cada objeto deve ter:
+    - name: O nome do exercício (Ex: "Supino Reto")
+    - sets: Número de séries (Ex: "4")
+    - reps: Repetições e instruções (Ex: "10 a 12 (Descanso 60s)")
 
 Não inclua textos fora do JSON. Apenas o JSON puro.`;
 
@@ -432,7 +440,6 @@ Não inclua textos fora do JSON. Apenas o JSON puro.`;
     let formattedMeals = [];
     if (dietTitle && dietMeals.length > 0) {
       formattedMeals = dietMeals.map(m => ({ ...m, done: false, log: null }));
-      addRecipe(activePatient.id, dietTitle, formattedMeals, dietDescription, dietSupplements);
     }
     if (activeApptId) markAppointmentDone(activeApptId);
 
@@ -445,7 +452,8 @@ Não inclua textos fora do JSON. Apenas o JSON puro.`;
       dietTitle: dietTitle,
       dietMeals: formattedMeals,
       dietSupplements: dietSupplements,
-      dietDescription: dietDescription
+      dietDescription: dietDescription,
+      workoutPlan: workoutPlan
     };
     
     const updatedConsultations = [...(activePatient.consultations || []), newConsultation];
@@ -454,6 +462,15 @@ Não inclua textos fora do JSON. Apenas o JSON puro.`;
       records: activePatient.records + `\n\n[Consulta - ${new Date().toLocaleDateString('pt-BR')}]:\n${anamnesis}`,
       consultations: updatedConsultations
     };
+
+    if (dietTitle && dietMeals.length > 0) {
+      updatePayload.recipes = [{
+        title: dietTitle,
+        description: dietDescription,
+        supplements: dietSupplements,
+        meals: formattedMeals
+      }];
+    }
 
     if (workoutPlan) {
       updatePayload.workoutPlan = workoutPlan;
@@ -517,6 +534,8 @@ Não inclua textos fora do JSON. Apenas o JSON puro.`;
         apptTime={apptTime} setApptTime={setApptTime}
         apptDate={apptDate} setApptDate={setApptDate}
         apptType={apptType} setApptType={setApptType}
+        apptLocationType={apptLocationType} setApptLocationType={setApptLocationType}
+        apptMeetingLink={apptMeetingLink} setApptMeetingLink={setApptMeetingLink}
         handleCreateAppointment={handleCreateAppointment} cancelAppointment={cancelAppointment} startConsultation={startConsultation}
         showPatientModal={showPatientModal} setShowPatientModal={setShowPatientModal}
         openNewPatientModal={openNewPatientModal} openEditPatientModal={openEditPatientModal} editingPatient={editingPatient} handleDeletePatient={handleDeletePatient}

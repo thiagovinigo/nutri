@@ -45,8 +45,27 @@
   --crm-sidebar-active: #FFFFFF;
 }
 
+[data-theme='dark'] {
+  /* Patient App Dark Variables */
+  --patient-bg: #0F172A; /* Slate 900 */
+  --patient-surface: #1E293B; /* Slate 800 */
+  --patient-surface-2: #334155; /* Slate 700 */
+  --patient-text: #F8FAFC; /* Slate 50 */
+  --patient-text-muted: #94A3B8; /* Slate 400 */
+  --glass-border: rgba(255, 255, 255, 0.1);
+  --glass-bg: rgba(30, 41, 59, 0.7);
+
+  /* CRM Dashboard Dark Variables */
+  --crm-bg: #0F172A; 
+  --crm-surface: #1E293B;
+  --crm-border: #334155;
+  --crm-text-main: #F8FAFC;
+  --crm-text-muted: #94A3B8;
+  --crm-accent-soft: #064E3B; /* Darker background for accented elements */
+}
+
 * { box-sizing: border-box; margin: 0; padding: 0; }
-body { overflow-x: hidden; -webkit-font-smoothing: antialiased; font-family: var(--font-family-patient); color: var(--patient-text);}
+body { overflow-x: hidden; -webkit-font-smoothing: antialiased; font-family: var(--font-family-patient); color: var(--patient-text); background-color: var(--patient-bg); transition: background-color 0.3s, color 0.3s;}
 
 /* ----------------------------------------------------
    PATIENT PREMIUM UI (Dark Mode) 
@@ -130,6 +149,12 @@ body { overflow-x: hidden; -webkit-font-smoothing: antialiased; font-family: var
   padding: 24px 16px;
   display: flex;
   flex-direction: column;
+}
+
+.crm-container {
+  background-color: var(--crm-bg);
+  color: var(--crm-text-main);
+  transition: background-color 0.3s, color 0.3s;
 }
 .crm-sidebar-brand {
   color: var(--crm-sidebar-active);

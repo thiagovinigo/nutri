@@ -1,7 +1,9 @@
 import React, { useState } from 'react';
-import { Flame, Hexagon, Bell } from 'lucide-react';
+import { Flame, Hexagon, Bell, Moon } from 'lucide-react';
+import { useAppContext } from '../../context/AppContext';
 
 export default function TopBar({ streak, gems, notifications = [], onOpenNotifications }) {
+  const { theme, toggleTheme } = useAppContext();
   const [open, setOpen] = useState(false);
   const unreadCount = notifications.filter(n => !n.read).length;
 
@@ -29,7 +31,11 @@ export default function TopBar({ streak, gems, notifications = [], onOpenNotific
           <span style={styles.statText}>{gems}</span>
         </div>
 
-        <div style={{ position: 'relative' }}>
+        <div style={{ position: 'relative', display: 'flex', gap: '12px' }}>
+          <button onClick={toggleTheme} style={styles.bellBtn} aria-label="Dark Mode">
+            <Moon size={20} color={theme === 'dark' ? 'var(--primary-color)' : 'var(--patient-text-muted)'} />
+          </button>
+          
           <button onClick={handleToggle} style={styles.bellBtn} aria-label="Notificações">
             <Bell size={20} color="var(--patient-text-muted)" />
             {unreadCount > 0 && <span style={styles.badge}>{unreadCount}</span>}

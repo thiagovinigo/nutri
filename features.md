@@ -18,12 +18,14 @@ Este documento detalha o mapa de funcionalidades do Vytal, dividindo o que já f
 - **Notificações:** Sino de notificação no topo com contador de alertas enviados pelo nutricionista.
 - **Tracking de Peso:** Modal customizado para registro de peso diretamente pela interface do aplicativo.
 
-### CRM do Nutricionista
+### CRM do Nutricionista e Personal
 - **Gestão de Pacientes:** Lista, prontuário detalhado, e histórico de evolução do paciente.
 - **Sistema de Convites Inteligente:** Geração de link de convite único que amarra o paciente ao nutricionista no primeiro acesso.
 - **Envio Automático (Mailto):** Envio automático de e-mail de boas-vindas com o link de convite assim que o nutricionista salva o cadastro.
 - **Proteção Anti-Duplicidade:** O sistema impede que o profissional crie duas fichas para o mesmo paciente (validação por CPF e E-mail).
 - **Painel de Retenção e Engajamento:** O nutricionista visualiza em tempo real o nível de XP e a "ofensiva" (streak de dias seguidos) de cada paciente na lista.
+- **Consultas Híbridas:** Agendamento de consultas com modalidade (Local/Online) e geração de link do Google Meet/Zoom integrado.
+- **Editor de Treinos:** Prescrição manual de planilhas de exercícios físicos diretamente no prontuário do paciente, integrados à visualização do App Mobile.
 
 ### IA Nativa e IA Clínica
 - **Geração de Dietas Automática:** O Vytal Bot cria o cardápio baseando-se nos inputs e preferências coletados.
