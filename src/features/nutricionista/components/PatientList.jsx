@@ -400,7 +400,9 @@ export default function PatientList({
                           <div key={appt.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 0', borderBottom: '1px solid var(--crm-border)' }}>
                             <div>
                               <div style={{ fontWeight: '600', fontSize: '0.92rem' }}>{pat.name}</div>
-                              <div style={{ fontSize: '0.8rem', color: 'var(--crm-text-muted)' }}>{appt.type}</div>
+                              <div style={{ fontSize: '0.8rem', color: 'var(--crm-text-muted)' }}>
+                                {appt.date ? `${appt.date.split('-').reverse().slice(0, 2).join('/')} - ` : ''}{appt.type}
+                              </div>
                             </div>
                             <span style={{ fontWeight: '700', fontVariantNumeric: 'tabular-nums' }}>{appt.time}</span>
                           </div>
