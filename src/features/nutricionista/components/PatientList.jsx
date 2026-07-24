@@ -1492,8 +1492,8 @@ export default function PatientList({
                             {idx + 1}
                           </div>
                           <div style={{ flex: 1 }}>
-                            <div style={{ fontWeight: '600', color: 'var(--crm-text-main)' }}>{p.name}</div>
-                            <div style={{ fontSize: '0.8rem', color: 'var(--crm-text-muted)' }}>🔥 {p.streak} dias de foco</div>
+                            <div style={{ fontWeight: '600', color: idx === 0 ? '#854D0E' : 'var(--crm-text-main)' }}>{p.name}</div>
+                            <div style={{ fontSize: '0.8rem', color: idx === 0 ? '#A16207' : 'var(--crm-text-muted)' }}>🔥 {p.streak} dias de foco</div>
                           </div>
                           <div style={{ fontWeight: 'bold', color: '#EAB308', fontSize: '1.2rem' }}>
                             {p.xp} XP
