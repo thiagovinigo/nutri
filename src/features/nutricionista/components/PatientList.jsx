@@ -1846,19 +1846,26 @@ export default function PatientList({
               <div style={{ display: 'flex', gap: '16px', marginBottom: '16px' }}>
                 <div style={{ flex: 1 }}>
                   <label className="crm-label">CPF</label>
-                  <input type="text" className="crm-input" placeholder="000.000.000-00" value={patCpf} onChange={e => setPatCpf(e.target.value)} required />
+                  <input type="text" className="crm-input" placeholder="000.000.000-00" value={patCpf} onChange={e => {
+                    let v = e.target.value.replace(/\D/g, '');
+                    if (v.length > 11) v = v.slice(0, 11);
+                    v = v.replace(/(\d{3})(\d)/, '$1.$2');
+                    v = v.replace(/(\d{3})(\d)/, '$1.$2');
+                    v = v.replace(/(\d{3})(\d{1,2})$/, '$1-$2');
+                    setPatCpf(v);
+                  }} required />
                 </div>
                 <div style={{ flex: 1 }}>
                   <label className="crm-label">E-mail</label>
                   <input type="email" className="crm-input" placeholder="email@paciente.com" value={patEmail} onChange={e => setPatEmail(e.target.value)} required />
                 </div>
               </div>
-              <div style={{ display: 'flex', gap: '16px', marginBottom: '16px' }}>
-                <div style={{ flex: 1 }}>
+              <div style={{ display: 'flex', gap: '12px', marginBottom: '16px' }}>
+                <div style={{ flex: 1.2 }}>
                   <label className="crm-label">Data de Nascimento</label>
                   <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-                    <input type="date" className="crm-input" value={patBirthDate} onChange={e => setPatBirthDate(e.target.value)} required style={{ flex: 2 }} />
-                    <div style={{ flex: 1, padding: '8px 12px', backgroundColor: 'var(--crm-surface)', border: '1px solid var(--crm-border)', borderRadius: '8px', color: 'var(--crm-text-light)', textAlign: 'center', height: '42px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <input type="date" className="crm-input" value={patBirthDate} onChange={e => setPatBirthDate(e.target.value)} required style={{ flex: 2, padding: '10px 8px' }} />
+                    <div style={{ flex: 1, padding: '8px 4px', backgroundColor: 'var(--crm-surface)', border: '1px solid var(--crm-border)', borderRadius: '8px', color: 'var(--crm-text-light)', textAlign: 'center', height: '42px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.85rem' }}>
                       {(() => {
                         if (!patBirthDate) return 'Idade';
                         const today = new Date();
@@ -1866,14 +1873,14 @@ export default function PatientList({
                         let age = today.getFullYear() - bDate.getFullYear();
                         const m = today.getMonth() - bDate.getMonth();
                         if (m < 0 || (m === 0 && today.getDate() < bDate.getDate())) { age--; }
-                        return isNaN(age) ? 'Idade' : `${age} anos`;
+                        return isNaN(age) ? 'Idade' : `${age} a`;
                       })()}
                     </div>
                   </div>
                 </div>
-                <div style={{ flex: 1 }}>
+                <div style={{ flex: 0.8 }}>
                   <label className="crm-label">Gênero</label>
-                  <select className="crm-input" value={patGender} onChange={e => setPatGender(e.target.value)}>
+                  <select className="crm-input" value={patGender} onChange={e => setPatGender(e.target.value)} style={{ padding: '10px 8px' }}>
                     <option value="M">Masculino</option>
                     <option value="F">Feminino</option>
                   </select>
