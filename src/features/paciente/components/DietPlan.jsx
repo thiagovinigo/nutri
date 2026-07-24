@@ -29,7 +29,7 @@ export default function DietPlan({ activePatient }) {
     );
   };
 
-  const handleGenerateRecipe = async (meal, mIdx) => {
+  const handleGenerateRecipe = async (meal, mIdx, recipeTitle) => {
     setLoadingMealIdx(mIdx);
     setIsRecipeLoading(true);
     setFlippedCards(prev => ({ ...prev, [mIdx]: true }));
@@ -57,9 +57,17 @@ export default function DietPlan({ activePatient }) {
       if (!response.ok) throw new Error('Network error');
       const data = await response.json();
       const content = data.choices[0].message.content;
-      setRecipeModal({ mIdx, content });
+      
+      // Salva no banco de dados do paciente para não perder ao trocar de aba
+      const recipeKey = `${recipeTitle}-${meal.name}`;
+      const newAiRecipes = { ...(activePatient.aiRecipes || {}) };
+      newAiRecipes[recipeKey] = content;
+      updatePatient(activePatient.id, { aiRecipes: newAiRecipes });
+      
     } catch (err) {
-      setRecipeModal({ mIdx, content: 'Infelizmente não foi possível gerar a receita no momento. Verifique sua conexão e tente novamente.' });
+      // Se der erro, salva a mensagem de erro (ou não salva nada, só mostra um alert)
+      alert('Infelizmente não foi possível gerar a receita no momento. Verifique sua conexão e tente novamente.');
+      setFlippedCards(prev => ({ ...prev, [mIdx]: false }));
     } finally {
       setIsRecipeLoading(false);
       setLoadingMealIdx(null);
@@ -271,7 +279,8 @@ export default function DietPlan({ activePatient }) {
                   const hasDayPrefix = /Dia \d+/i.test(m.name || '');
                   if (hasDayPrefix && !new RegExp(`Dia ${selectedPlanDay}\\b`, 'i').test(m.name || '')) return null;
                   const isFlipped = !!flippedCards[mIdx];
-                  const savedRecipe = recipeModal?.mIdx === mIdx ? recipeModal.content : null;
+                  const recipeKey = `${r.title}-${m.name}`;
+                  const savedRecipe = activePatient.aiRecipes?.[recipeKey];
                   const done = isMealDone(m.name);
 
                   return (
@@ -323,7 +332,7 @@ export default function DietPlan({ activePatient }) {
 
                             {/* IA Recipe button */}
                             <button
-                              onClick={() => savedRecipe ? toggleFlip(mIdx) : handleGenerateRecipe(m, mIdx)}
+                              onClick={() => savedRecipe ? toggleFlip(mIdx) : handleGenerateRecipe(m, mIdx, r.title)}
                               disabled={isRecipeLoading && loadingMealIdx === mIdx}
                               style={{ backgroundColor: '#8b5cf6', color: '#FFF', border: 'none', padding: '8px 16px', borderRadius: '12px', fontWeight: 'bold', display: 'inline-flex', alignItems: 'center', gap: '6px', cursor: 'pointer', boxShadow: '0 3px 0 #7c3aed', fontSize: '0.82rem', transition: 'all 0.2s' }}
                             >
