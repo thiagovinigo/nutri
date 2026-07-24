@@ -408,7 +408,7 @@ body { overflow-x: hidden; -webkit-font-smoothing: antialiased; font-family: var
 
 .settings-content {
   flex: 1;
-  background: white;
+  background: var(--crm-surface);
   border-radius: 12px;
   box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
   border: 1px solid var(--crm-border);
@@ -443,7 +443,7 @@ body { overflow-x: hidden; -webkit-font-smoothing: antialiased; font-family: var
   padding: 8px 16px;
   border-radius: 20px;
   border: 1px solid var(--crm-border);
-  background: white;
+  background: var(--crm-surface);
   color: var(--crm-text-muted);
   font-weight: 500;
   font-size: 0.9rem;

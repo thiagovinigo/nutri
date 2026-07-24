@@ -86,56 +86,58 @@ export default function PatientApp() {
     try {
       const normalizedEmail = loginEmail.trim().toLowerCase();
       
-      // 1. Tenta logar no Firebase com o CPF como senha
       const { signInWithEmailAndPassword, createUserWithEmailAndPassword } = await import('firebase/auth');
       const { auth, db } = await import('../../../services/firebase');
       const { doc, getDoc, setDoc, deleteDoc } = await import('firebase/firestore');
-      
+
+      // 1. Funcao auxiliar para vincular a ficha ao Auth
+      const linkPatient = async (user, vincularId) => {
+        const tempDocRef = doc(db, 'patients', vincularId);
+        const tempDocSnap = await getDoc(tempDocRef);
+        
+        if (tempDocSnap.exists()) {
+          const data = tempDocSnap.data();
+          await setDoc(doc(db, 'users', user.uid), { role: 'paciente', email: normalizedEmail }, { merge: true });
+          await setDoc(doc(db, 'patients', user.uid), { ...data, id: user.uid }, { merge: true });
+          await deleteDoc(tempDocRef);
+          await fetchProfile(user.uid);
+          window.history.replaceState({}, document.title, window.location.pathname);
+          return true;
+        }
+        return false;
+      };
+
+      const params = new URLSearchParams(window.location.search);
+      const vincularId = params.get('vincular');
+
       try {
-        await signInWithEmailAndPassword(auth, normalizedEmail, loginCpf);
+        const userCredential = await signInWithEmailAndPassword(auth, normalizedEmail, loginCpf);
+        if (vincularId) {
+          const linked = await linkPatient(userCredential.user, vincularId);
+          if (!linked) setLoginError('Link de convite inválido ou já utilizado, mas login efetuado com sucesso.');
+        }
         setIsLoggedIn(true);
       } catch (authError) {
-        // Se der erro (usuário não encontrado ou credencial inválida), verifica se há link de vínculo
-        const params = new URLSearchParams(window.location.search);
-        const vincularId = params.get('vincular');
-        
         if (vincularId) {
           // É o primeiro acesso, vamos registrar o paciente com o CPF sendo a senha
           const userCredential = await createUserWithEmailAndPassword(auth, normalizedEmail, loginCpf);
-          const user = userCredential.user;
-          
-          // Buscar o doc temporário no Firestore criado pelo Nutricionista
-          const tempDocRef = doc(db, 'patients', vincularId);
-          const tempDocSnap = await getDoc(tempDocRef);
-          
-          if (tempDocSnap.exists()) {
-            const data = tempDocSnap.data();
-            
-            // Criar o perfil de acesso como paciente
-            await setDoc(doc(db, 'users', user.uid), { role: 'paciente', email: normalizedEmail });
-            
-            // Mover os dados da ficha para o ID do Firebase Auth
-            await setDoc(doc(db, 'patients', user.uid), { ...data, id: user.uid });
-            
-            // Deletar o documento temporário para não sujar o BD
-            await deleteDoc(tempDocRef);
-            
-            // Força a atualização do contexto agora que o documento existe
-            await fetchProfile(user.uid);
-
-            // Remover o parÃ¢metro da URL
-            window.history.replaceState({}, document.title, window.location.pathname);
+          const linked = await linkPatient(userCredential.user, vincularId);
+          if (linked) {
             setIsLoggedIn(true);
           } else {
             setLoginError('Link de convite inválido ou já utilizado.');
           }
         } else {
-          setLoginError('Paciente não encontrado. Verifique seu E-mail e CPF ou acesse pelo link enviado pela sua Nutri no primeiro acesso.');
+          setLoginError('Paciente não encontrado. Verifique seu E-mail e CPF ou acesse pelo link enviado pela sua Nutri.');
         }
       }
     } catch (error) {
       console.error("Erro no login:", error);
-      setLoginError(getFirebaseErrorMessage(error));
+      if (error.code === 'auth/email-already-in-use') {
+        setLoginError('Este e-mail já possui cadastro. Por favor, use o CPF que você cadastrou originalmente para entrar.');
+      } else {
+        setLoginError(getFirebaseErrorMessage(error));
+      }
     }
   };
 

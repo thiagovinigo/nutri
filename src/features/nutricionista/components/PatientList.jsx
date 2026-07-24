@@ -248,8 +248,9 @@ export default function PatientList({
     }, 2000);
   };
 
-  // KPIs para o Dashboard de Retenção
-  const activePatients = patients; // Alterado para contabilizar todos os pacientes cadastrados
+  const activePatients = patients.filter(p => p.status !== 'inativo');
+  const inactivePatients = patients.filter(p => p.status === 'inativo');
+  
   const totalXP = activePatients.reduce((sum, p) => sum + (p.xp || 0), 0);
   const avgStreak = activePatients.length > 0
     ? Math.round(activePatients.reduce((sum, p) => sum + (p.streak || 0), 0) / activePatients.length)
@@ -357,8 +358,11 @@ export default function PatientList({
 
               <div style={{ display: 'flex', gap: '24px', marginBottom: '32px', flexWrap: 'wrap' }}>
                 <div className="crm-card" style={{ flex: '1 1 200px' }}>
-                  <div style={{ fontSize: '0.85rem', color: 'var(--crm-text-muted)', fontWeight: '600', textTransform: 'uppercase', letterSpacing: '0.04em' }}>Pacientes Ativos</div>
-                  <div style={{ fontSize: '2rem', fontWeight: '700', color: 'var(--crm-text-main)', marginTop: '4px' }}>{activePatients.length}</div>
+                  <div style={{ fontSize: '0.85rem', color: 'var(--crm-text-muted)', fontWeight: '600', textTransform: 'uppercase', letterSpacing: '0.04em' }}>Pacientes Ativos / Inativos</div>
+                  <div style={{ display: 'flex', alignItems: 'baseline', gap: '8px', marginTop: '4px' }}>
+                    <span style={{ fontSize: '2rem', fontWeight: '700', color: 'var(--crm-text-main)' }}>{activePatients.length}</span>
+                    <span style={{ fontSize: '1.2rem', fontWeight: '600', color: 'var(--crm-text-muted)' }}>/ {inactivePatients.length}</span>
+                  </div>
                 </div>
                 <div className="crm-card" style={{ flex: '1 1 200px' }}>
                   <div style={{ fontSize: '0.85rem', color: 'var(--crm-text-muted)', fontWeight: '600', textTransform: 'uppercase', letterSpacing: '0.04em' }}>Consultas Hoje</div>

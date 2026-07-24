@@ -88,6 +88,7 @@ export default function DashboardNutri() {
   const [dietError, setDietError] = useState('');
   const [synthesisError, setSynthesisError] = useState('');
   const [finishedMessage, setFinishedMessage] = useState('');
+  const [toastMessage, setToastMessage] = useState('');
 
   const activePatient = patients.find(p => p.id === activePatientId) || patients[0];
 
@@ -169,7 +170,8 @@ export default function DashboardNutri() {
         }
         // Abre o perfil do paciente recém-criado onde o link de cópia rápida está disponível no topo
         setViewingPatientId(newId);
-        alert('Paciente cadastrado com sucesso!');
+        setToastMessage('Paciente cadastrado com sucesso!');
+        setTimeout(() => setToastMessage(''), 3000);
       }
     }
     setShowPatientModal(false);
@@ -539,6 +541,11 @@ Não inclua textos fora do JSON. Apenas o JSON puro.`;
 
   return (
     <div style={{ '--crm-primary': clinicConfig.primaryColor }}>
+      {toastMessage && (
+        <div style={{ position: 'fixed', top: '20px', right: '20px', background: 'var(--crm-good)', color: 'white', padding: '16px 24px', borderRadius: '8px', zIndex: 9999, boxShadow: '0 4px 12px rgba(0,0,0,0.15)', fontWeight: '600', animation: 'fadeIn 0.3s ease' }}>
+          {toastMessage}
+        </div>
+      )}
       <PatientList
         view={view} setView={setView}
         patients={patients} appointments={appointments}
