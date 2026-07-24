@@ -555,8 +555,8 @@ export default function PatientList({
                         <td style={{ color: 'var(--crm-text-muted)', fontSize: '0.9rem' }}>{p.objective}</td>
                         <td>🔥 {p.streak} dias</td>
                         <td>
-                          {p.status === 'engajado' && <span className="crm-badge-green">Alto Engajamento</span>}
-                          {p.status === 'em_risco' && <span className="crm-badge-orange">Perdendo Foco</span>}
+                          {(p.status === 'engajado' || p.status === 'ativo') && <span style={{ padding: '4px 10px', borderRadius: '16px', fontSize: '0.8rem', fontWeight: '600', backgroundColor: '#DCFCE7', color: '#16A34A' }}>Alto Engajamento</span>}
+                          {p.status === 'em_risco' && <span style={{ padding: '4px 10px', borderRadius: '16px', fontSize: '0.8rem', fontWeight: '600', backgroundColor: '#FEF3C7', color: '#D97706' }}>Perdendo Foco</span>}
                           {p.status === 'inativo' && <span style={{ padding: '4px 10px', borderRadius: '16px', fontSize: '0.8rem', fontWeight: '600', backgroundColor: '#FEE2E2', color: '#EF4444' }}>Inativo</span>}
                         </td>
                         <td>
