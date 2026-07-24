@@ -120,14 +120,21 @@ export function AppProvider({ children }) {
         if (docSnap.exists()) {
           const patData = docSnap.data();
           if (patData.nutricionista_id) {
-             const nutriRef = doc(db, 'users', patData.nutricionista_id);
-             const nutriSnap = await getDoc(nutriRef);
-             if (nutriSnap.exists()) {
-               patData.nutriName = nutriSnap.data().name;
+             try {
+               const nutriRef = doc(db, 'users', patData.nutricionista_id);
+               const nutriSnap = await getDoc(nutriRef);
+               if (nutriSnap.exists()) {
+                 patData.nutriName = nutriSnap.data().name;
+               }
+             } catch(err) {
+               console.warn("Aviso: Sem permissão para ler o nome do nutricionista.", err);
              }
           }
           setPatients([{ id: docSnap.id, ...patData }]);
           setActivePatientId(docSnap.id);
+        } else {
+          // O documento na coleção patients não existe! (Provavelmente erro no vínculo anterior)
+          setProfile(prev => ({ ...prev, role: 'incomplete_patient' }));
         }
       } else {
         const q = query(collection(db, 'patients'), where('nutricionista_id', '==', profile.id));
