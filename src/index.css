@@ -66,26 +66,6 @@
   --crm-accent-soft: #064E3B; /* Darker background for accented elements */
 }
 
-/* Força reset completo para o wrapper do CRM — sobrescreve qualquer dark
-   herdado do html[data-theme='dark'] do app do paciente */
-.crm-light-theme {
-  --patient-bg: #F8FAFC;
-  --patient-surface: #FFFFFF;
-  --patient-surface-2: #F1F5F9;
-  --patient-text: #0F172A;
-  --patient-text-muted: #64748B;
-  --glass-border: rgba(15, 23, 42, 0.08);
-  --glass-bg: rgba(255, 255, 255, 0.7);
-
-  --crm-bg: #F8FAFC;
-  --crm-surface: #FFFFFF;
-  --crm-hover-bg: #FAFAFB;
-  --crm-border: #E2E8F0;
-  --crm-text-main: #0F172A;
-  --crm-text-muted: #64748B;
-  --crm-accent-soft: #D1FAE5;
-}
-
 * { box-sizing: border-box; margin: 0; padding: 0; }
 body { overflow-x: hidden; -webkit-font-smoothing: antialiased; font-family: var(--font-family-patient); color: var(--patient-text); background-color: var(--patient-bg); transition: background-color 0.3s, color 0.3s;}
 
