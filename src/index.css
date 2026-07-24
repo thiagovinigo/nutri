@@ -68,7 +68,7 @@
 
 /* Força reset completo para o wrapper do CRM — sobrescreve qualquer dark
    herdado do html[data-theme='dark'] do app do paciente */
-[data-theme='light'] {
+.crm-light-theme {
   --patient-bg: #F8FAFC;
   --patient-surface: #FFFFFF;
   --patient-surface-2: #F1F5F9;
