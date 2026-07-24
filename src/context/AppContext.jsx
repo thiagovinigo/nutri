@@ -518,10 +518,12 @@ export function AppProvider({ children }) {
 
   const computedPatients = patients.map(p => {
     let computedStatus = p.status || 'inativo';
-    if (p.xp > 0 || p.streak > 0) {
+    if (p.streak > 0 || p.xp > 10) {
       if (p.streak === 0) computedStatus = 'em_risco';
       else if (p.streak >= 3) computedStatus = 'engajado';
       else computedStatus = 'ativo';
+    } else if (p.status === 'ativo') {
+      computedStatus = 'ativo'; // Respeita pacientes recém-cadastrados
     } else {
       computedStatus = 'inativo';
     }

@@ -588,7 +588,7 @@ export default function PatientList({
                 <div style={{ display: 'flex', gap: '12px' }}>
 
                   <button className={copiedPatientLink ? "crm-btn-primary" : "crm-btn-secondary"} onClick={() => {
-                    const link = `${window.location.origin}/paciente?vincular=${viewedPatient.id}`;
+                    const link = `${window.location.origin}/cadastro?vincular=${viewedPatient.id}`;
                     navigator.clipboard.writeText(link);
                     setCopiedPatientLink(true);
                     setTimeout(() => setCopiedPatientLink(false), 2000);

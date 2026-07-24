@@ -9,7 +9,12 @@ import { useAppContext } from '../context/AppContext';
 export default function SignUp() {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
+  const [cpf, setCpf] = useState('');
+  const [birthDate, setBirthDate] = useState('');
+  const [crn, setCrn] = useState('');
   const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [isLinked, setIsLinked] = useState(false);
   const [role, setRole] = useState('paciente'); // Padrão
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
@@ -17,25 +22,45 @@ export default function SignUp() {
   const { fetchProfile } = useAppContext();
   const searchParams = new URLSearchParams(window.location.search);
   const nutriIdParam = searchParams.get('nutri');
+  const vincularId = searchParams.get('vincular');
 
   const roleParam = searchParams.get('role');
 
-  // Se vier com o parâmetro, já trava no papel de paciente
+  // Se vier com o parâmetro, já trava no papel de paciente e preenche dados
   React.useEffect(() => {
-    if (nutriIdParam) {
+    if (vincularId) {
+      setRole('paciente');
+      setIsLinked(true);
+      const tempDocRef = doc(db, 'patients', vincularId);
+      getDoc(tempDocRef).then(snap => {
+        if (snap.exists()) {
+          const data = snap.data();
+          if (data.name) setName(data.name);
+          if (data.email) setEmail(data.email);
+          if (data.cpf) setCpf(data.cpf);
+          if (data.birthDate) setBirthDate(data.birthDate);
+        }
+      }).catch(e => console.warn('Erro ao carregar dados do link direto', e));
+    } else if (nutriIdParam) {
       setRole('paciente');
     } else if (roleParam === 'nutricionista') {
       setRole('nutricionista');
     } else {
       setRole('paciente');
     }
-  }, [nutriIdParam, roleParam]);
+  }, [nutriIdParam, roleParam, vincularId]);
 
   const handleSignUp = async (e) => {
     e.preventDefault();
     setLoading(true);
     setErrorMsg('');
     
+    if (password !== confirmPassword) {
+      setErrorMsg('As senhas não conferem.');
+      setLoading(false);
+      return;
+    }
+
     if (!auth || !db) {
       setErrorMsg('Firebase não está configurado. Preencha o arquivo .env!');
       setLoading(false);
@@ -47,20 +72,26 @@ export default function SignUp() {
       const userCredential = await createUserWithEmailAndPassword(auth, email, password);
       const user = userCredential.user;
       
-      // Salva o documento do usuário (role e nome)
-      await setDoc(doc(db, 'users', user.uid), {
+      const userDoc = {
         name: name,
         email: email,
         role: role,
         createdAt: new Date().toISOString()
-      });
+      };
+      if (role === 'nutricionista' && crn) {
+        userDoc.crn = crn;
+      }
 
-      // Se for paciente, criamos também o registro inicial em 'patients' para não dar erro no AppContext
+      // Salva o documento do usuário (role e nome)
+      await setDoc(doc(db, 'users', user.uid), userDoc);
+
       // Se for paciente, criamos também o registro inicial em 'patients' para não dar erro no AppContext
       if (role === 'paciente') {
         let initialData = {
           name: name,
           email: email, // garantindo o email no doc também
+          cpf: cpf,
+          birthDate: birthDate,
           nutricionista_id: nutriIdParam || null,
           objective: 'Melhorar alimentação',
           restrictions: 'Nenhuma registrada',
@@ -80,7 +111,7 @@ export default function SignUp() {
             const tempDocSnap = await getDoc(tempDocRef);
             if (tempDocSnap.exists()) {
               // Mescla os dados do cadastro temporário com o default (sobrescrevendo o default)
-              initialData = { ...initialData, ...tempDocSnap.data(), name: name, email: email, status: 'ativo' };
+              initialData = { ...initialData, ...tempDocSnap.data(), name: name, email: email, cpf: cpf, birthDate: birthDate, status: 'ativo' };
               // Deleta o temporário
               await deleteDoc(tempDocRef);
             }
@@ -127,11 +158,38 @@ export default function SignUp() {
             <input 
               type="text" 
               required
-              style={{ width: '100%', padding: '10px 12px', borderRadius: '6px', border: '1px solid #cbd5e1' }}
+              disabled={isLinked}
+              style={{ width: '100%', padding: '10px 12px', borderRadius: '6px', border: '1px solid #cbd5e1', backgroundColor: isLinked ? '#f1f5f9' : 'white' }}
               value={name}
               onChange={e => setName(e.target.value)}
               placeholder="João da Silva"
             />
+          </div>
+
+          <div style={{ display: 'flex', gap: '16px', marginBottom: '16px' }}>
+            <div style={{ flex: 1 }}>
+              <label style={{ display: 'block', marginBottom: '6px', fontWeight: '500', color: '#334155' }}>CPF</label>
+              <input 
+                type="text" 
+                required
+                disabled={isLinked}
+                style={{ width: '100%', padding: '10px 12px', borderRadius: '6px', border: '1px solid #cbd5e1', backgroundColor: isLinked ? '#f1f5f9' : 'white' }}
+                value={cpf}
+                onChange={e => setCpf(e.target.value)}
+                placeholder="111.111.111-11"
+              />
+            </div>
+            <div style={{ flex: 1 }}>
+              <label style={{ display: 'block', marginBottom: '6px', fontWeight: '500', color: '#334155' }}>Data Nasc.</label>
+              <input 
+                type="date" 
+                required
+                disabled={isLinked}
+                style={{ width: '100%', padding: '10px 12px', borderRadius: '6px', border: '1px solid #cbd5e1', backgroundColor: isLinked ? '#f1f5f9' : 'white' }}
+                value={birthDate}
+                onChange={e => setBirthDate(e.target.value)}
+              />
+            </div>
           </div>
 
           <div style={{ marginBottom: '16px' }}>
@@ -139,24 +197,53 @@ export default function SignUp() {
             <input 
               type="email" 
               required
-              style={{ width: '100%', padding: '10px 12px', borderRadius: '6px', border: '1px solid #cbd5e1' }}
+              disabled={isLinked}
+              style={{ width: '100%', padding: '10px 12px', borderRadius: '6px', border: '1px solid #cbd5e1', backgroundColor: isLinked ? '#f1f5f9' : 'white' }}
               value={email}
               onChange={e => setEmail(e.target.value)}
               placeholder="joao@email.com"
             />
           </div>
 
-          <div style={{ marginBottom: '24px' }}>
-            <label style={{ display: 'block', marginBottom: '6px', fontWeight: '500', color: '#334155' }}>Senha</label>
-            <input 
-              type="password" 
-              required
-              style={{ width: '100%', padding: '10px 12px', borderRadius: '6px', border: '1px solid #cbd5e1' }}
-              value={password}
-              onChange={e => setPassword(e.target.value)}
-              placeholder="Minimo 6 caracteres"
-              minLength="6"
-            />
+          {role === 'nutricionista' && (
+            <div style={{ marginBottom: '16px' }}>
+              <label style={{ display: 'block', marginBottom: '6px', fontWeight: '500', color: '#334155' }}>CRN</label>
+              <input 
+                type="text" 
+                required
+                style={{ width: '100%', padding: '10px 12px', borderRadius: '6px', border: '1px solid #cbd5e1' }}
+                value={crn}
+                onChange={e => setCrn(e.target.value)}
+                placeholder="Ex: CRN-3 12345"
+              />
+            </div>
+          )}
+
+          <div style={{ display: 'flex', gap: '16px', marginBottom: '24px' }}>
+            <div style={{ flex: 1 }}>
+              <label style={{ display: 'block', marginBottom: '6px', fontWeight: '500', color: '#334155' }}>Senha</label>
+              <input 
+                type="password" 
+                required
+                style={{ width: '100%', padding: '10px 12px', borderRadius: '6px', border: '1px solid #cbd5e1' }}
+                value={password}
+                onChange={e => setPassword(e.target.value)}
+                placeholder="Mínimo 6 char"
+                minLength="6"
+              />
+            </div>
+            <div style={{ flex: 1 }}>
+              <label style={{ display: 'block', marginBottom: '6px', fontWeight: '500', color: '#334155' }}>Confirmação</label>
+              <input 
+                type="password" 
+                required
+                style={{ width: '100%', padding: '10px 12px', borderRadius: '6px', border: '1px solid #cbd5e1' }}
+                value={confirmPassword}
+                onChange={e => setConfirmPassword(e.target.value)}
+                placeholder="Repita a senha"
+                minLength="6"
+              />
+            </div>
           </div>
 
           {!nutriIdParam && (

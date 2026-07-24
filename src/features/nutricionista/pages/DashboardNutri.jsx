@@ -164,7 +164,7 @@ export default function DashboardNutri() {
     } else {
       const newId = await addPatient(patName, patObj, patRest, patCpf, normalizeEmail(patEmail), patAversions, patMedications, patBirthDate, patGender, calculatedAge);
       if (patEmail && newId) {
-        const link = `${window.location.origin}/paciente?vincular=${newId}`;
+        const link = `${window.location.origin}/cadastro?vincular=${newId}`;
         try {
           fetch('/api/send-email', {
              method: 'POST',

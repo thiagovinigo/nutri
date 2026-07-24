@@ -19,7 +19,8 @@ service cloud.firestore {
         && request.resource.data.nutricionista_id == request.auth.uid;
 
       // Paciente novo pode ler e deletar o documento temporário gerado pelo nutri (ID atua como token)
-      allow read, delete: if request.auth != null 
+      allow read: if resource.data.status == 'inativo';
+      allow delete: if request.auth != null 
         && resource.data.status == 'inativo';
     }
 
