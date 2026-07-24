@@ -90,6 +90,9 @@ export function AppProvider({ children }) {
         if (data.clinicConfig) {
           setClinicConfig(data.clinicConfig);
         }
+      } else {
+        // Fallback for incomplete registration (Auth exists but no Firestore doc)
+        setProfile({ id: userId, role: 'incomplete_patient' });
       }
     } catch(e) {
       console.log('Erro ao buscar perfil:', e);

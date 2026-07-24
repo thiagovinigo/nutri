@@ -228,6 +228,25 @@ export default function PatientApp() {
     );
   }
 
+  if (profile?.role === 'incomplete_patient') {
+    return (
+      <div className="patient-container" style={{display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px'}}>
+        <div className="patient-card patient-glass" style={{width: '100%', maxWidth: '400px', textAlign: 'center'}}>
+          <h2 style={{color: 'var(--accent-color)', marginBottom: '16px'}}>Cadastro Incompleto</h2>
+          <p style={{color: 'var(--patient-text)', fontSize: '0.95rem', marginBottom: '24px'}}>
+            Seu perfil ainda não foi vinculado ao sistema da sua nutricionista.
+          </p>
+          <p style={{color: 'var(--patient-text-muted)', fontSize: '0.9rem', marginBottom: '24px'}}>
+            Por favor, <strong>peça para ela reenviar o link de convite</strong> e acesse novamente clicando nele, ou saia e tente com as credenciais corretas.
+          </p>
+          <button onClick={() => { auth.signOut(); setIsLoggedIn(false); window.location.reload(); }} className="btn-3d btn-primary" style={{width: '100%'}}>
+            Voltar para o Login
+          </button>
+        </div>
+      </div>
+    );
+  }
+
   if (!activePatient) {
     return (
       <div className="patient-container" style={{display: 'flex', alignItems: 'center', justifyContent: 'center'}}>
