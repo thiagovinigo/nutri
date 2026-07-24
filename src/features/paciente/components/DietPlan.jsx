@@ -153,6 +153,37 @@ export default function DietPlan({ activePatient }) {
   const shoppingListGroups = showShoppingList ? generateShoppingList() : {};
   const foodLogs = activePatient?.foodLogs || [];
 
+  const getHistoryByDay = () => {
+    if (!activePatient) return [];
+    const history = {};
+    
+    (activePatient.foodLogs || []).forEach(log => {
+      if (!history[log.date]) history[log.date] = { foods: [], water: 0, sleep: null };
+      history[log.date].foods.push(log);
+    });
+
+    if (activePatient.waterLogs) {
+      Object.entries(activePatient.waterLogs).forEach(([date, ml]) => {
+        if (!history[date]) history[date] = { foods: [], water: 0, sleep: null };
+        history[date].water = ml;
+      });
+    }
+
+    (activePatient.sleepLogs || []).forEach(log => {
+      if (!history[log.date]) history[log.date] = { foods: [], water: 0, sleep: null };
+      history[log.date].sleep = log;
+    });
+
+    return Object.entries(history).sort((a, b) => {
+      const [d1, m1, y1] = a[0].split('/');
+      const [d2, m2, y2] = b[0].split('/');
+      const dateA = new Date(`${y1}-${m1}-${d1}`);
+      const dateB = new Date(`${y2}-${m2}-${d2}`);
+      return dateB - dateA;
+    });
+  };
+  const historyByDay = getHistoryByDay();
+
   if (!activePatient) return null;
 
   return (
@@ -416,9 +447,9 @@ export default function DietPlan({ activePatient }) {
             <div style={{ padding: '20px 20px 16px', borderBottom: '1px solid var(--glass-border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexShrink: 0 }}>
               <h3 style={{ margin: 0, color: 'var(--patient-text)', display: 'flex', alignItems: 'center', gap: '10px', fontSize: '1.05rem' }}>
                 <History size={20} color="var(--primary-color)" />
-                Histórico de Refeições IA
+                Histórico Diário
                 <span style={{ backgroundColor: 'var(--patient-surface-2)', color: 'var(--patient-text-muted)', borderRadius: '12px', padding: '2px 10px', fontSize: '0.78rem', fontWeight: 'normal' }}>
-                  {foodLogs.length} registros
+                  {historyByDay.length} dias
                 </span>
               </h3>
               <button onClick={() => setShowHistory(false)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--patient-text-muted)', padding: '4px' }}>
@@ -428,21 +459,50 @@ export default function DietPlan({ activePatient }) {
 
             {/* Drawer content */}
             <div style={{ flex: 1, overflowY: 'auto', padding: '16px' }}>
-              {foodLogs.length === 0 ? (
+              {historyByDay.length === 0 ? (
                 <div style={{ textAlign: 'center', padding: '48px 24px' }}>
                   <History size={40} color="var(--glass-border)" style={{ marginBottom: '12px' }} />
-                  <p style={{ color: 'var(--patient-text-muted)', margin: 0 }}>Nenhuma refeição registrada ainda.</p>
+                  <p style={{ color: 'var(--patient-text-muted)', margin: 0 }}>Nenhum registro encontrado ainda.</p>
                 </div>
               ) : (
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                  {foodLogs.slice().reverse().map((log, i) => (
-                    <div key={i} className="patient-card patient-glass" style={{ padding: '14px 16px', borderLeft: `4px solid ${log.type === 'extra' ? 'var(--accent-color)' : 'var(--primary-color)'}` }}>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-                        <strong style={{ color: 'var(--patient-text)', fontSize: '0.9rem' }}>{log.mealName}</strong>
-                        <span style={{ fontSize: '0.75rem', color: 'var(--patient-text-muted)', whiteSpace: 'nowrap', marginLeft: '8px' }}>{log.date} · {log.time}</span>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+                  {historyByDay.map(([date, data], i) => (
+                    <div key={i}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '12px' }}>
+                        <h4 style={{ margin: 0, color: 'var(--patient-text)', fontSize: '1rem' }}>{date === new Date().toLocaleDateString('pt-BR') ? 'Hoje' : date}</h4>
+                        <div style={{ height: '1px', flex: 1, backgroundColor: 'var(--glass-border)' }} />
                       </div>
-                      <div className="markdown-content" style={{ fontSize: '0.85rem', color: 'var(--patient-text)' }}>
-                        <ReactMarkdown remarkPlugins={[remarkGfm]}>{log.log}</ReactMarkdown>
+                      
+                      <div style={{ display: 'flex', gap: '12px', marginBottom: '12px' }}>
+                        {data.water > 0 && (
+                          <div style={{ flex: 1, backgroundColor: 'rgba(56, 189, 248, 0.1)', border: '1px solid rgba(56, 189, 248, 0.2)', padding: '10px', borderRadius: '12px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px' }}>
+                            <span style={{ fontSize: '1.2rem' }}>💧</span>
+                            <strong style={{ color: '#0ea5e9', fontSize: '0.9rem' }}>{data.water}ml</strong>
+                          </div>
+                        )}
+                        {data.sleep && (
+                          <div style={{ flex: 1, backgroundColor: 'rgba(167, 139, 250, 0.1)', border: '1px solid rgba(167, 139, 250, 0.2)', padding: '10px', borderRadius: '12px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px' }}>
+                            <span style={{ fontSize: '1.2rem' }}>🌙</span>
+                            <strong style={{ color: '#8b5cf6', fontSize: '0.9rem' }}>{data.sleep.hours}h ({data.sleep.quality})</strong>
+                          </div>
+                        )}
+                      </div>
+
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                        {data.foods.slice().reverse().map((log, j) => (
+                          <div key={j} className="patient-card patient-glass" style={{ padding: '12px 14px', borderLeft: `4px solid ${log.type === 'extra' ? 'var(--accent-color)' : 'var(--primary-color)'}` }}>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
+                              <strong style={{ color: 'var(--patient-text)', fontSize: '0.85rem' }}>{log.mealName}</strong>
+                              <span style={{ fontSize: '0.75rem', color: 'var(--patient-text-muted)', whiteSpace: 'nowrap', marginLeft: '8px' }}>{log.time}</span>
+                            </div>
+                            <div className="markdown-content" style={{ fontSize: '0.8rem', color: 'var(--patient-text)' }}>
+                              <ReactMarkdown remarkPlugins={[remarkGfm]}>{log.log}</ReactMarkdown>
+                            </div>
+                          </div>
+                        ))}
+                        {data.foods.length === 0 && (
+                          <div style={{ fontSize: '0.8rem', color: 'var(--patient-text-muted)', textAlign: 'center', padding: '12px', backgroundColor: 'var(--patient-surface-2)', borderRadius: '12px' }}>Nenhuma refeição registrada neste dia.</div>
+                        )}
                       </div>
                     </div>
                   ))}
