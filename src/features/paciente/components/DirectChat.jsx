@@ -31,7 +31,7 @@ export default function DirectChat({ activePatient }) {
           patientMessages.map(msg => (
             <div key={msg.id} style={{ 
               alignSelf: msg.sender === 'paciente' ? 'flex-end' : 'flex-start',
-              backgroundColor: msg.sender === 'paciente' ? 'var(--primary-color)' : '#F1F5F9',
+              backgroundColor: msg.sender === 'paciente' ? 'var(--primary-color)' : 'var(--crm-surface-2)',
               color: msg.sender === 'paciente' ? '#000' : 'var(--patient-text-main)',
               padding: '12px 16px',
               borderRadius: msg.sender === 'paciente' ? '16px 16px 0 16px' : '16px 16px 16px 0',
@@ -53,7 +53,7 @@ export default function DirectChat({ activePatient }) {
           placeholder="Sua mensagem..." 
           value={chatInput} 
           onChange={e => setChatInput(e.target.value)} 
-          style={{ flex: 1, padding: '16px', borderRadius: '24px', border: '1px solid #E2E8F0', outline: 'none', fontSize: '1rem', background: '#F8FAFC' }}
+          style={{ flex: 1, padding: '16px', borderRadius: '24px', border: '1px solid #E2E8F0', outline: 'none', fontSize: '1rem', background: 'var(--crm-surface-2, var(--crm-bg))' }}
         />
         <button type="submit" style={{ backgroundColor: 'var(--primary-color)', color: '#000', border: 'none', borderRadius: '50%', width: '52px', height: '52px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', flexShrink: 0, boxShadow: '0 4px 12px rgba(0, 229, 255, 0.3)' }}>
           <Send size={24} />

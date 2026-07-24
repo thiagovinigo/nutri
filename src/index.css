@@ -21,6 +21,7 @@
   /* SaaS CRM Premium Design System - Dashboard Nutricionista */
   --crm-bg: #F8FAFC; /* Slate 50 */
   --crm-surface: #FFFFFF;
+  --crm-hover-bg: #FAFAFB;
   --crm-border: #E2E8F0; /* Slate 200 */
   --crm-text-main: #0F172A; /* Slate 900 */
   --crm-text-muted: #64748B; /* Slate 500 */
@@ -58,6 +59,7 @@
   /* CRM Dashboard Dark Variables */
   --crm-bg: #0F172A; 
   --crm-surface: #1E293B;
+  --crm-hover-bg: #334155;
   --crm-border: #334155;
   --crm-text-main: #F8FAFC;
   --crm-text-muted: #94A3B8;
@@ -186,7 +188,7 @@ body { overflow-x: hidden; -webkit-font-smoothing: antialiased; font-family: var
   text-decoration: underline;
   text-underline-offset: 2px;
 }
-.crm-sidebar-exit:hover { color: var(--crm-sidebar-text); }
+.crm-sidebar-exit:hover { color: var(--crm-text-main); }
 .crm-btn-primary {
   background-color: var(--crm-primary);
   color: white;
@@ -278,7 +280,7 @@ body { overflow-x: hidden; -webkit-font-smoothing: antialiased; font-family: var
   border: none;
   border-left: 2px solid transparent;
   background: transparent;
-  color: var(--crm-sidebar-text);
+  color: var(--crm-text-main);
   font-family: var(--crm-font-family);
   font-weight: 500;
   font-size: 0.92rem;
@@ -286,15 +288,26 @@ body { overflow-x: hidden; -webkit-font-smoothing: antialiased; font-family: var
   transition: all 0.15s;
   text-align: left;
 }
-.crm-nav-btn:hover {
+.crm-sidebar .crm-nav-btn {
+  color: var(--crm-sidebar-text);
+}
+.crm-sidebar .crm-nav-btn:hover {
   background-color: var(--crm-sidebar-bg-2);
   color: var(--crm-sidebar-active);
 }
-.crm-nav-btn.active {
+.crm-sidebar .crm-nav-btn.active {
   background-color: var(--crm-sidebar-bg-2);
   border-left-color: var(--crm-accent);
   color: var(--crm-sidebar-active);
   font-weight: 600;
+}
+.crm-nav-btn:hover {
+  background-color: var(--crm-hover, var(--crm-surface-2));
+}
+.crm-nav-btn.active {
+  background-color: var(--crm-hover, var(--crm-surface-2));
+  font-weight: 600;
+  border-left-color: var(--crm-accent);
 }
 .crm-table {
   width: 100%;
@@ -321,7 +334,7 @@ body { overflow-x: hidden; -webkit-font-smoothing: antialiased; font-family: var
   transition: background-color 0.12s;
 }
 .crm-table tbody tr:hover {
-  background-color: #FAFAFB;
+  background-color: var(--crm-hover-bg);
 }
 .crm-badge-blue, .crm-badge-green, .crm-badge-orange {
   display: inline-flex;
@@ -507,26 +520,55 @@ body { overflow-x: hidden; -webkit-font-smoothing: antialiased; font-family: var
 
 .markdown-body {
   font-size: 0.95rem;
-  line-height: 1.6;
+  line-height: 1.7;
   color: var(--crm-text-main);
 }
 .markdown-body h2 {
   font-size: 1.25rem;
-  margin-top: 24px;
+  margin-top: 32px;
   margin-bottom: 16px;
-  border-bottom: 1px solid var(--crm-border);
+  border-bottom: 2px solid var(--crm-border);
   padding-bottom: 8px;
   color: var(--crm-primary);
+  font-weight: 700;
 }
 .markdown-body h3 {
   font-size: 1.1rem;
-  margin-top: 16px;
-  margin-bottom: 8px;
+  margin-top: 24px;
+  margin-bottom: 12px;
+  color: var(--crm-text-main);
+  font-weight: 600;
+  border-left: 3px solid var(--crm-accent);
+  padding-left: 8px;
 }
-.markdown-body p { margin-bottom: 16px; }
-.markdown-body ul, .markdown-body ol { margin-bottom: 16px; padding-left: 24px; }
-.markdown-body li { margin-bottom: 8px; }
-.markdown-body strong { font-weight: 700; color: #000; }
+.markdown-body p { 
+  margin-bottom: 16px; 
+}
+.markdown-body ul, .markdown-body ol { 
+  margin-bottom: 20px; 
+  padding-left: 24px; 
+}
+.markdown-body li { 
+  margin-bottom: 10px; 
+  padding-left: 4px;
+}
+.markdown-body li::marker {
+  color: var(--crm-accent);
+}
+.markdown-body strong { 
+  font-weight: 700; 
+  color: var(--crm-text-main); 
+}
+.ai-synthesis strong {
+  color: var(--crm-primary);
+}
+.ai-synthesis {
+  background: var(--crm-surface);
+  padding: 24px;
+  border-radius: 12px;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.03);
+  border: 1px solid var(--crm-border);
+}
 
 /* ----------------------------------------------------
    PRESCRIPTION DRAG & DROP
@@ -607,4 +649,38 @@ body { overflow-x: hidden; -webkit-font-smoothing: antialiased; font-family: var
   .crm-card {
     overflow-x: auto;
   }
+}
+
+@keyframes spin { 100% { transform: rotate(360deg); } }
+.spin { animation: spin 1s linear infinite; }
+
+
+/* 3D Flip Card for Recipes */
+.flip-card {
+  background-color: transparent;
+  perspective: 1000px;
+  width: 100%;
+}
+.flip-card-inner {
+  position: relative;
+  width: 100%;
+  min-height: 120px;
+  text-align: left;
+  transition: transform 0.6s;
+  transform-style: preserve-3d;
+}
+.flip-card.flipped .flip-card-inner {
+  transform: rotateY(180deg);
+}
+.flip-card-front, .flip-card-back {
+  width: 100%;
+  -webkit-backface-visibility: hidden;
+  backface-visibility: hidden;
+}
+.flip-card-back {
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 100%;
+  transform: rotateY(180deg);
 }

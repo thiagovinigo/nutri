@@ -91,7 +91,7 @@ export default function MealBuilder({ meal, onChange, onDelete, onDrop, aversion
         if(e) e.preventDefault();
       }}
       onDrop={onDrop}
-      style={{ padding: '16px', backgroundColor: '#FFF', border: '2px dashed var(--crm-border)', borderRadius: '8px', position: 'relative', display: 'flex', flexDirection: 'column', gap: '12px' }}
+      style={{ padding: '16px', backgroundColor: 'var(--crm-surface)', border: '2px dashed var(--crm-border)', borderRadius: '8px', position: 'relative', display: 'flex', flexDirection: 'column', gap: '12px' }}
     >
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <input 
@@ -109,7 +109,7 @@ export default function MealBuilder({ meal, onChange, onDelete, onDrop, aversion
 
       <div style={{ display: 'flex', gap: '8px', alignItems: 'flex-start' }}>
         <div style={{ flex: 1, position: 'relative' }}>
-          <div style={{ display: 'flex', alignItems: 'center', backgroundColor: '#F8FAFC', border: '1px solid var(--crm-border)', borderRadius: '4px', padding: '0 8px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', backgroundColor: 'var(--crm-surface-2, var(--crm-bg))', border: '1px solid var(--crm-border)', borderRadius: '4px', padding: '0 8px' }}>
             <Search size={16} color="var(--crm-text-muted)" />
             <input 
               type="text" 
@@ -120,16 +120,16 @@ export default function MealBuilder({ meal, onChange, onDelete, onDrop, aversion
             />
           </div>
           {searchResults.length > 0 && (
-            <div style={{ position: 'absolute', top: '100%', left: 0, right: 0, backgroundColor: '#FFF', border: '1px solid var(--crm-border)', borderRadius: '4px', zIndex: 10, boxShadow: '0 4px 6px rgba(0,0,0,0.1)', maxHeight: '200px', overflowY: 'auto' }}>
+            <div style={{ position: 'absolute', top: '100%', left: 0, right: 0, backgroundColor: 'var(--crm-surface)', border: '1px solid var(--crm-border)', borderRadius: '4px', zIndex: 10, boxShadow: '0 4px 6px rgba(0,0,0,0.1)', maxHeight: '200px', overflowY: 'auto' }}>
               {searchResults.map(res => (
                 <div 
                   key={res.id} 
                   onClick={() => handleSelectFood(res)}
                   style={{ padding: '8px', cursor: 'pointer', borderBottom: '1px solid #f1f5f9', fontSize: '0.9rem' }}
-                  onMouseEnter={e => e.currentTarget.style.backgroundColor = '#f1f5f9'}
+                  onMouseEnter={e => e.currentTarget.style.backgroundColor = 'var(--crm-surface-2)'}
                   onMouseLeave={e => e.currentTarget.style.backgroundColor = 'transparent'}
                 >
-                  <strong>{res.name}</strong> <span style={{fontSize: '0.8rem', color: '#64748b'}}>({res.kcal}kcal/100g)</span>
+                  <strong>{res.name}</strong> <span style={{fontSize: '0.8rem', color: 'var(--crm-text-muted)'}}>({res.kcal}kcal/100g)</span>
                 </div>
               ))}
             </div>
@@ -144,7 +144,7 @@ export default function MealBuilder({ meal, onChange, onDelete, onDrop, aversion
         />
         <button 
           onClick={handleAddFood} 
-          style={{ padding: '8px 12px', backgroundColor: 'var(--crm-accent)', color: '#FFF', border: 'none', borderRadius: '4px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px' }}
+          style={{ padding: '8px 12px', backgroundColor: 'var(--crm-accent)', color: 'var(--crm-surface)', border: 'none', borderRadius: '4px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px' }}
         >
           <Plus size={16} /> Add
         </button>
@@ -182,7 +182,7 @@ export default function MealBuilder({ meal, onChange, onDelete, onDrop, aversion
               ))}
             </tbody>
             <tfoot>
-              <tr style={{ fontWeight: 'bold', backgroundColor: '#F8FAFC' }}>
+              <tr style={{ fontWeight: 'bold', backgroundColor: 'var(--crm-surface-2, var(--crm-bg))' }}>
                 <td colSpan="2" style={{ padding: '8px 4px' }}>TOTAL DA REFEIÇÃO</td>
                 <td style={{ padding: '8px 4px' }}>{totalKcal.toFixed(1)}</td>
                 <td style={{ padding: '8px 4px' }}>{totalCarb.toFixed(1)}</td>

@@ -2,6 +2,7 @@ import { initializeApp } from 'firebase/app';
 import { getAuth } from 'firebase/auth';
 import { getFirestore } from 'firebase/firestore';
 import { getAnalytics } from 'firebase/analytics';
+import { getStorage } from 'firebase/storage';
 
 const firebaseConfig = {
   apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
@@ -18,11 +19,13 @@ let app;
 let auth = null;
 let db = null;
 let analytics = null;
+let storage = null;
 
 try {
   app = initializeApp(firebaseConfig);
   auth = getAuth(app);
   db = getFirestore(app);
+  storage = getStorage(app);
   // Analytics só funciona em ambiente de browser, não em Node. 
   // Mas como estamos no frontend Vite (browser), é seguro chamar.
   analytics = getAnalytics(app);
@@ -30,4 +33,4 @@ try {
   console.warn("Firebase não inicializado corretamente. Faltam chaves de ambiente.");
 }
 
-export { auth, db, analytics };
+export { auth, db, storage, analytics };

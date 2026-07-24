@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { User, Save, Scale, X, Activity, Upload, Sparkles, TrendingUp } from 'lucide-react';
+import { User, Save, Scale, X, Activity, Upload, Sparkles, TrendingUp, FileText, Moon, Sun } from 'lucide-react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, Legend, ResponsiveContainer } from 'recharts';
 import { useAppContext } from '../../../context/AppContext';
 
 export default function Profile({ activePatient }) {
-  const { updatePatient, addWeight, completeQuest } = useAppContext();
-  const [editName, setEditName] = useState('');
+  const { updatePatient, addWeight, completeQuest, addExam, theme, toggleTheme } = useAppContext();
+      const [editName, setEditName] = useState('');
   const [editEmail, setEditEmail] = useState('');
   const [editCpf, setEditCpf] = useState('');
   const [editAge, setEditAge] = useState('');
@@ -29,8 +29,7 @@ export default function Profile({ activePatient }) {
     }
   }, [activePatient]);
 
-  const latestExam = activePatient?.exams?.slice(-1)[0];
-
+  
   // Prepare data for the chart
   let chartData = [];
   
@@ -93,14 +92,14 @@ export default function Profile({ activePatient }) {
     }
   };
 
-  return (
+    return (
     <div className="animate-pop-in">
       <h2 style={styles.sectionTitle}><User color="#8b5cf6" /> Seu Perfil Pessoal</h2>
 
       {activePatient?.nutriName && (
-        <div style={{...styles.card, backgroundColor: '#f8fafc', borderColor: '#e2e8f0', marginBottom: '24px'}}>
-          <p style={{margin: 0, fontSize: '0.9rem', color: '#64748b'}}>Nutricionista Responsável</p>
-          <h4 style={{margin: '4px 0 0 0', color: '#1e293b', display: 'flex', alignItems: 'center', gap: '8px'}}>
+        <div style={{...styles.card, backgroundColor: 'var(--crm-surface-2, var(--crm-bg))', borderColor: 'var(--crm-border)', marginBottom: '24px'}}>
+          <p style={{margin: 0, fontSize: '0.9rem', color: 'var(--crm-text-muted)'}}>Nutricionista Responsável</p>
+          <h4 style={{margin: '4px 0 0 0', color: 'var(--crm-text-main)', display: 'flex', alignItems: 'center', gap: '8px'}}>
             <Sparkles size={16} color="#8b5cf6"/> {activePatient.nutriName}
           </h4>
         </div>
@@ -108,24 +107,24 @@ export default function Profile({ activePatient }) {
       
       <form onSubmit={handleSaveProfile} style={{...styles.card, display: 'flex', flexDirection: 'column', gap: '16px'}}>
         <div>
-          <label style={{display: 'block', marginBottom: '6px', fontSize: '0.9rem', color: '#64748b'}}>Nome Completo</label>
+          <label style={{display: 'block', marginBottom: '6px', fontSize: '0.9rem', color: 'var(--crm-text-muted)'}}>Nome Completo</label>
           <input type="text" value={editName} onChange={e => setEditName(e.target.value)} style={{width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid #cbd5e1', boxSizing: 'border-box'}} />
         </div>
         <div>
-          <label style={{display: 'block', marginBottom: '6px', fontSize: '0.9rem', color: '#64748b'}}>E-mail de Acesso</label>
+          <label style={{display: 'block', marginBottom: '6px', fontSize: '0.9rem', color: 'var(--crm-text-muted)'}}>E-mail de Acesso</label>
           <input type="email" value={editEmail} onChange={e => setEditEmail(e.target.value)} style={{width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid #cbd5e1', boxSizing: 'border-box'}} />
         </div>
         <div>
-          <label style={{display: 'block', marginBottom: '6px', fontSize: '0.9rem', color: '#64748b'}}>CPF</label>
+          <label style={{display: 'block', marginBottom: '6px', fontSize: '0.9rem', color: 'var(--crm-text-muted)'}}>CPF</label>
           <input type="text" value={editCpf} onChange={e => setEditCpf(e.target.value)} style={{width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid #cbd5e1', boxSizing: 'border-box'}} />
         </div>
         <div style={{ display: 'flex', gap: '16px' }}>
           <div style={{ flex: 1 }}>
-            <label style={{display: 'block', marginBottom: '6px', fontSize: '0.9rem', color: '#64748b'}}>Idade (anos)</label>
+            <label style={{display: 'block', marginBottom: '6px', fontSize: '0.9rem', color: 'var(--crm-text-muted)'}}>Idade (anos)</label>
             <input type="number" value={editAge} onChange={e => setEditAge(e.target.value)} style={{width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid #cbd5e1', boxSizing: 'border-box'}} />
           </div>
           <div style={{ flex: 1 }}>
-            <label style={{display: 'block', marginBottom: '6px', fontSize: '0.9rem', color: '#64748b'}}>Sexo Genético</label>
+            <label style={{display: 'block', marginBottom: '6px', fontSize: '0.9rem', color: 'var(--crm-text-muted)'}}>Sexo Genético</label>
             <select value={editGender} onChange={e => setEditGender(e.target.value)} style={{width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid #cbd5e1', boxSizing: 'border-box'}}>
               <option value="M">Masculino</option>
               <option value="F">Feminino</option>
@@ -133,11 +132,11 @@ export default function Profile({ activePatient }) {
           </div>
         </div>
         <div>
-          <label style={{display: 'block', marginBottom: '6px', fontSize: '0.9rem', color: '#64748b'}}>Alimentos que não como de jeito nenhum (Aversões)</label>
+          <label style={{display: 'block', marginBottom: '6px', fontSize: '0.9rem', color: 'var(--crm-text-muted)'}}>Alimentos que não como de jeito nenhum (Aversões)</label>
           <textarea value={editAversions} onChange={e => setEditAversions(e.target.value)} style={{width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid #cbd5e1', boxSizing: 'border-box', minHeight: '60px', resize: 'vertical'}} placeholder="Ex: pimentão, fígado, coentro..." />
         </div>
         <div>
-          <label style={{display: 'block', marginBottom: '6px', fontSize: '0.9rem', color: '#64748b'}}>Medicamentos em uso</label>
+          <label style={{display: 'block', marginBottom: '6px', fontSize: '0.9rem', color: 'var(--crm-text-muted)'}}>Medicamentos em uso</label>
           <textarea value={editMedications} onChange={e => setEditMedications(e.target.value)} style={{width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid #cbd5e1', boxSizing: 'border-box', minHeight: '60px', resize: 'vertical'}} placeholder="Ex: Ritalina, Ozempic, Sertralina..." />
         </div>
         <button type="submit" className="btn-3d" style={{...styles.actionBtn, backgroundColor: '#8b5cf6', boxShadow: '0 4px 0 #7c3aed', justifyContent: 'center'}}>
@@ -149,7 +148,7 @@ export default function Profile({ activePatient }) {
       <div style={{...styles.card, marginTop: '24px'}}>
         <div>
           <h4 style={{margin: 0}}>Pesagem Semanal</h4>
-          <p style={{margin: '4px 0 16px 0', fontSize: '0.85rem', color: '#64748b'}}>Mantenha seu peso atualizado para gerar dados para a Nutri.</p>
+          <p style={{margin: '4px 0 16px 0', fontSize: '0.85rem', color: 'var(--crm-text-muted)'}}>Mantenha seu peso atualizado para gerar dados para a Nutri.</p>
         </div>
         <button className="btn-3d" style={{...styles.actionBtn, backgroundColor: '#f59e0b', boxShadow: '0 4px 0 #d97706', width: '100%', justifyContent: 'center'}} onClick={() => setShowWeightModal(true)}>
           <Scale size={20} /> Informar Meu Peso
@@ -158,17 +157,17 @@ export default function Profile({ activePatient }) {
       </div>
 
       <div style={{...styles.card, marginTop: '24px'}}>
-        <h4 style={{margin: '0 0 16px 0', display: 'flex', alignItems: 'center', gap: '8px', color: '#1e293b'}}>
+        <h4 style={{margin: '0 0 16px 0', display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--crm-text-main)'}}>
           <TrendingUp size={20} color="#8b5cf6" /> Meu Progresso
         </h4>
         {chartData.length === 0 ? (
-          <p style={{ color: '#64748b', fontSize: '0.9rem' }}>Nenhuma medição registrada ainda.</p>
+          <p style={{ color: 'var(--crm-text-muted)', fontSize: '0.9rem' }}>Nenhuma medição registrada ainda.</p>
         ) : (
           <div style={{ width: '100%', height: 250, marginTop: '16px' }}>
             <ResponsiveContainer width="100%" height="100%">
               <LineChart data={chartData} margin={{ top: 5, right: 10, left: -20, bottom: 5 }}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
-                <XAxis dataKey="date" stroke="#94a3b8" fontSize={12} />
+                <CartesianGrid strokeDasharray="3 3" stroke='var(--crm-border)' />
+                <XAxis dataKey="date" stroke='var(--crm-text-muted)' fontSize={12} />
                 <YAxis yAxisId="left" stroke="#8b5cf6" fontSize={12} />
                 <YAxis yAxisId="right" orientation="right" stroke="#f43f5e" fontSize={12} />
                 <RechartsTooltip contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)', fontSize: '0.85rem' }} />
@@ -204,7 +203,7 @@ export default function Profile({ activePatient }) {
                 onChange={e => setWeightInput(e.target.value)}
                 style={{flex: 1, padding: '12px', borderRadius: '10px', border: '1px solid #cbd5e1', fontSize: '1.1rem', boxSizing: 'border-box'}}
               />
-              <span style={{fontWeight: 700, color: '#64748b'}}>kg</span>
+              <span style={{fontWeight: 700, color: 'var(--crm-text-muted)'}}>kg</span>
             </div>
             <button type="submit" className="btn-3d" style={{...styles.actionBtn, backgroundColor: '#f59e0b', boxShadow: '0 4px 0 #d97706', width: '100%', justifyContent: 'center'}}>
               <Scale size={18} /> Salvar Peso
@@ -217,10 +216,10 @@ export default function Profile({ activePatient }) {
 }
 
 const styles = {
-  sectionTitle: { fontSize: '1.2rem', fontWeight: '800', marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '8px', color: '#1e293b' },
-  card: { backgroundColor: '#ffffff', borderRadius: '20px', padding: '20px', border: '2px solid #e2e8f0', boxShadow: '0 4px 0 #cbd5e1', marginBottom: '16px' },
-  actionBtn: { color: 'white', border: 'none', borderRadius: '12px', padding: '12px 20px', fontWeight: '800', fontSize: '1rem', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px' },
-  successText: { margin: '12px 0 0', color: '#16a34a', fontWeight: 700, fontSize: '0.9rem', textAlign: 'center' },
-  modalOverlay: { position: 'fixed', inset: 0, backgroundColor: 'rgba(15,23,42,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 9999, padding: '20px' },
-  closeBtn: { background: 'none', border: 'none', cursor: 'pointer', color: '#64748b', display: 'flex', padding: 0 }
+  sectionTitle: { fontSize: '1.2rem', fontWeight: '800', marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--patient-text)' },
+  card: { backgroundColor: 'var(--patient-surface)', borderRadius: '20px', padding: '20px', border: '1px solid var(--glass-border)', boxShadow: 'none', marginBottom: '16px' },
+  actionBtn: { color: 'var(--patient-text)', border: 'none', borderRadius: '12px', padding: '12px 20px', fontWeight: '800', fontSize: '1rem', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px' },
+  successText: { margin: '12px 0 0', color: '#10b981', fontWeight: 700, fontSize: '0.9rem', textAlign: 'center' },
+  modalOverlay: { position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.8)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 9999, padding: '20px' },
+  closeBtn: { background: 'none', border: 'none', cursor: 'pointer', color: 'var(--patient-text-muted)', display: 'flex', padding: 0 }
 };

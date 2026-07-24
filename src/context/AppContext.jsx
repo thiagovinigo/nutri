@@ -174,10 +174,10 @@ export function AppProvider({ children }) {
   // com o Firestore quando o Firebase está configurado. Se a chamada ao
   // Firestore falhar mesmo assim, o estado local já foi atualizado — nunca
   // falha em silêncio para o usuário.
-  const addPatient = async (name, objective, restrictions, cpf, email, aversions, medications, age, gender) => {
+  const addPatient = async (name, objective, restrictions, cpf, email, aversions, medications, birthDate, gender, age) => {
     const localId = `local-${Date.now()}`;
     const newPatient = {
-      name, objective, restrictions, cpf: cpf || '', email: email || '', aversions: aversions || '', medications: medications || '', status: 'inativo', streak: 0, xp: 0, waterGlasses: 0, records: 'Novo paciente.', age: age || '', gender: gender || 'M', recipes: [], weights: []
+      name, objective, restrictions, cpf: cpf || '', email: email || '', aversions: aversions || '', medications: medications || '', status: 'inativo', streak: 0, xp: 0, waterGlasses: 0, records: 'Novo paciente.', age: age || '', birthDate: birthDate || '', gender: gender || 'M', recipes: [], weights: []
     };
     if (profile) newPatient.nutricionista_id = profile.id;
 
@@ -244,6 +244,17 @@ export function AppProvider({ children }) {
     const newWorkoutLogs = [...(p.workoutLogs || []), newWorkoutLog];
 
     await updatePatient(patientId, { workoutLogs: newWorkoutLogs });
+  };
+
+    const updateMealAiRecipe = async (patientId, recipeIdx, mealIdx, aiRecipe) => {
+    const p = patients.find(pat => pat.id === patientId);
+    if (!p) return;
+    
+    const newRecipes = [...(p.recipes || [])];
+    if (newRecipes[recipeIdx] && newRecipes[recipeIdx].meals[mealIdx]) {
+      newRecipes[recipeIdx].meals[mealIdx].aiRecipe = aiRecipe;
+      await updatePatient(patientId, { recipes: newRecipes });
+    }
   };
 
   const markMealDone = async (patientId, recipeIdx, mealIdx, aiFeedback, mealName = 'Refeição', date = new Date().toLocaleDateString('pt-BR')) => {
@@ -510,7 +521,7 @@ export function AppProvider({ children }) {
       fetchProfile, fetchPatients, fetchAppointments, updateProfile,
       clinicConfig, updateClinicConfig,
       addPatient, updatePatient, deletePatient,
-      addRecipe, markMealDone, addExtraMealLog, markWorkoutDone, addWeight, addSleepLog, addExam, completeQuest, updateWater,
+      addRecipe, updateMealAiRecipe, markMealDone, addExtraMealLog, markWorkoutDone, addWeight, addSleepLog, addExam, completeQuest, updateWater,
       addNotification, markNotificationsRead,
       appointments, addAppointment, cancelAppointment, markAppointmentDone,
       dietTemplates, addDietTemplate, deleteDietTemplate,

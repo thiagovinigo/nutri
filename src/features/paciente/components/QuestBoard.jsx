@@ -30,6 +30,39 @@ export default function QuestBoard({ activePatient }) {
   const selectedDateFormatted = selectedDateObj.toLocaleDateString('pt-BR');
 
   const currentRecipe = activePatient?.recipes?.length > 0 ? activePatient.recipes[activePatient.recipes.length - 1] : null;
+
+  let filteredMeals = currentRecipe ? currentRecipe.meals : [];
+  let currentCycleDay = 1;
+
+  if (currentRecipe && currentRecipe.meals) {
+    const dayMatches = currentRecipe.meals.map(m => (m.name || '').match(/Dia (\d+)/i)).filter(Boolean);
+    let maxDays = 0;
+    if (dayMatches.length > 0) {
+      maxDays = Math.max(...dayMatches.map(m => parseInt(m[1], 10)));
+    }
+    
+    if (maxDays > 0) {
+      const startOfDiet = activePatient.createdAt ? new Date(activePatient.createdAt) : new Date();
+      startOfDiet.setHours(0,0,0,0);
+      const selected = new Date(selectedDateObj);
+      selected.setHours(0,0,0,0);
+      
+      const daysDiff = Math.floor((selected - startOfDiet) / (1000 * 60 * 60 * 24));
+      if (daysDiff >= 0) {
+        currentCycleDay = (daysDiff % maxDays) + 1;
+      } else {
+        const negativeDiff = Math.abs(daysDiff);
+        currentCycleDay = maxDays - ((negativeDiff - 1) % maxDays);
+      }
+      
+      filteredMeals = currentRecipe.meals.filter(m => {
+        const hasDayPrefix = /Dia \d+/i.test(m.name || '');
+        if (!hasDayPrefix) return true;
+        return new RegExp(`Dia ${currentCycleDay}\\b`, 'i').test(m.name || '');
+      });
+    }
+  }
+
   
   const getMealLog = (mealName) => {
     return (activePatient.foodLogs || []).find(log => log.date === selectedDateFormatted && log.mealName === mealName);
@@ -79,6 +112,13 @@ export default function QuestBoard({ activePatient }) {
       updateWater(activePatient.id, selectedDateFormatted, -200); // Remove 200ml by default
     }
   };
+
+  useEffect(() => {
+    setCheckInMealIndex(null);
+    setAteOnTime(null);
+    setFollowedDiet(null);
+    setDivergenceText('');
+  }, [selectedDateFormatted]);
 
   const openCheckIn = (idx) => {
     setCheckInMealIndex(idx);
@@ -338,7 +378,7 @@ export default function QuestBoard({ activePatient }) {
 
           <h2 style={{fontSize: '1.2rem', fontWeight: '800', marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--patient-text)'}}><Target color="var(--primary-color)" /> Refeições de {selectedDateObj.toLocaleDateString('pt-BR') === new Date().toLocaleDateString('pt-BR') ? 'Hoje' : selectedDateFormatted}</h2>
 
-          {currentRecipe.meals.map((meal, idx) => {
+          {filteredMeals.map((meal, idx) => {
             const log = getMealLog(meal.name);
             const isDone = !!log;
             const isAnalyzingThis = analyzing && activeMealIndex === idx;
@@ -349,16 +389,25 @@ export default function QuestBoard({ activePatient }) {
                     <h4 style={{margin: 0, fontSize: '1.1rem', color: isDone ? 'var(--primary-color)' : 'var(--patient-text)', display: 'flex', alignItems: 'center', gap: '8px'}}>
                       {isDone && <Check size={18} color="var(--primary-color)" />} {meal.name}
                     </h4>
-                    <p style={{margin: '4px 0 0 0', fontSize: '0.9rem', color: 'var(--patient-text-muted)'}}>{meal.desc}</p>
+                                        {meal.desc && <p style={{margin: '4px 0 8px 0', fontSize: '0.85rem', color: 'var(--patient-text-muted)'}}>{meal.desc}</p>}
+                    {meal.foods && meal.foods.length > 0 && (
+                      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginTop: '6px' }}>
+                        {meal.foods.map((f, fi) => (
+                          <span key={fi} style={{ backgroundColor: 'var(--patient-surface-2)', border: '1px solid var(--glass-border)', color: 'var(--patient-text)', padding: '4px 8px', borderRadius: '6px', fontSize: '0.8rem', fontWeight: 500 }}>
+                            {f.amount}g - {f.name}
+                          </span>
+                        ))}
+                      </div>
+                    )}
                   </div>
                   {!isDone ? (
                     <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-                      <button className="btn-3d btn-primary" style={{padding: '8px 12px', fontSize: '0.85rem'}} onClick={() => openCheckIn(idx)} disabled={analyzing || checkInMealIndex === idx}>
+                      <button className="btn-3d btn-primary" style={{padding: '8px 12px', fontSize: '0.85rem', whiteSpace: 'nowrap', flexShrink: 0}} onClick={() => openCheckIn(idx)} disabled={analyzing || checkInMealIndex === idx}>
                         <Check size={16} style={{marginRight: '4px'}} /> Fazer Check-in
                       </button>
                     </div>
                   ) : (
-                    <span style={{backgroundColor: 'rgba(16, 185, 129, 0.2)', color: 'var(--primary-color)', padding: '6px 12px', borderRadius: '12px', fontWeight: 'bold', fontSize: '0.8rem'}}>CONCLUÍDO</span>
+                    <span style={{backgroundColor: 'rgba(16, 185, 129, 0.2)', color: 'var(--primary-color)', padding: '6px 12px', borderRadius: '12px', fontWeight: 'bold', fontSize: '0.8rem', whiteSpace: 'nowrap', flexShrink: 0}}>CONCLUÍDO</span>
                   )}
                 </div>
                 
@@ -366,7 +415,16 @@ export default function QuestBoard({ activePatient }) {
                   <div className="animate-pop-in" style={{marginTop: '12px', backgroundColor: 'var(--patient-surface-2)', padding: '16px', borderRadius: '12px', border: '1px solid var(--glass-border)'}}>
                     
                     <div style={{ marginBottom: '16px' }}>
-                      <label style={{display: 'block', fontSize: '0.95rem', color: 'var(--patient-text)', marginBottom: '8px', fontWeight: 600}}>Comeu no horário planejado?</label>
+                      
+                    {meal.foods && meal.foods.length > 0 && (
+                      <div style={{ marginBottom: '16px', padding: '12px', backgroundColor: 'var(--patient-surface)', borderRadius: '8px', border: '1px solid var(--glass-border)' }}>
+                        <strong style={{fontSize: '0.9rem', color: 'var(--patient-text)', display: 'block', marginBottom: '8px'}}>Itens prescritos:</strong>
+                        <ul style={{ margin: 0, paddingLeft: '20px', color: 'var(--patient-text-muted)', fontSize: '0.85rem' }}>
+                          {meal.foods.map((f, fi) => <li key={fi}>{f.amount}g - {f.name}</li>)}
+                        </ul>
+                      </div>
+                    )}
+                    <label style={{display: 'block', fontSize: '0.95rem', color: 'var(--patient-text)', marginBottom: '8px', fontWeight: 600}}>Comeu no horário planejado?</label>
                       <div style={{ display: 'flex', gap: '8px' }}>
                         <button className={`btn-3d ${ateOnTime === true ? 'btn-primary' : 'btn-secondary'}`} style={{flex: 1, padding: '8px', fontSize: '0.9rem'}} onClick={() => setAteOnTime(true)}>Sim</button>
                         <button className={`btn-3d ${ateOnTime === false ? 'btn-primary' : 'btn-secondary'}`} style={{flex: 1, padding: '8px', fontSize: '0.9rem'}} onClick={() => setAteOnTime(false)}>Não</button>
