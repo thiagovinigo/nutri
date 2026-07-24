@@ -204,8 +204,8 @@ export default function PatientApp() {
               <input type="email" value={loginEmail} onChange={e => setLoginEmail(e.target.value)} placeholder="Seu e-mail" style={{width: '100%', padding: '14px', borderRadius: '12px', border: '1px solid var(--glass-border)', background: 'rgba(0,0,0,0.2)', color: 'var(--patient-text)', boxSizing: 'border-box'}} required />
             </div>
             <div>
-              <label style={{display: 'block', marginBottom: '8px', fontWeight: '600', color: 'var(--patient-text-muted)', fontSize: '0.9rem'}}>CPF</label>
-              <input type="text" value={loginCpf} onChange={e => setLoginCpf(e.target.value)} placeholder="111.111.111-11" style={{width: '100%', padding: '14px', borderRadius: '12px', border: '1px solid var(--glass-border)', background: 'rgba(0,0,0,0.2)', color: 'var(--patient-text)', boxSizing: 'border-box'}} required />
+              <label style={{display: 'block', marginBottom: '8px', fontWeight: '600', color: 'var(--patient-text-muted)', fontSize: '0.9rem'}}>SENHA</label>
+              <input type="password" value={loginCpf} onChange={e => setLoginCpf(e.target.value)} placeholder="Sua senha (ou CPF no primeiro acesso)" style={{width: '100%', padding: '14px', borderRadius: '12px', border: '1px solid var(--glass-border)', background: 'rgba(0,0,0,0.2)', color: 'var(--patient-text)', boxSizing: 'border-box'}} required />
             </div>
             <button type="submit" className="btn-3d btn-primary" style={{width: '100%', marginTop: '12px'}}><Lock size={18} style={{marginRight: '8px'}} /> ACESSAR</button>
           </form>

@@ -4,6 +4,7 @@ import { auth, db } from '../services/firebase';
 import { createUserWithEmailAndPassword } from 'firebase/auth';
 import { doc, setDoc, getDoc, deleteDoc } from 'firebase/firestore';
 import { getFirebaseErrorMessage } from '../utils/firebaseErrors';
+import { useAppContext } from '../context/AppContext';
 
 export default function SignUp() {
   const [name, setName] = useState('');
@@ -13,6 +14,7 @@ export default function SignUp() {
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
   const navigate = useNavigate();
+  const { fetchProfile } = useAppContext();
   const searchParams = new URLSearchParams(window.location.search);
   const nutriIdParam = searchParams.get('nutri');
 
@@ -89,6 +91,9 @@ export default function SignUp() {
 
         await setDoc(doc(db, 'patients', user.uid), initialData);
       }
+
+      // Garante que o profile seja lido agora, para evitar "race condition" com o onAuthStateChanged
+      await fetchProfile(user.uid);
 
       // Redireciona com base na role escolhida
       if (role === 'nutricionista') {
