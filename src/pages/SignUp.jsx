@@ -62,8 +62,8 @@ export default function SignUp() {
           nutricionista_id: nutriIdParam || null,
           objective: 'Melhorar alimentação',
           restrictions: 'Nenhuma registrada',
-          status: 'engajado',
-          streak: 1,
+          status: 'ativo',
+          streak: 0,
           xp: 10,
           water_glasses: 0,
           records: nutriIdParam ? 'Cadastrado por Convite do Nutricionista.' : 'Cadastro self-service pelo App.',
@@ -78,7 +78,7 @@ export default function SignUp() {
             const tempDocSnap = await getDoc(tempDocRef);
             if (tempDocSnap.exists()) {
               // Mescla os dados do cadastro temporário com o default (sobrescrevendo o default)
-              initialData = { ...initialData, ...tempDocSnap.data(), name: name, email: email, status: 'engajado' };
+              initialData = { ...initialData, ...tempDocSnap.data(), name: name, email: email, status: 'ativo' };
               // Deleta o temporário
               await deleteDoc(tempDocRef);
             }
