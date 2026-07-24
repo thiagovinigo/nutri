@@ -518,15 +518,32 @@ export function AppProvider({ children }) {
 
   const computedPatients = patients.map(p => {
     let computedStatus = p.status || 'inativo';
-    if (p.streak > 0 || p.xp > 10) {
-      if (p.streak === 0) computedStatus = 'em_risco';
-      else if (p.streak >= 3) computedStatus = 'engajado';
-      else computedStatus = 'ativo';
-    } else if (p.status === 'ativo') {
-      computedStatus = 'ativo'; // Respeita pacientes recém-cadastrados
-    } else {
-      computedStatus = 'inativo';
+    
+    // Se o status base já é inativo, mantém inativo (ainda não ativou a conta)
+    if (computedStatus === 'inativo') {
+      return { ...p, status: 'inativo' };
     }
+
+    const currentStreak = p.streak || 0;
+    const currentXp = p.xp || 0;
+
+    // Se tem 0 dias de adesão E tem pouco XP (ou seja, acabou de entrar)
+    if (currentStreak === 0 && currentXp <= 50) {
+      computedStatus = 'ativo';
+    } 
+    // Se tem 0 dias de adesão MAS já tem bastante XP (já usou o app antes e parou)
+    else if (currentStreak === 0 && currentXp > 50) {
+      computedStatus = 'em_risco';
+    } 
+    // Se tem um bom streak de uso contínuo
+    else if (currentStreak >= 3) {
+      computedStatus = 'engajado';
+    } 
+    // Caso geral de uso normal
+    else {
+      computedStatus = 'ativo';
+    }
+
     return { ...p, status: computedStatus };
   });
 
