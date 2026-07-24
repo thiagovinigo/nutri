@@ -538,7 +538,7 @@ Não inclua textos fora do JSON. Apenas o JSON puro.`;
   }
 
   return (
-    <div style={{ '--crm-primary': clinicConfig.primaryColor }}>
+    <div data-theme="light" style={{ '--crm-primary': clinicConfig.primaryColor }}>
       <PatientList
         view={view} setView={setView}
         patients={patients} appointments={appointments}
