@@ -87,11 +87,21 @@ export default function SignUp() {
 
       // Se for paciente, criamos também o registro inicial em 'patients' para não dar erro no AppContext
       if (role === 'paciente') {
+        let calculatedAge = 0;
+        if (birthDate) {
+          const bDate = new Date(birthDate);
+          const today = new Date();
+          calculatedAge = today.getFullYear() - bDate.getFullYear();
+          const m = today.getMonth() - bDate.getMonth();
+          if (m < 0 || (m === 0 && today.getDate() < bDate.getDate())) { calculatedAge--; }
+        }
+
         let initialData = {
           name: name,
           email: email, // garantindo o email no doc também
           cpf: cpf,
           birthDate: birthDate,
+          age: calculatedAge,
           nutricionista_id: nutriIdParam || null,
           objective: 'Melhorar alimentação',
           restrictions: 'Nenhuma registrada',
@@ -111,7 +121,7 @@ export default function SignUp() {
             const tempDocSnap = await getDoc(tempDocRef);
             if (tempDocSnap.exists()) {
               // Mescla os dados do cadastro temporário com o default (sobrescrevendo o default)
-              initialData = { ...initialData, ...tempDocSnap.data(), name: name, email: email, cpf: cpf, birthDate: birthDate, status: 'ativo' };
+              initialData = { ...initialData, ...tempDocSnap.data(), name: name, email: email, cpf: cpf, birthDate: birthDate, age: calculatedAge, status: 'ativo' };
               // Deleta o temporário
               await deleteDoc(tempDocRef);
             }
