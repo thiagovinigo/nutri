@@ -40,14 +40,36 @@ export default function PatientApp() {
     mealsCompleted: [],
     xp: 450,
     streak: 3,
-    notifications: [{ id: 1, text: 'Aviso: nÃ£o esqueÃ§a da Ã¡gua hoje!', read: false }],
-    recipes: [{
-      date: new Date().toISOString(),
-      meals: [
-        { id: 1, name: 'Café da Manhã', desc: '2 ovos mexidos, 1 fatia de pão integral, café preto.', type: 'cafe' },
-        { id: 2, name: 'Almoço', desc: '150g de peito de frango, 100g de arroz integral, salada à vontade.', type: 'almoco' }
-      ]
-    }]
+    notifications: [{ id: 1, text: 'Aviso: não esqueça da água hoje!', read: false }],
+    recipes: [
+      {
+        date: new Date().toISOString(),
+        title: 'Dieta de Alta Performance',
+        meals: [
+          { 
+            id: 1, name: 'Dia 1 - Café da Manhã', desc: 'Panqueca proteica rápida', type: 'cafe', 
+            foods: [
+              { name: 'Ovo de galinha, inteiro, cru', amount: 100, kcal: 143, carb: 1.6, protein: 13, fat: 8.9, foodId: 234 },
+              { name: 'Aveia em flocos, crua', amount: 30, kcal: 118, carb: 20, protein: 4, fat: 2.2, foodId: 21 },
+              { name: 'Banana, prata, crua', amount: 100, kcal: 98, carb: 26, protein: 1.3, fat: 0.1, foodId: 299 }
+            ]
+          },
+          { 
+            id: 2, name: 'Dia 1 - Almoço', desc: 'Frango com batata doce', type: 'almoco',
+            foods: [
+              { name: 'Frango, peito, sem pele, grelhado', amount: 150, kcal: 238, carb: 0, protein: 48, fat: 3.7, foodId: 204 },
+              { name: 'Batata, doce, cozida', amount: 100, kcal: 77, carb: 18.4, protein: 0.6, fat: 0.1, foodId: 80 }
+            ]
+          },
+          { 
+            id: 3, name: 'Dia 2 - Café da Manhã', desc: 'Omelete simples', type: 'cafe', 
+            foods: [
+              { name: 'Ovo de galinha, inteiro, cru', amount: 150, kcal: 214, carb: 2.4, protein: 19.5, fat: 13.3, foodId: 234 }
+            ]
+          }
+        ]
+      }
+    ]
   };
 
   // We now use the global activePatient from context so it can receive updates

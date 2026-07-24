@@ -124,9 +124,14 @@ export default function DietPlan({ activePatient }) {
         });
       }
     });
+    const dayMatches = currentRecipe.meals
+      .map(m => (m.name || '').match(/Dia (\d+)/i))
+      .filter(Boolean);
+    const maxDays = dayMatches.length > 0 ? Math.max(...dayMatches.map(m => parseInt(m[1], 10))) : 1;
+    
     const list = Object.keys(aggregated).map(name => ({
       name,
-      totalAmount: Math.ceil(aggregated[name].amount * shoppingDays),
+      totalAmount: Math.ceil((aggregated[name].amount / maxDays) * shoppingDays),
       category: aggregated[name].category
     }));
     const byCategory = {};
