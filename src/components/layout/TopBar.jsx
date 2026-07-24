@@ -15,11 +15,12 @@ export default function TopBar({ streak, gems, notifications = [], onOpenNotific
 
   return (
     <div style={styles.topbar} className="patient-glass">
-      {/* Vytal Logo/Brand */}
+      {/* Logo — absolutamente centrada na topbar */}
       <div style={styles.brand}>
         VYTAL
       </div>
 
+      {/* Stats — ancorados à direita */}
       <div style={styles.statsContainer}>
         <div style={{...styles.statItem, color: '#FF4500'}} title="Ofensiva (dias seguidos)">
           <Flame size={20} fill="#FF4500" />
@@ -72,25 +73,27 @@ const styles = {
     top: 0,
     zIndex: 10,
     display: 'flex',
-    justifyContent: 'space-between',
+    justifyContent: 'flex-end',
     alignItems: 'center',
     padding: '12px 20px',
-    margin: '-20px -20px 20px -20px', // Negate padding of main content to stick to edges
+    margin: '-20px -20px 20px -20px',
     borderTop: 'none',
     borderLeft: 'none',
     borderRight: 'none',
     borderRadius: '0 0 20px 20px',
   },
   brand: {
+    position: 'absolute',
+    left: '50%',
+    transform: 'translateX(-50%)',
     fontSize: '20px',
     fontWeight: '900',
-    letterSpacing: '1px',
+    letterSpacing: '2px',
     background: 'linear-gradient(135deg, var(--primary-color) 0%, #00B4D8 100%)',
     WebkitBackgroundClip: 'text',
     WebkitTextFillColor: 'transparent',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
+    userSelect: 'none',
+    pointerEvents: 'none',
   },
   statsContainer: {
     display: 'flex',
@@ -139,12 +142,12 @@ const styles = {
   dropdown: {
     position: 'absolute',
     top: '36px',
-    right: 0,
+    right: '-10px',
     width: '280px',
-    backgroundColor: '#ffffff',
+    backgroundColor: 'var(--patient-surface)',
     borderRadius: '16px',
-    border: '1px solid #e2e8f0',
-    boxShadow: '0 8px 24px -8px rgba(15,23,42,0.25)',
+    border: '1px solid var(--glass-border)',
+    boxShadow: '0 8px 24px -8px rgba(0,0,0,0.5)',
     padding: '14px',
     zIndex: 21
   }

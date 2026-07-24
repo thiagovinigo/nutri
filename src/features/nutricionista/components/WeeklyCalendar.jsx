@@ -136,12 +136,12 @@ export default function WeeklyCalendar({
                 const isConcluido = appt.status === 'concluido';
                 return (
                   <div key={`${wd.isoDate}-${time}`} style={{ borderBottom: '1px solid var(--crm-border)', borderRight: '1px solid var(--crm-border)', padding: '4px' }}>
-                    <div style={{ backgroundColor: isConcluido ? '#dcfce7' : 'var(--crm-accent-soft)', borderLeft: `4px solid ${isConcluido ? '#22c55e' : 'var(--crm-primary)'}`, borderRadius: '4px', padding: '8px', height: '100%', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+                    <div style={{ backgroundColor: isConcluido ? '#dcfce7' : '#eff6ff', borderLeft: `4px solid ${isConcluido ? '#22c55e' : '#3b82f6'}`, borderRadius: '4px', padding: '8px', height: '100%', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
                       <div>
-                        <div style={{ fontWeight: '600', fontSize: '0.85rem', color: 'var(--crm-text-main)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{pat?.name || 'Desconhecido'}</div>
-                        <div style={{ fontSize: '0.75rem', color: 'var(--crm-text-muted)' }}>{appt.type} {appt.locationType === 'online' ? '(Online)' : ''}</div>
+                        <div style={{ fontWeight: '600', fontSize: '0.85rem', color: '#1e293b', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{pat?.name || 'Desconhecido'}</div>
+                        <div style={{ fontSize: '0.75rem', color: '#475569' }}>{appt.type} {appt.locationType === 'online' ? '(Online)' : ''}</div>
                         {appt.locationType === 'online' && appt.meetingLink && (
-                          <a href={appt.meetingLink} target="_blank" rel="noopener noreferrer" style={{ fontSize: '0.75rem', color: 'var(--crm-primary)', textDecoration: 'underline', display: 'block', marginTop: '4px' }}>Entrar na Sala</a>
+                          <a href={appt.meetingLink} target="_blank" rel="noopener noreferrer" style={{ fontSize: '0.75rem', color: '#3b82f6', textDecoration: 'underline', display: 'block', marginTop: '4px' }}>Entrar na Sala</a>
                         )}
                       </div>
                       {!isConcluido && (

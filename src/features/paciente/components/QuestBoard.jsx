@@ -35,7 +35,7 @@ export default function QuestBoard({ activePatient }) {
   let currentCycleDay = 1;
 
   if (currentRecipe && currentRecipe.meals) {
-    const dayMatches = currentRecipe.meals.map(m => m.name.match(/Dia (\d+)/i)).filter(Boolean);
+    const dayMatches = currentRecipe.meals.map(m => (m.name || '').match(/Dia (\d+)/i)).filter(Boolean);
     let maxDays = 0;
     if (dayMatches.length > 0) {
       maxDays = Math.max(...dayMatches.map(m => parseInt(m[1], 10)));
@@ -56,9 +56,9 @@ export default function QuestBoard({ activePatient }) {
       }
       
       filteredMeals = currentRecipe.meals.filter(m => {
-        const hasDayPrefix = /Dia \d+/i.test(m.name);
+        const hasDayPrefix = /Dia \d+/i.test(m.name || '');
         if (!hasDayPrefix) return true;
-        return new RegExp(`Dia ${currentCycleDay}\\b`, 'i').test(m.name);
+        return new RegExp(`Dia ${currentCycleDay}\\b`, 'i').test(m.name || '');
       });
     }
   }
@@ -112,6 +112,13 @@ export default function QuestBoard({ activePatient }) {
       updateWater(activePatient.id, selectedDateFormatted, -200); // Remove 200ml by default
     }
   };
+
+  useEffect(() => {
+    setCheckInMealIndex(null);
+    setAteOnTime(null);
+    setFollowedDiet(null);
+    setDivergenceText('');
+  }, [selectedDateFormatted]);
 
   const openCheckIn = (idx) => {
     setCheckInMealIndex(idx);
@@ -395,12 +402,12 @@ export default function QuestBoard({ activePatient }) {
                   </div>
                   {!isDone ? (
                     <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-                      <button className="btn-3d btn-primary" style={{padding: '8px 12px', fontSize: '0.85rem'}} onClick={() => openCheckIn(idx)} disabled={analyzing || checkInMealIndex === idx}>
+                      <button className="btn-3d btn-primary" style={{padding: '8px 12px', fontSize: '0.85rem', whiteSpace: 'nowrap', flexShrink: 0}} onClick={() => openCheckIn(idx)} disabled={analyzing || checkInMealIndex === idx}>
                         <Check size={16} style={{marginRight: '4px'}} /> Fazer Check-in
                       </button>
                     </div>
                   ) : (
-                    <span style={{backgroundColor: 'rgba(16, 185, 129, 0.2)', color: 'var(--primary-color)', padding: '6px 12px', borderRadius: '12px', fontWeight: 'bold', fontSize: '0.8rem'}}>CONCLUÍDO</span>
+                    <span style={{backgroundColor: 'rgba(16, 185, 129, 0.2)', color: 'var(--primary-color)', padding: '6px 12px', borderRadius: '12px', fontWeight: 'bold', fontSize: '0.8rem', whiteSpace: 'nowrap', flexShrink: 0}}>CONCLUÍDO</span>
                   )}
                 </div>
                 

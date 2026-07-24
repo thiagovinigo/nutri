@@ -20,7 +20,7 @@ export default function PatientList({
   handleCreateAppointment, cancelAppointment, startConsultation,
   showPatientModal, setShowPatientModal,
   openNewPatientModal, openEditPatientModal, editingPatient, handleDeletePatient,
-  patName, setPatName, patObj, setPatObj, patRest, setPatRest, patCpf, setPatCpf, patEmail, setPatEmail, patAge, setPatAge, patGender, setPatGender, patAversions, setPatAversions, patMedications, setPatMedications, handleSavePatient,
+  patName, setPatName, patObj, setPatObj, patRest, setPatRest, patCpf, setPatCpf, patEmail, setPatEmail, patBirthDate, setPatBirthDate, patGender, setPatGender, patAversions, setPatAversions, patMedications, setPatMedications, handleSavePatient,
   viewingPatientId, setViewingPatientId,
   synthesisResult, setSynthesisResult, isSynthesizing, generatePatientSynthesis, synthesisError,
   addNotification, addExam,
@@ -892,7 +892,7 @@ export default function PatientList({
                                 <h3 style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '16px' }}>
                                   <BrainCircuit size={20} color="var(--crm-accent)" /> Análise Clínica (Última Consulta)
                                 </h3>
-                                <div style={{ padding: '16px', backgroundColor: 'var(--crm-surface-2, var(--crm-bg))', borderLeft: '4px solid var(--crm-accent)', borderRadius: '4px', color: 'var(--crm-text-main)', fontSize: '0.95rem', lineHeight: '1.6' }}>
+                                <div className="markdown-body ai-synthesis">
                                   <ReactMarkdown remarkPlugins={[remarkGfm]}>{lastCons.examResult}</ReactMarkdown>
                                 </div>
                               </div>
@@ -1801,17 +1801,30 @@ export default function PatientList({
               <div style={{ display: 'flex', gap: '16px', marginBottom: '16px' }}>
                 <div style={{ flex: 1 }}>
                   <label className="crm-label">CPF</label>
-                  <input type="text" className="crm-input" placeholder="000.000.000-00" value={patCpf} onChange={e => setPatCpf(e.target.value)} />
+                  <input type="text" className="crm-input" placeholder="000.000.000-00" value={patCpf} onChange={e => setPatCpf(e.target.value)} required />
                 </div>
                 <div style={{ flex: 1 }}>
                   <label className="crm-label">E-mail</label>
-                  <input type="email" className="crm-input" placeholder="email@paciente.com" value={patEmail} onChange={e => setPatEmail(e.target.value)} />
+                  <input type="email" className="crm-input" placeholder="email@paciente.com" value={patEmail} onChange={e => setPatEmail(e.target.value)} required />
                 </div>
               </div>
               <div style={{ display: 'flex', gap: '16px', marginBottom: '16px' }}>
                 <div style={{ flex: 1 }}>
-                  <label className="crm-label">Idade</label>
-                  <input type="number" className="crm-input" placeholder="Ex: 30" value={patAge} onChange={e => setPatAge(e.target.value)} />
+                  <label className="crm-label">Data de Nascimento</label>
+                  <div style={{ display: 'flex', gap: '8px' }}>
+                    <input type="date" className="crm-input" value={patBirthDate} onChange={e => setPatBirthDate(e.target.value)} required style={{ flex: 2 }} />
+                    <input type="number" className="crm-input" value={
+                      (() => {
+                        if (!patBirthDate) return '';
+                        const today = new Date();
+                        const bDate = new Date(patBirthDate);
+                        let age = today.getFullYear() - bDate.getFullYear();
+                        const m = today.getMonth() - bDate.getMonth();
+                        if (m < 0 || (m === 0 && today.getDate() < bDate.getDate())) { age--; }
+                        return age;
+                      })()
+                    } readOnly disabled placeholder="Idade" style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.05)', cursor: 'not-allowed' }} />
+                  </div>
                 </div>
                 <div style={{ flex: 1 }}>
                   <label className="crm-label">Gênero</label>

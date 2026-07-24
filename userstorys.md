@@ -149,3 +149,83 @@ Abaixo estão os próximos Épicos, estruturados com **PRD, Hipóteses, Históri
   - **Given** que sou um paciente nível Prata
   - **When** compartilho meu link e o amigo paga a primeira consulta
   - **Then** eu ganho a insígnia "Embaixador" e o nutricionista recebe um novo cliente na sua base.
+
+
+---
+
+## 🤖 Épico 07: Vytal Bot no WhatsApp (Proativo)
+*Referência: `todo.md` - Integração WhatsApp Proativa.*
+
+- **PRD Summary:** Estender o CRM para fora do App. O paciente passará a receber acompanhamento ativo no WhatsApp, com a IA cobrando horários de refeição, alertando sobre deslizes diários e confirmando consultas de forma conversacional.
+- **Hipótese:** Acreditamos que a proatividade via WhatsApp aumentará a retenção e adesão à dieta em 40%, pois o paciente não precisa lembrar de abrir o app, a clínica "vai até ele".
+- **Pre-mortem:** *O que pode dar errado?* Ser banido pelo WhatsApp por spam ou o paciente achar chato e bloquear. *Mitigação:* Criar configurações claras de "frequência de mensagens" e permitir que o paciente digite "PARE" para silenciar os alertas de refeição.
+
+### User Stories & Acceptance Criteria
+**US 7.1: Lembretes de Refeição**
+- *User Story:* Como paciente, quero receber uma mensagem no WhatsApp quando estiver na hora da refeição, para não pular refeições por esquecimento.
+- *Acceptance Criteria:*
+  - **Given** que são 08:00 e o Café da Manhã está planejado
+  - **When** o Cron Job roda
+  - **Then** a IA envia uma mensagem amigável no WhatsApp perguntando se já preparei.
+
+**US 7.2: Intervenção Cognitivo-Comportamental (Alertas de deslize)**
+- *User Story:* Como nutricionista, quero que a IA alerte o paciente no fim do dia se ele registrou muitos alimentos fora da dieta, para automatizar meu trabalho de acompanhamento comportamental.
+- *Acceptance Criteria:*
+  - **Given** que o paciente registrou 2 refeições "Livres" no mesmo dia
+  - **When** o Worker diário analisa os logs do dia
+  - **Then** envia uma mensagem: "Você saiu muito da dieta hoje, cuidado pra não perder o foco!".
+
+**US 7.3: Confirmação de Consultas Automática**
+- *User Story:* Como clínica, quero que o bot mande mensagem na véspera da consulta confirmando a presença, para reduzir a taxa de no-show.
+- *Acceptance Criteria:*
+  - **Given** uma consulta agendada para amanhã
+  - **When** for 24h antes da consulta
+  - **Then** a IA envia mensagem de confirmação e atualiza o status no CRM caso o paciente responda "Sim".
+
+
+**US 7.4: Check-in Zero-Friction via WhatsApp (Foto e Texto)**
+- *User Story:* Como paciente, quero poder apenas responder a mensagem do bot com um "Sim" ou com uma foto do meu prato, para que a IA registre meu check-in automaticamente no aplicativo sem eu precisar abri-lo.
+- *Acceptance Criteria:*
+  - **Given** que o bot me enviou o lembrete do almoço
+  - **When** eu envio uma foto do prato no WhatsApp
+  - **Then** a IA (Vision) analisa a foto, entende que está na dieta, e automaticamente marca o Check-in no Vytal App, me dando os XP correspondentes.
+
+
+---
+
+## 💎 Épico Prioritário (Próxima Versão): Agente Ativo de Saúde & Integração WhatsApp
+*Referência: `todo.md` - Integração WhatsApp Proativa & Bugfixes pendentes.*
+
+- **PRD Summary:** A próxima grande versão transforma o app de uma ferramenta "passiva" em um "detetive comportamental proativo" via WhatsApp. A IA vai atrás do paciente, cruza dados de dieta/sono/água e detecta síndromes, além de permitir interações sem abrir o aplicativo (Zero-Friction). Este pacote também inclui correções críticas de usabilidade (como o Check-in de Treino).
+- **Hipótese:** Acreditamos que interagir com o paciente pelo WhatsApp e agir preventivamente sobre o comportamento aumentará a taxa de sucesso clínico em 50% e reduzirá o abandono de dieta a quase zero.
+
+### User Stories & Acceptance Criteria
+
+**US 1: Check-in de Treino (Bugfix/Feature Gap)**
+- *User Story:* Como paciente, preciso poder marcar meu treino como realizado e ganhar XP, porque atualmente o botão não permite dar "Check-in" no treino prescrito.
+- *Acceptance Criteria:*
+  - O botão de treino no QuestBoard deve abrir o modal de feedback/foto.
+  - O sistema deve registrar o XP de treino corretamente e atualizar o gráfico de progresso.
+
+**US 2: Lembretes e Check-in Zero-Friction via WhatsApp**
+- *User Story:* Como paciente, quero receber lembretes de refeição no WhatsApp e poder apenas enviar uma foto do meu prato para ganhar meu XP, sem abrir o aplicativo.
+- *Acceptance Criteria:*
+  - O bot envia "Está na hora do seu almoço, já preparou?".
+  - O paciente envia a foto do prato.
+  - A IA Vision analisa a foto, marca o check-in no banco de dados e responde com um elogio motivacional.
+
+**US 3: Detetive Comportamental da IA**
+- *User Story:* Como clínica, quero que a IA atue como detetive, cruzando logs de WhatsApp, comida, água e sono para detectar riscos ocultos e agir proativamente.
+- *Acceptance Criteria:* A IA deve ser capaz de detectar e alertar o nutricionista ou atuar sobre os seguintes cenários:
+  1. **Compulsão Noturna:** Pula café, mas ataca doces após as 20h.
+  2. **TPM / Flutuações Hormonais:** Alteração de humor no WhatsApp + pico de carboidratos a cada ~28 dias.
+  3. **Burnout:** Sono ruim + aumento de cafeína + mensagens de exaustão no WhatsApp.
+  4. **Desidratação Silenciosa:** Queixa de dor de cabeça + logs de água zerados.
+  5. **Autossabotagem:** Errou o almoço e deixou de registrar o jantar (Mindset "Tudo ou Nada").
+  6. **Risco de Lesão:** Treino pesado 7 dias seguidos + reclamação de fadiga.
+
+**US 4: Confirmação de Agenda e Engajamento**
+- *User Story:* Como clínica, quero que o bot confirme consultas e dê um "puxão de orelha" no paciente caso ele fure a dieta o dia todo.
+- *Acceptance Criteria:*
+  - O bot envia alerta na véspera da consulta.
+  - Se o paciente registrar muitos alimentos "Livre" num dia, o bot manda mensagem à noite: "Cuidado para não perder o foco!"

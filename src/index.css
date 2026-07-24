@@ -21,6 +21,7 @@
   /* SaaS CRM Premium Design System - Dashboard Nutricionista */
   --crm-bg: #F8FAFC; /* Slate 50 */
   --crm-surface: #FFFFFF;
+  --crm-hover-bg: #FAFAFB;
   --crm-border: #E2E8F0; /* Slate 200 */
   --crm-text-main: #0F172A; /* Slate 900 */
   --crm-text-muted: #64748B; /* Slate 500 */
@@ -58,6 +59,7 @@
   /* CRM Dashboard Dark Variables */
   --crm-bg: #0F172A; 
   --crm-surface: #1E293B;
+  --crm-hover-bg: #334155;
   --crm-border: #334155;
   --crm-text-main: #F8FAFC;
   --crm-text-muted: #94A3B8;
@@ -332,7 +334,7 @@ body { overflow-x: hidden; -webkit-font-smoothing: antialiased; font-family: var
   transition: background-color 0.12s;
 }
 .crm-table tbody tr:hover {
-  background-color: #FAFAFB;
+  background-color: var(--crm-hover-bg);
 }
 .crm-badge-blue, .crm-badge-green, .crm-badge-orange {
   display: inline-flex;
@@ -651,3 +653,34 @@ body { overflow-x: hidden; -webkit-font-smoothing: antialiased; font-family: var
 
 @keyframes spin { 100% { transform: rotate(360deg); } }
 .spin { animation: spin 1s linear infinite; }
+
+
+/* 3D Flip Card for Recipes */
+.flip-card {
+  background-color: transparent;
+  perspective: 1000px;
+  width: 100%;
+}
+.flip-card-inner {
+  position: relative;
+  width: 100%;
+  min-height: 120px;
+  text-align: left;
+  transition: transform 0.6s;
+  transform-style: preserve-3d;
+}
+.flip-card.flipped .flip-card-inner {
+  transform: rotateY(180deg);
+}
+.flip-card-front, .flip-card-back {
+  width: 100%;
+  -webkit-backface-visibility: hidden;
+  backface-visibility: hidden;
+}
+.flip-card-back {
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 100%;
+  transform: rotateY(180deg);
+}

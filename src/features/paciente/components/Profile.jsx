@@ -2,14 +2,10 @@ import React, { useState, useEffect } from 'react';
 import { User, Save, Scale, X, Activity, Upload, Sparkles, TrendingUp, FileText, Moon, Sun } from 'lucide-react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, Legend, ResponsiveContainer } from 'recharts';
 import { useAppContext } from '../../../context/AppContext';
-import { storage } from '../../../services/firebase';
-import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 
 export default function Profile({ activePatient }) {
   const { updatePatient, addWeight, completeQuest, addExam, theme, toggleTheme } = useAppContext();
-  const [examUploading, setExamUploading] = useState(false);
-  const [examError, setExamError] = useState('');
-  const [editName, setEditName] = useState('');
+      const [editName, setEditName] = useState('');
   const [editEmail, setEditEmail] = useState('');
   const [editCpf, setEditCpf] = useState('');
   const [editAge, setEditAge] = useState('');
@@ -33,8 +29,7 @@ export default function Profile({ activePatient }) {
     }
   }, [activePatient]);
 
-  const latestExam = activePatient?.exams?.slice(-1)[0];
-
+  
   // Prepare data for the chart
   let chartData = [];
   
@@ -97,43 +92,7 @@ export default function Profile({ activePatient }) {
     }
   };
 
-  const handleExamUpload = async (e) => {
-    const file = e.target.files[0];
-    if (!file) return;
-    if (!file.type.includes('pdf')) {
-      setExamError('Por favor, envie um arquivo PDF.');
-      return;
-    }
-    if (file.size > 5 * 1024 * 1024) {
-      setExamError('O arquivo é muito grande (Máx: 5MB).');
-      return;
-    }
-
-    setExamError('');
-    setExamUploading(true);
-
-    try {
-      if (storage) {
-        const fileRef = ref(storage, `exams/${activePatient.id}/${Date.now()}_${file.name}`);
-        await uploadBytes(fileRef, file);
-        const url = await getDownloadURL(fileRef);
-        await addExam(activePatient.id, { url, filename: file.name, type: 'pdf' });
-      } else {
-        // Fallback for mock/dev environment without Firebase Storage active
-        const fakeUrl = `https://mock-storage.com/${file.name}`;
-        await addExam(activePatient.id, { url: fakeUrl, filename: file.name, type: 'pdf' });
-      }
-      completeQuest(activePatient.id, 50); // Bônus por engajamento clínico
-    } catch (err) {
-      console.error(err);
-      setExamError('Erro ao enviar exame. Verifique sua conexão.');
-    } finally {
-      setExamUploading(false);
-      e.target.value = ''; // reset input
-    }
-  };
-
-  return (
+    return (
     <div className="animate-pop-in">
       <h2 style={styles.sectionTitle}><User color="#8b5cf6" /> Seu Perfil Pessoal</h2>
 
@@ -219,33 +178,6 @@ export default function Profile({ activePatient }) {
             </ResponsiveContainer>
           </div>
         )}
-      </div>
-
-      <div style={{...styles.card, marginTop: '24px'}}>
-        <h4 style={{margin: '0 0 16px 0', display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--crm-text-main)'}}>
-          <Activity size={20} color="#8b5cf6" /> Meus Exames (PDF)
-        </h4>
-        <p style={{fontSize: '0.85rem', color: 'var(--crm-text-muted)', marginBottom: '16px'}}>Envie seus exames recentes para que a IA e sua Nutri analisem antes da consulta.</p>
-        
-        {activePatient?.exams && activePatient.exams.length > 0 && (
-          <div style={{ marginBottom: '16px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
-            {activePatient.exams.map((ex, i) => (
-              <div key={i} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px', backgroundColor: 'var(--crm-surface-2, var(--crm-bg))', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  <FileText size={16} color="#8b5cf6" />
-                  <span style={{ fontSize: '0.9rem', color: 'var(--crm-text-main)', fontWeight: '500' }}>{ex.filename}</span>
-                </div>
-                <span style={{ fontSize: '0.8rem', color: 'var(--crm-text-muted)' }}>{ex.dateUploaded}</span>
-              </div>
-            ))}
-          </div>
-        )}
-
-        <label style={{...styles.actionBtn, backgroundColor: 'var(--crm-surface-2)', color: 'var(--crm-text-main)', boxShadow: 'none', border: '2px dashed #cbd5e1', justifyContent: 'center', cursor: examUploading ? 'wait' : 'pointer', position: 'relative'}}>
-          <input type="file" accept=".pdf" onChange={handleExamUpload} disabled={examUploading} style={{opacity: 0, position: 'absolute', inset: 0, cursor: 'pointer', display: examUploading ? 'none' : 'block'}} />
-          {examUploading ? <><Activity size={20} className="spinner" /> Enviando...</> : <><Upload size={20} /> Enviar Novo Exame (PDF)</>}
-        </label>
-        {examError && <p style={{color: '#e11d48', fontSize: '0.85rem', marginTop: '8px', textAlign: 'center'}}>{examError}</p>}
       </div>
 
       <div style={{...styles.card, marginTop: '24px'}}>

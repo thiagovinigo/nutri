@@ -417,3 +417,25 @@ SÃ­ntese dos dois comitÃªs acima em uma ordem de execuÃ§Ã£o Ãºnica. Cr
 - [x] Registro de sono no app.
 - [ ] Detecção de ansiedade alimentar pela IA.
 - [ ] Upload de exames pelo paciente (Evolução Clínica VIP).
+
+### Integração WhatsApp Proativa (Conversational AI & Lembretes)
+- [ ] **Lembretes de Refeição:** Bot envia "Está na hora do seu café da manhã, já preparou?" baseado no horário da dieta.
+- [ ] **Monitoramento de Engajamento:** IA analisa os "food logs" e alerta o paciente caso registre muita "besteira" ou refeições livres no mesmo dia ("Você saiu muito da dieta, cuidado pra não perder o foco!").
+- [ ] **Confirmação de Agenda:** Bot pergunta na véspera da consulta ("Você tem uma agenda amanhã, podemos confirmar?").
+- [ ] **Stack Necessária:** Para isso funcionar, precisaremos de:
+  1. API de WhatsApp (Oficial da Meta ou provedores como Evolution API / Baileys).
+  2. Workers de Background / Cron Jobs (ex: Vercel Cron ou agenda.js) para checar horários de refeição e disparar mensagens proativamente.
+  3. Webhooks para escutar as respostas do paciente no WhatsApp.
+  4. Agente de IA para classificar o histórico diário de logs do paciente (foodLogs) e definir o "tom" da cobrança.
+
+- [ ] **Check-in via WhatsApp (Zero-Friction):** Permitir que o paciente responda os lembretes com texto ("Sim, já comi") ou envie foto do prato. A IA (Vision) avalia a foto e registra o check-in no banco de dados automaticamente, dando o XP sem o paciente abrir o app.
+
+### 🚀 BATCH PARA A PRÓXIMA VERSÃO: Agente Ativo de Saúde
+- [ ] **Bugfix Crítico:** Consertar o Check-in de Treino no app do paciente (atualmente não permite marcar o treino como realizado).
+- [ ] **Integração WhatsApp Proativa:** 
+  - Lembretes de Refeição automáticos.
+  - Alerta de saída da dieta no fim do dia (Intervenção Comportamental).
+  - Confirmação automática de agendamentos.
+- [ ] **Check-in Zero-Friction:** Permitir que o paciente envie a foto do prato no WhatsApp e a IA Vision registre o XP automaticamente no app.
+- [ ] **Detetive Comportamental da IA:** Módulo de análise em background que cruza mensagens de chat, logs de sono e comida para alertar o nutricionista sobre: Compulsão Noturna, Flutuação Hormonal (TPM), Burnout, Desidratação, Autossabotagem e Risco de Lesão (Over-training).
+- [ ] Implementar funcionalidade de upload e an�lise de Exames (PDF) na tela de Perfil.
