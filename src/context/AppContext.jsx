@@ -191,7 +191,8 @@ export function AppProvider({ children }) {
       setPatients(prev => prev.map(p => p.id === localId ? { id: docRef.id, ...newPatient } : p));
       return docRef.id;
     } catch (e) {
-      console.warn('Falha ao sincronizar novo paciente com o Firestore (mantido localmente):', e);
+      console.error('Falha ao sincronizar novo paciente:', e);
+      alert('Erro ao salvar paciente no banco de dados: ' + e.message);
       return localId;
     }
   };
@@ -226,7 +227,8 @@ export function AppProvider({ children }) {
     try {
       await updateDoc(doc(db, 'patients', patientId), { recipes: newRecipes });
     } catch(e) {
-      console.warn('Falha ao sincronizar dieta com o Firestore (mantida localmente):', e);
+      console.error('Falha ao sincronizar dieta:', e);
+      alert('Erro ao salvar dieta no banco de dados: ' + e.message);
     }
   };
 
@@ -404,7 +406,8 @@ export function AppProvider({ children }) {
       const docRef = await addDoc(collection(db, 'appointments'), newAppt);
       setAppointments(prev => prev.map(a => a.id === localId ? { id: docRef.id, ...newAppt } : a));
     } catch(e) {
-      console.warn('Falha ao sincronizar agendamento com o Firestore (mantido localmente):', e);
+      console.error('Falha ao sincronizar agendamento:', e);
+      alert('Erro ao salvar agendamento no banco de dados: ' + e.message);
     }
   };
 
@@ -424,7 +427,8 @@ export function AppProvider({ children }) {
     try {
       await updateDoc(doc(db, 'appointments', id), { status: 'concluido' });
     } catch(e) {
-      console.warn('Falha ao sincronizar conclusão de agendamento com o Firestore:', e);
+      console.error('Falha ao sincronizar conclusão de agendamento:', e);
+      alert('Erro ao atualizar status do agendamento no banco: ' + e.message);
     }
   };
 

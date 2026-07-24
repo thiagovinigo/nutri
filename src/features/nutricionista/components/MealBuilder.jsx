@@ -116,7 +116,7 @@ export default function MealBuilder({ meal, onChange, onDelete, onDrop, aversion
               placeholder="Buscar alimento (TACO)..." 
               value={searchTerm}
               onChange={handleSearch}
-              style={{ border: 'none', padding: '8px', background: 'transparent', width: '100%', outline: 'none' }}
+              style={{ border: 'none', padding: '8px', background: 'transparent', width: '100%', outline: 'none', color: 'var(--crm-text-main)' }}
             />
           </div>
           {searchResults.length > 0 && (

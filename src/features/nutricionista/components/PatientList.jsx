@@ -464,6 +464,10 @@ export default function PatientList({
                 clinicConfig={clinicConfig}
                 startConsultation={startConsultation}
                 cancelAppointment={cancelAppointment}
+                viewPatientProfile={(patientId) => {
+                  setView('pacientes');
+                  setViewingPatientId(patientId);
+                }}
                 onSlotClick={(date, time) => {
                   setApptDate(date);
                   setApptTime(time);
@@ -594,9 +598,15 @@ export default function PatientList({
                     <BrainCircuit size={16} color="var(--crm-accent)" /> 
                     {isSynthesizing ? 'Analisando Histórico...' : 'Gerar Síntese Clínica (IA)'}
                   </button>
-                  <button className="crm-btn-primary" onClick={() => startConsultation(viewedPatient.id, null)} style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                    <Play size={16} /> Iniciar Consulta Avulsa
-                  </button>
+                  {(() => {
+                    const todayStr = new Date().toISOString().split('T')[0];
+                    const apptHoje = appointments?.find(a => a.patientId === viewedPatient.id && a.date === todayStr && a.status === 'agendado');
+                    return (
+                      <button className="crm-btn-primary" onClick={() => startConsultation(viewedPatient.id, apptHoje ? apptHoje.id : null)} style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                        <Play size={16} /> {apptHoje ? `Iniciar Prontuário (${apptHoje.time})` : 'Iniciar Consulta Avulsa'}
+                      </button>
+                    );
+                  })()}
                 </div>
               </div>
 
@@ -885,7 +895,7 @@ export default function PatientList({
                                 <h3 style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '16px' }}>
                                   <FileText size={20} color="var(--crm-accent)" /> Anamnese (Última Consulta)
                                 </h3>
-                                <div style={{ padding: '16px', backgroundColor: 'var(--crm-warn-soft, #FEF3C7)', borderLeft: '4px solid #F59E0B', borderRadius: '4px', color: 'var(--crm-text-main)', fontSize: '0.95rem', whiteSpace: 'pre-wrap' }}>
+                                <div style={{ padding: '16px', backgroundColor: 'var(--crm-surface-2, var(--crm-bg))', borderLeft: '4px solid var(--crm-accent)', borderRadius: '4px', color: 'var(--crm-text-main)', fontSize: '0.95rem', whiteSpace: 'pre-wrap' }}>
                                   {lastCons.anamnesis}
                                 </div>
                               </div>
@@ -1034,7 +1044,7 @@ export default function PatientList({
                                                         <button onClick={() => handleSaveExercise(i, j)} className="crm-btn-primary" style={{ padding: '4px 12px', fontSize: '0.8rem' }}>Salvar</button>
                                                       ) : (
                                                         <>
-                                                          <button onClick={() => { setEditingExercisePath({ dIdx: i, eIdx: j }); setEditingExerciseData({name: ex.name, sets: ex.sets, reps: ex.reps}); }} style={{ background: 'none', border: 'none', color: 'var(--crm-accent)', cursor: 'pointer', padding: '4px' }}><Edit3 size={14} /></button>
+                                                          <button onClick={() => { setEditingExercisePath({ dIdx: i, eIdx: j }); setEditingExerciseData(typeof ex === 'string' ? {name: ex, sets: '', reps: ''} : {name: ex.name, sets: ex.sets, reps: ex.reps}); }} style={{ background: 'none', border: 'none', color: 'var(--crm-accent)', cursor: 'pointer', padding: '4px' }}><Edit3 size={14} /></button>
                                                           <button onClick={() => handleDeleteExercise(i, j)} style={{ background: 'none', border: 'none', color: 'var(--crm-danger)', cursor: 'pointer', padding: '4px' }}><Trash2 size={14} /></button>
                                                         </>
                                                       )}
@@ -1220,11 +1230,41 @@ export default function PatientList({
 
                                                     {cons.dietMeals && cons.dietMeals.length > 0 && (
                                                       <ul style={{ margin: 0, paddingLeft: '0', listStyle: 'none', color: 'var(--crm-text-muted)', fontSize: '0.95rem' }}>
-                                                        {cons.dietMeals.map((m, midx) => (
-                                                          <li key={midx} style={{ marginBottom: '8px', paddingBottom: '8px', borderBottom: '1px solid #E2E8F0' }}>
-                                                            <strong style={{ color: 'var(--crm-text-main)' }}>{m.name}:</strong> {m.desc}
-                                                          </li>
-                                                        ))}
+                                                        {cons.dietMeals.map((m, midx) => {
+                                                          const activeRecipe = viewedPatient.recipes?.find(r => r.title === cons.dietTitle);
+                                                          return (
+                                                            <li key={midx} style={{ marginBottom: '8px', paddingBottom: '8px', borderBottom: '1px solid #E2E8F0' }}>
+                                                              <strong style={{ color: 'var(--crm-text-main)' }}>{m.name}:</strong> {m.desc}
+                                                              {m.foods && m.foods.length > 0 && (
+                                                                <div style={{ marginTop: '8px', padding: '8px', backgroundColor: 'var(--crm-surface)', borderRadius: '4px', border: '1px solid #E2E8F0' }}>
+                                                                  {m.foods.map((f, fIdx) => {
+                                                                    const activeFood = activeRecipe?.meals?.[midx]?.foods?.[fIdx];
+                                                                    const isSubstituted = activeFood && activeFood.name !== f.name;
+                                                                    
+                                                                    return (
+                                                                      <div key={fIdx} style={{ fontSize: '0.85rem', color: 'var(--crm-text-main)', marginBottom: '4px', display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: '8px' }}>
+                                                                        {isSubstituted ? (
+                                                                          <>
+                                                                            <span style={{ textDecoration: 'line-through', color: 'var(--crm-text-muted)' }}>
+                                                                              <strong>{f.amount}g</strong> - {f.name}
+                                                                            </span>
+                                                                            <span style={{ backgroundColor: 'var(--crm-warn-soft, #FEF3C7)', color: '#92400E', padding: '2px 6px', borderRadius: '4px', fontWeight: 'bold' }}>
+                                                                              🔄 Substituído por: {activeFood.amount}g - {activeFood.name}
+                                                                            </span>
+                                                                          </>
+                                                                        ) : (
+                                                                          <>
+                                                                            <strong>{f.amount}g</strong> - {f.name} <span style={{color: 'var(--crm-text-muted)'}}>({f.kcal} kcal)</span>
+                                                                          </>
+                                                                        )}
+                                                                      </div>
+                                                                    );
+                                                                  })}
+                                                                </div>
+                                                              )}
+                                                            </li>
+                                                          );
+                                                        })}
                                                       </ul>
                                                     )}
 
@@ -1264,7 +1304,7 @@ export default function PatientList({
                                                           <div key={i} style={{ marginBottom: '12px' }}>
                                                             <strong style={{ display: 'block', marginBottom: '4px', color: 'var(--crm-text-main)' }}>{d.dayName}</strong>
                                                             <ul style={{ margin: 0, paddingLeft: '20px', color: 'var(--crm-text-muted)', fontSize: '0.95rem' }}>
-                                                              {d.exercises?.map((ex, exI) => <li key={exI}>{ex}</li>)}
+                                                              {d.exercises?.map((ex, exI) => <li key={exI}>{typeof ex === 'string' ? ex : `${ex.name} - ${ex.sets || ''}x${ex.reps || ''}`}</li>)}
                                                             </ul>
                                                           </div>
                                                         ))}
@@ -1815,19 +1855,19 @@ export default function PatientList({
               <div style={{ display: 'flex', gap: '16px', marginBottom: '16px' }}>
                 <div style={{ flex: 1 }}>
                   <label className="crm-label">Data de Nascimento</label>
-                  <div style={{ display: 'flex', gap: '8px' }}>
+                  <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
                     <input type="date" className="crm-input" value={patBirthDate} onChange={e => setPatBirthDate(e.target.value)} required style={{ flex: 2 }} />
-                    <input type="number" className="crm-input" value={
-                      (() => {
-                        if (!patBirthDate) return '';
+                    <div style={{ flex: 1, padding: '8px 12px', backgroundColor: 'var(--crm-surface)', border: '1px solid var(--crm-border)', borderRadius: '8px', color: 'var(--crm-text-light)', textAlign: 'center', height: '42px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                      {(() => {
+                        if (!patBirthDate) return 'Idade';
                         const today = new Date();
-                        const bDate = new Date(patBirthDate);
+                        const bDate = new Date(patBirthDate + 'T00:00:00'); // Evita timezone bug
                         let age = today.getFullYear() - bDate.getFullYear();
                         const m = today.getMonth() - bDate.getMonth();
                         if (m < 0 || (m === 0 && today.getDate() < bDate.getDate())) { age--; }
-                        return age;
-                      })()
-                    } readOnly disabled placeholder="Idade" style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.05)', cursor: 'not-allowed' }} />
+                        return isNaN(age) ? 'Idade' : `${age} anos`;
+                      })()}
+                    </div>
                   </div>
                 </div>
                 <div style={{ flex: 1 }}>

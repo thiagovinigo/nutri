@@ -44,6 +44,7 @@ export default function DashboardNutri() {
   const [synthesisResult, setSynthesisResult] = useState('');
 
   const [consultationStep, setConsultationStep] = useState(1);
+  const [consultationType, setConsultationType] = useState('Primeira Consulta');
   const [activeApptId, setActiveApptId] = useState(null);
   const [anamnesis, setAnamnesis] = useState('');
   
@@ -95,6 +96,11 @@ export default function DashboardNutri() {
   const handleCreateAppointment = (e) => {
     e.preventDefault();
     if (apptPatientId && apptDate && apptTime) {
+      const conflict = appointments.some(a => a.date === apptDate && a.time === apptTime && a.status === 'agendado');
+      if (conflict) {
+        alert('Já existe um agendamento para esta mesma data e horário. Por favor, escolha outro horário.');
+        return;
+      }
       addAppointment(apptPatientId, apptDate, apptTime, apptType, apptLocationType, apptMeetingLink);
       setShowApptModal(false);
       setApptTime('');
@@ -199,6 +205,7 @@ export default function DashboardNutri() {
     setDietSupplements('');
     setDietDuration(1);
     setDietMeals([]);
+    setWorkoutPlan(null);
     setView('consulta');
   };
 
@@ -214,6 +221,7 @@ export default function DashboardNutri() {
     setDietSupplements('');
     setDietDuration(1);
     setDietMeals([]);
+    setWorkoutPlan(null);
     setView('consulta');
   };
 
@@ -230,6 +238,8 @@ export default function DashboardNutri() {
         contentArray[0].text += `HISTÓRICO DE EXAMES ANTERIORES DO PACIENTE (para comparação evolutiva):\n${JSON.stringify(activePatient.exams)}\n\n`;
       }
       
+      const hasPreviousExams = activePatient.exams && activePatient.exams.length > 0;
+
       contentArray[0].text += `Analise os novos exames anexados e faça a correlação obrigatória com o histórico acima (se houver):`;
 
       
@@ -265,7 +275,9 @@ Liste cada grupo de exames analisados. OBRIGATORIAMENTE use o formato de LISTA (
 - **[Parâmetro]:** [Resultado Encontrado] (Ref: [Valor de Referência]) - Status: [✅ Normal / ⚠️ Alterado / 🚨 Crítico]
 
 ## 2. Evolução Clínica (Comparação Histórica)
-Se houver histórico de exames anteriores enviado no contexto, compare os achados de agora com os antigos. Mostre o que melhorou, o que piorou e a tendência. Se não houver histórico, diga "Este é o primeiro exame registrado (Linha de Base)".
+${hasPreviousExams 
+  ? 'Compare os achados atuais com o HISTÓRICO DE EXAMES ANTERIORES fornecido no contexto. Mostre o que melhorou, o que piorou e a tendência para cada marcador.' 
+  : 'NÃO EXISTEM EXAMES ANTERIORES! Escreva EXATAMENTE E APENAS a seguinte frase nesta seção: "Não há dados para evolução por ser o primeiro exame registrado (Linha de Base)." NÃO INVENTE valores passados nem tente comparar com o normal.'}
 
 ## 3. Tradução para o Paciente (Linguagem Leiga)
 Uma explicação simples, clara e empática sobre o que os exames dizem, perfeita para o profissional ler ou copiar para o paciente. Relacione os achados com os sintomas descritos na anamnese.
@@ -423,21 +435,29 @@ Não inclua textos fora do JSON. Apenas o JSON puro.`;
     setSynthesisResult('');
     setSynthesisError('');
     try {
+      const hasHistory = patient.consultations && patient.consultations.length > 0;
+      
       const patientDataString = `
       Nome: ${patient.name}
       Objetivo: ${patient.objective}
       Restrições: ${patient.restrictions || 'Nenhuma'}
       Anotações Antigas: ${patient.records || 'Sem anotações'}
-      Últimos Pesos: ${patient.weights.map(w => `${w.date}: ${w.value}kg`).join(' | ')}
-      Últimas Dietas Prescritas: ${patient.recipes.map(r => r.title).join(', ')}
+      Últimos Pesos: ${patient.weights ? patient.weights.map(w => `${w.date}: ${w.value}kg`).join(' | ') : 'Nenhum'}
+      Últimas Dietas Prescritas: ${patient.recipes ? patient.recipes.map(r => r.title).join(', ') : 'Nenhuma'}
+      Exames Registrados: ${patient.exams ? patient.exams.map(e => e.date).join(', ') : 'Nenhum'}
+      Consultas Realizadas: ${patient.consultations ? patient.consultations.length : 0}
       Nível de Engajamento App: ${patient.streak} dias seguidos
       `;
+
+      const sysPrompt = hasHistory 
+        ? "Você é um consultor médico sênior. Dê uma SÍNTESE CLÍNICA INTELIGENTE em 2 ou 3 parágrafos focados: 1) Evolução do paciente (pesos, aderência, exames se houver). 2) O que focar na próxima consulta. Seja extremamente analítico e direto."
+        : "Você é um consultor médico sênior. Este é o PRIMEIRO contato com o paciente (não há evolução histórica ainda). Faça uma análise inicial de risco e trace a conduta primária recomendada com base nos objetivos atuais. NÃO invente evolução.";
 
       const response = await fetch('/api/openai-bridge', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          system_prompt: "Você é um consultor médico sênior. Dê uma SÍNTESE CLÍNICA INTELIGENTE em 2 ou 3 parágrafos focados: 1) Evolução do paciente. 2) O que focar na próxima consulta. Seja extremamente analítico, profissional e direto.",
+          system_prompt: sysPrompt,
           messages: [{ role: "user", content: `Analise os dados deste paciente e gere a síntese clínica:\n${patientDataString}` }],
           format_json: false
         })
@@ -459,9 +479,11 @@ Não inclua textos fora do JSON. Apenas o JSON puro.`;
     }
     if (activeApptId) markAppointmentDone(activeApptId);
 
+    // Finalizar e salvar histórico de consulta
     const newConsultation = {
       id: Date.now().toString(),
-      date: new Date().toLocaleDateString('pt-BR'),
+      date: new Date().toISOString(),
+      type: consultationType || 'Primeira Consulta',
       anamnesis: anamnesis,
       physicalEval: physicalEval,
       examResult: examResult,
@@ -479,9 +501,9 @@ Não inclua textos fora do JSON. Apenas o JSON puro.`;
       consultations: updatedConsultations
     };
 
-    if (dietTitle && dietMeals.length > 0) {
+    if (dietMeals.length > 0) {
       updatePayload.recipes = [{
-        title: dietTitle,
+        title: dietTitle || 'Plano Alimentar Padrão',
         description: dietDescription,
         supplements: dietSupplements,
         meals: formattedMeals
@@ -515,6 +537,7 @@ Não inclua textos fora do JSON. Apenas o JSON puro.`;
         activePatient={activePatient}
         activeApptId={activeApptId}
         consultationStep={consultationStep} setConsultationStep={setConsultationStep}
+        consultationType={consultationType} setConsultationType={setConsultationType}
         anamnesis={anamnesis} setAnamnesis={setAnamnesis}
         physicalEval={physicalEval} setPhysicalEval={setPhysicalEval}
         examUploaded={examUploaded} setExamUploaded={setExamUploaded}
@@ -534,7 +557,7 @@ Não inclua textos fora do JSON. Apenas o JSON puro.`;
         examError={examError} dietError={dietError} finishedMessage={finishedMessage}
         onSuspend={() => setView(activeApptId ? 'agenda' : 'pacientes')}
         dietTemplates={dietTemplates} addDietTemplate={addDietTemplate}
-        recipeLibrary={recipeLibrary}
+        recipeLibrary={recipeLibrary} addBonusRecipe={addBonusRecipe}
       />
     );
   }

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { ChevronLeft, ChevronRight, PlayCircle, Trash2 } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Trash2, Eye } from 'lucide-react';
 
 export default function WeeklyCalendar({
   appointments,
@@ -7,7 +7,8 @@ export default function WeeklyCalendar({
   clinicConfig,
   onSlotClick,
   startConsultation,
-  cancelAppointment
+  cancelAppointment,
+  viewPatientProfile
 }) {
   const scheduleConfig = clinicConfig.scheduleConfig || { workingDays: [1,2,3,4,5], startHour: 9, endHour: 18, blockedDates: [] };
   const { workingDays, startHour, endHour, blockedDates, lunchStart = '12:00', lunchEnd = '13:00', slotInterval = 30 } = scheduleConfig;
@@ -145,9 +146,9 @@ export default function WeeklyCalendar({
                         )}
                       </div>
                       {!isConcluido && (
-                        <div style={{ display: 'flex', gap: '8px', marginTop: '8px' }}>
-                          <button onClick={() => startConsultation(pat?.id, appt.id)} style={{ background: 'none', border: 'none', color: 'var(--crm-primary)', cursor: 'pointer', padding: 0 }} title="Iniciar Prontuário"><PlayCircle size={16} /></button>
-                          <button onClick={() => cancelAppointment(appt.id)} style={{ background: 'none', border: 'none', color: 'var(--crm-danger)', cursor: 'pointer', padding: 0 }} title="Cancelar"><Trash2 size={16} /></button>
+                        <div style={{ display: 'flex', gap: '12px', marginTop: '8px' }}>
+                          <button onClick={() => viewPatientProfile(pat?.id)} style={{ background: 'none', border: 'none', color: '#64748b', cursor: 'pointer', padding: 0, display: 'flex', alignItems: 'center' }} title="Ver Ficha"><Eye size={16} /></button>
+                          <button onClick={() => { if(window.confirm('Tem certeza que deseja cancelar este agendamento?')) cancelAppointment(appt.id); }} style={{ background: 'none', border: 'none', color: 'var(--crm-danger)', cursor: 'pointer', padding: 0, display: 'flex', alignItems: 'center' }} title="Cancelar Agendamento"><Trash2 size={16} /></button>
                         </div>
                       )}
                     </div>

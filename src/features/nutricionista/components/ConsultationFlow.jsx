@@ -3,6 +3,7 @@ import { FileText, Activity, Sparkles, Edit3, Send, Plus, X, Upload, CheckCircle
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import MealBuilder from './MealBuilder';
+import WorkoutBuilder from './WorkoutBuilder';
 import { useAppContext } from '../../../context/AppContext';
 
 function normTitle(s) {
@@ -70,6 +71,7 @@ export default function ConsultationFlow({
   activePatient,
   activeApptId,
   consultationStep, setConsultationStep,
+  consultationType, setConsultationType,
   anamnesis, setAnamnesis,
   physicalEval, setPhysicalEval,
   examUploaded, setExamUploaded,
@@ -89,7 +91,8 @@ export default function ConsultationFlow({
   examError, dietError, finishedMessage,
   onSuspend,
   dietTemplates,
-  recipeLibrary
+  recipeLibrary,
+  addBonusRecipe
 }) {
   const { addDietTemplate } = useAppContext();
   const [draggedRecipe, setDraggedRecipe] = useState(null);
@@ -228,6 +231,17 @@ export default function ConsultationFlow({
           {consultationStep === 1 && (
             <div className="crm-card">
               <h2 style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '24px' }}><FileText color="var(--crm-accent)" /> Anamnese e Queixas Principais</h2>
+              
+              <div style={{ marginBottom: '24px' }}>
+                <label className="crm-label">Tipo de Consulta</label>
+                <select className="crm-input" value={consultationType} onChange={(e) => setConsultationType(e.target.value)} style={{ width: '100%', maxWidth: '300px' }}>
+                  <option value="Primeira Consulta">Primeira Consulta</option>
+                  <option value="Retorno">Retorno</option>
+                  <option value="Acompanhamento">Acompanhamento Mensal</option>
+                  <option value="Urgência">Urgência / Avulsa</option>
+                </select>
+              </div>
+
               <label className="crm-label">Anotações Clínicas de Hoje</label>
               <textarea className="crm-input" placeholder="Como o paciente tem se sentido? As notas aqui servirão de contexto para a IA gerar a dieta." value={anamnesis} onChange={(e) => setAnamnesis(e.target.value)} style={{ height: '250px', resize: 'vertical' }} />
               <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '24px' }}>
@@ -633,12 +647,11 @@ export default function ConsultationFlow({
                               className="crm-btn-primary" 
                               style={{ marginTop: '8px', padding: '4px 8px', fontSize: '0.8rem', width: '100%' }}
                               onClick={() => {
-                                const newMeal = { name: rec.title, desc: rec.ingredients, foods: [] };
-                                setDietMeals([...dietMeals, newMeal]);
-                                setPrescriptionTab('cardapio');
+                                addBonusRecipe(activePatient.id, rec);
+                                alert("Receita anexada ao paciente com sucesso!");
                               }}
                             >
-                              <Plus size={14} style={{ marginRight: '4px' }}/> Adicionar
+                              <Plus size={14} style={{ marginRight: '4px' }}/> Anexar ao Paciente
                             </button>
                           </div>
                         ))}
@@ -668,32 +681,64 @@ export default function ConsultationFlow({
                 <div className="animate-pop-in" style={{ marginBottom: '32px' }}>
                   <div style={{ padding: '24px', backgroundColor: 'var(--crm-surface-2, var(--crm-bg))', border: '1px solid #E2E8F0', borderRadius: '12px', marginBottom: '24px' }}>
                     <h3 style={{ fontSize: '1.1rem', color: 'var(--crm-text-main)', marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                      <Dumbbell size={18} color="#3B82F6" /> Gerador de Ficha de Treino (IA Personal)
+                      <Dumbbell size={18} color="var(--crm-primary)" /> Gerador de Ficha de Treino (IA Personal)
                     </h3>
                     <p style={{ color: 'var(--crm-text-muted)', fontSize: '0.95rem', marginBottom: '16px' }}>
                       A IA usará os dados de anamnese, peso e objetivo do paciente para montar uma periodização de exercícios inteligente.
                     </p>
                     <button className="crm-btn-primary" onClick={async () => {
                       await generateWorkoutFromAI();
-                    }} disabled={isGenerating} style={{ width: '100%', backgroundColor: '#3B82F6', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '8px', padding: '12px' }}>
+                    }} disabled={isGenerating} style={{ width: '100%', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '8px', padding: '12px' }}>
                       <Sparkles size={16} color='var(--crm-surface)' /> {isGenerating ? 'Gerando Treino...' : 'Gerar Ficha de Treino com IA'}
                     </button>
                   </div>
 
+                  {!workoutPlan && (
+                    <button className="crm-btn-secondary" onClick={() => setWorkoutPlan({
+                      title: 'Plano de Treino Customizado',
+                      days: [
+                        { dayName: 'Treino A', exercises: ['Exercício - Séries x Reps'] }
+                      ]
+                    })} style={{ width: '100%', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '8px', padding: '12px', borderStyle: 'dashed' }}>
+                      <Plus size={16} /> Montar Treino Manualmente
+                    </button>
+                  )}
+
                   {workoutPlan && (
                     <div style={{ padding: '24px', backgroundColor: 'var(--crm-surface)', border: '1px solid #E2E8F0', borderRadius: '12px' }}>
-                      <h4 style={{ color: 'var(--crm-text-main)', marginBottom: '16px', fontSize: '1.2rem' }}>{workoutPlan.title}</h4>
+                      <input 
+                        type="text" 
+                        value={workoutPlan.title} 
+                        onChange={(e) => setWorkoutPlan({...workoutPlan, title: e.target.value})}
+                        style={{ width: '100%', marginBottom: '16px', fontSize: '1.2rem', fontWeight: 'bold', padding: '8px', background: 'transparent', border: 'none', borderBottom: '1px solid var(--crm-border)', color: 'var(--crm-text-main)', outline: 'none' }}
+                      />
                       {workoutPlan.days?.map((d, i) => (
-                        <div key={i} style={{ marginBottom: '16px', padding: '16px', backgroundColor: 'var(--crm-surface-2)', borderRadius: '8px' }}>
-                          <strong style={{ color: '#3B82F6', display: 'block', marginBottom: '8px' }}>{d.dayName}</strong>
-                          <ul style={{ margin: 0, paddingLeft: '20px', color: 'var(--crm-text-main)' }}>
-                            {d.exercises?.map((ex, j) => (
-                              <li key={j} style={{ marginBottom: '4px' }}>{typeof ex === 'object' ? `${ex.name} - ${ex.sets}x${ex.reps}` : ex}</li>
-                            ))}
-                          </ul>
-                        </div>
+                        <WorkoutBuilder
+                          key={i}
+                          day={d}
+                          onChange={(updatedDay) => {
+                            const newWorkout = { ...workoutPlan };
+                            newWorkout.days[i] = updatedDay;
+                            setWorkoutPlan(newWorkout);
+                          }}
+                          onDeleteDay={() => {
+                            const newWorkout = { ...workoutPlan };
+                            newWorkout.days.splice(i, 1);
+                            setWorkoutPlan(newWorkout);
+                          }}
+                        />
                       ))}
-                      <button onClick={() => setWorkoutPlan(null)} style={{ background: 'transparent', border: '1px solid #EF4444', color: '#EF4444', padding: '6px 12px', borderRadius: '8px', cursor: 'pointer', marginTop: '16px' }}>Limpar Treino</button>
+                      <div style={{ display: 'flex', gap: '8px', marginTop: '16px' }}>
+                        <button onClick={() => {
+                          const newWorkout = { ...workoutPlan };
+                          if(!newWorkout.days) newWorkout.days = [];
+                          newWorkout.days.push({ dayName: `Treino ${String.fromCharCode(65 + newWorkout.days.length)}`, exercises: ['Exercício - Séries x Reps'] });
+                          setWorkoutPlan(newWorkout);
+                        }} className="crm-btn-secondary" style={{ flex: 1, display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '6px' }}>
+                          <Plus size={16} /> Adicionar Dia
+                        </button>
+                        <button onClick={() => setWorkoutPlan(null)} style={{ background: 'transparent', border: '1px solid #EF4444', color: '#EF4444', padding: '8px 16px', borderRadius: '8px', cursor: 'pointer' }}>Excluir Treino</button>
+                      </div>
                     </div>
                   )}
                 </div>
@@ -759,13 +804,30 @@ export default function ConsultationFlow({
                     </div>
                   )}
                   
-                  <button 
-                    className="crm-btn-secondary" 
-                    style={{ marginTop: '16px', width: '100%', justifyContent: 'center', borderStyle: 'dashed' }}
-                    onClick={() => setDietMeals([...dietMeals, { name: '', desc: '' }])}
-                  >
-                    <Plus size={16} /> Adicionar Refeição Manualmente
-                  </button>
+                  <div style={{ marginTop: '16px', display: 'flex', gap: '8px' }}>
+                    <select 
+                      className="crm-input" 
+                      style={{ flex: 1, textAlign: 'center', borderStyle: 'dashed', cursor: 'pointer' }}
+                      value=""
+                      onChange={(e) => {
+                        if (e.target.value) {
+                          setDietMeals([...dietMeals, { name: e.target.value === 'Nova Refeição' ? '' : e.target.value, desc: '', foods: [] }]);
+                          e.target.value = '';
+                        }
+                      }}
+                    >
+                      <option value="" disabled>+ Adicionar Refeição Manualmente</option>
+                      <option value="Café da Manhã">Café da Manhã</option>
+                      <option value="Lanche da Manhã">Lanche da Manhã</option>
+                      <option value="Almoço">Almoço</option>
+                      <option value="Lanche da Tarde">Lanche da Tarde</option>
+                      <option value="Pré-Treino">Pré-Treino</option>
+                      <option value="Pós-Treino">Pós-Treino</option>
+                      <option value="Jantar">Jantar</option>
+                      <option value="Ceia">Ceia</option>
+                      <option value="Nova Refeição">Outra / Personalizada</option>
+                    </select>
+                  </div>
 
                   <div style={{ display: 'flex', gap: '16px', marginTop: '32px', flexWrap: 'wrap', justifyContent: 'flex-end', alignItems: 'center' }}>
                     {dietMeals.length > 0 && (

@@ -44,6 +44,7 @@
   --crm-sidebar-text: #CBD5E1;
   --crm-sidebar-text-dim: #94A3B8;
   --crm-sidebar-active: #FFFFFF;
+  --crm-calendar-filter: none;
 }
 
 [data-theme='dark'] {
@@ -64,6 +65,7 @@
   --crm-text-main: #F8FAFC;
   --crm-text-muted: #94A3B8;
   --crm-accent-soft: #064E3B; /* Darker background for accented elements */
+  --crm-calendar-filter: invert(1) brightness(0.8);
 }
 
 * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -210,7 +212,7 @@ body { overflow-x: hidden; -webkit-font-smoothing: antialiased; font-family: var
   box-shadow: var(--crm-shadow-md);
 }
 .crm-btn-secondary {
-  background-color: var(--crm-surface);
+  background-color: transparent;
   color: var(--crm-text-main);
   border: 1px solid var(--crm-border);
   padding: 10px 16px;
@@ -226,7 +228,7 @@ body { overflow-x: hidden; -webkit-font-smoothing: antialiased; font-family: var
   box-shadow: var(--crm-shadow-sm);
 }
 .crm-btn-secondary:hover {
-  background-color: #f1f5f9;
+  background-color: var(--crm-hover-bg);
 }
 .crm-btn-danger {
   background-color: white;
@@ -257,6 +259,9 @@ body { overflow-x: hidden; -webkit-font-smoothing: antialiased; font-family: var
 .crm-input:focus {
   border-color: var(--crm-accent);
   box-shadow: 0 0 0 3px rgba(57, 73, 171, 0.12);
+}
+input[type="date"].crm-input::-webkit-calendar-picker-indicator {
+  filter: var(--crm-calendar-filter);
 }
 .crm-input:focus-visible, .crm-btn-primary:focus-visible, .crm-btn-secondary:focus-visible, .crm-nav-btn:focus-visible {
   outline: 2px solid var(--crm-accent);
