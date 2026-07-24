@@ -139,6 +139,28 @@ export default function SignUp() {
       setLoading(false);
     }
   };
+  
+  const handleDocumentChange = (e) => {
+    let rawValue = e.target.value.replace(/\D/g, "");
+    if (role !== 'nutricionista') {
+      rawValue = rawValue.substring(0, 11);
+    } else {
+      rawValue = rawValue.substring(0, 14);
+    }
+    
+    let v = rawValue;
+    if (rawValue.length <= 11) {
+      v = v.replace(/(\d{3})(\d)/, "$1.$2");
+      v = v.replace(/(\d{3})(\d)/, "$1.$2");
+      v = v.replace(/(\d{3})(\d{1,2})$/, "$1-$2");
+    } else {
+      v = v.replace(/^(\d{2})(\d)/, "$1.$2");
+      v = v.replace(/^(\d{2})\.(\d{3})(\d)/, "$1.$2.$3");
+      v = v.replace(/\.(\d{3})(\d)/, ".$1/$2");
+      v = v.replace(/(\d{4})(\d)/, "$1-$2");
+    }
+    setCpf(v);
+  };
 
   return (
     <div style={{ display: 'flex', minHeight: '100vh', justifyContent: 'center', alignItems: 'center', backgroundColor: '#f8fafc', padding: '20px' }}>
@@ -168,15 +190,15 @@ export default function SignUp() {
 
           <div style={{ display: 'flex', gap: '16px', marginBottom: '16px' }}>
             <div style={{ flex: 1 }}>
-              <label style={{ display: 'block', marginBottom: '6px', fontWeight: '500', color: '#334155' }}>CPF</label>
+              <label style={{ display: 'block', marginBottom: '6px', fontWeight: '500', color: '#334155' }}>{role === 'nutricionista' ? 'CPF / CNPJ' : 'CPF'}</label>
               <input 
                 type="text" 
                 required
                 disabled={isLinked}
                 style={{ width: '100%', padding: '10px 12px', borderRadius: '6px', border: '1px solid #cbd5e1', backgroundColor: isLinked ? '#f1f5f9' : 'white' }}
                 value={cpf}
-                onChange={e => setCpf(e.target.value)}
-                placeholder="111.111.111-11"
+                onChange={handleDocumentChange}
+                placeholder={role === 'nutricionista' ? 'CPF ou CNPJ' : '111.111.111-11'}
               />
             </div>
             <div style={{ flex: 1 }}>
