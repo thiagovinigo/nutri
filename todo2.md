@@ -72,6 +72,12 @@ A Versão 2.0 do Vytal evolui o CRM e Gamificação iniciais para o patamar de *
 - [ ] **Seletor Dinâmico de Modelos de IA:** Botão no painel Admin para chavear globalmente o modelo de IA ou editar system prompts de forma dinâmica sem necessidade de novo deploy.
 - [ ] **Gestão Global de Tenants (CRM Backoffice):** Lista completa de Nutricionistas cadastrados, status de assinatura no Stripe, volume de pacientes vinculados e botão de "Acesso Suporte / Impersonate" para depurar chamados dos clientes.
 
+### 💰 Módulo 5: Gestão Financeira & Planos do Consultório (CRM Financeiro do Nutri)
+- [ ] **Catálogo de Serviços e Planos:** Tela de configuração onde o Nutricionista cadastra os preços de suas consultas avulsas, retornos e pacotes de acompanhamento (ex: *Plano Trimestral R$ 900*, *Mensal R$ 350*).
+- [ ] **Controle de Honorários por Paciente:** No prontuário e na lista do CRM, associar qual plano o paciente contratou, data de início, status do pagamento (Pago, Pendente, Atrasado) e forma de pagamento.
+- [ ] **Alerta Preditivo de Renovação de Contrato:** Cruzar o término do plano contratado com o engajamento no Cohort, emitindo alerta ao Nutricionista no CRM quando um contrato está a 15 dias de vencer ("Paciente com 95% de adesão na dieta, momento ideal para oferecer renovação!").
+- [ ] **Dashboard de Faturamento Mensal:** Gráfico de receita do consultório (faturado vs recebível), ticket médio por paciente e projeção de receita recorrente na tela inicial do Nutri.
+
 ---
 
 > ⚠️ **LEMBRETE INEGOCIÁVEL PARA OS AGENTES (AGENTS.md):**  

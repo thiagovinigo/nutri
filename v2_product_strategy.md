@@ -149,5 +149,11 @@ Para governança, suporte e controle financeiro da operação da V2, a arquitetu
   - Sistema de "Recarga de Créditos de IA" para permitir upselling quando um nutricionista consome a franquia do mês em campanhas intensas de chat/fotos.
 - **Controle Remoto de Modelos e Prompts:** Capacidade do Super-Admin chavear modelos da OpenAI em tempo real ou calibrar system prompts globais sem necessidade de novo deploy na Vercel.
 
+### 5.5. Gestão Financeira & Planos do Consultório (`💰 CRM Financeiro do Nutri`)
+Para fechar com chave de ouro a autonomia do consultório e eliminar a necessidade de tabelas externas de Excel ou CRMs legados, o Vytal V2 incorpora o controle de faturamento do próprio Nutricionista:
+- **Catálogo Customizado de Honorários:** Cadastro de preços de consultas avulsas, retornos e pacotes (ex: *Trimestral R$ 900*, *Semestral R$ 1.500*).
+- **Prontuário Financeiro:** Tracking de status de pagamento (Pago, Pendente, Atrasado) por paciente na própria interface.
+- **Inteligência Preditiva de Renovação:** O sistema cruza o vencimento de um plano com o status de adesão no Cohort, avisando o profissional o momento exato de oferecer a renovação de contrato para clientes com alta ofensiva.
+
 ---
 *Documento aprovado pela equipe de Produto. Pronto para guiar as Sprints de Engenharia da V2.*
