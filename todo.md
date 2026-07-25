@@ -430,15 +430,16 @@ SÃƒÂ­ntese dos dois comitÃƒÂªs acima em uma ordem de execuÃƒÂ§ÃƒÂ
 
 - [ ] **Check-in via WhatsApp (Zero-Friction):** Permitir que o paciente responda os lembretes com texto ("Sim, jÃ¡ comi") ou envie foto do prato. A IA (Vision) avalia a foto e registra o check-in no banco de dados automaticamente, dando o XP sem o paciente abrir o app.
 
-### ðŸš€ BATCH PARA A PRÃ“XIMA VERSÃƒO: Agente Ativo de SaÃºde
-- [ ] **IntegraÃ§Ã£o WhatsApp Proativa:** 
-  - Lembretes de RefeiÃ§Ã£o automÃ¡ticos.
-  - Alerta de saÃ­da da dieta no fim do dia (IntervenÃ§Ã£o Comportamental).
-  - ConfirmaÃ§Ã£o automÃ¡tica de agendamentos.
-- [ ] **Check-in Zero-Friction:** Permitir que o paciente envie a foto do prato no WhatsApp e a IA Vision registre o XP automaticamente no app.
-- [ ] **Detetive Comportamental da IA:** MÃ³dulo de anÃ¡lise em background que cruza mensagens de chat, logs de sono e comida para alertar o nutricionista sobre: CompulsÃ£o Noturna, FlutuaÃ§Ã£o Hormonal (TPM), Burnout, DesidrataÃ§Ã£o, Autossabotagem e Risco de LesÃ£o (Over-training).
-- [ ] Implementar funcionalidade de upload e análise de Exames (PDF) na tela de Perfil.
-- [ ] Cadastro self-service sem convite: Paciente cria conta, vê lista de nutris na plataforma, marca consulta e solicita vínculo.
+### 🚀 BATCH PARA A PRÓXIMA VERSÃO (V2.0): Agente Ativo de Saúde & Inteligência Clínica
+> **AVISO DE ROADMAP V2:** Todos os itens e módulos estratégicos da Versão 2.0 (integração WhatsApp Zero-Friction, OCR de exames, Tiers de Monetização SaaS, matriz Pre-Mortem e GTM) estão agora consolidados, detalhados e sendo geridos nos novos arquivos mestre do nosso ecossistema:
+> - 📋 **Backlog e Checklist V2:** Veja [`todo2.md`](file:///c:/Users/User/OneDrive/Documentos/Antigravity/nutri/todo2.md)
+> - 🧭 **Estratégia Mestre V2 (27 Skills):** Veja [`v2_product_strategy.md`](file:///c:/Users/User/OneDrive/Documentos/Antigravity/nutri/v2_product_strategy.md)
 
-- [ ] **Melhorar a regra de XP/Engajamento**: Revisar como o ganho de XP impacta o status de pacientes que jÃ¡ tiveram alta adesÃ£o e pararam, vs novos pacientes, para garantir que o tracking de 'Perdendo foco' faÃ§a sentido em longo prazo.
+- [ ] **Integração WhatsApp Proativa (Ver todo2.md)**: Lembretes de Refeição automáticos, Alerta de saída da dieta no fim do dia, Confirmação automática de agendamentos.
+- [ ] **Check-in Zero-Friction (Ver todo2.md)**: Permitir que o paciente envie a foto do prato no WhatsApp e a IA Vision registre o XP automaticamente no app.
+- [ ] **Detetive Comportamental da IA (Ver todo2.md)**: Módulo de análise em background que cruza mensagens de chat, logs de sono e comida para alertar o nutricionista.
+- [ ] **Upload e Leitura OCR de Exames (Ver todo2.md)**: Análise automática de biomarcadores em PDF na tela de Perfil com gráficos evolutivos.
+- [ ] **Monetização SaaS & Tiers (Ver todo2.md)**: Implementação dos planos Starter, Pro e Clinic (Stripe/Webhooks) com bloqueio de features premium.
+- [ ] **Cadastro self-service sem convite (Ver todo2.md)**: Paciente cria conta, vê lista de nutris na plataforma, marca consulta e solicita vínculo.
+- [ ] **Melhorar a regra de XP/Engajamento**: Revisar como o ganho de XP impacta o status de pacientes que já tiveram alta adesão e pararam, vs novos pacientes.
 - [x] **Síntese Diária/Semanal com IA (Nutri):** O sistema deve compilar um resumo automático baseado no histórico do paciente (água, sono, food logs) e entregar mastigado para o nutricionista ler rápido antes da consulta. **Integração com Cohorts:** A síntese deve alertar ativamente se o paciente estiver entrando no grupo de risco (Perdendo Foco), cruzando a queda de engajamento (dieta/sono) com o risco de abandono.
