@@ -186,55 +186,8 @@ export function AppProvider({ children }) {
   // falha em silêncio para o usuário.
   const addPatient = async (name, objective, restrictions, cpf, email, aversions, medications, birthDate, gender, age) => {
     const localId = `local-${Date.now()}`;
-    const defaultWelcomeRecipe = {
-      title: 'Plano de Boas-Vindas & Adaptação ✨',
-      description: 'Cardápio inicial de calibração metabólica enquanto seu nutricionista prepara seu protocolo personalizado de Alta Performance.',
-      meals: [
-        { 
-          id: 1, name: 'Café da Manhã (08:00)', desc: 'Ovos mexidos com tapioca e fruta da estação', type: 'cafe',
-          foods: [
-            { name: 'Ovo de galinha, inteiro, cozido/mexido', amount: 100, kcal: 146, carb: 1.2, protein: 13.3, fat: 9.5, foodId: 101 },
-            { name: 'Tapioca (goma hidratada)', amount: 60, kcal: 144, carb: 36, protein: 0.3, fat: 0, foodId: 102 },
-            { name: 'Mamão papaia ou banana', amount: 100, kcal: 43, carb: 10.8, protein: 0.5, fat: 0.1, foodId: 103 },
-            { name: 'Aveia em flocos', amount: 15, kcal: 59, carb: 10, protein: 2, fat: 1.1, foodId: 104 }
-          ]
-        },
-        { 
-          id: 2, name: 'Almoço (12:30)', desc: 'Prato equilibrado com grelhado, arroz e salada', type: 'almoco',
-          foods: [
-            { name: 'Frango, peito, sem pele, grelhado', amount: 130, kcal: 206, carb: 0, protein: 41.6, fat: 3.2, foodId: 201 },
-            { name: 'Arroz integral cozido', amount: 100, kcal: 124, carb: 25.8, protein: 2.6, fat: 1, foodId: 202 },
-            { name: 'Feijão carioca cozido', amount: 80, kcal: 61, carb: 10.9, protein: 3.8, fat: 0.4, foodId: 203 },
-            { name: 'Salada de folhas verdes com azeite de oliva', amount: 100, kcal: 45, carb: 3, protein: 1, fat: 3.5, foodId: 204 }
-          ]
-        },
-        { 
-          id: 3, name: 'Lanche da Tarde (16:00)', desc: 'Iogurte proteico com mix de castanhas e morangos', type: 'lanche',
-          foods: [
-            { name: 'Iogurte natural ou proteico', amount: 170, kcal: 108, carb: 9, protein: 12, fat: 2.5, foodId: 301 },
-            { name: 'Mix de castanhas e nozes', amount: 25, kcal: 153, carb: 5, protein: 4.5, fat: 14, foodId: 302 },
-            { name: 'Morangos ou frutas vermelhas', amount: 80, kcal: 24, carb: 5.5, protein: 0.6, fat: 0.2, foodId: 303 }
-          ]
-        },
-        { 
-          id: 4, name: 'Jantar (20:00)', desc: 'Omelete nutritiva com salada de folhas e legumes', type: 'jantar',
-          foods: [
-            { name: 'Ovo de galinha ou frango grelhado', amount: 120, kcal: 190, carb: 1, protein: 25, fat: 9, foodId: 401 },
-            { name: 'Legumes cozidos no vapor (brócolis/cenoura)', amount: 100, kcal: 35, carb: 7.5, protein: 1.8, fat: 0.2, foodId: 402 },
-            { name: 'Salada de folhas à vontade com azeite', amount: 80, kcal: 40, carb: 2, protein: 0.8, fat: 3.5, foodId: 403 }
-          ]
-        },
-        { 
-          id: 5, name: 'Ceia / Antes de Dormir (22:30)', desc: 'Chá relaxante com sementes de abóbora', type: 'ceia',
-          foods: [
-            { name: 'Chá de camomila, mulungu ou erva-cidreira', amount: 200, kcal: 2, carb: 0.4, protein: 0, fat: 0, foodId: 501 },
-            { name: 'Sementes de abóbora ou girassol torradas', amount: 15, kcal: 85, carb: 2.5, protein: 4.5, fat: 7, foodId: 502 }
-          ]
-        }
-      ]
-    };
     const newPatient = {
-      name, objective, restrictions, cpf: cpf || '', email: email || '', aversions: aversions || '', medications: medications || '', status: 'inativo', streak: 0, xp: 0, waterGlasses: 0, records: 'Novo paciente.', age: age || '', birthDate: birthDate || '', gender: gender || 'M', recipes: [defaultWelcomeRecipe], weights: []
+      name, objective, restrictions, cpf: cpf || '', email: email || '', aversions: aversions || '', medications: medications || '', status: 'inativo', streak: 0, xp: 0, waterGlasses: 0, records: 'Novo paciente.', age: age || '', birthDate: birthDate || '', gender: gender || 'M', recipes: [], weights: []
     };
     if (profile) newPatient.nutricionista_id = profile.id;
 
