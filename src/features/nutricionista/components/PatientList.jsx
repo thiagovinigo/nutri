@@ -1,9 +1,10 @@
 import React, { useState, useMemo } from 'react';
-import { Users, Calendar, PlayCircle, Trash2, Plus, Eye, Edit3, TrendingUp, Utensils, FileText, BrainCircuit, Play, Sparkles, Activity, Settings, CreditCard, Palette, AlertTriangle, Trophy, Star, Zap, LayoutDashboard, Search, ChevronUp, ChevronDown, ArrowRight, UserCog, BookOpen, ChefHat, Link as LinkIcon, Camera, Upload, Moon, Dumbbell } from 'lucide-react';
+import { Users, Calendar, PlayCircle, Trash2, Plus, Eye, Edit3, TrendingUp, Utensils, FileText, BrainCircuit, Play, Sparkles, Activity, Settings, CreditCard, Palette, AlertTriangle, Trophy, Star, Zap, LayoutDashboard, Search, ChevronUp, ChevronDown, ArrowRight, UserCog, BookOpen, ChefHat, Link as LinkIcon, Camera, Upload, Moon, Dumbbell, DollarSign } from 'lucide-react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, Legend, ResponsiveContainer } from 'recharts';
 import { useNavigate } from 'react-router-dom';
 import { useAppContext } from '../../../context/AppContext';
 import WeeklyCalendar from './WeeklyCalendar';
+import FinancialCRM from './FinancialCRM';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 
@@ -327,6 +328,9 @@ export default function PatientList({
           </button>
           <button className={`crm-nav-btn ${view === 'cohorts' ? 'active' : ''}`} onClick={() => {setView('cohorts'); setViewingPatientId(null); setSynthesisResult('');}}>
             <Activity size={18} /> Inteligência de Cohorts
+          </button>
+          <button className={`crm-nav-btn ${view === 'financeiro' ? 'active' : ''}`} onClick={() => {setView('financeiro'); setViewingPatientId(null); setSynthesisResult('');}}>
+            <DollarSign size={18} /> Financeiro & Planos
           </button>
           <div style={{ margin: '16px 8px', height: '1px', backgroundColor: 'rgba(255,255,255,0.08)' }} />
           <button className={`crm-nav-btn ${view === 'settings' ? 'active' : ''}`} onClick={() => {setView('settings'); setViewingPatientId(null); setSynthesisResult('');}}>
@@ -1549,6 +1553,19 @@ export default function PatientList({
                 </div>
 
               </div>
+            </div>
+          )}
+
+          {/* TELA DE GESTÃO FINANCEIRA E PLANOS */}
+          {view === 'financeiro' && (
+            <div className="animate-pop-in">
+              <FinancialCRM
+                patients={patients}
+                clinicConfig={clinicConfig}
+                updateClinicConfig={updateClinicConfig}
+                updatePatient={updatePatient}
+                addNotification={addNotification}
+              />
             </div>
           )}
 

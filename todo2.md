@@ -73,10 +73,10 @@ A Versão 2.0 do Vytal evolui o CRM e Gamificação iniciais para o patamar de *
 - [ ] **Gestão Global de Tenants (CRM Backoffice):** Lista completa de Nutricionistas cadastrados, status de assinatura no Stripe, volume de pacientes vinculados e botão de "Acesso Suporte / Impersonate" para depurar chamados dos clientes.
 
 ### 💰 Módulo 5: Gestão Financeira & Planos do Consultório (CRM Financeiro do Nutri)
-- [ ] **Catálogo de Serviços e Planos:** Tela de configuração onde o Nutricionista cadastra os preços de suas consultas avulsas, retornos e pacotes de acompanhamento (ex: *Plano Trimestral R$ 900*, *Mensal R$ 350*).
-- [ ] **Controle de Honorários por Paciente:** No prontuário e na lista do CRM, associar qual plano o paciente contratou, data de início, status do pagamento (Pago, Pendente, Atrasado) e forma de pagamento.
-- [ ] **Alerta Preditivo de Renovação de Contrato:** Cruzar o término do plano contratado com o engajamento no Cohort, emitindo alerta ao Nutricionista no CRM quando um contrato está a 15 dias de vencer ("Paciente com 95% de adesão na dieta, momento ideal para oferecer renovação!").
-- [ ] **Dashboard de Faturamento Mensal:** Gráfico de receita do consultório (faturado vs recebível), ticket médio por paciente e projeção de receita recorrente na tela inicial do Nutri.
+- [x] **Catálogo de Serviços e Planos:** Tela de configuração onde o Nutricionista cadastra os preços de suas consultas avulsas, retornos e pacotes de acompanhamento na aba "Financeiro & Planos".
+- [x] **Controle de Honorários por Paciente:** Associação de plano contratado, data de vencimento e status do pagamento (Pago 🟢, Pendente 🟡, Atrasado 🔴) com botão de cobrança no WhatsApp.
+- [x] **Alerta Preditivo de Renovação de Contrato:** Card de inteligência preditiva cruzando término do plano com o engajamento no Cohort ("Alta Adesão / Apto para Upgrade").
+- [x] **Dashboard de Faturamento Mensal:** Cards visuais de Faturamento Esperado, Recebimento Confirmado, A Receber e Ticket Médio por Paciente.
 
 ---
 
