@@ -186,8 +186,19 @@ export function AppProvider({ children }) {
   // falha em silêncio para o usuário.
   const addPatient = async (name, objective, restrictions, cpf, email, aversions, medications, birthDate, gender, age) => {
     const localId = `local-${Date.now()}`;
+    const defaultWelcomeRecipe = {
+      title: 'Plano de Boas-Vindas & Adaptação ✨',
+      description: 'Cardápio inicial de calibração metabólica enquanto seu nutricionista prepara seu protocolo personalizado de Alta Performance.',
+      meals: [
+        { name: 'Café da Manhã (08:00)', options: ['Ovos mexidos (2 unid.) com tapioca (2 colheres) ou pão integral (2 fatias)', '1 fruta da estação (mamão, maçã ou banana) com 1 colher de aveia', 'Café ou chá sem açúcar'] },
+        { name: 'Almoço (12:30)', options: ['Salada crua à vontade com 1 colher de azeite de oliva', 'Arroz integral (4 colheres de sopa) e Feijão (2 colheres de concha)', 'Filé de frango, peixe ou patinho grelhado (120g a 150g)'] },
+        { name: 'Lanche da Tarde (16:00)', options: ['Iogurte natural ou proteico (1 pote) com 1 porção de frutas vermelhas ou morangos', 'Mix de castanhas e nozes (30g)'] },
+        { name: 'Jantar (20:00)', options: ['Salada de folhas verdes com legumes cozidos no vapor', 'Omelete de 2 ovos com espinafre ou 1 filezinho de frango grelhado (100g)'] },
+        { name: 'Ceia / Antes de Dormir (22:30)', options: ['Chá de camomila, mulungu ou erva-cidreira (1 xícara)', '1 porção pequena de sementes de abóbora (boa fonte de magnésio para o sono)'] }
+      ]
+    };
     const newPatient = {
-      name, objective, restrictions, cpf: cpf || '', email: email || '', aversions: aversions || '', medications: medications || '', status: 'inativo', streak: 0, xp: 0, waterGlasses: 0, records: 'Novo paciente.', age: age || '', birthDate: birthDate || '', gender: gender || 'M', recipes: [], weights: []
+      name, objective, restrictions, cpf: cpf || '', email: email || '', aversions: aversions || '', medications: medications || '', status: 'inativo', streak: 0, xp: 0, waterGlasses: 0, records: 'Novo paciente.', age: age || '', birthDate: birthDate || '', gender: gender || 'M', recipes: [defaultWelcomeRecipe], weights: []
     };
     if (profile) newPatient.nutricionista_id = profile.id;
 

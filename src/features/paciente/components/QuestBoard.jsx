@@ -29,7 +29,19 @@ export default function QuestBoard({ activePatient }) {
 
   const selectedDateFormatted = selectedDateObj.toLocaleDateString('pt-BR');
 
-  const currentRecipe = activePatient?.recipes?.length > 0 ? activePatient.recipes[activePatient.recipes.length - 1] : null;
+  const defaultWelcomeRecipe = {
+    title: 'Plano de Boas-Vindas & Adaptação',
+    description: 'Cardápio inicial de calibração metabólica enquanto seu nutricionista prepara seu protocolo personalizado de Alta Performance.',
+    meals: [
+      { name: 'Café da Manhã (08:00)', options: ['Ovos mexidos (2 unid.) com tapioca (2 colheres) ou pão integral (2 fatias)', '1 fruta da estação (mamão, maçã ou banana) com 1 colher de aveia', 'Café ou chá sem açúcar'] },
+      { name: 'Almoço (12:30)', options: ['Salada crua à vontade com 1 colher de azeite de oliva', 'Arroz integral (4 colheres de sopa) e Feijão (2 colheres de concha)', 'Filé de frango, peixe ou patinho grelhado (120g a 150g)'] },
+      { name: 'Lanche da Tarde (16:00)', options: ['Iogurte natural ou proteico (1 pote) com 1 porção de frutas vermelhas ou morangos', 'Mix de castanhas e nozes (30g)'] },
+      { name: 'Jantar (20:00)', options: ['Salada de folhas verdes com legumes cozidos no vapor', 'Omelete de 2 ovos com espinafre ou 1 filezinho de frango grelhado (100g)'] },
+      { name: 'Ceia / Antes de Dormir (22:30)', options: ['Chá de camomila, mulungu ou erva-cidreira (1 xícara)', '1 porção pequena de sementes de abóbora (boa fonte de magnésio para o sono)'] }
+    ]
+  };
+
+  const currentRecipe = (activePatient?.recipes?.length > 0) ? activePatient.recipes[activePatient.recipes.length - 1] : defaultWelcomeRecipe;
 
   let filteredMeals = currentRecipe ? currentRecipe.meals : [];
   let currentCycleDay = 1;
@@ -358,6 +370,19 @@ export default function QuestBoard({ activePatient }) {
 
       {currentRecipe ? (
         <>
+          {!(activePatient?.recipes?.length > 0) && (
+            <div className="patient-card patient-glass" style={{ marginBottom: '20px', padding: '18px', background: 'linear-gradient(135deg, rgba(16, 185, 129, 0.15), rgba(59, 130, 246, 0.15))', border: '1px solid rgba(16, 185, 129, 0.4)', borderRadius: '16px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
+                <Sparkles size={28} color="#10B981" style={{ flexShrink: 0 }} />
+                <div>
+                  <h4 style={{ margin: '0 0 4px 0', color: 'var(--patient-text)', fontSize: '1rem', fontWeight: '800' }}>Plano Inicial de Boas-Vindas ✨</h4>
+                  <p style={{ margin: 0, color: 'var(--patient-text-muted)', fontSize: '0.85rem', lineHeight: '1.4' }}>
+                    Este é o protocolo inicial de calibração metabólica para você ir praticando, batendo metas e acumulando XP enquanto sua nutricionista elabora o seu protocolo personalizado!
+                  </p>
+                </div>
+              </div>
+            </div>
+          )}
           <div className="patient-card patient-glass" style={{display: 'flex', alignItems: 'center', gap: '20px', marginBottom: '24px'}}>
             <div style={{position: 'relative', width: '100px', height: '100px'}}>
               <svg width="100" height="100" style={{transform: 'rotate(-90deg)'}}>

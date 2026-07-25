@@ -220,15 +220,35 @@ export default function DietPlan({ activePatient }) {
       </div>
 
       {/* ── Plans list ── */}
-      {(!activePatient.recipes || activePatient.recipes.length === 0) ? (
-        <div className="patient-card patient-glass" style={{ textAlign: 'center', padding: '48px 24px' }}>
-          <Utensils size={48} color="var(--glass-border)" style={{ marginBottom: '16px' }} />
-          <h3 style={{ color: 'var(--patient-text)', margin: '0 0 8px 0' }}>Sem Plano Ativo</h3>
-          <p style={{ color: 'var(--patient-text-muted)', margin: 0 }}>Sua nutricionista ainda não liberou sua prescrição.</p>
-        </div>
-      ) : (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-          {activePatient.recipes.slice().reverse().map((r, idx) => {
+      {(() => {
+        const defaultWelcomeRecipe = {
+          title: 'Plano de Boas-Vindas & Adaptação ✨',
+          description: 'Cardápio inicial de calibração metabólica para você ir batendo metas e acumulando XP enquanto sua nutricionista elabora seu protocolo de Alta Performance!',
+          meals: [
+            { name: 'Café da Manhã (08:00)', options: ['Ovos mexidos (2 unid.) com tapioca (2 colheres) ou pão integral (2 fatias)', '1 fruta da estação (mamão, maçã ou banana) com 1 colher de aveia', 'Café ou chá sem açúcar'] },
+            { name: 'Almoço (12:30)', options: ['Salada crua à vontade com 1 colher de azeite de oliva', 'Arroz integral (4 colheres de sopa) e Feijão (2 colheres de concha)', 'Filé de frango, peixe ou patinho grelhado (120g a 150g)'] },
+            { name: 'Lanche da Tarde (16:00)', options: ['Iogurte natural ou proteico (1 pote) com 1 porção de frutas vermelhas ou morangos', 'Mix de castanhas e nozes (30g)'] },
+            { name: 'Jantar (20:00)', options: ['Salada de folhas verdes com legumes cozidos no vapor', 'Omelete de 2 ovos com espinafre ou 1 filezinho de frango grelhado (100g)'] },
+            { name: 'Ceia / Antes de Dormir (22:30)', options: ['Chá de camomila, mulungu ou erva-cidreira (1 xícara)', '1 porção pequena de sementes de abóbora (boa fonte de magnésio para o sono)'] }
+          ]
+        };
+        const currentRecipes = (activePatient?.recipes && activePatient.recipes.length > 0) ? activePatient.recipes : [defaultWelcomeRecipe];
+        return (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+            {!(activePatient?.recipes?.length > 0) && (
+              <div className="patient-card patient-glass" style={{ padding: '18px', background: 'linear-gradient(135deg, rgba(16, 185, 129, 0.15), rgba(59, 130, 246, 0.15))', border: '1px solid rgba(16, 185, 129, 0.4)', borderRadius: '16px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
+                  <Utensils size={28} color="#10B981" style={{ flexShrink: 0 }} />
+                  <div>
+                    <h4 style={{ margin: '0 0 4px 0', color: 'var(--patient-text)', fontSize: '1rem', fontWeight: '800' }}>Plano de Adaptação Ativo ✨</h4>
+                    <p style={{ margin: 0, color: 'var(--patient-text-muted)', fontSize: '0.85rem', lineHeight: '1.4' }}>
+                      Enquanto seu nutricionista prepara seu protocolo sob medida, você já pode conferir estas opções iniciais, fazer compras na Lista de Mercado e registrar suas refeições!
+                    </p>
+                  </div>
+                </div>
+              </div>
+            )}
+            {currentRecipes.slice().reverse().map((r, idx) => {
             const dayMatches = (r.meals || [])
               .map(m => (m.name || '').match(/Dia (\d+)/i))
               .filter(Boolean);
@@ -428,7 +448,7 @@ export default function DietPlan({ activePatient }) {
             );
           })}
         </div>
-      )}
+      ); })()}
 
       {/* ══════════════════════════════════════════
           MODAL — Histórico de Refeições

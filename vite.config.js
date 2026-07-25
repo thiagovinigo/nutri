@@ -79,12 +79,20 @@ export default defineConfig(({ mode }) => {
         cleanupOutdatedCaches: true,
       },
       manifest: {
+        id: '/',
         name: 'Vytal',
         short_name: 'Vytal',
         description: 'Plataforma de Nutrição Inteligente',
         theme_color: '#3949AB',
         background_color: '#f8fafc',
         display: 'standalone',
+        start_url: '/',
+        scope: '/',
+        orientation: 'portrait-primary',
+        categories: ['health', 'medical', 'fitness', 'lifestyle'],
+        dir: 'ltr',
+        lang: 'pt-BR',
+        prefer_related_applications: false,
         icons: [
           {
             src: 'pwa-192x192.png',
