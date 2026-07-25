@@ -64,6 +64,14 @@ A Versão 2.0 do Vytal evolui o CRM e Gamificação iniciais para o patamar de *
 - [ ] **Programa de Indicação B2B (GTM Viral):** Tela no CRM onde o Nutricionista ganha benefícios reais ao indicar colegas ("Convide 2 colegas e ganhe 3 meses de IA Vision Gratuita").
 - [ ] **Calibração de Longo Prazo da Gamificação:** Ajustar curva de XP e patentes para pacientes com mais de 6 meses de acompanhamento, mantendo o engajamento contínuo.
 
+### 👑 Módulo 4: Super-Admin Dashboard & Observabilidade de IA (Backoffice)
+- [ ] **Painel de Saúde do Sistema (Health & Observability):** Interface exclusiva para administradores globais (`role === 'superadmin'`) visualizarem em tempo real o status dos endpoints serverless (`/api/openai-bridge`), filas do WhatsApp e erros de webhooks.
+- [ ] **Gestão e Recargas de IA (Tokenomics):**
+  - Tracking detalhado do consumo de tokens (Prompt, Completion e Vision) por Nutricionista e por modelo (`gpt-4o-mini`, `gpt-4o`).
+  - Sistema de controle de cotas, bloqueio por saldo e "Recarga de Créditos de IA" avulsa para clínicas que excedem o limite do plano.
+- [ ] **Seletor Dinâmico de Modelos de IA:** Botão no painel Admin para chavear globalmente o modelo de IA ou editar system prompts de forma dinâmica sem necessidade de novo deploy.
+- [ ] **Gestão Global de Tenants (CRM Backoffice):** Lista completa de Nutricionistas cadastrados, status de assinatura no Stripe, volume de pacientes vinculados e botão de "Acesso Suporte / Impersonate" para depurar chamados dos clientes.
+
 ---
 
 > ⚠️ **LEMBRETE INEGOCIÁVEL PARA OS AGENTES (AGENTS.md):**  

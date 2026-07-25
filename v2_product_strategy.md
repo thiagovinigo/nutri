@@ -141,5 +141,13 @@ Imaginando que estamos 6 meses no futuro e a V2 "falhou", estes são os 4 motivo
 4. **Risco de Viabilidade Financeira (Viability):** O custo de tokens de imagens na API da OpenAI estourar a mensalidade do plano de R$ 197 se um paciente enviar 10 fotos por dia.
    - *Mitigação:* Utilizar estritamente o modelo `gpt-4o-mini` com parâmetro `detail: "low"` nas fotos (que custa aproximadamente $0.00085 por imagem, permitindo mais de 1.000 fotos por menos de $1 dólar).
 
+### 5.4. Observabilidade, Tokenomics & Super-Admin Backoffice (`👑 God Mode`)
+Para governança, suporte e controle financeiro da operação da V2, a arquitetura conta com uma camada exclusiva de Backoffice (Super-Admin Dashboard):
+- **Gestão Global de Tenants:** Visualização da saúde de todas as clínicas e nutricionistas, cruzando receita do Stripe com engajamento dos pacientes.
+- **Observabilidade de IA & Recargas (Tokenomics):**
+  - Monitoramento de custos por modelo (`gpt-4o-mini`, `gpt-4o`, Vision) e alertas de consumo atípico por tenant.
+  - Sistema de "Recarga de Créditos de IA" para permitir upselling quando um nutricionista consome a franquia do mês em campanhas intensas de chat/fotos.
+- **Controle Remoto de Modelos e Prompts:** Capacidade do Super-Admin chavear modelos da OpenAI em tempo real ou calibrar system prompts globais sem necessidade de novo deploy na Vercel.
+
 ---
 *Documento aprovado pela equipe de Produto. Pronto para guiar as Sprints de Engenharia da V2.*
