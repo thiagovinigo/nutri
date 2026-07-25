@@ -190,8 +190,7 @@ export default function SignUp() {
             <input 
               type="text" 
               required
-              disabled={isLinked}
-              style={{ width: '100%', padding: '10px 12px', borderRadius: '6px', border: '1px solid #cbd5e1', backgroundColor: isLinked ? '#f1f5f9' : 'white' }}
+              style={{ width: '100%', padding: '10px 12px', borderRadius: '6px', border: '1px solid #cbd5e1' }}
               value={name}
               onChange={e => setName(e.target.value)}
               placeholder="João da Silva"
@@ -204,8 +203,7 @@ export default function SignUp() {
               <input 
                 type="text" 
                 required
-                disabled={isLinked}
-                style={{ width: '100%', padding: '10px 12px', borderRadius: '6px', border: '1px solid #cbd5e1', backgroundColor: isLinked ? '#f1f5f9' : 'white' }}
+                style={{ width: '100%', padding: '10px 12px', borderRadius: '6px', border: '1px solid #cbd5e1' }}
                 value={cpf}
                 onChange={handleDocumentChange}
                 placeholder={role === 'nutricionista' ? 'CPF ou CNPJ' : '111.111.111-11'}
@@ -216,8 +214,7 @@ export default function SignUp() {
               <input 
                 type="date" 
                 required
-                disabled={isLinked}
-                style={{ width: '100%', padding: '10px 12px', borderRadius: '6px', border: '1px solid #cbd5e1', backgroundColor: isLinked ? '#f1f5f9' : 'white' }}
+                style={{ width: '100%', padding: '10px 12px', borderRadius: '6px', border: '1px solid #cbd5e1' }}
                 value={birthDate}
                 onChange={e => setBirthDate(e.target.value)}
               />
@@ -229,8 +226,7 @@ export default function SignUp() {
             <input 
               type="email" 
               required
-              disabled={isLinked}
-              style={{ width: '100%', padding: '10px 12px', borderRadius: '6px', border: '1px solid #cbd5e1', backgroundColor: isLinked ? '#f1f5f9' : 'white' }}
+              style={{ width: '100%', padding: '10px 12px', borderRadius: '6px', border: '1px solid #cbd5e1' }}
               value={email}
               onChange={e => setEmail(e.target.value)}
               placeholder="joao@email.com"
@@ -278,7 +274,7 @@ export default function SignUp() {
             </div>
           </div>
 
-          {!nutriIdParam && (
+          {!nutriIdParam && !vincularId && (
             <div style={{ marginBottom: '32px' }}>
               <label style={{ display: 'block', marginBottom: '12px', fontWeight: '500', color: '#334155' }}>Eu sou...</label>
               <div style={{ display: 'flex', gap: '12px' }}>
@@ -304,7 +300,7 @@ export default function SignUp() {
                     fontWeight: role === 'nutricionista' ? 'bold' : 'normal'
                   }}
                 >
-                  🩺 Nutri
+                  🩺 Nutricionista
                 </div>
               </div>
             </div>
