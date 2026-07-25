@@ -81,4 +81,5 @@ A Versão 2.0 do Vytal evolui o CRM e Gamificação iniciais para o patamar de *
 ---
 
 > ⚠️ **LEMBRETE INEGOCIÁVEL PARA OS AGENTES (AGENTS.md):**  
-> Antes de qualquer commit ou deploy no Vercel durante a V2, rode `npm run build` e **SEMPRE convide o usuário para testar e validar localmente no navegador (`npm run dev`)**. Proibido `git push` direto para a `main`.
+> 1. Antes de qualquer commit ou deploy no Vercel durante a V2, rode `npm run build` e **SEMPRE convide o usuário para testar e validar localmente no navegador (`npm run dev`)**. Proibido `git push` direto para a `main`.
+> 2. **Relatório Completo de Impacto:** Antes de ir para produção (`git push`), **SEMPRE liste detalhadamente o que mudou no app, quais componentes receberam funcionalidades novas e quais áreas foram impactadas**. Transparência total e zero surpresas em produção!
