@@ -589,14 +589,16 @@ export default function PatientList({
                 </button>
                 <div style={{ display: 'flex', gap: '12px' }}>
 
-                  <button className={copiedPatientLink ? "crm-btn-primary" : "crm-btn-secondary"} onClick={() => {
-                    const link = `${window.location.origin}/cadastro?vincular=${viewedPatient.id}`;
-                    navigator.clipboard.writeText(link);
-                    setCopiedPatientLink(true);
-                    setTimeout(() => setCopiedPatientLink(false), 2000);
-                  }} style={{ display: 'flex', alignItems: 'center', gap: '6px', transition: 'all 0.3s ease' }}>
-                    <LinkIcon size={16} /> {copiedPatientLink ? 'Link Copiado!' : 'Copiar Link'}
-                  </button>
+                  {viewedPatient.status === 'inativo' && (
+                    <button className={copiedPatientLink ? "crm-btn-primary" : "crm-btn-secondary"} onClick={() => {
+                      const link = `${window.location.origin}/cadastro?vincular=${viewedPatient.id}`;
+                      navigator.clipboard.writeText(link);
+                      setCopiedPatientLink(true);
+                      setTimeout(() => setCopiedPatientLink(false), 2000);
+                    }} style={{ display: 'flex', alignItems: 'center', gap: '6px', transition: 'all 0.3s ease' }}>
+                      <LinkIcon size={16} /> {copiedPatientLink ? 'Link Copiado!' : 'Copiar Link (Pendente)'}
+                    </button>
+                  )}
                   <button className="crm-btn-secondary" onClick={() => generatePatientSynthesis(viewedPatient)} disabled={isSynthesizing} style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                     <BrainCircuit size={16} color="var(--crm-accent)" /> 
                     {isSynthesizing ? 'Analisando Histórico...' : 'Gerar Síntese Clínica (IA)'}
