@@ -380,6 +380,22 @@ export default function PatientList({
                   <div style={{ fontSize: '0.85rem', color: 'var(--crm-text-muted)', fontWeight: '600', textTransform: 'uppercase', letterSpacing: '0.04em' }}>Em Risco</div>
                   <div style={{ fontSize: '2rem', fontWeight: '700', color: atRiskPatients.length > 0 ? 'var(--crm-warn)' : 'var(--crm-text-main)', marginTop: '4px' }}>{atRiskPatients.length}</div>
                 </div>
+                <div className="crm-card" style={{ flex: '1 1 200px', cursor: 'pointer', borderLeft: '3px solid #10B981' }} onClick={() => setView('financeiro')} title="Clique para gerenciar honorários e planos">
+                  <div style={{ fontSize: '0.85rem', color: 'var(--crm-text-muted)', fontWeight: '600', textTransform: 'uppercase', letterSpacing: '0.04em' }}>Receita Prevista</div>
+                  <div style={{ fontSize: '1.8rem', fontWeight: '800', color: '#10B981', marginTop: '4px', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                    <DollarSign size={20} />
+                    {(() => {
+                      const defaultPlans = [{ id: 'plano_avulso', price: 250 }, { id: 'plano_mensal', price: 350 }, { id: 'plano_trimestral', price: 900 }];
+                      const currentPlans = (clinicConfig?.financialPlans && clinicConfig.financialPlans.length > 0) ? clinicConfig.financialPlans : defaultPlans;
+                      let total = 0;
+                      activePatients.forEach(p => {
+                        const plan = currentPlans.find(pl => pl.id === p.financialPlanId) || currentPlans[0];
+                        total += (plan.price || 0);
+                      });
+                      return total.toLocaleString('pt-BR');
+                    })()}
+                  </div>
+                </div>
               </div>
 
               <div style={{ display: 'flex', gap: '12px', marginBottom: '32px' }}>
@@ -539,12 +555,13 @@ export default function PatientList({
                         <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>Adesão App {sortKey === 'streak' && (sortDir === 'asc' ? <ChevronUp size={12} /> : <ChevronDown size={12} />)}</span>
                       </th>
                       <th>Status</th>
+                      <th>Financeiro</th>
                       <th>Ações</th>
                     </tr>
                   </thead>
                   <tbody>
                     {sortedFilteredPatients.length === 0 && (
-                      <tr><td colSpan="5" style={{ textAlign: 'center', color: 'var(--crm-text-muted)', padding: '32px 0' }}>Nenhum paciente encontrado.</td></tr>
+                      <tr><td colSpan="6" style={{ textAlign: 'center', color: 'var(--crm-text-muted)', padding: '32px 0' }}>Nenhum paciente encontrado.</td></tr>
                     )}
                     {sortedFilteredPatients.map(p => (
                       <tr key={p.id}>
@@ -565,6 +582,28 @@ export default function PatientList({
                           {p.status === 'ativo' && <span style={{ padding: '4px 10px', borderRadius: '16px', fontSize: '0.8rem', fontWeight: '600', backgroundColor: '#DBEAFE', color: '#2563EB' }}>Ativo</span>}
                           {p.status === 'em_risco' && <span style={{ padding: '4px 10px', borderRadius: '16px', fontSize: '0.8rem', fontWeight: '600', backgroundColor: '#FEF3C7', color: '#D97706' }}>Perdendo Foco</span>}
                           {p.status === 'inativo' && <span style={{ padding: '4px 10px', borderRadius: '16px', fontSize: '0.8rem', fontWeight: '600', backgroundColor: '#FEE2E2', color: '#EF4444' }}>Inativo</span>}
+                        </td>
+                        <td>
+                          {(() => {
+                            const defaultPlans = [
+                              { id: 'plano_avulso', name: 'Consulta Avulsa', price: 250 },
+                              { id: 'plano_mensal', name: 'Plano Mensal', price: 350 },
+                              { id: 'plano_trimestral', name: 'Plano Trimestral VIP', price: 900 }
+                            ];
+                            const currentPlans = (clinicConfig?.financialPlans && clinicConfig.financialPlans.length > 0) ? clinicConfig.financialPlans : defaultPlans;
+                            const plan = currentPlans.find(pl => pl.id === p.financialPlanId) || currentPlans[0];
+                            const finStatus = p.financialStatus || 'pendente';
+                            return (
+                              <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
+                                <span style={{ fontSize: '0.85rem', fontWeight: '600', color: 'var(--crm-text)' }}>{plan.name}</span>
+                                <div>
+                                  {finStatus === 'pago' && <span style={{ padding: '2px 8px', borderRadius: '12px', fontSize: '0.75rem', fontWeight: '700', backgroundColor: '#DCFCE7', color: '#16A34A' }}>🟢 Pago</span>}
+                                  {finStatus === 'pendente' && <span style={{ padding: '2px 8px', borderRadius: '12px', fontSize: '0.75rem', fontWeight: '700', backgroundColor: '#FEF3C7', color: '#D97706' }}>🟡 Pendente</span>}
+                                  {finStatus === 'atrasado' && <span style={{ padding: '2px 8px', borderRadius: '12px', fontSize: '0.75rem', fontWeight: '700', backgroundColor: '#FEE2E2', color: '#EF4444' }}>🔴 Atrasado</span>}
+                                </div>
+                              </div>
+                            );
+                          })()}
                         </td>
                         <td>
                           <div style={{ display: 'flex', gap: '8px' }}>
@@ -641,6 +680,7 @@ export default function PatientList({
                 <button className={prontuarioTab === 'resumo' ? 'results-tab-btn active' : 'results-tab-btn'} onClick={() => setProntuarioTab('resumo')}>Visão Geral</button>
                 <button className={prontuarioTab === 'consultas' ? 'results-tab-btn active' : 'results-tab-btn'} onClick={() => { setProntuarioTab('consultas'); setSelectedHistoryIdx(null); }}>Protocolo Vigente</button>
                 <button className={prontuarioTab === 'exames' ? 'results-tab-btn active' : 'results-tab-btn'} onClick={() => setProntuarioTab('exames')}>Exames & Biomarcadores</button>
+                <button className={prontuarioTab === 'financeiro' ? 'results-tab-btn active' : 'results-tab-btn'} onClick={() => setProntuarioTab('financeiro')}>💰 Plano & Contrato</button>
               </div>
 
               {prontuarioTab === 'resumo' && (
@@ -879,6 +919,108 @@ export default function PatientList({
                 </div>
               </div>
               )}
+
+              {prontuarioTab === 'financeiro' && (() => {
+                const defaultPlans = [
+                  { id: 'plano_avulso', name: 'Consulta Avulsa', price: 250, durationDays: 1, description: 'Consulta única com retorno incluso.' },
+                  { id: 'plano_mensal', name: 'Plano Mensal (30 dias)', price: 350, durationDays: 30, description: 'Acompanhamento de 1 mês com suporte pelo chat.' },
+                  { id: 'plano_trimestral', name: 'Plano Trimestral VIP (90 dias)', price: 900, durationDays: 90, description: '3 consultas + WhatsApp proativo e reavaliação contínua.' },
+                ];
+                const currentPlans = (clinicConfig?.financialPlans && clinicConfig.financialPlans.length > 0) ? clinicConfig.financialPlans : defaultPlans;
+                const activePlanId = viewedPatient.financialPlanId || currentPlans[0].id;
+                const activePlan = currentPlans.find(pl => pl.id === activePlanId) || currentPlans[0];
+                const activeStatus = viewedPatient.financialStatus || 'pendente';
+                const activeDueDate = viewedPatient.financialDueDate || new Date().toISOString().split('T')[0];
+                const phone = viewedPatient.phone ? viewedPatient.phone.replace(/\D/g, '') : '';
+
+                const handleSendCobrança = () => {
+                  if (!phone) { alert('Paciente sem telefone cadastrado no perfil.'); return; }
+                  const msg = `Olá, ${viewedPatient.name}! 🌟 Passando para lembrar sobre o pagamento/renovação do seu plano (${activePlan.name} - R$ ${activePlan.price}) no Vytal. Qualquer dúvida estou à disposição!`;
+                  window.open(`https://wa.me/55${phone}?text=${encodeURIComponent(msg)}`, '_blank');
+                };
+
+                const handleSendRecibo = () => {
+                  if (!phone) { alert('Paciente sem telefone cadastrado no perfil.'); return; }
+                  const msg = `🧾 *RECIBO DE PAGAMENTO - VYTAL*\n\nConfirmamos o recebimento do valor de *R$ ${activePlan.price}* referente ao plano *${activePlan.name}* do(a) paciente *${viewedPatient.name}*.\n\nStatus: Confirmado e Quitado 🟢\nData: ${new Date().toLocaleDateString('pt-BR')}\n\nMuito obrigado pela confiança em nosso acompanhamento nutricional! 🍎✨`;
+                  window.open(`https://wa.me/55${phone}?text=${encodeURIComponent(msg)}`, '_blank');
+                };
+
+                return (
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+                    <div className="crm-card" style={{ padding: '24px', borderLeft: '4px solid var(--crm-primary)' }}>
+                      <h3 style={{ display: 'flex', alignItems: 'center', gap: '8px', margin: '0 0 16px 0', color: 'var(--crm-text-main)' }}>
+                        <DollarSign size={20} color="var(--crm-primary)" /> Gestão de Contrato do Paciente
+                      </h3>
+                      
+                      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '16px', marginBottom: '20px' }}>
+                        <div>
+                          <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: '600', color: 'var(--crm-text-muted)', marginBottom: '6px' }}>Plano Contratado</label>
+                          <select 
+                            value={activePlanId}
+                            onChange={(e) => updatePatient(viewedPatient.id, { financialPlanId: e.target.value })}
+                            style={{ width: '100%', padding: '10px 12px', borderRadius: '8px', border: '1px solid var(--crm-border)', background: 'var(--crm-surface)', color: 'var(--crm-text-main)', fontWeight: '600', fontSize: '0.95rem' }}
+                          >
+                            {currentPlans.map(pl => (
+                              <option key={pl.id} value={pl.id}>{pl.name} - R$ {pl.price}</option>
+                            ))}
+                          </select>
+                        </div>
+
+                        <div>
+                          <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: '600', color: 'var(--crm-text-muted)', marginBottom: '6px' }}>Data de Vencimento / Renovação</label>
+                          <input 
+                            type="date"
+                            value={activeDueDate}
+                            onChange={(e) => updatePatient(viewedPatient.id, { financialDueDate: e.target.value })}
+                            style={{ width: '100%', padding: '10px 12px', borderRadius: '8px', border: '1px solid var(--crm-border)', background: 'var(--crm-surface)', color: 'var(--crm-text-main)', fontWeight: '600', fontSize: '0.95rem' }}
+                          />
+                        </div>
+
+                        <div>
+                          <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: '600', color: 'var(--crm-text-muted)', marginBottom: '6px' }}>Status Financeiro</label>
+                          <select 
+                            value={activeStatus}
+                            onChange={(e) => updatePatient(viewedPatient.id, { financialStatus: e.target.value })}
+                            style={{ width: '100%', padding: '10px 12px', borderRadius: '8px', border: '1px solid var(--crm-border)', background: activeStatus === 'pago' ? 'rgba(16, 185, 129, 0.15)' : activeStatus === 'atrasado' ? 'rgba(239, 68, 68, 0.15)' : 'rgba(245, 158, 11, 0.15)', color: activeStatus === 'pago' ? '#10B981' : activeStatus === 'atrasado' ? '#EF4444' : '#F59E0B', fontWeight: '700', fontSize: '0.95rem' }}
+                          >
+                            <option value="pago">🟢 Pago / Quitado</option>
+                            <option value="pendente">🟡 Pendente / A Receber</option>
+                            <option value="atrasado">🔴 Atrasado</option>
+                          </select>
+                        </div>
+                      </div>
+
+                      <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap', borderTop: '1px solid var(--crm-border)', paddingTop: '16px' }}>
+                        <button 
+                          className="crm-btn-primary" 
+                          onClick={handleSendCobrança}
+                          style={{ display: 'flex', alignItems: 'center', gap: '8px', background: '#F59E0B', border: 'none', cursor: 'pointer', padding: '10px 16px', borderRadius: '8px', color: '#fff', fontWeight: '600' }}
+                        >
+                          <Send size={16} /> Enviar Lembrete / Cobrança no WhatsApp
+                        </button>
+                        <button 
+                          className="crm-btn-primary" 
+                          onClick={handleSendRecibo}
+                          style={{ display: 'flex', alignItems: 'center', gap: '8px', background: '#10B981', border: 'none', cursor: 'pointer', padding: '10px 16px', borderRadius: '8px', color: '#fff', fontWeight: '600' }}
+                        >
+                          <FileText size={16} /> Emitir Comprovante / Recibo no WhatsApp
+                        </button>
+                      </div>
+                    </div>
+
+                    <div className="crm-card" style={{ padding: '24px', background: 'var(--crm-surface)' }}>
+                      <h4 style={{ margin: '0 0 12px 0', color: 'var(--crm-text-main)', fontSize: '1.1rem' }}>Resumo Oficial da Prestação de Serviço</h4>
+                      <p style={{ color: 'var(--crm-text-muted)', fontSize: '0.9rem', lineHeight: '1.5', margin: '0 0 16px 0' }}>
+                        O plano selecionado (<strong>{activePlan.name}</strong>) tem valor de <strong>R$ {activePlan.price}</strong> e duração nominal de <strong>{activePlan.durationDays || 30} dias</strong>. {activePlan.description || ''}
+                      </p>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.85rem', color: 'var(--crm-text-muted)' }}>
+                        <BrainCircuit size={16} color="var(--crm-primary)" />
+                        <span>A inteligência preditiva alertará o consultório automaticamente 10 dias antes do vencimento em {activeDueDate.split('-').reverse().join('/')}.</span>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })()}
 
               {prontuarioTab === 'consultas' && (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
