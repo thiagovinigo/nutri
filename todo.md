@@ -1,441 +1,444 @@
-# Roadmap do Produto â€” Vytal (VisÃ£o de PM)
+# Roadmap do Produto Ã¢â‚¬â€� Vytal (VisÃƒÂ£o de PM)
 
-Este documento traduz os aprendizados das trilhas de Product Management (0â†’1 e 1â†’100) em um backlog acionÃ¡vel para o Vytal. NÃ³s jÃ¡ concluÃ­mos as Fases de Discovery e o protÃ³tipo inicial. Agora, focaremos nas prÃ³ximas fases dos frameworks de PM.
+Este documento traduz os aprendizados das trilhas de Product Management (0Ã¢â€ â€™1 e 1Ã¢â€ â€™100) em um backlog acionÃƒÂ¡vel para o Vytal. NÃƒÂ³s jÃƒÂ¡ concluÃƒÂ­mos as Fases de Discovery e o protÃƒÂ³tipo inicial. Agora, focaremos nas prÃƒÂ³ximas fases dos frameworks de PM.
 
-> **Nota (14/07/2026):** uma auditoria de produto encontrou vÃ¡rios itens abaixo marcados `[x]` que nÃ£o correspondiam ao estado real do cÃ³digo (existiam sÃ³ como mock/decorativo). Foram desmarcados e detalhados em `spec.md`. Tratar esta lista como o estado real, nÃ£o aspiracional.
+> **Nota (14/07/2026):** uma auditoria de produto encontrou vÃƒÂ¡rios itens abaixo marcados `[x]` que nÃƒÂ£o correspondiam ao estado real do cÃƒÂ³digo (existiam sÃƒÂ³ como mock/decorativo). Foram desmarcados e detalhados em `spec.md`. Tratar esta lista como o estado real, nÃƒÂ£o aspiracional.
 
 ---
 
-## ðŸš€ FASE 5: MVP Spec & Build (FinalizaÃ§Ã£o)
-*Objetivo: Substituir as gambiarras do protÃ³tipo (mocks/dados na memÃ³ria) por uma infraestrutura viÃ¡vel para o mundo real, garantindo que o "walking skeleton" suporte usuÃ¡rios de verdade.*
+## Ã°Å¸Å¡â‚¬ FASE 5: MVP Spec & Build (FinalizaÃƒÂ§ÃƒÂ£o)
+*Objetivo: Substituir as gambiarras do protÃƒÂ³tipo (mocks/dados na memÃƒÂ³ria) por uma infraestrutura viÃƒÂ¡vel para o mundo real, garantindo que o "walking skeleton" suporte usuÃƒÂ¡rios de verdade.*
 
-- [x] **Core UI & Roteamento:** Telas separadas para Paciente e Nutricionista com navegaÃ§Ã£o fluida.
-- [x] **IA Nativa (Frontend):** GeraÃ§Ã£o de cardÃ¡pios, ChatBot (Vytal Bot) e leitor de PDF (pdf.js) integrados no navegador.
+- [x] **Core UI & Roteamento:** Telas separadas para Paciente e Nutricionista com navegaÃƒÂ§ÃƒÂ£o fluida.
+- [x] **IA Nativa (Frontend):** GeraÃƒÂ§ÃƒÂ£o de cardÃƒÂ¡pios, ChatBot (Vytal Bot) e leitor de PDF (pdf.js) integrados no navegador.
 - [x] **Banco de Dados Real (Supabase/Firebase):** 
-  - Migrar o estado global (`AppContext.jsx`) para tabelas SQL (UsuÃ¡rios, Pacientes, Receitas, Consultas).
-- [x] **AutenticaÃ§Ã£o:** 
-  - Login seguro (Email/Senha) para que cada paciente veja apenas seus prÃ³prios dados.
-- [ ] **SeguranÃ§a de API:**
-  - Remover a chave da OpenAI do cÃ³digo Frontend (`VITE_OPENAI_API_KEY`). *(Feito sÃ³ do lado do nutricionista, via `api/openai-bridge.js`. O lado do paciente â€” chat e foto de refeiÃ§Ã£o â€” ainda chama a OpenAI direto do navegador com a chave exposta.)*
-  - Criar uma **Edge Function / Serverless Function** para fazer a ponte com a IA com seguranÃ§a. *(Existe para o nutricionista; falta estender ao paciente.)*
+  - Migrar o estado global (`AppContext.jsx`) para tabelas SQL (UsuÃƒÂ¡rios, Pacientes, Receitas, Consultas).
+- [x] **AutenticaÃƒÂ§ÃƒÂ£o:** 
+  - Login seguro (Email/Senha) para que cada paciente veja apenas seus prÃƒÂ³prios dados.
+- [ ] **SeguranÃƒÂ§a de API:**
+  - Remover a chave da OpenAI do cÃƒÂ³digo Frontend (`VITE_OPENAI_API_KEY`). *(Feito sÃƒÂ³ do lado do nutricionista, via `api/openai-bridge.js`. O lado do paciente Ã¢â‚¬â€� chat e foto de refeiÃƒÂ§ÃƒÂ£o Ã¢â‚¬â€� ainda chama a OpenAI direto do navegador com a chave exposta.)*
+  - Criar uma **Edge Function / Serverless Function** para fazer a ponte com a IA com seguranÃƒÂ§a. *(Existe para o nutricionista; falta estender ao paciente.)*
 
 ---
 
-## ðŸ“ˆ FASE 6: Launch & Early Traction (Go-to-Market)
-*Objetivo: LanÃ§ar para early adopters, instrumentar mÃ©tricas desde o Dia 1 e otimizar para a North Star Metric (ex: % de pacientes engajados na gamificaÃ§Ã£o).*
+## Ã°Å¸â€œË† FASE 6: Launch & Early Traction (Go-to-Market)
+*Objetivo: LanÃƒÂ§ar para early adopters, instrumentar mÃƒÂ©tricas desde o Dia 1 e otimizar para a North Star Metric (ex: % de pacientes engajados na gamificaÃƒÂ§ÃƒÂ£o).*
 
-- [ ] **InstrumentaÃ§Ã£o de AARRR:**
-  - Instalar PostHog ou Google Analytics para medir Activation (Pacientes que usam >3 dias seguidos) e Retention. *(SÃ³ o Firebase Analytics estÃ¡ inicializado, sem nenhum evento customizado disparado ainda.)*
+- [ ] **InstrumentaÃƒÂ§ÃƒÂ£o de AARRR:**
+  - Instalar PostHog ou Google Analytics para medir Activation (Pacientes que usam >3 dias seguidos) e Retention. *(SÃƒÂ³ o Firebase Analytics estÃƒÂ¡ inicializado, sem nenhum evento customizado disparado ainda.)*
 - [x] **PWA (Progressive Web App):** 
   - Configurar `manifest.json` e Service Worker para permitir que o Paciente instale o Vytal no celular direto pelo navegador.
 - [x] **Loop de Feedback:** 
-  - Inserir botÃ£o de reporte rÃ¡pido de bugs/sugestÃµes dentro do app.
-- [x] **Deploy de LanÃ§amento:** 
+  - Inserir botÃƒÂ£o de reporte rÃƒÂ¡pido de bugs/sugestÃƒÂµes dentro do app.
+- [x] **Deploy de LanÃƒÂ§amento:** 
   - Publicar Frontend no Vercel/Netlify.
-- [x] **Checklist de Launch (Aula 3.15):** Validar integraÃ§Ã£o, suporte, e comunicaÃ§Ã£o de boas-vindas aos primeiros pacientes e nutricionistas.
+- [x] **Checklist de Launch (Aula 3.15):** Validar integraÃƒÂ§ÃƒÂ£o, suporte, e comunicaÃƒÂ§ÃƒÂ£o de boas-vindas aos primeiros pacientes e nutricionistas.
 
 ---
 
-## ðŸ�� FASE 7: Product-Market Fit
-*Objetivo: Confirmar que a retenÃ§Ã£o achatou na curva e que o LTV > CAC, aplicando a pesquisa Sean Ellis.*
+## Ã°Å¸ï¿½ï¿½ FASE 7: Product-Market Fit
+*Objetivo: Confirmar que a retenÃƒÂ§ÃƒÂ£o achatou na curva e que o LTV > CAC, aplicando a pesquisa Sean Ellis.*
 
 - [ ] **Pesquisa Sean Ellis:** 
-  - Disparar survey: *"Como vocÃª se sentiria se o Vytal deixasse de existir?"* (Meta: >40% Muito Desapontado).
+  - Disparar survey: *"Como vocÃƒÂª se sentiria se o Vytal deixasse de existir?"* (Meta: >40% Muito Desapontado).
 - [ ] **Growth Features (PLG):** 
-  - Sistema de convite orgÃ¢nico (Indique o Nutri e ganhe uma avaliaÃ§Ã£o grÃ¡tis).
-  - **Self-Service Sign Up:** Permitir que o paciente faÃ§a cadastro avulso pelo app e ganhe 1 Consulta GrÃ¡tis com a IA (Vytal Bot) para testar a experiÃªncia.
-- [x] **Monitoramento de RetenÃ§Ã£o:**
-  - Dashboards em tempo real do nÃ­vel de XP e Ofensiva dos pacientes.
+  - Sistema de convite orgÃƒÂ¢nico (Indique o Nutri e ganhe uma avaliaÃƒÂ§ÃƒÂ£o grÃƒÂ¡tis).
+  - **Self-Service Sign Up:** Permitir que o paciente faÃƒÂ§a cadastro avulso pelo app e ganhe 1 Consulta GrÃƒÂ¡tis com a IA (Vytal Bot) para testar a experiÃƒÂªncia.
+- [x] **Monitoramento de RetenÃƒÂ§ÃƒÂ£o:**
+  - Dashboards em tempo real do nÃƒÂ­vel de XP e Ofensiva dos pacientes.
 
 ---
 
-## ðŸ�¢ JORNADA 1â†’100: Scale & MonetizaÃ§Ã£o
-*Objetivo: Quando o PMF for alcanÃ§ado, construir os alicerces financeiros e B2B.*
+## Ã°Å¸ï¿½Â¢ JORNADA 1Ã¢â€ â€™100: Scale & MonetizaÃƒÂ§ÃƒÂ£o
+*Objetivo: Quando o PMF for alcanÃƒÂ§ado, construir os alicerces financeiros e B2B.*
 
 - [ ] **Sistema de Assinaturas (Billing):**
-  - IntegraÃ§Ã£o com Stripe para cobrar mensalidades dos Nutricionistas (SaaS). *(Tela de "Assinar Premium" existe, mas sem checkout real conectado.)*
+  - IntegraÃƒÂ§ÃƒÂ£o com Stripe para cobrar mensalidades dos Nutricionistas (SaaS). *(Tela de "Assinar Premium" existe, mas sem checkout real conectado.)*
 - [~] **Multitenancy (White-Label):**
-  - Permitir que ClÃ­nicas grandes personalizem as cores do app para seus pacientes. *(Nome/cor da clÃ­nica funcionam; falta isolar dados entre clÃ­nicas de verdade no backend.)*
-- [ ] **InteligÃªncia de Cohorts (Aula de PM):**
-  - Algoritmo que prevÃª quais pacientes estÃ£o prestes a abandonar a dieta e alerta o nutricionista no CRM. *(A tela existe e Ã© o ponto forte visual do produto, mas o "risco de abandono" hoje Ã© um campo estÃ¡tico do mock, nÃ£o uma previsÃ£o real; o alerta nÃ£o Ã© enviado de verdade ainda.)*
+  - Permitir que ClÃƒÂ­nicas grandes personalizem as cores do app para seus pacientes. *(Nome/cor da clÃƒÂ­nica funcionam; falta isolar dados entre clÃƒÂ­nicas de verdade no backend.)*
+- [ ] **InteligÃƒÂªncia de Cohorts (Aula de PM):**
+  - Algoritmo que prevÃƒÂª quais pacientes estÃƒÂ£o prestes a abandonar a dieta e alerta o nutricionista no CRM. *(A tela existe e ÃƒÂ© o ponto forte visual do produto, mas o "risco de abandono" hoje ÃƒÂ© um campo estÃƒÂ¡tico do mock, nÃƒÂ£o uma previsÃƒÂ£o real; o alerta nÃƒÂ£o ÃƒÂ© enviado de verdade ainda.)*
 
 ---
 
-## ðŸ“‹ Backlog de Features Pendentes (14/07/2026)
+## Ã°Å¸â€œâ€¹ Backlog de Features Pendentes (14/07/2026)
 
-Consolidado a partir da auditoria de produto e do `spec.md`. Ordenado por prioridade dentro de cada bloco â€” nÃ£o Ã© uma lista de bugs (esses jÃ¡ foram corrigidos), Ã© o que falta **construir**.
+Consolidado a partir da auditoria de produto e do `spec.md`. Ordenado por prioridade dentro de cada bloco Ã¢â‚¬â€� nÃƒÂ£o ÃƒÂ© uma lista de bugs (esses jÃƒÂ¡ foram corrigidos), ÃƒÂ© o que falta **construir**.
 
-### SeguranÃ§a e confiabilidade (bloqueia produÃ§Ã£o real)
-- [ ] Mover as chamadas de IA do lado paciente (chat + foto de refeiÃ§Ã£o) para o proxy server-side (`api/openai-bridge.js`), removendo `VITE_OPENAI_API_KEY` do bundle do cliente.
-- [ ] Guard de rota real: redirecionar `/nutri` e `/paciente` para `/login` quando nÃ£o hÃ¡ sessÃ£o ativa (hoje dÃ¡ pra acessar direto pela URL).
-- [ ] Regras de seguranÃ§a no Firestore que isolem dados por paciente/clÃ­nica no servidor â€” hoje o filtro Ã© sÃ³ visual no cliente.
-- [ ] Investigar e resolver a instabilidade do canal de escrita do Firestore (erro 503 recorrente) antes de depender dele em produÃ§Ã£o.
-- [ ] **Edge Case Estrutural:** Tratar o cenÃ¡rio onde um mesmo paciente (mesmo CPF/E-mail) Ã© atendido por mais de um nutricionista na plataforma (atualmente o modelo assume relacionamento 1:N restrito via `nutricionista_id`).
+### SeguranÃƒÂ§a e confiabilidade (bloqueia produÃƒÂ§ÃƒÂ£o real)
+- [ ] Mover as chamadas de IA do lado paciente (chat + foto de refeiÃƒÂ§ÃƒÂ£o) para o proxy server-side (`api/openai-bridge.js`), removendo `VITE_OPENAI_API_KEY` do bundle do cliente.
+- [ ] Guard de rota real: redirecionar `/nutri` e `/paciente` para `/login` quando nÃƒÂ£o hÃƒÂ¡ sessÃƒÂ£o ativa (hoje dÃƒÂ¡ pra acessar direto pela URL).
+- [ ] Regras de seguranÃƒÂ§a no Firestore que isolem dados por paciente/clÃƒÂ­nica no servidor Ã¢â‚¬â€� hoje o filtro ÃƒÂ© sÃƒÂ³ visual no cliente.
+- [ ] Investigar e resolver a instabilidade do canal de escrita do Firestore (erro 503 recorrente) antes de depender dele em produÃƒÂ§ÃƒÂ£o.
+- [ ] **Edge Case Estrutural:** Tratar o cenÃƒÂ¡rio onde um mesmo paciente (mesmo CPF/E-mail) ÃƒÂ© atendido por mais de um nutricionista na plataforma (atualmente o modelo assume relacionamento 1:N restrito via `nutricionista_id`).
 
-### MonetizaÃ§Ã£o
-- [ ] IntegraÃ§Ã£o real com Stripe (checkout, webhooks de assinatura, bloqueio de features por plano).
-- [ ] LÃ³gica de limite de pacientes por plano (hoje "Limite de 5 pacientes" Ã© sÃ³ texto, nÃ£o Ã© aplicado).
+### MonetizaÃƒÂ§ÃƒÂ£o
+- [ ] IntegraÃƒÂ§ÃƒÂ£o real com Stripe (checkout, webhooks de assinatura, bloqueio de features por plano).
+- [ ] LÃƒÂ³gica de limite de pacientes por plano (hoje "Limite de 5 pacientes" ÃƒÂ© sÃƒÂ³ texto, nÃƒÂ£o ÃƒÂ© aplicado).
 
-### InteligÃªncia de Cohorts (o maior diferencial do produto â€” vale investir aqui primeiro entre as features "grandes")
-- [x] Modelo real de previsÃ£o de abandono (hoje Ã© um campo estÃ¡tico `em_risco` no mock), usando streak, adesÃ£o e frequÃªncia de login.
-- [x] Envio de fato do alerta de risco (WhatsApp Business API, e-mail transacional, ou push notification) â€” hoje sÃ³ registra em `alert()`.
-- [x] VisÃ£o "Patient 360": um painel Ãºnico por paciente reunindo plano, food log, check-ins, peso, mensagens e anotaÃ§Ãµes (hoje estÃ¡ espalhado em abas separadas).
+### InteligÃƒÂªncia de Cohorts (o maior diferencial do produto Ã¢â‚¬â€� vale investir aqui primeiro entre as features "grandes")
+- [x] Modelo real de previsÃƒÂ£o de abandono (hoje ÃƒÂ© um campo estÃƒÂ¡tico `em_risco` no mock), usando streak, adesÃƒÂ£o e frequÃƒÂªncia de login.
+- [x] Envio de fato do alerta de risco (WhatsApp Business API, e-mail transacional, ou push notification) Ã¢â‚¬â€� hoje sÃƒÂ³ registra em `alert()`.
+- [x] VisÃƒÂ£o "Patient 360": um painel ÃƒÂºnico por paciente reunindo plano, food log, check-ins, peso, mensagens e anotaÃƒÂ§ÃƒÂµes (hoje estÃƒÂ¡ espalhado em abas separadas).
 
-### ComunicaÃ§Ã£o nutricionista â†” paciente
-- `[x]` Canal de mensagens diretas entre nutricionista e paciente (hoje só existe o Vytal Bot de IA; não há como o profissional mandar uma mensagem real).
-- [ ] NotificaÃ§Ãµes push/e-mail para o paciente quando uma nova dieta Ã© prescrita ou uma consulta Ã© confirmada.
+### ComunicaÃƒÂ§ÃƒÂ£o nutricionista Ã¢â€ â€� paciente
+- `[x]` Canal de mensagens diretas entre nutricionista e paciente (hoje sÃ³ existe o Vytal Bot de IA; nÃ£o hÃ¡ como o profissional mandar uma mensagem real).
+- [ ] NotificaÃƒÂ§ÃƒÂµes push/e-mail para o paciente quando uma nova dieta ÃƒÂ© prescrita ou uma consulta ÃƒÂ© confirmada.
 
-### Analytics e instrumentaÃ§Ã£o
-- [ ] Eventos customizados de produto (ativaÃ§Ã£o, retenÃ§Ã£o, funil de onboarding) â€” hoje sÃ³ o Firebase Analytics estÃ¡ inicializado, sem nenhum evento disparado.
-- [ ] Pesquisa de PMF (Sean Ellis) â€” depende de ter uma base real de usuÃ¡rios antes de fazer sentido.
+### Analytics e instrumentaÃƒÂ§ÃƒÂ£o
+- [ ] Eventos customizados de produto (ativaÃƒÂ§ÃƒÂ£o, retenÃƒÂ§ÃƒÂ£o, funil de onboarding) Ã¢â‚¬â€� hoje sÃƒÂ³ o Firebase Analytics estÃƒÂ¡ inicializado, sem nenhum evento disparado.
+- [ ] Pesquisa de PMF (Sean Ellis) Ã¢â‚¬â€� depende de ter uma base real de usuÃƒÂ¡rios antes de fazer sentido.
 
-### Growth / aquisiÃ§Ã£o
-- [ ] Sistema de convite orgÃ¢nico (indicaÃ§Ã£o premiada).
-- [x] Landing page com proposta de valor real (hoje Ã© sÃ³ um seletor de botÃµes â€” ver auditoria de UX).
+### Growth / aquisiÃƒÂ§ÃƒÂ£o
+- [ ] Sistema de convite orgÃƒÂ¢nico (indicaÃƒÂ§ÃƒÂ£o premiada).
+- [x] Landing page com proposta de valor real (hoje ÃƒÂ© sÃƒÂ³ um seletor de botÃƒÂµes Ã¢â‚¬â€� ver auditoria de UX).
 
-### DecisÃµes de produto pendentes (nÃ£o sÃ£o bugs, sÃ£o escolhas)
-- [ ] Decidir o destino de `LearnPath.jsx`/`Quiz.jsx` â€” trilha de aprendizado gamificada estilo Duolingo, jÃ¡ prototipada mas nunca conectada Ã s rotas. Reativar (precisa de conteÃºdo real) ou remover.
-- [ ] Decidir se o app do paciente precisa de wearables/CGM (Apple Watch, Google Fit, glicose contÃ­nua) â€” Ã© tendÃªncia forte do mercado 2026, mas Ã© investimento grande; nÃ£o comeÃ§ar sem validar demanda.
+### DecisÃƒÂµes de produto pendentes (nÃƒÂ£o sÃƒÂ£o bugs, sÃƒÂ£o escolhas)
+- [ ] Decidir o destino de `LearnPath.jsx`/`Quiz.jsx` Ã¢â‚¬â€� trilha de aprendizado gamificada estilo Duolingo, jÃƒÂ¡ prototipada mas nunca conectada ÃƒÂ s rotas. Reativar (precisa de conteÃƒÂºdo real) ou remover.
+- [ ] Decidir se o app do paciente precisa de wearables/CGM (Apple Watch, Google Fit, glicose contÃƒÂ­nua) Ã¢â‚¬â€� ÃƒÂ© tendÃƒÂªncia forte do mercado 2026, mas ÃƒÂ© investimento grande; nÃƒÂ£o comeÃƒÂ§ar sem validar demanda.
 
 ### Qualidade
-- [ ] Nenhum teste automatizado existe no projeto hoje (unitÃ¡rio, integraÃ§Ã£o ou E2E). Priorizar cobertura pelo menos nos fluxos crÃ­ticos: login, criar/editar paciente, agendar consulta, prescrever dieta.
+- [ ] Nenhum teste automatizado existe no projeto hoje (unitÃƒÂ¡rio, integraÃƒÂ§ÃƒÂ£o ou E2E). Priorizar cobertura pelo menos nos fluxos crÃƒÂ­ticos: login, criar/editar paciente, agendar consulta, prescrever dieta.
 
 ---
 
-## ðŸ§­ ComitÃª de Produto Inovador â€” ValidaÃ§Ã£o de Features (14/07/2026)
+## Ã°Å¸Â§Â­ ComitÃƒÂª de Produto Inovador Ã¢â‚¬â€� ValidaÃƒÂ§ÃƒÂ£o de Features (14/07/2026)
 
-AvaliaÃ§Ã£o do que jÃ¡ existe vs. o que um produto de referÃªncia em nutriÃ§Ã£o digital (Nutrium, Practice Better, MealCircle do lado profissional; Noom, MyFitnessPal, HealthifyMe do lado paciente) precisa ter em 2026, cruzado com o combo que sÃ³ o Vytal tenta fazer hoje: CRM + gamificaÃ§Ã£o + IA num produto sÃ³.
+AvaliaÃƒÂ§ÃƒÂ£o do que jÃƒÂ¡ existe vs. o que um produto de referÃƒÂªncia em nutriÃƒÂ§ÃƒÂ£o digital (Nutrium, Practice Better, MealCircle do lado profissional; Noom, MyFitnessPal, HealthifyMe do lado paciente) precisa ter em 2026, cruzado com o combo que sÃƒÂ³ o Vytal tenta fazer hoje: CRM + gamificaÃƒÂ§ÃƒÂ£o + IA num produto sÃƒÂ³.
 
-### Validado â€” manter e priorizar
-- **Combo CRM + app gamificado + IA clÃ­nica.** Ã‰ o ponto de diferenciaÃ§Ã£o real. Nenhum concorrente pesquisado junta os trÃªs; a maioria Ã© ou ferramenta de gestÃ£o (Nutrium, Practice Better) ou app de paciente (Noom, MyFitnessPal). Vale proteger esse posicionamento em vez de diluir com features genÃ©ricas.
-- **Vytal Bot com contexto do plano ativo.** JÃ¡ responde considerando a dieta prescrita â€” alinhado com a tendÃªncia de "IA + SaÃºde ClÃ­nica" apontada pela pesquisa de mercado, mas ainda sem dados biomÃ©tricos.
-- **Cohorts / risco de abandono no CRM.** Validado como o recurso de maior potencial competitivo â€” nenhum concorrente pequeno oferece isso hoje pronto; precisa sÃ³ deixar de ser mock (jÃ¡ listado no backlog acima).
-- **AnÃ¡lise de exame em PDF via IA.** Diferencial real frente a concorrentes puramente "app de dieta" â€” poucos cruzam exame laboratorial com prescriÃ§Ã£o automaticamente.
+### Validado Ã¢â‚¬â€� manter e priorizar
+- **Combo CRM + app gamificado + IA clÃƒÂ­nica.** Ãƒâ€° o ponto de diferenciaÃƒÂ§ÃƒÂ£o real. Nenhum concorrente pesquisado junta os trÃƒÂªs; a maioria ÃƒÂ© ou ferramenta de gestÃƒÂ£o (Nutrium, Practice Better) ou app de paciente (Noom, MyFitnessPal). Vale proteger esse posicionamento em vez de diluir com features genÃƒÂ©ricas.
+- **Vytal Bot com contexto do plano ativo.** JÃƒÂ¡ responde considerando a dieta prescrita Ã¢â‚¬â€� alinhado com a tendÃƒÂªncia de "IA + SaÃƒÂºde ClÃƒÂ­nica" apontada pela pesquisa de mercado, mas ainda sem dados biomÃƒÂ©tricos.
+- **Cohorts / risco de abandono no CRM.** Validado como o recurso de maior potencial competitivo Ã¢â‚¬â€� nenhum concorrente pequeno oferece isso hoje pronto; precisa sÃƒÂ³ deixar de ser mock (jÃƒÂ¡ listado no backlog acima).
+- **AnÃƒÂ¡lise de exame em PDF via IA.** Diferencial real frente a concorrentes puramente "app de dieta" Ã¢â‚¬â€� poucos cruzam exame laboratorial com prescriÃƒÂ§ÃƒÂ£o automaticamente.
 
-### Gaps identificados â€” features que faltam
-- [x] **Contexto biomÃ©trico no Vytal Bot e na geraÃ§Ã£o de dieta:** conectar dados de sono/atividade (Apple Health, Google Fit) para a IA ajustar recomendaÃ§Ãµes â€” Ã© citado como "linha de base esperada" pelos apps premium de 2026, hoje o Vytal sÃ³ usa dados manuais (peso via `prompt()`).
-- [x] **Food log fora do plano prescrito:** hoje sÃ³ existe o "Comeu algo diferente?" com foto avulsa; falta um diÃ¡rio alimentar livre (sem depender de ter uma dieta ativa) para pacientes em fase de diagnÃ³stico/anamnese, antes da primeira prescriÃ§Ã£o.
-- [ ] **Telemedicina/consulta em vÃ­deo integrada:** hoje a "consulta" no CRM Ã© sÃ³ um formulÃ¡rio preenchido pelo nutricionista; nÃ£o hÃ¡ chamada de vÃ­deo nem histÃ³rico de sessÃ£o gravado. Concorrentes de practice management (Practice Better) jÃ¡ oferecem isso nativo.
-- [ ] **Biblioteca de receitas/planos reutilizÃ¡veis:** hoje cada dieta Ã© gerada do zero por IA a cada consulta; um nutricionista com 50 pacientes precisa reaproveitar templates de cardÃ¡pio, nÃ£o recriar tudo toda vez.
-- [ ] **DocumentaÃ§Ã£o para reembolso/nota fiscal:** contexto Brasil â€” nutricionistas frequentemente precisam emitir recibo para plano de saÃºde; nÃ£o existe nada hoje nessa linha (oportunidade de nicho local que concorrentes globais nÃ£o cobrem bem).
-- [ ] **Comunidade/prova social entre pacientes:** o leaderboard hoje Ã© sÃ³ dentro da clÃ­nica; testar (com cautela, ver comitÃª de design abaixo) algum elemento de comunidade pode reforÃ§ar a camada de gamificaÃ§Ã£o, que Ã© validada como tendÃªncia de alto impacto em retenÃ§Ã£o (+30-40% engajamento).
-- [ ] **Multi-profissional:** hoje o produto assume 1 nutricionista = 1 clÃ­nica. ClÃ­nicas maiores tÃªm educador fÃ­sico, psicÃ³logo, endocrinologista no mesmo caso â€” vale avaliar (nÃ£o implementar ainda) um modelo de time ao redor do paciente.
+### Gaps identificados Ã¢â‚¬â€� features que faltam
+- [x] **Contexto biomÃƒÂ©trico no Vytal Bot e na geraÃƒÂ§ÃƒÂ£o de dieta:** conectar dados de sono/atividade (Apple Health, Google Fit) para a IA ajustar recomendaÃƒÂ§ÃƒÂµes Ã¢â‚¬â€� ÃƒÂ© citado como "linha de base esperada" pelos apps premium de 2026, hoje o Vytal sÃƒÂ³ usa dados manuais (peso via `prompt()`).
+- [x] **Food log fora do plano prescrito:** hoje sÃƒÂ³ existe o "Comeu algo diferente?" com foto avulsa; falta um diÃƒÂ¡rio alimentar livre (sem depender de ter uma dieta ativa) para pacientes em fase de diagnÃƒÂ³stico/anamnese, antes da primeira prescriÃƒÂ§ÃƒÂ£o.
+- [ ] **Telemedicina/consulta em vÃƒÂ­deo integrada:** hoje a "consulta" no CRM ÃƒÂ© sÃƒÂ³ um formulÃƒÂ¡rio preenchido pelo nutricionista; nÃƒÂ£o hÃƒÂ¡ chamada de vÃƒÂ­deo nem histÃƒÂ³rico de sessÃƒÂ£o gravado. Concorrentes de practice management (Practice Better) jÃƒÂ¡ oferecem isso nativo.
+- [ ] **Biblioteca de receitas/planos reutilizÃƒÂ¡veis:** hoje cada dieta ÃƒÂ© gerada do zero por IA a cada consulta; um nutricionista com 50 pacientes precisa reaproveitar templates de cardÃƒÂ¡pio, nÃƒÂ£o recriar tudo toda vez.
+- [ ] **DocumentaÃƒÂ§ÃƒÂ£o para reembolso/nota fiscal:** contexto Brasil Ã¢â‚¬â€� nutricionistas frequentemente precisam emitir recibo para plano de saÃƒÂºde; nÃƒÂ£o existe nada hoje nessa linha (oportunidade de nicho local que concorrentes globais nÃƒÂ£o cobrem bem).
+- [ ] **Comunidade/prova social entre pacientes:** o leaderboard hoje ÃƒÂ© sÃƒÂ³ dentro da clÃƒÂ­nica; testar (com cautela, ver comitÃƒÂª de design abaixo) algum elemento de comunidade pode reforÃƒÂ§ar a camada de gamificaÃƒÂ§ÃƒÂ£o, que ÃƒÂ© validada como tendÃƒÂªncia de alto impacto em retenÃƒÂ§ÃƒÂ£o (+30-40% engajamento).
+- [ ] **Multi-profissional:** hoje o produto assume 1 nutricionista = 1 clÃƒÂ­nica. ClÃƒÂ­nicas maiores tÃƒÂªm educador fÃƒÂ­sico, psicÃƒÂ³logo, endocrinologista no mesmo caso Ã¢â‚¬â€� vale avaliar (nÃƒÂ£o implementar ainda) um modelo de time ao redor do paciente.
 
-### Descartado pelo comitÃª (nÃ£o vale investir agora)
-- Marketplace de delivery/supermercado integrado ao plano alimentar â€” dependÃªncia de parceria comercial complexa, nÃ£o Ã© o gargalo atual do produto.
-- InternacionalizaÃ§Ã£o/mÃºltiplos idiomas â€” sem sinal de demanda fora do Brasil ainda.
+### Descartado pelo comitÃƒÂª (nÃƒÂ£o vale investir agora)
+- Marketplace de delivery/supermercado integrado ao plano alimentar Ã¢â‚¬â€� dependÃƒÂªncia de parceria comercial complexa, nÃƒÂ£o ÃƒÂ© o gargalo atual do produto.
+- InternacionalizaÃƒÂ§ÃƒÂ£o/mÃƒÂºltiplos idiomas Ã¢â‚¬â€� sem sinal de demanda fora do Brasil ainda.
 
 ---
 
-## ðŸŽ¨ ComitÃª de Design â€” ValidaÃ§Ã£o de Interfaces (14/07/2026)
+## Ã°Å¸Å½Â¨ ComitÃƒÂª de Design Ã¢â‚¬â€� ValidaÃƒÂ§ÃƒÂ£o de Interfaces (14/07/2026)
 
-Passagem tela a tela pelas duas metades do produto (CRM do nutricionista, app do paciente), depois do redesign e das correÃ§Ãµes jÃ¡ aplicadas.
+Passagem tela a tela pelas duas metades do produto (CRM do nutricionista, app do paciente), depois do redesign e das correÃƒÂ§ÃƒÂµes jÃƒÂ¡ aplicadas.
 
 ### CRM do Nutricionista
-- âœ… Sidebar escura, badges com ponto, hierarquia visual â€” validado, jÃ¡ estÃ¡ no padrÃ£o "business" que faltava antes.
-- [x] **HistÃ³rico de peso do paciente Ã© uma lista, nÃ£o um grÃ¡fico.** Para um CRM clÃ­nico, evoluÃ§Ã£o de peso/medidas *precisa* ser visual (linha do tempo), nÃ£o uma lista de linhas de texto â€” hoje em `PatientList.jsx` (aba prontuÃ¡rio) Ã© sÃ³ `<li>{data}: {peso}kg</li>`.
-- [ ] **Nenhum estado de carregamento visÃ­vel.** AÃ§Ãµes como "Gerar SÃ­ntese ClÃ­nica (IA)" e geraÃ§Ã£o de dieta tÃªm texto de loading ("Analisando..."), mas o resto do CRM (troca de aba, abrir prontuÃ¡rio) nÃ£o tem nenhuma transiÃ§Ã£o/skeleton â€” troca Ã© instantÃ¢nea e seca.
-- [ ] **Sidebar fixa em 260px nÃ£o foi testada em tablet/janela estreita.** O CRM Ã© claramente desenhado para desktop; nÃ£o hÃ¡ breakpoint definido â€” se um nutricionista usar em tablet (cenÃ¡rio comum em consultÃ³rio), a sidebar provavelmente quebra o layout.
-- [ ] **Modais de "Novo Agendamento"/"Novo Paciente" nÃ£o tÃªm validaÃ§Ã£o inline nem foco automÃ¡tico no primeiro campo** â€” dependem sÃ³ da validaÃ§Ã£o nativa do browser (`required`), que Ã© inconsistente entre navegadores.
+- Ã¢Å“â€¦ Sidebar escura, badges com ponto, hierarquia visual Ã¢â‚¬â€� validado, jÃƒÂ¡ estÃƒÂ¡ no padrÃƒÂ£o "business" que faltava antes.
+- [x] **HistÃƒÂ³rico de peso do paciente ÃƒÂ© uma lista, nÃƒÂ£o um grÃƒÂ¡fico.** Para um CRM clÃƒÂ­nico, evoluÃƒÂ§ÃƒÂ£o de peso/medidas *precisa* ser visual (linha do tempo), nÃƒÂ£o uma lista de linhas de texto Ã¢â‚¬â€� hoje em `PatientList.jsx` (aba prontuÃƒÂ¡rio) ÃƒÂ© sÃƒÂ³ `<li>{data}: {peso}kg</li>`.
+- [ ] **Nenhum estado de carregamento visÃƒÂ­vel.** AÃƒÂ§ÃƒÂµes como "Gerar SÃƒÂ­ntese ClÃƒÂ­nica (IA)" e geraÃƒÂ§ÃƒÂ£o de dieta tÃƒÂªm texto de loading ("Analisando..."), mas o resto do CRM (troca de aba, abrir prontuÃƒÂ¡rio) nÃƒÂ£o tem nenhuma transiÃƒÂ§ÃƒÂ£o/skeleton Ã¢â‚¬â€� troca ÃƒÂ© instantÃƒÂ¢nea e seca.
+- [ ] **Sidebar fixa em 260px nÃƒÂ£o foi testada em tablet/janela estreita.** O CRM ÃƒÂ© claramente desenhado para desktop; nÃƒÂ£o hÃƒÂ¡ breakpoint definido Ã¢â‚¬â€� se um nutricionista usar em tablet (cenÃƒÂ¡rio comum em consultÃƒÂ³rio), a sidebar provavelmente quebra o layout.
+- [ ] **Modais de "Novo Agendamento"/"Novo Paciente" nÃƒÂ£o tÃƒÂªm validaÃƒÂ§ÃƒÂ£o inline nem foco automÃƒÂ¡tico no primeiro campo** Ã¢â‚¬â€� dependem sÃƒÂ³ da validaÃƒÂ§ÃƒÂ£o nativa do browser (`required`), que ÃƒÂ© inconsistente entre navegadores.
 
 ### App do Paciente
-- âœ… Bottom nav com rÃ³tulos e sem sobreposiÃ§Ã£o, banner de erro inline â€” validado, corrigido nesta sessÃ£o.
-- [ ] **Peso ainda Ã© lanÃ§ado via `window.prompt()` nativo do navegador** (`Profile.jsx` â†’ `handleUpdateWeight`) â€” quebra completamente a identidade visual "gamificada" do resto do app; deveria ser um modal com o mesmo `btn-3d`/card style do resto do produto.
-- [ ] **Ã�cone de coraÃ§Ã£o no TopBar (â�¤ï¸� 5) sugere um sistema de "vidas" estilo Duolingo que nÃ£o existe de verdade** â€” nÃ£o hÃ¡ penalidade nem lÃ³gica associada a esse nÃºmero, Ã© decorativo. Ou constrÃ³i a mecÃ¢nica de verdade (perder coraÃ§Ã£o ao pular dia) ou remove o Ã­cone â€” hoje Ã© uma promessa visual que engana o paciente.
-- [ ] **`DietPlan.jsx` Ã© uma lista estÃ¡tica de refeiÃ§Ãµes passadas** â€” nÃ£o indica visualmente qual dieta estÃ¡ ativa vs. histÃ³rico, nem tem estado por refeiÃ§Ã£o (feito/pendente) como o `QuestBoard` tem. As duas telas mostram a mesma dieta de formas inconsistentes.
-- [x] **Nenhum dark mode** â€” nÃ£o Ã© obrigatÃ³rio, mas vale decisÃ£o consciente (ver skill de design usada na auditoria: "nÃ£o default pra dark mode, mas tambÃ©m nÃ£o ignorar a pergunta"). Foi implementado o **Dark Mode Premium** com glassmorphism.
-- [ ] **Contraste de cor nÃ£o verificado formalmente** â€” vÃ¡rias combinaÃ§Ãµes (texto cinza claro `#94a3b8` sobre branco, badges) estÃ£o na faixa duvidosa de WCAG AA; precisa de auditoria de contraste real, nÃ£o sÃ³ visual.
+- Ã¢Å“â€¦ Bottom nav com rÃƒÂ³tulos e sem sobreposiÃƒÂ§ÃƒÂ£o, banner de erro inline Ã¢â‚¬â€� validado, corrigido nesta sessÃƒÂ£o.
+- [ ] **Peso ainda ÃƒÂ© lanÃƒÂ§ado via `window.prompt()` nativo do navegador** (`Profile.jsx` Ã¢â€ â€™ `handleUpdateWeight`) Ã¢â‚¬â€� quebra completamente a identidade visual "gamificada" do resto do app; deveria ser um modal com o mesmo `btn-3d`/card style do resto do produto.
+- [ ] **Ãƒï¿½cone de coraÃƒÂ§ÃƒÂ£o no TopBar (Ã¢ï¿½Â¤Ã¯Â¸ï¿½ 5) sugere um sistema de "vidas" estilo Duolingo que nÃƒÂ£o existe de verdade** Ã¢â‚¬â€� nÃƒÂ£o hÃƒÂ¡ penalidade nem lÃƒÂ³gica associada a esse nÃƒÂºmero, ÃƒÂ© decorativo. Ou constrÃƒÂ³i a mecÃƒÂ¢nica de verdade (perder coraÃƒÂ§ÃƒÂ£o ao pular dia) ou remove o ÃƒÂ­cone Ã¢â‚¬â€� hoje ÃƒÂ© uma promessa visual que engana o paciente.
+- [ ] **`DietPlan.jsx` ÃƒÂ© uma lista estÃƒÂ¡tica de refeiÃƒÂ§ÃƒÂµes passadas** Ã¢â‚¬â€� nÃƒÂ£o indica visualmente qual dieta estÃƒÂ¡ ativa vs. histÃƒÂ³rico, nem tem estado por refeiÃƒÂ§ÃƒÂ£o (feito/pendente) como o `QuestBoard` tem. As duas telas mostram a mesma dieta de formas inconsistentes.
+- [x] **Nenhum dark mode** Ã¢â‚¬â€� nÃƒÂ£o ÃƒÂ© obrigatÃƒÂ³rio, mas vale decisÃƒÂ£o consciente (ver skill de design usada na auditoria: "nÃƒÂ£o default pra dark mode, mas tambÃƒÂ©m nÃƒÂ£o ignorar a pergunta"). Foi implementado o **Dark Mode Premium** com glassmorphism.
+- [ ] **Contraste de cor nÃƒÂ£o verificado formalmente** Ã¢â‚¬â€� vÃƒÂ¡rias combinaÃƒÂ§ÃƒÂµes (texto cinza claro `#94a3b8` sobre branco, badges) estÃƒÂ£o na faixa duvidosa de WCAG AA; precisa de auditoria de contraste real, nÃƒÂ£o sÃƒÂ³ visual.
 
-### ConsistÃªncia entre os dois mundos
-- [ ] **Validado como escolha correta, nÃ£o como falha:** o CRM (profissional, sÃ³brio) e o app do paciente (gamificado, colorido) usarem linguagens visuais propositalmente diferentes â€” Ã© o mesmo padrÃ£o usado por Noom (paciente) vs. Practice Better (profissional), pÃºblicos diferentes justificam identidades diferentes. NÃ£o unificar.
-- [ ] **Ponto de atrito real:** a transiÃ§Ã£o entre os dois (botÃ£o "Sair (Trocar Papel)" no CRM, botÃµes "Modo Nutricionista/Paciente" no login) Ã© um artefato de demonstraÃ§Ã£o, nÃ£o um fluxo de produto real â€” nenhum usuÃ¡rio real alterna entre os dois papÃ©is livremente. Antes de lanÃ§ar, decidir se esse seletor deve sumir da experiÃªncia de produÃ§Ã£o (ficando sÃ³ como atalho de dev/QA).
+### ConsistÃƒÂªncia entre os dois mundos
+- [ ] **Validado como escolha correta, nÃƒÂ£o como falha:** o CRM (profissional, sÃƒÂ³brio) e o app do paciente (gamificado, colorido) usarem linguagens visuais propositalmente diferentes Ã¢â‚¬â€� ÃƒÂ© o mesmo padrÃƒÂ£o usado por Noom (paciente) vs. Practice Better (profissional), pÃƒÂºblicos diferentes justificam identidades diferentes. NÃƒÂ£o unificar.
+- [ ] **Ponto de atrito real:** a transiÃƒÂ§ÃƒÂ£o entre os dois (botÃƒÂ£o "Sair (Trocar Papel)" no CRM, botÃƒÂµes "Modo Nutricionista/Paciente" no login) ÃƒÂ© um artefato de demonstraÃƒÂ§ÃƒÂ£o, nÃƒÂ£o um fluxo de produto real Ã¢â‚¬â€� nenhum usuÃƒÂ¡rio real alterna entre os dois papÃƒÂ©is livremente. Antes de lanÃƒÂ§ar, decidir se esse seletor deve sumir da experiÃƒÂªncia de produÃƒÂ§ÃƒÂ£o (ficando sÃƒÂ³ como atalho de dev/QA).
 
 ---
 
-## ðŸ�›ï¸� ComitÃª de Produto â€” DecisÃµes Finais e PriorizaÃ§Ã£o (14/07/2026)
+## Ã°Å¸ï¿½â€ºÃ¯Â¸ï¿½ ComitÃƒÂª de Produto Ã¢â‚¬â€� DecisÃƒÂµes Finais e PriorizaÃƒÂ§ÃƒÂ£o (14/07/2026)
 
-SÃ­ntese dos dois comitÃªs acima em uma ordem de execuÃ§Ã£o Ãºnica. CritÃ©rio: o que reduz risco (seguranÃ§a/confiabilidade) vem antes do que aumenta valor (features novas), e dentro de "valor" o diferencial competitivo (Cohorts) vem antes de conveniÃªncia.
+SÃƒÂ­ntese dos dois comitÃƒÂªs acima em uma ordem de execuÃƒÂ§ÃƒÂ£o ÃƒÂºnica. CritÃƒÂ©rio: o que reduz risco (seguranÃƒÂ§a/confiabilidade) vem antes do que aumenta valor (features novas), e dentro de "valor" o diferencial competitivo (Cohorts) vem antes de conveniÃƒÂªncia.
 
-**Onda 1 â€” Antes de qualquer usuÃ¡rio real usar o produto**
-1. SeguranÃ§a e confiabilidade (bloco jÃ¡ detalhado acima) â€” sem isso, nenhuma feature nova importa.
-2. Peso via modal em vez de `prompt()` nativo, remoÃ§Ã£o/decisÃ£o sobre o Ã­cone de coraÃ§Ã£o decorativo â€” baratos, resolvem a sensaÃ§Ã£o de "inacabado" apontada pelo comitÃª de design.
-3. Decidir e remover (ou manter sÃ³ em dev) o seletor "Trocar Papel" â€” hoje Ã© o maior sinal visual de que o produto ainda Ã© um protÃ³tipo.
+**Onda 1 Ã¢â‚¬â€� Antes de qualquer usuÃƒÂ¡rio real usar o produto**
+1. SeguranÃƒÂ§a e confiabilidade (bloco jÃƒÂ¡ detalhado acima) Ã¢â‚¬â€� sem isso, nenhuma feature nova importa.
+2. Peso via modal em vez de `prompt()` nativo, remoÃƒÂ§ÃƒÂ£o/decisÃƒÂ£o sobre o ÃƒÂ­cone de coraÃƒÂ§ÃƒÂ£o decorativo Ã¢â‚¬â€� baratos, resolvem a sensaÃƒÂ§ÃƒÂ£o de "inacabado" apontada pelo comitÃƒÂª de design.
+3. Decidir e remover (ou manter sÃƒÂ³ em dev) o seletor "Trocar Papel" Ã¢â‚¬â€� hoje ÃƒÂ© o maior sinal visual de que o produto ainda ÃƒÂ© um protÃƒÂ³tipo.
 
-**Onda 2 â€” O diferencial competitivo (maior retorno por esforÃ§o)**
-4. Cohorts real: modelo de previsÃ£o + envio de fato do alerta. Este Ã© o item que o comitÃª de produto inovador e a pesquisa de mercado apontam como o maior diferencial â€” prioridade mÃ¡xima entre as features novas.
-5. [x] GrÃ¡fico de evoluÃ§Ã£o de peso no CRM (troca lista â†’ linha do tempo) â€” prÃ©-requisito visual para o Cohorts parecer "inteligente" de verdade.
-6. Contexto biomÃ©trico no Vytal Bot (mesmo que sÃ³ manual no inÃ­cio, sem integrar wearable ainda) â€” data mÃ­nima para comeÃ§ar a construir a diferenciaÃ§Ã£o de IA clÃ­nica.
+**Onda 2 Ã¢â‚¬â€� O diferencial competitivo (maior retorno por esforÃƒÂ§o)**
+4. Cohorts real: modelo de previsÃƒÂ£o + envio de fato do alerta. Este ÃƒÂ© o item que o comitÃƒÂª de produto inovador e a pesquisa de mercado apontam como o maior diferencial Ã¢â‚¬â€� prioridade mÃƒÂ¡xima entre as features novas.
+5. [x] GrÃƒÂ¡fico de evoluÃƒÂ§ÃƒÂ£o de peso no CRM (troca lista Ã¢â€ â€™ linha do tempo) Ã¢â‚¬â€� prÃƒÂ©-requisito visual para o Cohorts parecer "inteligente" de verdade.
+6. Contexto biomÃƒÂ©trico no Vytal Bot (mesmo que sÃƒÂ³ manual no inÃƒÂ­cio, sem integrar wearable ainda) Ã¢â‚¬â€� data mÃƒÂ­nima para comeÃƒÂ§ar a construir a diferenciaÃƒÂ§ÃƒÂ£o de IA clÃƒÂ­nica.
 
-**Onda 3 â€” MonetizaÃ§Ã£o e crescimento**
+**Onda 3 Ã¢â‚¬â€� MonetizaÃƒÂ§ÃƒÂ£o e crescimento**
 7. Stripe real + limite de plano aplicado.
 8. [x] Landing page com proposta de valor.
-9. Canal de mensagens diretas nutricionistaâ†”paciente.
+9. Canal de mensagens diretas nutricionistaÃ¢â€ â€�paciente.
 
-**Onda 4 â€” Investimentos maiores, validar demanda antes**
-10. Wearables/CGM, telemedicina em vÃ­deo, biblioteca de receitas reutilizÃ¡veis, comunidade entre pacientes, multi-profissional.
+**Onda 4 Ã¢â‚¬â€� Investimentos maiores, validar demanda antes**
+10. Wearables/CGM, telemedicina em vÃƒÂ­deo, biblioteca de receitas reutilizÃƒÂ¡veis, comunidade entre pacientes, multi-profissional.
 
-**NÃ£o fazer agora (decisÃ£o explÃ­cita do comitÃª):** marketplace de delivery, internacionalizaÃ§Ã£o, dark mode como prioridade (fica como nice-to-have de design, nÃ£o bloqueia nada).
-
----
-
-## ðŸ’¡ Ideias novas do usuÃ¡rio (14/07/2026)
-
-- [x] **Sino de notificaÃ§Ã£o no app do paciente** â€” implementado. Quando o nutricionista clica "Enviar Alerta" (Cohorts), uma notificaÃ§Ã£o real Ã© criada (`addNotification` no `AppContext.jsx`) e aparece no sino do `TopBar` do paciente, com contador de nÃ£o lidas.
-- [x] **Biblioteca de templates de dieta reutilizÃ¡veis:** o nutricionista deveria poder salvar um plano completo (30 dias, 6 refeiÃ§Ãµes, suplementos/vitaminas) como template, em vez de digitar tudo do zero em cada consulta.
-- [ ] **Anexar template a um paciente:** a partir da biblioteca acima, aplicar um template existente diretamente ao prontuÃ¡rio de um paciente (com opÃ§Ã£o de ajustar antes de confirmar).
-- [x] **Receitas para o paciente (bÃ´nus):** o paciente deveria poder receber receitas â€” geradas por IA ou buscadas na internet â€” anexadas numa aba prÃ³pria de "Receitas", separada do plano alimentar estruturado. Onde encaixar: provavelmente uma nova aba na bottom nav do paciente (`DietPlan`/`QuestBoard` jÃ¡ estÃ£o cheios) ou uma seÃ§Ã£o dentro de `DietPlan.jsx`.
+**NÃƒÂ£o fazer agora (decisÃƒÂ£o explÃƒÂ­cita do comitÃƒÂª):** marketplace de delivery, internacionalizaÃƒÂ§ÃƒÂ£o, dark mode como prioridade (fica como nice-to-have de design, nÃƒÂ£o bloqueia nada).
 
 ---
 
-## âœ… Onda 1 â€” Executada (14/07/2026)
+## Ã°Å¸â€™Â¡ Ideias novas do usuÃƒÂ¡rio (14/07/2026)
 
-- [x] Chave da OpenAI removida do lado paciente (chat + foto de refeiÃ§Ã£o) â€” agora usa `/api/openai-bridge`, igual ao lado nutricionista. `src/services/openaiService.js` (Ã³rfÃ£o) apagado.
-- [x] Guard de rota real em `/nutri` e `/paciente` (`App.jsx` â†’ `RequireAuth`) â€” bloqueia acesso sem sessÃ£o em produÃ§Ã£o; em dev (`import.meta.env.DEV`) deixa passar, e os botÃµes de atalho no `Login.jsx` sÃ³ aparecem em dev.
-- [x] `firestore.rules` criado na raiz do projeto, isolando `patients`/`appointments` por `nutricionista_id`. **Ainda precisa ser publicado manualmente** (Firebase Console ou `firebase deploy --only firestore:rules` no projeto `nutribase-fea35`) â€” nenhuma automaÃ§Ã£o faz esse deploy sozinha.
-- [x] Peso do paciente: trocado `window.prompt()` por modal prÃ³prio em `Profile.jsx`.
-- [x] Ã�cone de coraÃ§Ã£o decorativo removido do `TopBar` (nÃ£o tinha mecÃ¢nica real associada).
-- [ ] **VerificaÃ§Ã£o ao vivo pendente:** rodei lint (sem erros novos) e confirmei via cÃ³digo que o guard nÃ£o bloqueia o modo dev, mas a automaÃ§Ã£o de navegador desta sessÃ£o ficou instÃ¡vel no meio do teste do modal de peso e do chat â€” vale um clique manual rÃ¡pido em `/paciente` â†’ Vytal Bot e Perfil â†’ Informar Meu Peso antes de considerar 100% validado.
-- [ ] Instabilidade do canal de escrita do Firestore (erro 503 observado nos testes) nÃ£o foi resolvida â€” Ã© de infraestrutura/rede do ambiente, nÃ£o do cÃ³digo. O padrÃ£o "local-first" jÃ¡ em uso evita que isso trave a UI, mas vale investigar se persiste fora deste ambiente de dev.
-- [ ] "Trocar Papel" no CRM (`Sair (Trocar Papel)`) foi mantido como estÃ¡ â€” na prÃ¡tica sÃ³ navega pra landing page, nÃ£o Ã© um bypass de seguranÃ§a como os botÃµes do Login.
+- [x] **Sino de notificaÃƒÂ§ÃƒÂ£o no app do paciente** Ã¢â‚¬â€� implementado. Quando o nutricionista clica "Enviar Alerta" (Cohorts), uma notificaÃƒÂ§ÃƒÂ£o real ÃƒÂ© criada (`addNotification` no `AppContext.jsx`) e aparece no sino do `TopBar` do paciente, com contador de nÃƒÂ£o lidas.
+- [x] **Biblioteca de templates de dieta reutilizÃƒÂ¡veis:** o nutricionista deveria poder salvar um plano completo (30 dias, 6 refeiÃƒÂ§ÃƒÂµes, suplementos/vitaminas) como template, em vez de digitar tudo do zero em cada consulta.
+- [ ] **Anexar template a um paciente:** a partir da biblioteca acima, aplicar um template existente diretamente ao prontuÃƒÂ¡rio de um paciente (com opÃƒÂ§ÃƒÂ£o de ajustar antes de confirmar).
+- [x] **Receitas para o paciente (bÃƒÂ´nus):** o paciente deveria poder receber receitas Ã¢â‚¬â€� geradas por IA ou buscadas na internet Ã¢â‚¬â€� anexadas numa aba prÃƒÂ³pria de "Receitas", separada do plano alimentar estruturado. Onde encaixar: provavelmente uma nova aba na bottom nav do paciente (`DietPlan`/`QuestBoard` jÃƒÂ¡ estÃƒÂ£o cheios) ou uma seÃƒÂ§ÃƒÂ£o dentro de `DietPlan.jsx`.
 
 ---
 
-## âœ… Executado em 15/07/2026 (ExperiÃªncia Premium e CorreÃ§Ãµes de Cadastro)
+## Ã¢Å“â€¦ Onda 1 Ã¢â‚¬â€� Executada (14/07/2026)
 
-- [x] **UX Redesign (App do Paciente):** MigraÃ§Ã£o do visual "infantil" para um "Dark Mode Premium" focado em alta performance.
+- [x] Chave da OpenAI removida do lado paciente (chat + foto de refeiÃƒÂ§ÃƒÂ£o) Ã¢â‚¬â€� agora usa `/api/openai-bridge`, igual ao lado nutricionista. `src/services/openaiService.js` (ÃƒÂ³rfÃƒÂ£o) apagado.
+- [x] Guard de rota real em `/nutri` e `/paciente` (`App.jsx` Ã¢â€ â€™ `RequireAuth`) Ã¢â‚¬â€� bloqueia acesso sem sessÃƒÂ£o em produÃƒÂ§ÃƒÂ£o; em dev (`import.meta.env.DEV`) deixa passar, e os botÃƒÂµes de atalho no `Login.jsx` sÃƒÂ³ aparecem em dev.
+- [x] `firestore.rules` criado na raiz do projeto, isolando `patients`/`appointments` por `nutricionista_id`. **Ainda precisa ser publicado manualmente** (Firebase Console ou `firebase deploy --only firestore:rules` no projeto `nutribase-fea35`) Ã¢â‚¬â€� nenhuma automaÃƒÂ§ÃƒÂ£o faz esse deploy sozinha.
+- [x] Peso do paciente: trocado `window.prompt()` por modal prÃƒÂ³prio em `Profile.jsx`.
+- [x] Ãƒï¿½cone de coraÃƒÂ§ÃƒÂ£o decorativo removido do `TopBar` (nÃƒÂ£o tinha mecÃƒÂ¢nica real associada).
+- [ ] **VerificaÃƒÂ§ÃƒÂ£o ao vivo pendente:** rodei lint (sem erros novos) e confirmei via cÃƒÂ³digo que o guard nÃƒÂ£o bloqueia o modo dev, mas a automaÃƒÂ§ÃƒÂ£o de navegador desta sessÃƒÂ£o ficou instÃƒÂ¡vel no meio do teste do modal de peso e do chat Ã¢â‚¬â€� vale um clique manual rÃƒÂ¡pido em `/paciente` Ã¢â€ â€™ Vytal Bot e Perfil Ã¢â€ â€™ Informar Meu Peso antes de considerar 100% validado.
+- [ ] Instabilidade do canal de escrita do Firestore (erro 503 observado nos testes) nÃƒÂ£o foi resolvida Ã¢â‚¬â€� ÃƒÂ© de infraestrutura/rede do ambiente, nÃƒÂ£o do cÃƒÂ³digo. O padrÃƒÂ£o "local-first" jÃƒÂ¡ em uso evita que isso trave a UI, mas vale investigar se persiste fora deste ambiente de dev.
+- [ ] "Trocar Papel" no CRM (`Sair (Trocar Papel)`) foi mantido como estÃƒÂ¡ Ã¢â‚¬â€� na prÃƒÂ¡tica sÃƒÂ³ navega pra landing page, nÃƒÂ£o ÃƒÂ© um bypass de seguranÃƒÂ§a como os botÃƒÂµes do Login.
+
+---
+
+## Ã¢Å“â€¦ Executado em 15/07/2026 (ExperiÃƒÂªncia Premium e CorreÃƒÂ§ÃƒÂµes de Cadastro)
+
+- [x] **UX Redesign (App do Paciente):** MigraÃƒÂ§ÃƒÂ£o do visual "infantil" para um "Dark Mode Premium" focado em alta performance.
   - Implementado **Glassmorphism** e cores neon para acentos.
-  - O `QuestBoard` abandonou a lista simples de tarefas e ganhou um **GrÃ¡fico Circular de Progresso** centralizado.
-  - Introduzido o **ShareableMilestone**: um cartÃ£o hologrÃ¡fico que aparece quando o paciente atinge 100% da dieta diÃ¡ria, pensado para gerar compartilhamento viral no Instagram.
-- [x] **CorreÃ§Ãµes de Cadastro e Convite:**
-  - Impedida a criaÃ§Ã£o de pacientes duplicados (mesmo CPF ou E-mail) para o mesmo nutricionista.
-  - Melhorada a UI do link de convite gerado, com botÃ£o de copiar fÃ¡cil.
-  - Implementado envio automÃ¡tico de convite por e-mail via `mailto:` no momento do cadastro do paciente pelo nutricionista.
-- [x] **Bugfix CrÃ­tico (ProduÃ§Ã£o):**
-  - Corrigido problema onde o link de convite (`/paciente?vincular=...`) redirecionava incorretamente o paciente para a tela de `/login` devido a um bloqueio do `RequireAuth`. A prÃ³pria tela do paciente agora gerencia o onboarding sem bloquear links externos.
+  - O `QuestBoard` abandonou a lista simples de tarefas e ganhou um **GrÃƒÂ¡fico Circular de Progresso** centralizado.
+  - Introduzido o **ShareableMilestone**: um cartÃƒÂ£o hologrÃƒÂ¡fico que aparece quando o paciente atinge 100% da dieta diÃƒÂ¡ria, pensado para gerar compartilhamento viral no Instagram.
+- [x] **CorreÃƒÂ§ÃƒÂµes de Cadastro e Convite:**
+  - Impedida a criaÃƒÂ§ÃƒÂ£o de pacientes duplicados (mesmo CPF ou E-mail) para o mesmo nutricionista.
+  - Melhorada a UI do link de convite gerado, com botÃƒÂ£o de copiar fÃƒÂ¡cil.
+  - Implementado envio automÃƒÂ¡tico de convite por e-mail via `mailto:` no momento do cadastro do paciente pelo nutricionista.
+- [x] **Bugfix CrÃƒÂ­tico (ProduÃƒÂ§ÃƒÂ£o):**
+  - Corrigido problema onde o link de convite (`/paciente?vincular=...`) redirecionava incorretamente o paciente para a tela de `/login` devido a um bloqueio do `RequireAuth`. A prÃƒÂ³pria tela do paciente agora gerencia o onboarding sem bloquear links externos.
 - [x] **Deploy & Firebase Auth (Bugfixes):**
 ---
 
-## ðŸ“ˆ FASE 6: Launch & Early Traction (Go-to-Market)
-*Objetivo: LanÃ§ar para early adopters, instrumentar mÃ©tricas desde o Dia 1 e otimizar para a North Star Metric (ex: % de pacientes engajados na gamificaÃ§Ã£o).*
+## Ã°Å¸â€œË† FASE 6: Launch & Early Traction (Go-to-Market)
+*Objetivo: LanÃƒÂ§ar para early adopters, instrumentar mÃƒÂ©tricas desde o Dia 1 e otimizar para a North Star Metric (ex: % de pacientes engajados na gamificaÃƒÂ§ÃƒÂ£o).*
 
-- [ ] **InstrumentaÃ§Ã£o de AARRR:**
-  - Instalar PostHog ou Google Analytics para medir Activation (Pacientes que usam >3 dias seguidos) e Retention. *(SÃ³ o Firebase Analytics estÃ¡ inicializado, sem nenhum evento customizado disparado ainda.)*
+- [ ] **InstrumentaÃƒÂ§ÃƒÂ£o de AARRR:**
+  - Instalar PostHog ou Google Analytics para medir Activation (Pacientes que usam >3 dias seguidos) e Retention. *(SÃƒÂ³ o Firebase Analytics estÃƒÂ¡ inicializado, sem nenhum evento customizado disparado ainda.)*
 - [x] **PWA (Progressive Web App):** 
   - Configurar `manifest.json` e Service Worker para permitir que o Paciente instale o Vytal no celular direto pelo navegador.
 - [x] **Loop de Feedback:** 
-  - Inserir botÃ£o de reporte rÃ¡pido de bugs/sugestÃµes dentro do app.
-- [x] **Deploy de LanÃ§amento:** 
+  - Inserir botÃƒÂ£o de reporte rÃƒÂ¡pido de bugs/sugestÃƒÂµes dentro do app.
+- [x] **Deploy de LanÃƒÂ§amento:** 
   - Publicar Frontend no Vercel/Netlify.
-- [x] **Checklist de Launch (Aula 3.15):** Validar integraÃ§Ã£o, suporte, e comunicaÃ§Ã£o de boas-vindas aos primeiros pacientes e nutricionistas.
+- [x] **Checklist de Launch (Aula 3.15):** Validar integraÃƒÂ§ÃƒÂ£o, suporte, e comunicaÃƒÂ§ÃƒÂ£o de boas-vindas aos primeiros pacientes e nutricionistas.
 
 ---
 
-## ðŸ FASE 7: Product-Market Fit
-*Objetivo: Confirmar que a retenÃ§Ã£o achatou na curva e que o LTV > CAC, aplicando a pesquisa Sean Ellis.*
+## Ã°Å¸ FASE 7: Product-Market Fit
+*Objetivo: Confirmar que a retenÃƒÂ§ÃƒÂ£o achatou na curva e que o LTV > CAC, aplicando a pesquisa Sean Ellis.*
 
 - [ ] **Pesquisa Sean Ellis:** 
-  - Disparar survey: *"Como vocÃª se sentiria se o Vytal deixasse de existir?"* (Meta: >40% Muito Desapontado).
+  - Disparar survey: *"Como vocÃƒÂª se sentiria se o Vytal deixasse de existir?"* (Meta: >40% Muito Desapontado).
 - [ ] **Growth Features (PLG):** 
-  - Sistema de convite orgÃ¢nico (Indique o Nutri e ganhe uma avaliaÃ§Ã£o grÃ¡tis).
-  - **Self-Service Sign Up:** Permitir que o paciente faÃ§a cadastro avulso pelo app e ganhe 1 Consulta GrÃ¡tis com a IA (Vytal Bot) para testar a experiÃªncia.
-- [x] **Monitoramento de RetenÃ§Ã£o:**
-  - Dashboards em tempo real do nÃ­vel de XP e Ofensiva dos pacientes.
+  - Sistema de convite orgÃƒÂ¢nico (Indique o Nutri e ganhe uma avaliaÃƒÂ§ÃƒÂ£o grÃƒÂ¡tis).
+  - **Self-Service Sign Up:** Permitir que o paciente faÃƒÂ§a cadastro avulso pelo app e ganhe 1 Consulta GrÃƒÂ¡tis com a IA (Vytal Bot) para testar a experiÃƒÂªncia.
+- [x] **Monitoramento de RetenÃƒÂ§ÃƒÂ£o:**
+  - Dashboards em tempo real do nÃƒÂ­vel de XP e Ofensiva dos pacientes.
 
 ---
 
-## ðŸ¢ JORNADA 1â†’100: Scale & MonetizaÃ§Ã£o
-*Objetivo: Quando o PMF for alcanÃ§ado, construir os alicerces financeiros e B2B.*
+## Ã°Å¸Â¢ JORNADA 1Ã¢â€ â€™100: Scale & MonetizaÃƒÂ§ÃƒÂ£o
+*Objetivo: Quando o PMF for alcanÃƒÂ§ado, construir os alicerces financeiros e B2B.*
 
 - [ ] **Sistema de Assinaturas (Billing):**
-  - IntegraÃ§Ã£o com Stripe para cobrar mensalidades dos Nutricionistas (SaaS). *(Tela de "Assinar Premium" existe, mas sem checkout real conectado.)*
+  - IntegraÃƒÂ§ÃƒÂ£o com Stripe para cobrar mensalidades dos Nutricionistas (SaaS). *(Tela de "Assinar Premium" existe, mas sem checkout real conectado.)*
 - [~] **Multitenancy (White-Label):**
-  - Permitir que ClÃ­nicas grandes personalizem as cores do app para seus pacientes. *(Nome/cor da clÃ­nica funcionam; falta isolar dados entre clÃ­nicas de verdade no backend.)*
-- [ ] **InteligÃªncia de Cohorts (Aula de PM):**
-  - Algoritmo que prevÃª quais pacientes estÃ£o prestes a abandonar a dieta e alerta o nutricionista no CRM. *(A tela existe e Ã© o ponto forte visual do produto, mas o "risco de abandono" hoje Ã© um campo estÃ¡tico do mock, nÃ£o uma previsÃ£o real; o alerta nÃ£o Ã© enviado de verdade ainda.)*
+  - Permitir que ClÃƒÂ­nicas grandes personalizem as cores do app para seus pacientes. *(Nome/cor da clÃƒÂ­nica funcionam; falta isolar dados entre clÃƒÂ­nicas de verdade no backend.)*
+- [ ] **InteligÃƒÂªncia de Cohorts (Aula de PM):**
+  - Algoritmo que prevÃƒÂª quais pacientes estÃƒÂ£o prestes a abandonar a dieta e alerta o nutricionista no CRM. *(A tela existe e ÃƒÂ© o ponto forte visual do produto, mas o "risco de abandono" hoje ÃƒÂ© um campo estÃƒÂ¡tico do mock, nÃƒÂ£o uma previsÃƒÂ£o real; o alerta nÃƒÂ£o ÃƒÂ© enviado de verdade ainda.)*
 
 ---
 
-## ðŸ“‹ Backlog de Features Pendentes (14/07/2026)
+## Ã°Å¸â€œâ€¹ Backlog de Features Pendentes (14/07/2026)
 
-Consolidado a partir da auditoria de produto e do `spec.md`. Ordenado por prioridade dentro de cada bloco â€” nÃ£o Ã© uma lista de bugs (esses jÃ¡ foram corrigidos), Ã© o que falta **construir**.
+Consolidado a partir da auditoria de produto e do `spec.md`. Ordenado por prioridade dentro de cada bloco Ã¢â‚¬â€� nÃƒÂ£o ÃƒÂ© uma lista de bugs (esses jÃƒÂ¡ foram corrigidos), ÃƒÂ© o que falta **construir**.
 
-### SeguranÃ§a e confiabilidade (bloqueia produÃ§Ã£o real)
-- [ ] Mover as chamadas de IA do lado paciente (chat + foto de refeiÃ§Ã£o) para o proxy server-side (`api/openai-bridge.js`), removendo `VITE_OPENAI_API_KEY` do bundle do cliente.
-- [ ] Guard de rota real: redirecionar `/nutri` e `/paciente` para `/login` quando nÃ£o hÃ¡ sessÃ£o ativa (hoje dÃ¡ pra acessar direto pela URL).
-- [ ] Regras de seguranÃ§a no Firestore que isolem dados por paciente/clÃ­nica no servidor â€” hoje o filtro Ã© sÃ³ visual no cliente.
-- [ ] Investigar e resolver a instabilidade do canal de escrita do Firestore (erro 503 recorrente) antes de depender dele em produÃ§Ã£o.
-- [ ] **Edge Case Estrutural:** Tratar o cenÃ¡rio onde um mesmo paciente (mesmo CPF/E-mail) Ã© atendido por mais de um nutricionista na plataforma (atualmente o modelo assume relacionamento 1:N restrito via `nutricionista_id`).
+### SeguranÃƒÂ§a e confiabilidade (bloqueia produÃƒÂ§ÃƒÂ£o real)
+- [ ] Mover as chamadas de IA do lado paciente (chat + foto de refeiÃƒÂ§ÃƒÂ£o) para o proxy server-side (`api/openai-bridge.js`), removendo `VITE_OPENAI_API_KEY` do bundle do cliente.
+- [ ] Guard de rota real: redirecionar `/nutri` e `/paciente` para `/login` quando nÃƒÂ£o hÃƒÂ¡ sessÃƒÂ£o ativa (hoje dÃƒÂ¡ pra acessar direto pela URL).
+- [ ] Regras de seguranÃƒÂ§a no Firestore que isolem dados por paciente/clÃƒÂ­nica no servidor Ã¢â‚¬â€� hoje o filtro ÃƒÂ© sÃƒÂ³ visual no cliente.
+- [ ] Investigar e resolver a instabilidade do canal de escrita do Firestore (erro 503 recorrente) antes de depender dele em produÃƒÂ§ÃƒÂ£o.
+- [ ] **Edge Case Estrutural:** Tratar o cenÃƒÂ¡rio onde um mesmo paciente (mesmo CPF/E-mail) ÃƒÂ© atendido por mais de um nutricionista na plataforma (atualmente o modelo assume relacionamento 1:N restrito via `nutricionista_id`).
 
-### MonetizaÃ§Ã£o
-- [ ] IntegraÃ§Ã£o real com Stripe (checkout, webhooks de assinatura, bloqueio de features por plano).
-- [ ] LÃ³gica de limite de pacientes por plano (hoje "Limite de 5 pacientes" Ã© sÃ³ texto, nÃ£o Ã© aplicado).
+### MonetizaÃƒÂ§ÃƒÂ£o
+- [ ] IntegraÃƒÂ§ÃƒÂ£o real com Stripe (checkout, webhooks de assinatura, bloqueio de features por plano).
+- [ ] LÃƒÂ³gica de limite de pacientes por plano (hoje "Limite de 5 pacientes" ÃƒÂ© sÃƒÂ³ texto, nÃƒÂ£o ÃƒÂ© aplicado).
 
-### InteligÃªncia de Cohorts (o maior diferencial do produto â€” vale investir aqui primeiro entre as features "grandes")
-- [x] Modelo real de previsÃ£o de abandono (hoje Ã© um campo estÃ¡tico `em_risco` no mock), usando streak, adesÃ£o e frequÃªncia de login.
-- [x] Envio de fato do alerta de risco (WhatsApp Business API, e-mail transacional, ou push notification) â€” hoje sÃ³ registra em `alert()`.
-- [x] VisÃ£o "Patient 360": um painel Ãºnico por paciente reunindo plano, food log, check-ins, peso, mensagens e anotaÃ§Ãµes (hoje estÃ¡ espalhado em abas separadas).
+### InteligÃƒÂªncia de Cohorts (o maior diferencial do produto Ã¢â‚¬â€� vale investir aqui primeiro entre as features "grandes")
+- [x] Modelo real de previsÃƒÂ£o de abandono (hoje ÃƒÂ© um campo estÃƒÂ¡tico `em_risco` no mock), usando streak, adesÃƒÂ£o e frequÃƒÂªncia de login.
+- [x] Envio de fato do alerta de risco (WhatsApp Business API, e-mail transacional, ou push notification) Ã¢â‚¬â€� hoje sÃƒÂ³ registra em `alert()`.
+- [x] VisÃƒÂ£o "Patient 360": um painel ÃƒÂºnico por paciente reunindo plano, food log, check-ins, peso, mensagens e anotaÃƒÂ§ÃƒÂµes (hoje estÃƒÂ¡ espalhado em abas separadas).
 
-### ComunicaÃ§Ã£o nutricionista â†” paciente
-- [ ] Canal de mensagens diretas entre nutricionista e paciente (hoje sÃ³ existe o Vytal Bot de IA; nÃ£o hÃ¡ como o profissional mandar uma mensagem real).
-- [ ] NotificaÃ§Ãµes push/e-mail para o paciente quando uma nova dieta Ã© prescrita ou uma consulta Ã© confirmada.
+### ComunicaÃƒÂ§ÃƒÂ£o nutricionista Ã¢â€ â€� paciente
+- [ ] Canal de mensagens diretas entre nutricionista e paciente (hoje sÃƒÂ³ existe o Vytal Bot de IA; nÃƒÂ£o hÃƒÂ¡ como o profissional mandar uma mensagem real).
+- [ ] NotificaÃƒÂ§ÃƒÂµes push/e-mail para o paciente quando uma nova dieta ÃƒÂ© prescrita ou uma consulta ÃƒÂ© confirmada.
 
-### Analytics e instrumentaÃ§Ã£o
-- [ ] Eventos customizados de produto (ativaÃ§Ã£o, retenÃ§Ã£o, funil de onboarding) â€” hoje sÃ³ o Firebase Analytics estÃ¡ inicializado, sem nenhum evento disparado.
-- [ ] Pesquisa de PMF (Sean Ellis) â€” depende de ter uma base real de usuÃ¡rios antes de fazer sentido.
+### Analytics e instrumentaÃƒÂ§ÃƒÂ£o
+- [ ] Eventos customizados de produto (ativaÃƒÂ§ÃƒÂ£o, retenÃƒÂ§ÃƒÂ£o, funil de onboarding) Ã¢â‚¬â€� hoje sÃƒÂ³ o Firebase Analytics estÃƒÂ¡ inicializado, sem nenhum evento disparado.
+- [ ] Pesquisa de PMF (Sean Ellis) Ã¢â‚¬â€� depende de ter uma base real de usuÃƒÂ¡rios antes de fazer sentido.
 
-### Growth / aquisiÃ§Ã£o
-- [ ] Sistema de convite orgÃ¢nico (indicaÃ§Ã£o premiada).
-- [x] Landing page com proposta de valor real (hoje Ã© sÃ³ um seletor de botÃµes â€” ver auditoria de UX).
+### Growth / aquisiÃƒÂ§ÃƒÂ£o
+- [ ] Sistema de convite orgÃƒÂ¢nico (indicaÃƒÂ§ÃƒÂ£o premiada).
+- [x] Landing page com proposta de valor real (hoje ÃƒÂ© sÃƒÂ³ um seletor de botÃƒÂµes Ã¢â‚¬â€� ver auditoria de UX).
 
-### DecisÃµes de produto pendentes (nÃ£o sÃ£o bugs, sÃ£o escolhas)
-- [ ] Decidir o destino de `LearnPath.jsx`/`Quiz.jsx` â€” trilha de aprendizado gamificada estilo Duolingo, jÃ¡ prototipada mas nunca conectada Ã s rotas. Reativar (precisa de conteÃºdo real) ou remover.
-- [ ] Decidir se o app do paciente precisa de wearables/CGM (Apple Watch, Google Fit, glicose contÃ­nua) â€” Ã© tendÃªncia forte do mercado 2026, mas Ã© investimento grande; nÃ£o comeÃ§ar sem validar demanda.
+### DecisÃƒÂµes de produto pendentes (nÃƒÂ£o sÃƒÂ£o bugs, sÃƒÂ£o escolhas)
+- [ ] Decidir o destino de `LearnPath.jsx`/`Quiz.jsx` Ã¢â‚¬â€� trilha de aprendizado gamificada estilo Duolingo, jÃƒÂ¡ prototipada mas nunca conectada ÃƒÂ s rotas. Reativar (precisa de conteÃƒÂºdo real) ou remover.
+- [ ] Decidir se o app do paciente precisa de wearables/CGM (Apple Watch, Google Fit, glicose contÃƒÂ­nua) Ã¢â‚¬â€� ÃƒÂ© tendÃƒÂªncia forte do mercado 2026, mas ÃƒÂ© investimento grande; nÃƒÂ£o comeÃƒÂ§ar sem validar demanda.
 
 ### Qualidade
-- [ ] Nenhum teste automatizado existe no projeto hoje (unitÃ¡rio, integraÃ§Ã£o ou E2E). Priorizar cobertura pelo menos nos fluxos crÃ­ticos: login, criar/editar paciente, agendar consulta, prescrever dieta.
+- [ ] Nenhum teste automatizado existe no projeto hoje (unitÃƒÂ¡rio, integraÃƒÂ§ÃƒÂ£o ou E2E). Priorizar cobertura pelo menos nos fluxos crÃƒÂ­ticos: login, criar/editar paciente, agendar consulta, prescrever dieta.
 
 ---
 
-## ðŸ§­ ComitÃª de Produto Inovador â€” ValidaÃ§Ã£o de Features (14/07/2026)
+## Ã°Å¸Â§Â­ ComitÃƒÂª de Produto Inovador Ã¢â‚¬â€� ValidaÃƒÂ§ÃƒÂ£o de Features (14/07/2026)
 
-AvaliaÃ§Ã£o do que jÃ¡ existe vs. o que um produto de referÃªncia em nutriÃ§Ã£o digital (Nutrium, Practice Better, MealCircle do lado profissional; Noom, MyFitnessPal, HealthifyMe do lado paciente) precisa ter em 2026, cruzado com o combo que sÃ³ o Vytal tenta fazer hoje: CRM + gamificaÃ§Ã£o + IA num produto sÃ³.
+AvaliaÃƒÂ§ÃƒÂ£o do que jÃƒÂ¡ existe vs. o que um produto de referÃƒÂªncia em nutriÃƒÂ§ÃƒÂ£o digital (Nutrium, Practice Better, MealCircle do lado profissional; Noom, MyFitnessPal, HealthifyMe do lado paciente) precisa ter em 2026, cruzado com o combo que sÃƒÂ³ o Vytal tenta fazer hoje: CRM + gamificaÃƒÂ§ÃƒÂ£o + IA num produto sÃƒÂ³.
 
-### Validado â€” manter e priorizar
-- **Combo CRM + app gamificado + IA clÃ­nica.** Ã‰ o ponto de diferenciaÃ§Ã£o real. Nenhum concorrente pesquisado junta os trÃªs; a maioria Ã© ou ferramenta de gestÃ£o (Nutrium, Practice Better) ou app de paciente (Noom, MyFitnessPal). Vale proteger esse posicionamento em vez de diluir com features genÃ©ricas.
-- **Vytal Bot com contexto do plano ativo.** JÃ¡ responde considerando a dieta prescrita â€” alinhado com a tendÃªncia de "IA + SaÃºde ClÃ­nica" apontada pela pesquisa de mercado, mas ainda sem dados biomÃ©tricos.
-- **Cohorts / risco de abandono no CRM.** Validado como o recurso de maior potencial competitivo â€” nenhum concorrente pequeno oferece isso hoje pronto; precisa sÃ³ deixar de ser mock (jÃ¡ listado no backlog acima).
-- **AnÃ¡lise de exame em PDF via IA.** Diferencial real frente a concorrentes puramente "app de dieta" â€” poucos cruzam exame laboratorial com prescriÃ§Ã£o automaticamente.
+### Validado Ã¢â‚¬â€� manter e priorizar
+- **Combo CRM + app gamificado + IA clÃƒÂ­nica.** Ãƒâ€° o ponto de diferenciaÃƒÂ§ÃƒÂ£o real. Nenhum concorrente pesquisado junta os trÃƒÂªs; a maioria ÃƒÂ© ou ferramenta de gestÃƒÂ£o (Nutrium, Practice Better) ou app de paciente (Noom, MyFitnessPal). Vale proteger esse posicionamento em vez de diluir com features genÃƒÂ©ricas.
+- **Vytal Bot com contexto do plano ativo.** JÃƒÂ¡ responde considerando a dieta prescrita Ã¢â‚¬â€� alinhado com a tendÃƒÂªncia de "IA + SaÃƒÂºde ClÃƒÂ­nica" apontada pela pesquisa de mercado, mas ainda sem dados biomÃƒÂ©tricos.
+- **Cohorts / risco de abandono no CRM.** Validado como o recurso de maior potencial competitivo Ã¢â‚¬â€� nenhum concorrente pequeno oferece isso hoje pronto; precisa sÃƒÂ³ deixar de ser mock (jÃƒÂ¡ listado no backlog acima).
+- **AnÃƒÂ¡lise de exame em PDF via IA.** Diferencial real frente a concorrentes puramente "app de dieta" Ã¢â‚¬â€� poucos cruzam exame laboratorial com prescriÃƒÂ§ÃƒÂ£o automaticamente.
 
-### Gaps identificados â€” features que faltam
-- [x] **Contexto biomÃ©trico no Vytal Bot e na geraÃ§Ã£o de dieta:** conectar dados de sono/atividade (Apple Health, Google Fit) para a IA ajustar recomendaÃ§Ãµes â€” Ã© citado como "linha de base esperada" pelos apps premium de 2026, hoje o Vytal sÃ³ usa dados manuais (peso via `prompt()`).
-- [x] **Food log fora do plano prescrito:** hoje sÃ³ existe o "Comeu algo diferente?" com foto avulsa; falta um diÃ¡rio alimentar livre (sem depender de ter uma dieta ativa) para pacientes em fase de diagnÃ³stico/anamnese, antes da primeira prescriÃ§Ã£o.
-- [ ] **Telemedicina/consulta em vÃ­deo integrada:** hoje a "consulta" no CRM Ã© sÃ³ um formulÃ¡rio preenchido pelo nutricionista; nÃ£o hÃ¡ chamada de vÃ­deo nem histÃ³rico de sessÃ£o gravado. Concorrentes de practice management (Practice Better) jÃ¡ oferecem isso nativo.
-- [ ] **Biblioteca de receitas/planos reutilizÃ¡veis:** hoje cada dieta Ã© gerada do zero por IA a cada consulta; um nutricionista com 50 pacientes precisa reaproveitar templates de cardÃ¡pio, nÃ£o recriar tudo toda vez.
-- [ ] **DocumentaÃ§Ã£o para reembolso/nota fiscal:** contexto Brasil â€” nutricionistas frequentemente precisam emitir recibo para plano de saÃºde; nÃ£o existe nada hoje nessa linha (oportunidade de nicho local que concorrentes globais nÃ£o cobrem bem).
-- [ ] **Comunidade/prova social entre pacientes:** o leaderboard hoje Ã© sÃ³ dentro da clÃ­nica; testar (com cautela, ver comitÃª de design abaixo) algum elemento de comunidade pode reforÃ§ar a camada de gamificaÃ§Ã£o, que Ã© validada como tendÃªncia de alto impacto em retenÃ§Ã£o (+30-40% engajamento).
-- [ ] **Multi-profissional:** hoje o produto assume 1 nutricionista = 1 clÃ­nica. ClÃ­nicas maiores tÃªm educador fÃ­sico, psicÃ³logo, endocrinologista no mesmo caso â€” vale avaliar (nÃ£o implementar ainda) um modelo de time ao redor do paciente.
+### Gaps identificados Ã¢â‚¬â€� features que faltam
+- [x] **Contexto biomÃƒÂ©trico no Vytal Bot e na geraÃƒÂ§ÃƒÂ£o de dieta:** conectar dados de sono/atividade (Apple Health, Google Fit) para a IA ajustar recomendaÃƒÂ§ÃƒÂµes Ã¢â‚¬â€� ÃƒÂ© citado como "linha de base esperada" pelos apps premium de 2026, hoje o Vytal sÃƒÂ³ usa dados manuais (peso via `prompt()`).
+- [x] **Food log fora do plano prescrito:** hoje sÃƒÂ³ existe o "Comeu algo diferente?" com foto avulsa; falta um diÃƒÂ¡rio alimentar livre (sem depender de ter uma dieta ativa) para pacientes em fase de diagnÃƒÂ³stico/anamnese, antes da primeira prescriÃƒÂ§ÃƒÂ£o.
+- [ ] **Telemedicina/consulta em vÃƒÂ­deo integrada:** hoje a "consulta" no CRM ÃƒÂ© sÃƒÂ³ um formulÃƒÂ¡rio preenchido pelo nutricionista; nÃƒÂ£o hÃƒÂ¡ chamada de vÃƒÂ­deo nem histÃƒÂ³rico de sessÃƒÂ£o gravado. Concorrentes de practice management (Practice Better) jÃƒÂ¡ oferecem isso nativo.
+- [ ] **Biblioteca de receitas/planos reutilizÃƒÂ¡veis:** hoje cada dieta ÃƒÂ© gerada do zero por IA a cada consulta; um nutricionista com 50 pacientes precisa reaproveitar templates de cardÃƒÂ¡pio, nÃƒÂ£o recriar tudo toda vez.
+- [ ] **DocumentaÃƒÂ§ÃƒÂ£o para reembolso/nota fiscal:** contexto Brasil Ã¢â‚¬â€� nutricionistas frequentemente precisam emitir recibo para plano de saÃƒÂºde; nÃƒÂ£o existe nada hoje nessa linha (oportunidade de nicho local que concorrentes globais nÃƒÂ£o cobrem bem).
+- [ ] **Comunidade/prova social entre pacientes:** o leaderboard hoje ÃƒÂ© sÃƒÂ³ dentro da clÃƒÂ­nica; testar (com cautela, ver comitÃƒÂª de design abaixo) algum elemento de comunidade pode reforÃƒÂ§ar a camada de gamificaÃƒÂ§ÃƒÂ£o, que ÃƒÂ© validada como tendÃƒÂªncia de alto impacto em retenÃƒÂ§ÃƒÂ£o (+30-40% engajamento).
+- [ ] **Multi-profissional:** hoje o produto assume 1 nutricionista = 1 clÃƒÂ­nica. ClÃƒÂ­nicas maiores tÃƒÂªm educador fÃƒÂ­sico, psicÃƒÂ³logo, endocrinologista no mesmo caso Ã¢â‚¬â€� vale avaliar (nÃƒÂ£o implementar ainda) um modelo de time ao redor do paciente.
 
-### Descartado pelo comitÃª (nÃ£o vale investir agora)
-- Marketplace de delivery/supermercado integrado ao plano alimentar â€” dependÃªncia de parceria comercial complexa, nÃ£o Ã© o gargalo atual do produto.
-- InternacionalizaÃ§Ã£o/mÃºltiplos idiomas â€” sem sinal de demanda fora do Brasil ainda.
+### Descartado pelo comitÃƒÂª (nÃƒÂ£o vale investir agora)
+- Marketplace de delivery/supermercado integrado ao plano alimentar Ã¢â‚¬â€� dependÃƒÂªncia de parceria comercial complexa, nÃƒÂ£o ÃƒÂ© o gargalo atual do produto.
+- InternacionalizaÃƒÂ§ÃƒÂ£o/mÃƒÂºltiplos idiomas Ã¢â‚¬â€� sem sinal de demanda fora do Brasil ainda.
 
 ---
 
-## ðŸŽ¨ ComitÃª de Design â€” ValidaÃ§Ã£o de Interfaces (14/07/2026)
+## Ã°Å¸Å½Â¨ ComitÃƒÂª de Design Ã¢â‚¬â€� ValidaÃƒÂ§ÃƒÂ£o de Interfaces (14/07/2026)
 
-Passagem tela a tela pelas duas metades do produto (CRM do nutricionista, app do paciente), depois do redesign e das correÃ§Ãµes jÃ¡ aplicadas.
+Passagem tela a tela pelas duas metades do produto (CRM do nutricionista, app do paciente), depois do redesign e das correÃƒÂ§ÃƒÂµes jÃƒÂ¡ aplicadas.
 
 ### CRM do Nutricionista
-- âœ… Sidebar escura, badges com ponto, hierarquia visual â€” validado, jÃ¡ estÃ¡ no padrÃ£o "business" que faltava antes.
-- [x] **HistÃ³rico de peso do paciente Ã© uma lista, nÃ£o um grÃ¡fico.** Para um CRM clÃ­nico, evoluÃ§Ã£o de peso/medidas *precisa* ser visual (linha do tempo), nÃ£o uma lista de linhas de texto â€” hoje em `PatientList.jsx` (aba prontuÃ¡rio) Ã© sÃ³ `<li>{data}: {peso}kg</li>`.
-- [ ] **Nenhum estado de carregamento visÃ­vel.** AÃ§Ãµes como "Gerar SÃ­ntese ClÃ­nica (IA)" e geraÃ§Ã£o de dieta tÃªm texto de loading ("Analisando..."), mas o resto do CRM (troca de aba, abrir prontuÃ¡rio) nÃ£o tem nenhuma transiÃ§Ã£o/skeleton â€” troca Ã© instantÃ¢nea e seca.
-- [ ] **Sidebar fixa em 260px nÃ£o foi testada em tablet/janela estreita.** O CRM Ã© claramente desenhado para desktop; nÃ£o hÃ¡ breakpoint definido â€” se um nutricionista usar em tablet (cenÃ¡rio comum em consultÃ³rio), a sidebar provavelmente quebra o layout.
-- `[x]` **Modais de "Novo Agendamento"/"Novo Paciente" não têm validação inline nem foco automático no primeiro campo** — O modal de Paciente foi refeito para ser adaptativo, com feedback de sucesso em tela, resolvendo a usabilidade básica.
+- Ã¢Å“â€¦ Sidebar escura, badges com ponto, hierarquia visual Ã¢â‚¬â€� validado, jÃƒÂ¡ estÃƒÂ¡ no padrÃƒÂ£o "business" que faltava antes.
+- [x] **HistÃƒÂ³rico de peso do paciente ÃƒÂ© uma lista, nÃƒÂ£o um grÃƒÂ¡fico.** Para um CRM clÃƒÂ­nico, evoluÃƒÂ§ÃƒÂ£o de peso/medidas *precisa* ser visual (linha do tempo), nÃƒÂ£o uma lista de linhas de texto Ã¢â‚¬â€� hoje em `PatientList.jsx` (aba prontuÃƒÂ¡rio) ÃƒÂ© sÃƒÂ³ `<li>{data}: {peso}kg</li>`.
+- [ ] **Nenhum estado de carregamento visÃƒÂ­vel.** AÃƒÂ§ÃƒÂµes como "Gerar SÃƒÂ­ntese ClÃƒÂ­nica (IA)" e geraÃƒÂ§ÃƒÂ£o de dieta tÃƒÂªm texto de loading ("Analisando..."), mas o resto do CRM (troca de aba, abrir prontuÃƒÂ¡rio) nÃƒÂ£o tem nenhuma transiÃƒÂ§ÃƒÂ£o/skeleton Ã¢â‚¬â€� troca ÃƒÂ© instantÃƒÂ¢nea e seca.
+- [ ] **Sidebar fixa em 260px nÃƒÂ£o foi testada em tablet/janela estreita.** O CRM ÃƒÂ© claramente desenhado para desktop; nÃƒÂ£o hÃƒÂ¡ breakpoint definido Ã¢â‚¬â€� se um nutricionista usar em tablet (cenÃƒÂ¡rio comum em consultÃƒÂ³rio), a sidebar provavelmente quebra o layout.
+- `[x]` **Modais de "Novo Agendamento"/"Novo Paciente" nÃ£o tÃªm validaÃ§Ã£o inline nem foco automÃ¡tico no primeiro campo** â€” O modal de Paciente foi refeito para ser adaptativo, com feedback de sucesso em tela, resolvendo a usabilidade bÃ¡sica.
 
 ### App do Paciente
-- âœ… Bottom nav com rÃ³tulos e sem sobreposiÃ§Ã£o, banner de erro inline â€” validado, corrigido nesta sessÃ£o.
-- `[x]` **Peso ainda é lançado via `window.prompt()` nativo do navegador** (`Profile.jsx` → `handleUpdateWeight`) — quebra completamente a identidade visual "gamificada" do resto do app; deveria ser um modal com o mesmo `btn-3d`/card style do resto do produto.
-- `[x]` **Ícone de coração no TopBar (❤️5) sugere um sistema de "vidas" estilo Duolingo que não existe de verdade** — não há penalidade nem lógica associada a esse número, é decorativo. Ou constrói a mecânica de verdade (perder coração ao pular dia) ou remove o ícone — hoje é uma promessa visual que engana o paciente.
-- [ ] **`DietPlan.jsx` Ã© uma lista estÃ¡tica de refeiÃ§Ãµes passadas** â€” nÃ£o indica visualmente qual dieta estÃ¡ ativa vs. histÃ³rico, nem tem estado por refeiÃ§Ã£o (feito/pendente) como o `QuestBoard` tem. As duas telas mostram a mesma dieta de formas inconsistentes.
-- [x] **Nenhum dark mode** â€” nÃ£o Ã© obrigatÃ³rio, mas vale decisÃ£o consciente (ver skill de design usada na auditoria: "nÃ£o default pra dark mode, mas tambÃ©m nÃ£o ignorar a pergunta"). Foi implementado o **Dark Mode Premium** com glassmorphism.
-- [ ] **Contraste de cor nÃ£o verificado formalmente** â€” vÃ¡rias combinaÃ§Ãµes (texto cinza claro `#94a3b8` sobre branco, badges) estÃ£o na faixa duvidosa de WCAG AA; precisa de auditoria de contraste real, nÃ£o sÃ³ visual.
+- Ã¢Å“â€¦ Bottom nav com rÃƒÂ³tulos e sem sobreposiÃƒÂ§ÃƒÂ£o, banner de erro inline Ã¢â‚¬â€� validado, corrigido nesta sessÃƒÂ£o.
+- `[x]` **Peso ainda Ã© lanÃ§ado via `window.prompt()` nativo do navegador** (`Profile.jsx` â†’ `handleUpdateWeight`) â€” quebra completamente a identidade visual "gamificada" do resto do app; deveria ser um modal com o mesmo `btn-3d`/card style do resto do produto.
+- `[x]` **Ã�cone de coraÃ§Ã£o no TopBar (â�¤ï¸�5) sugere um sistema de "vidas" estilo Duolingo que nÃ£o existe de verdade** â€” nÃ£o hÃ¡ penalidade nem lÃ³gica associada a esse nÃºmero, Ã© decorativo. Ou constrÃ³i a mecÃ¢nica de verdade (perder coraÃ§Ã£o ao pular dia) ou remove o Ã­cone â€” hoje Ã© uma promessa visual que engana o paciente.
+- [ ] **`DietPlan.jsx` ÃƒÂ© uma lista estÃƒÂ¡tica de refeiÃƒÂ§ÃƒÂµes passadas** Ã¢â‚¬â€� nÃƒÂ£o indica visualmente qual dieta estÃƒÂ¡ ativa vs. histÃƒÂ³rico, nem tem estado por refeiÃƒÂ§ÃƒÂ£o (feito/pendente) como o `QuestBoard` tem. As duas telas mostram a mesma dieta de formas inconsistentes.
+- [x] **Nenhum dark mode** Ã¢â‚¬â€� nÃƒÂ£o ÃƒÂ© obrigatÃƒÂ³rio, mas vale decisÃƒÂ£o consciente (ver skill de design usada na auditoria: "nÃƒÂ£o default pra dark mode, mas tambÃƒÂ©m nÃƒÂ£o ignorar a pergunta"). Foi implementado o **Dark Mode Premium** com glassmorphism.
+- [ ] **Contraste de cor nÃƒÂ£o verificado formalmente** Ã¢â‚¬â€� vÃƒÂ¡rias combinaÃƒÂ§ÃƒÂµes (texto cinza claro `#94a3b8` sobre branco, badges) estÃƒÂ£o na faixa duvidosa de WCAG AA; precisa de auditoria de contraste real, nÃƒÂ£o sÃƒÂ³ visual.
 
-### ConsistÃªncia entre os dois mundos
-- [ ] **Validado como escolha correta, nÃ£o como falha:** o CRM (profissional, sÃ³brio) e o app do paciente (gamificado, colorido) usarem linguagens visuais propositalmente diferentes â€” Ã© o mesmo padrÃ£o usado por Noom (paciente) vs. Practice Better (profissional), pÃºblicos diferentes justificam identidades diferentes. NÃ£o unificar.
-- [ ] **Ponto de atrito real:** a transiÃ§Ã£o entre os dois (botÃ£o "Sair (Trocar Papel)" no CRM, botÃµes "Modo Nutricionista/Paciente" no login) Ã© um artefato de demonstraÃ§Ã£o, nÃ£o um fluxo de produto real â€” nenhum usuÃ¡rio real alterna entre os dois papÃ©is livremente. Antes de lanÃ§ar, decidir se esse seletor deve sumir da experiÃªncia de produÃ§Ã£o (ficando sÃ³ como atalho de dev/QA).
+### ConsistÃƒÂªncia entre os dois mundos
+- [ ] **Validado como escolha correta, nÃƒÂ£o como falha:** o CRM (profissional, sÃƒÂ³brio) e o app do paciente (gamificado, colorido) usarem linguagens visuais propositalmente diferentes Ã¢â‚¬â€� ÃƒÂ© o mesmo padrÃƒÂ£o usado por Noom (paciente) vs. Practice Better (profissional), pÃƒÂºblicos diferentes justificam identidades diferentes. NÃƒÂ£o unificar.
+- [ ] **Ponto de atrito real:** a transiÃƒÂ§ÃƒÂ£o entre os dois (botÃƒÂ£o "Sair (Trocar Papel)" no CRM, botÃƒÂµes "Modo Nutricionista/Paciente" no login) ÃƒÂ© um artefato de demonstraÃƒÂ§ÃƒÂ£o, nÃƒÂ£o um fluxo de produto real Ã¢â‚¬â€� nenhum usuÃƒÂ¡rio real alterna entre os dois papÃƒÂ©is livremente. Antes de lanÃƒÂ§ar, decidir se esse seletor deve sumir da experiÃƒÂªncia de produÃƒÂ§ÃƒÂ£o (ficando sÃƒÂ³ como atalho de dev/QA).
 
 ---
 
-## ðŸ›ï¸ ComitÃª de Produto â€” DecisÃµes Finais e PriorizaÃ§Ã£o (14/07/2026)
+## Ã°Å¸â€ºÃ¯Â¸ ComitÃƒÂª de Produto Ã¢â‚¬â€� DecisÃƒÂµes Finais e PriorizaÃƒÂ§ÃƒÂ£o (14/07/2026)
 
-SÃ­ntese dos dois comitÃªs acima em uma ordem de execuÃ§Ã£o Ãºnica. CritÃ©rio: o que reduz risco (seguranÃ§a/confiabilidade) vem antes do que aumenta valor (features novas), e dentro de "valor" o diferencial competitivo (Cohorts) vem antes de conveniÃªncia.
+SÃƒÂ­ntese dos dois comitÃƒÂªs acima em uma ordem de execuÃƒÂ§ÃƒÂ£o ÃƒÂºnica. CritÃƒÂ©rio: o que reduz risco (seguranÃƒÂ§a/confiabilidade) vem antes do que aumenta valor (features novas), e dentro de "valor" o diferencial competitivo (Cohorts) vem antes de conveniÃƒÂªncia.
 
-**Onda 1 â€” Antes de qualquer usuÃ¡rio real usar o produto**
-1. SeguranÃ§a e confiabilidade (bloco jÃ¡ detalhado acima) â€” sem isso, nenhuma feature nova importa.
-2. Peso via modal em vez de `prompt()` nativo, remoÃ§Ã£o/decisÃ£o sobre o Ã­cone de coraÃ§Ã£o decorativo â€” baratos, resolvem a sensaÃ§Ã£o de "inacabado" apontada pelo comitÃª de design.
-3. Decidir e remover (ou manter sÃ³ em dev) o seletor "Trocar Papel" â€” hoje Ã© o maior sinal visual de que o produto ainda Ã© um protÃ³tipo.
+**Onda 1 Ã¢â‚¬â€� Antes de qualquer usuÃƒÂ¡rio real usar o produto**
+1. SeguranÃƒÂ§a e confiabilidade (bloco jÃƒÂ¡ detalhado acima) Ã¢â‚¬â€� sem isso, nenhuma feature nova importa.
+2. Peso via modal em vez de `prompt()` nativo, remoÃƒÂ§ÃƒÂ£o/decisÃƒÂ£o sobre o ÃƒÂ­cone de coraÃƒÂ§ÃƒÂ£o decorativo Ã¢â‚¬â€� baratos, resolvem a sensaÃƒÂ§ÃƒÂ£o de "inacabado" apontada pelo comitÃƒÂª de design.
+3. Decidir e remover (ou manter sÃƒÂ³ em dev) o seletor "Trocar Papel" Ã¢â‚¬â€� hoje ÃƒÂ© o maior sinal visual de que o produto ainda ÃƒÂ© um protÃƒÂ³tipo.
 
-**Onda 2 â€” O diferencial competitivo (maior retorno por esforÃ§o)**
-4. Cohorts real: modelo de previsÃ£o + envio de fato do alerta. Este Ã© o item que o comitÃª de produto inovador e a pesquisa de mercado apontam como o maior diferencial â€” prioridade mÃ¡xima entre as features novas.
-5. [x] GrÃ¡fico de evoluÃ§Ã£o de peso no CRM (troca lista â†’ linha do tempo) â€” prÃ©-requisito visual para o Cohorts parecer "inteligente" de verdade.
-6. Contexto biomÃ©trico no Vytal Bot (mesmo que sÃ³ manual no inÃ­cio, sem integrar wearable ainda) â€” data mÃ­nima para comeÃ§ar a construir a diferenciaÃ§Ã£o de IA clÃ­nica.
+**Onda 2 Ã¢â‚¬â€� O diferencial competitivo (maior retorno por esforÃƒÂ§o)**
+4. Cohorts real: modelo de previsÃƒÂ£o + envio de fato do alerta. Este ÃƒÂ© o item que o comitÃƒÂª de produto inovador e a pesquisa de mercado apontam como o maior diferencial Ã¢â‚¬â€� prioridade mÃƒÂ¡xima entre as features novas.
+5. [x] GrÃƒÂ¡fico de evoluÃƒÂ§ÃƒÂ£o de peso no CRM (troca lista Ã¢â€ â€™ linha do tempo) Ã¢â‚¬â€� prÃƒÂ©-requisito visual para o Cohorts parecer "inteligente" de verdade.
+6. Contexto biomÃƒÂ©trico no Vytal Bot (mesmo que sÃƒÂ³ manual no inÃƒÂ­cio, sem integrar wearable ainda) Ã¢â‚¬â€� data mÃƒÂ­nima para comeÃƒÂ§ar a construir a diferenciaÃƒÂ§ÃƒÂ£o de IA clÃƒÂ­nica.
 
-**Onda 3 â€” MonetizaÃ§Ã£o e crescimento**
+**Onda 3 Ã¢â‚¬â€� MonetizaÃƒÂ§ÃƒÂ£o e crescimento**
 7. Stripe real + limite de plano aplicado.
 8. [x] Landing page com proposta de valor.
-9. Canal de mensagens diretas nutricionistaâ†”paciente.
+9. Canal de mensagens diretas nutricionistaÃ¢â€ â€�paciente.
 
-**Onda 4 â€” Investimentos maiores, validar demanda antes**
-10. Wearables/CGM, telemedicina em vÃ­deo, biblioteca de receitas reutilizÃ¡veis, comunidade entre pacientes, multi-profissional.
+**Onda 4 Ã¢â‚¬â€� Investimentos maiores, validar demanda antes**
+10. Wearables/CGM, telemedicina em vÃƒÂ­deo, biblioteca de receitas reutilizÃƒÂ¡veis, comunidade entre pacientes, multi-profissional.
 
-**NÃ£o fazer agora (decisÃ£o explÃ­cita do comitÃª):** marketplace de delivery, internacionalizaÃ§Ã£o, dark mode como prioridade (fica como nice-to-have de design, nÃ£o bloqueia nada).
-
----
-
-## ðŸ’¡ Ideias novas do usuÃ¡rio (14/07/2026)
-
-- [x] **Sino de notificaÃ§Ã£o no app do paciente** â€” implementado. Quando o nutricionista clica "Enviar Alerta" (Cohorts), uma notificaÃ§Ã£o real Ã© criada (`addNotification` no `AppContext.jsx`) e aparece no sino do `TopBar` do paciente, com contador de nÃ£o lidas.
-- [x] **Biblioteca de templates de dieta reutilizÃ¡veis:** o nutricionista deveria poder salvar um plano completo (30 dias, 6 refeiÃ§Ã£o, suplementos/vitaminas) como template, em vez de digitar tudo do zero em cada consulta.
-- [ ] **Anexar template a um paciente:** a partir da biblioteca acima, aplicar um template existente diretamente ao prontuÃ¡rio de um paciente (com opÃ§Ã£o de ajustar antes de confirmar).
-- [x] **Receitas para o paciente (bÃ´nus):** o paciente deveria poder receber receitas â€” geradas por IA ou buscadas na internet â€” anexadas numa aba prÃ³pria de "Receitas", separada do plano alimentar estruturado. Onde encaixar: provavelmente uma nova aba na bottom nav do paciente (`DietPlan`/`QuestBoard` jÃ¡ estÃ£o cheios) ou uma seÃ§Ã£o dentro de `DietPlan.jsx`.
+**NÃƒÂ£o fazer agora (decisÃƒÂ£o explÃƒÂ­cita do comitÃƒÂª):** marketplace de delivery, internacionalizaÃƒÂ§ÃƒÂ£o, dark mode como prioridade (fica como nice-to-have de design, nÃƒÂ£o bloqueia nada).
 
 ---
 
-## âœ… Onda 1 â€” Executada (14/07/2026)
+## Ã°Å¸â€™Â¡ Ideias novas do usuÃƒÂ¡rio (14/07/2026)
 
-- [x] Chave da OpenAI removida do lado paciente (chat + foto de refeiÃ§Ã£o) â€” agora usa `/api/openai-bridge`, igual ao lado nutricionista. `src/services/openaiService.js` (Ã³rfÃ£o) apagado.
-- [x] Guard de rota real em `/nutri` e `/paciente` (`App.jsx` â†’ `RequireAuth`) â€” bloqueia acesso sem sessÃ£o em produÃ§Ã£o; em dev (`import.meta.env.DEV`) deixa passar, e os botÃµes de atalho no `Login.jsx` sÃ³ aparecem em dev.
-- [x] `firestore.rules` criado na raiz do projeto, isolando `patients`/`appointments` por `nutricionista_id`. **Ainda precisa ser publicado manualmente** (Firebase Console ou `firebase deploy --only firestore:rules` no projeto `nutribase-fea35`) â€” nenhuma automaÃ§Ã£o faz esse deploy sozinha.
-- [x] Peso do paciente: trocado `window.prompt()` por modal prÃ³prio em `Profile.jsx`.
-- [x] Ãcone de coraÃ§Ã£o decorativo removido do `TopBar` (nÃ£o tinha mecÃ¢nica real associada).
-- [ ] **VerificaÃ§Ã£o ao vivo pendente:** rodei lint (sem erros novos) e confirmei via cÃ³digo que o guard nÃ£o bloqueia o modo dev, mas a automaÃ§Ã£o de navegador desta sessÃ£o ficou instÃ¡vel no meio do teste do modal de peso e do chat â€” vale um clique manual rÃ¡pido em `/paciente` â†’ Vytal Bot e Perfil â†’ Informar Meu Peso antes de considerar 100% validado.
-- [ ] Instabilidade do canal de escrita do Firestore (erro 503 observado nos testes) nÃ£o foi resolvida â€” Ã© de infraestrutura/rede do ambiente, nÃ£o do cÃ³digo. O padrÃ£o "local-first" jÃ¡ em uso evita que isso trave a UI, mas vale investigar se persiste fora deste ambiente de dev.
-- [ ] "Trocar Papel" no CRM (`Sair (Trocar Papel)`) foi mantido como estÃ¡ â€” na prÃ¡tica sÃ³ navega pra landing page, nÃ£o Ã© um bypass de seguranÃ§a como os botÃµes do Login.
+- [x] **Sino de notificaÃƒÂ§ÃƒÂ£o no app do paciente** Ã¢â‚¬â€� implementado. Quando o nutricionista clica "Enviar Alerta" (Cohorts), uma notificaÃƒÂ§ÃƒÂ£o real ÃƒÂ© criada (`addNotification` no `AppContext.jsx`) e aparece no sino do `TopBar` do paciente, com contador de nÃƒÂ£o lidas.
+- [x] **Biblioteca de templates de dieta reutilizÃƒÂ¡veis:** o nutricionista deveria poder salvar um plano completo (30 dias, 6 refeiÃƒÂ§ÃƒÂ£o, suplementos/vitaminas) como template, em vez de digitar tudo do zero em cada consulta.
+- [ ] **Anexar template a um paciente:** a partir da biblioteca acima, aplicar um template existente diretamente ao prontuÃƒÂ¡rio de um paciente (com opÃƒÂ§ÃƒÂ£o de ajustar antes de confirmar).
+- [x] **Receitas para o paciente (bÃƒÂ´nus):** o paciente deveria poder receber receitas Ã¢â‚¬â€� geradas por IA ou buscadas na internet Ã¢â‚¬â€� anexadas numa aba prÃƒÂ³pria de "Receitas", separada do plano alimentar estruturado. Onde encaixar: provavelmente uma nova aba na bottom nav do paciente (`DietPlan`/`QuestBoard` jÃƒÂ¡ estÃƒÂ£o cheios) ou uma seÃƒÂ§ÃƒÂ£o dentro de `DietPlan.jsx`.
 
 ---
 
-## âœ… Executado em 15/07/2026 (ExperiÃªncia Premium e CorreÃ§Ãµes de Cadastro)
+## Ã¢Å“â€¦ Onda 1 Ã¢â‚¬â€� Executada (14/07/2026)
 
-- [x] **UX Redesign (App do Paciente):** MigraÃ§Ã£o do visual "infantil" para um "Dark Mode Premium" focado em alta performance.
+- [x] Chave da OpenAI removida do lado paciente (chat + foto de refeiÃƒÂ§ÃƒÂ£o) Ã¢â‚¬â€� agora usa `/api/openai-bridge`, igual ao lado nutricionista. `src/services/openaiService.js` (ÃƒÂ³rfÃƒÂ£o) apagado.
+- [x] Guard de rota real em `/nutri` e `/paciente` (`App.jsx` Ã¢â€ â€™ `RequireAuth`) Ã¢â‚¬â€� bloqueia acesso sem sessÃƒÂ£o em produÃƒÂ§ÃƒÂ£o; em dev (`import.meta.env.DEV`) deixa passar, e os botÃƒÂµes de atalho no `Login.jsx` sÃƒÂ³ aparecem em dev.
+- [x] `firestore.rules` criado na raiz do projeto, isolando `patients`/`appointments` por `nutricionista_id`. **Ainda precisa ser publicado manualmente** (Firebase Console ou `firebase deploy --only firestore:rules` no projeto `nutribase-fea35`) Ã¢â‚¬â€� nenhuma automaÃƒÂ§ÃƒÂ£o faz esse deploy sozinha.
+- [x] Peso do paciente: trocado `window.prompt()` por modal prÃƒÂ³prio em `Profile.jsx`.
+- [x] Ãƒcone de coraÃƒÂ§ÃƒÂ£o decorativo removido do `TopBar` (nÃƒÂ£o tinha mecÃƒÂ¢nica real associada).
+- [ ] **VerificaÃƒÂ§ÃƒÂ£o ao vivo pendente:** rodei lint (sem erros novos) e confirmei via cÃƒÂ³digo que o guard nÃƒÂ£o bloqueia o modo dev, mas a automaÃƒÂ§ÃƒÂ£o de navegador desta sessÃƒÂ£o ficou instÃƒÂ¡vel no meio do teste do modal de peso e do chat Ã¢â‚¬â€� vale um clique manual rÃƒÂ¡pido em `/paciente` Ã¢â€ â€™ Vytal Bot e Perfil Ã¢â€ â€™ Informar Meu Peso antes de considerar 100% validado.
+- [ ] Instabilidade do canal de escrita do Firestore (erro 503 observado nos testes) nÃƒÂ£o foi resolvida Ã¢â‚¬â€� ÃƒÂ© de infraestrutura/rede do ambiente, nÃƒÂ£o do cÃƒÂ³digo. O padrÃƒÂ£o "local-first" jÃƒÂ¡ em uso evita que isso trave a UI, mas vale investigar se persiste fora deste ambiente de dev.
+- [ ] "Trocar Papel" no CRM (`Sair (Trocar Papel)`) foi mantido como estÃƒÂ¡ Ã¢â‚¬â€� na prÃƒÂ¡tica sÃƒÂ³ navega pra landing page, nÃƒÂ£o ÃƒÂ© um bypass de seguranÃƒÂ§a como os botÃƒÂµes do Login.
+
+---
+
+## Ã¢Å“â€¦ Executado em 15/07/2026 (ExperiÃƒÂªncia Premium e CorreÃƒÂ§ÃƒÂµes de Cadastro)
+
+- [x] **UX Redesign (App do Paciente):** MigraÃƒÂ§ÃƒÂ£o do visual "infantil" para um "Dark Mode Premium" focado em alta performance.
   - Implementado **Glassmorphism** e cores neon para acentos.
-  - O `QuestBoard` abandonou a lista simples de tarefas e ganhou um **GrÃ¡fico Circular de Progresso** centralizado.
-  - Introduzido o **ShareableMilestone**: um cartÃ£o hologrÃ¡fico que aparece quando o paciente atinge 100% da dieta diÃ¡ria, pensado para gerar compartilhamento viral no Instagram.
-- [x] **CorreÃ§Ãµes de Cadastro e Convite:**
-  - Impedida a criaÃ§Ã£o de pacientes duplicados (mesmo CPF ou E-mail) para o mesmo nutricionista.
-  - Melhorada a UI do link de convite gerado, com botÃ£o de copiar fÃ¡cil.
-  - Implementado envio automÃ¡tico de convite por e-mail via `mailto:` no momento do cadastro do paciente pelo nutricionista.
-- [x] **Bugfix CrÃ­tico (ProduÃ§Ã£o):**
-  - Corrigido problema onde o link de convite (`/paciente?vincular=...`) redirecionava incorretamente o paciente para a tela de `/login` devido a um bloqueio do `RequireAuth`. A prÃ³pria tela do paciente agora gerencia o onboarding sem bloquear links externos.
+  - O `QuestBoard` abandonou a lista simples de tarefas e ganhou um **GrÃƒÂ¡fico Circular de Progresso** centralizado.
+  - Introduzido o **ShareableMilestone**: um cartÃƒÂ£o hologrÃƒÂ¡fico que aparece quando o paciente atinge 100% da dieta diÃƒÂ¡ria, pensado para gerar compartilhamento viral no Instagram.
+- [x] **CorreÃƒÂ§ÃƒÂµes de Cadastro e Convite:**
+  - Impedida a criaÃƒÂ§ÃƒÂ£o de pacientes duplicados (mesmo CPF ou E-mail) para o mesmo nutricionista.
+  - Melhorada a UI do link de convite gerado, com botÃƒÂ£o de copiar fÃƒÂ¡cil.
+  - Implementado envio automÃƒÂ¡tico de convite por e-mail via `mailto:` no momento do cadastro do paciente pelo nutricionista.
+- [x] **Bugfix CrÃƒÂ­tico (ProduÃƒÂ§ÃƒÂ£o):**
+  - Corrigido problema onde o link de convite (`/paciente?vincular=...`) redirecionava incorretamente o paciente para a tela de `/login` devido a um bloqueio do `RequireAuth`. A prÃƒÂ³pria tela do paciente agora gerencia o onboarding sem bloquear links externos.
 - [x] **Deploy & Firebase Auth (Bugfixes):**
-  - Adicionado `vercel.json` para corrigir erros `404: NOT_FOUND` da Vercel ao recarregar a pÃ¡gina ou acessar a URL diretamente pelo celular.
-  - Criado utilitÃ¡rio `firebaseErrors.js` para interceptar erros do Firebase Auth e traduzi-los para mensagens amigÃ¡veis ao usuÃ¡rio (ex: `auth/invalid-credential` virou `E-mail ou senha invÃ¡lidos`).
-- [ ] **Problema a investigar (Edge Case):** Como tratar pacientes que usam a plataforma com **mÃºltiplos nutricionistas diferentes**. O sistema hoje cruza a base de CPF isolada por nutricionista, mas pode haver conflito se o mesmo paciente for convidado por dois profissionais distintos.
-- [x] **Acompanhamento de RefeiÃ§Ãµes no App do Paciente:** No protocolo vigente (app do paciente), implementar a possibilidade de a pessoa marcar um check se comeu no horÃ¡rio e seguiu a dieta. Caso nÃ£o, abrir campo para ela informar o que comeu, preenchendo a lacuna da avaliaÃ§Ã£o pela IA (que ainda nÃ£o estÃ¡ totalmente funcional no modo paciente).
+  - Adicionado `vercel.json` para corrigir erros `404: NOT_FOUND` da Vercel ao recarregar a pÃƒÂ¡gina ou acessar a URL diretamente pelo celular.
+  - Criado utilitÃƒÂ¡rio `firebaseErrors.js` para interceptar erros do Firebase Auth e traduzi-los para mensagens amigÃƒÂ¡veis ao usuÃƒÂ¡rio (ex: `auth/invalid-credential` virou `E-mail ou senha invÃƒÂ¡lidos`).
+- [ ] **Problema a investigar (Edge Case):** Como tratar pacientes que usam a plataforma com **mÃƒÂºltiplos nutricionistas diferentes**. O sistema hoje cruza a base de CPF isolada por nutricionista, mas pode haver conflito se o mesmo paciente for convidado por dois profissionais distintos.
+- [x] **Acompanhamento de RefeiÃƒÂ§ÃƒÂµes no App do Paciente:** No protocolo vigente (app do paciente), implementar a possibilidade de a pessoa marcar um check se comeu no horÃƒÂ¡rio e seguiu a dieta. Caso nÃƒÂ£o, abrir campo para ela informar o que comeu, preenchendo a lacuna da avaliaÃƒÂ§ÃƒÂ£o pela IA (que ainda nÃƒÂ£o estÃƒÂ¡ totalmente funcional no modo paciente).
 
-## Solicitações Futuras (Backlog)
-- [x] Sugestão e montagem de exercícios/repetições usando um comitê de profissionais (IA personal).
+## SolicitaÃ§Ãµes Futuras (Backlog)
+- [x] SugestÃ£o e montagem de exercÃ­cios/repetiÃ§Ãµes usando um comitÃª de profissionais (IA personal).
 - [x] Registro de sono no app.
-- [ ] Detecção de ansiedade alimentar pela IA.
-- [ ] Upload de exames pelo paciente (Evolução Clínica VIP).
+- [ ] DetecÃ§Ã£o de ansiedade alimentar pela IA.
+- [ ] Upload de exames pelo paciente (EvoluÃ§Ã£o ClÃ­nica VIP).
 
-### Integração WhatsApp Proativa (Conversational AI & Lembretes)
-- [ ] **Lembretes de Refeição:** Bot envia "Está na hora do seu café da manhã, já preparou?" baseado no horário da dieta.
-- [ ] **Monitoramento de Engajamento:** IA analisa os "food logs" e alerta o paciente caso registre muita "besteira" ou refeições livres no mesmo dia ("Você saiu muito da dieta, cuidado pra não perder o foco!").
-- [ ] **Confirmação de Agenda:** Bot pergunta na véspera da consulta ("Você tem uma agenda amanhã, podemos confirmar?").
-- [ ] **Stack Necessária:** Para isso funcionar, precisaremos de:
+### IntegraÃ§Ã£o WhatsApp Proativa (Conversational AI & Lembretes)
+- [ ] **Lembretes de RefeiÃ§Ã£o:** Bot envia "EstÃ¡ na hora do seu cafÃ© da manhÃ£, jÃ¡ preparou?" baseado no horÃ¡rio da dieta.
+- [ ] **Monitoramento de Engajamento:** IA analisa os "food logs" e alerta o paciente caso registre muita "besteira" ou refeiÃ§Ãµes livres no mesmo dia ("VocÃª saiu muito da dieta, cuidado pra nÃ£o perder o foco!").
+- [ ] **ConfirmaÃ§Ã£o de Agenda:** Bot pergunta na vÃ©spera da consulta ("VocÃª tem uma agenda amanhÃ£, podemos confirmar?").
+- [ ] **Stack NecessÃ¡ria:** Para isso funcionar, precisaremos de:
   1. API de WhatsApp (Oficial da Meta ou provedores como Evolution API / Baileys).
-  2. Workers de Background / Cron Jobs (ex: Vercel Cron ou agenda.js) para checar horários de refeição e disparar mensagens proativamente.
+  2. Workers de Background / Cron Jobs (ex: Vercel Cron ou agenda.js) para checar horÃ¡rios de refeiÃ§Ã£o e disparar mensagens proativamente.
   3. Webhooks para escutar as respostas do paciente no WhatsApp.
-  4. Agente de IA para classificar o histórico diário de logs do paciente (foodLogs) e definir o "tom" da cobrança.
+  4. Agente de IA para classificar o histÃ³rico diÃ¡rio de logs do paciente (foodLogs) e definir o "tom" da cobranÃ§a.
 
-- [ ] **Check-in via WhatsApp (Zero-Friction):** Permitir que o paciente responda os lembretes com texto ("Sim, já comi") ou envie foto do prato. A IA (Vision) avalia a foto e registra o check-in no banco de dados automaticamente, dando o XP sem o paciente abrir o app.
+- [ ] **Check-in via WhatsApp (Zero-Friction):** Permitir que o paciente responda os lembretes com texto ("Sim, jÃ¡ comi") ou envie foto do prato. A IA (Vision) avalia a foto e registra o check-in no banco de dados automaticamente, dando o XP sem o paciente abrir o app.
 
-### 🚀 BATCH PARA A PRÓXIMA VERSÃO: Agente Ativo de Saúde
-- [ ] **Bugfix Crítico:** Consertar o Check-in de Treino no app do paciente (atualmente não permite marcar o treino como realizado).
-- [ ] **Integração WhatsApp Proativa:** 
-  - Lembretes de Refeição automáticos.
-  - Alerta de saída da dieta no fim do dia (Intervenção Comportamental).
-  - Confirmação automática de agendamentos.
+### ðŸš€ BATCH PARA A PRÃ“XIMA VERSÃƒO: Agente Ativo de SaÃºde
+- [ ] **IntegraÃ§Ã£o WhatsApp Proativa:** 
+  - Lembretes de RefeiÃ§Ã£o automÃ¡ticos.
+  - Alerta de saÃ­da da dieta no fim do dia (IntervenÃ§Ã£o Comportamental).
+  - ConfirmaÃ§Ã£o automÃ¡tica de agendamentos.
 - [ ] **Check-in Zero-Friction:** Permitir que o paciente envie a foto do prato no WhatsApp e a IA Vision registre o XP automaticamente no app.
-- [ ] **Detetive Comportamental da IA:** Módulo de análise em background que cruza mensagens de chat, logs de sono e comida para alertar o nutricionista sobre: Compulsão Noturna, Flutuação Hormonal (TPM), Burnout, Desidratação, Autossabotagem e Risco de Lesão (Over-training).
-- [ ] Implementar funcionalidade de upload e an�lise de Exames (PDF) na tela de Perfil.
+- [ ] **Detetive Comportamental da IA:** MÃ³dulo de anÃ¡lise em background que cruza mensagens de chat, logs de sono e comida para alertar o nutricionista sobre: CompulsÃ£o Noturna, FlutuaÃ§Ã£o Hormonal (TPM), Burnout, DesidrataÃ§Ã£o, Autossabotagem e Risco de LesÃ£o (Over-training).
+- [ ] Implementar funcionalidade de upload e análise de Exames (PDF) na tela de Perfil.
+- [ ] Cadastro self-service sem convite: Paciente cria conta, vê lista de nutris na plataforma, marca consulta e solicita vínculo.
+
+- [ ] **Melhorar a regra de XP/Engajamento**: Revisar como o ganho de XP impacta o status de pacientes que jÃ¡ tiveram alta adesÃ£o e pararam, vs novos pacientes, para garantir que o tracking de 'Perdendo foco' faÃ§a sentido em longo prazo.
+- [x] **Síntese Diária/Semanal com IA (Nutri):** O sistema deve compilar um resumo automático baseado no histórico do paciente (água, sono, food logs) e entregar mastigado para o nutricionista ler rápido antes da consulta. **Integração com Cohorts:** A síntese deve alertar ativamente se o paciente estiver entrando no grupo de risco (Perdendo Foco), cruzando a queda de engajamento (dieta/sono) com o risco de abandono.

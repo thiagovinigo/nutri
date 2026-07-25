@@ -437,21 +437,31 @@ Não inclua textos fora do JSON. Apenas o JSON puro.`;
     try {
       const hasHistory = patient.consultations && patient.consultations.length > 0;
       
+      const recentFoodLogs = (patient.foodLogs || []).slice(-15).map(f => `[${f.date} ${f.time}] ${f.mealName}: ${f.log}`).join(' | ') || 'Nenhum registro de refeição recente';
+      const recentWaterLogs = patient.waterLogs ? Object.entries(patient.waterLogs).slice(-7).map(([date, ml]) => `${date}: ${ml}ml`).join(' | ') : 'Nenhum registro de água';
+      const recentSleepLogs = (patient.sleepLogs || []).slice(-7).map(s => `${s.date}: ${s.hours}h (${s.quality})`).join(' | ') || 'Nenhum registro de sono';
+      const statusCohort = patient.status === 'em_risco' ? '⚠️ EM RISCO DE ABANDONO (PERDENDO FOCO)' : (patient.status || 'Ativo');
+
       const patientDataString = `
       Nome: ${patient.name}
       Objetivo: ${patient.objective}
+      Status no Cohort: ${statusCohort}
+      Nível de Engajamento: ${patient.streak} dias seguidos (${patient.xp || 0} XP)
       Restrições: ${patient.restrictions || 'Nenhuma'}
       Anotações Antigas: ${patient.records || 'Sem anotações'}
       Últimos Pesos: ${patient.weights ? patient.weights.map(w => `${w.date}: ${w.value}kg`).join(' | ') : 'Nenhum'}
       Últimas Dietas Prescritas: ${patient.recipes ? patient.recipes.map(r => r.title).join(', ') : 'Nenhuma'}
       Exames Registrados: ${patient.exams ? patient.exams.map(e => e.date).join(', ') : 'Nenhum'}
       Consultas Realizadas: ${patient.consultations ? patient.consultations.length : 0}
-      Nível de Engajamento App: ${patient.streak} dias seguidos
+      --- HISTÓRICO DE COMPORTAMENTO RECENTE (ÁGUA, SONO E REFEIÇÕES) ---
+      Consumo de Água Recente: ${recentWaterLogs}
+      Qualidade do Sono Recente: ${recentSleepLogs}
+      Diário Alimentar Recente: ${recentFoodLogs}
       `;
 
       const sysPrompt = hasHistory 
-        ? "Você é um consultor médico sênior. Dê uma SÍNTESE CLÍNICA INTELIGENTE em 2 ou 3 parágrafos focados: 1) Evolução do paciente (pesos, aderência, exames se houver). 2) O que focar na próxima consulta. Seja extremamente analítico e direto."
-        : "Você é um consultor médico sênior. Este é o PRIMEIRO contato com o paciente (não há evolução histórica ainda). Faça uma análise inicial de risco e trace a conduta primária recomendada com base nos objetivos atuais. NÃO invente evolução.";
+        ? "Você é um consultor clínico e comportamental sênior de nutrição. Dê uma SÍNTESE CLÍNICA INTELIGENTE em 2 ou 3 parágrafos curtos e focados:\n1) Resumo do comportamento recente (ingestão de água, qualidade do sono, adesão às refeições).\n2) Integração com Cohorts: Avalie o risco de abandono (Se o paciente está em risco ou perdendo foco, justifique cruzando os dados de queda de engajamento, falha de sono ou água).\n3) Conduta e foco para a próxima consulta.\nSeja extremamente analítico, direto e entregue o diagnóstico mastigado."
+        : "Você é um consultor clínico e comportamental sênior de nutrição. Este é o PRIMEIRO contato com o paciente. Faça uma análise inicial com base nos dados fornecidos (incluindo sono e água iniciais, se houver). Se o status no Cohort indicar risco de abandono precoce, destaque os possíveis motivos e recomende uma ação imediata de engajamento. NÃO invente evolução.";
 
       const response = await fetch('/api/openai-bridge', {
         method: 'POST',
