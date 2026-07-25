@@ -50,8 +50,8 @@ A Versão 2.0 do Vytal evolui o CRM e Gamificação iniciais para o patamar de *
 - [ ] **Detetive Comportamental (Background Worker):** Algoritmo que analisa logs alimentares, sono ruim e água insuficiente para alertar o nutricionista no CRM sobre: *Compulsão Noturna, Flutuações Hormonais (TPM), Burnout, Desidratação e Risco de Abandono (Churn)*.
 
 ### 🔬 Módulo 2: Biomarcadores e Laudos Médicos (Inteligência Clínica)
-- [ ] **Upload e Leitura de Exames Médicos (PDF/Imagens):** Funcionalidade para o paciente ou nutri fazer upload de exames de sangue e bioimpedância.
-- [ ] **Extração OCR e Análise por IA:** IA lê o PDF, extrai indicadores-chave (Glicemia, Colesterol, Hemoglobina Glicada, Triglicerídeos, Vitaminas) e salva em banco de dados estruturado.
+- [x] **Upload e Leitura de Exames Médicos (PDF/Imagens):** Funcionalidade para o paciente ou nutri fazer upload de exames de sangue e bioimpedância na aba "Exames & Biomarcadores (IA)".
+- [x] **Extração OCR e Análise por IA:** IA lê o PDF, extrai indicadores-chave e gera Laudo Inteligente comparando com histórico anterior no CRM.
 - [ ] **Gráficos de Evolução de Biomarcadores:** Painel interativo no CRM mostrando a curva histórica dos exames cruzada com a evolução de peso e dieta do paciente.
 
 ### 🚀 Módulo 3: Crescimento, Monetização e Self-Service (PLG & GTM)

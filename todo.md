@@ -438,7 +438,7 @@ SÃƒÂ­ntese dos dois comitÃƒÂªs acima em uma ordem de execuÃƒÂ§ÃƒÂ
 - [ ] **Integração WhatsApp Proativa (Ver todo2.md)**: Lembretes de Refeição automáticos, Alerta de saída da dieta no fim do dia, Confirmação automática de agendamentos.
 - [ ] **Check-in Zero-Friction (Ver todo2.md)**: Permitir que o paciente envie a foto do prato no WhatsApp e a IA Vision registre o XP automaticamente no app.
 - [ ] **Detetive Comportamental da IA (Ver todo2.md)**: Módulo de análise em background que cruza mensagens de chat, logs de sono e comida para alertar o nutricionista.
-- [ ] **Upload e Leitura OCR de Exames (Ver todo2.md)**: Análise automática de biomarcadores em PDF na tela de Perfil com gráficos evolutivos.
+- [x] **Upload e Leitura OCR de Exames (Ver todo2.md)**: Análise automática de biomarcadores em PDF na aba "Exames & Biomarcadores (IA)" com laudo inteligente.
 - [ ] **Monetização SaaS & Tiers (Ver todo2.md)**: Implementação dos planos Starter, Pro e Clinic (Stripe/Webhooks) com bloqueio de features premium.
 - [ ] **Cadastro self-service sem convite (Ver todo2.md)**: Paciente cria conta, vê lista de nutris na plataforma, marca consulta e solicita vínculo.
 - [ ] **Melhorar a regra de XP/Engajamento**: Revisar como o ganho de XP impacta o status de pacientes que já tiveram alta adesão e pararam, vs novos pacientes.
