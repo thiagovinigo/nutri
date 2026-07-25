@@ -402,7 +402,7 @@ export default function QuestBoard({ activePatient }) {
                     <h4 style={{margin: 0, fontSize: '1.1rem', color: isDone ? 'var(--primary-color)' : 'var(--patient-text)', display: 'flex', alignItems: 'center', gap: '8px'}}>
                       {isDone && <Check size={18} color="var(--primary-color)" />} {meal.name}
                     </h4>
-                                        {meal.desc && <p style={{margin: '4px 0 8px 0', fontSize: '0.85rem', color: 'var(--patient-text-muted)'}}>{meal.desc}</p>}
+                    {meal.desc && <p style={{margin: '6px 0 10px 0', fontSize: '0.85rem', color: 'var(--patient-text-muted)', whiteSpace: 'pre-wrap', lineHeight: '1.4'}}>{meal.desc}</p>}
                     {meal.foods && meal.foods.length > 0 && (
                       <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginTop: '6px' }}>
                         {meal.foods.map((f, fi) => (

@@ -332,7 +332,10 @@ Cite as fontes científicas, guidelines atualizados (como Diretrizes da SBC, SBD
       const miniTaco = tacoData.map(f => ({ id: f.id, name: f.name, kcal: f.kcal, carb: f.carb, ptn: f.protein, fat: f.fat }));
       promptContext += `\n\nBANCO DE DADOS DE ALIMENTOS PERMITIDOS (TACO - Valores por 100g):\n${JSON.stringify(miniTaco)}`;
 
-      const formatInstruction = `Você deve retornar EXATAMENTE UM JSON contendo um array chamado 'meals'. Cada item no array deve ter 'name' (Nome da Refeição), 'desc' (Instruções gerais) e um array 'foods'.
+      const formatInstruction = `Você deve retornar EXATAMENTE UM JSON contendo um array chamado 'meals'. Cada item no array deve ter 'name' (Nome da Refeição), 'desc' (Instruções gerais e preparo) e um array 'foods'.
+No campo 'desc', você DEVE incluir:
+1) A frase curta com a sugestão ou objetivo da refeição (ex: "Iniciar o dia com uma refeição rica em proteínas e carboidratos complexos.").
+2) Duas quebras de linha (\\n\\n), seguidas pelo título "👨‍🍳 Sugestão de Preparo:" e um passo a passo completo e prático ensinando o paciente a preparar e combinar os alimentos dessa refeição.
 Para cada alimento em 'foods', você DEVE buscar um item correspondente no BANCO DE DADOS DE ALIMENTOS PERMITIDOS e retornar:
 - foodId: id do alimento no banco
 - name: nome exato do alimento no banco
@@ -340,7 +343,7 @@ Para cada alimento em 'foods', você DEVE buscar um item correspondente no BANCO
 - kcal, carb, protein, fat: os valores nutricionais multiplicados pela quantidade recomendada (se 100g tem 100kcal, 50g terá 50kcal) (number)
 
 Exemplo de formato:
-{ "meals": [ { "name": "Almoço", "desc": "Não pular", "foods": [ { "foodId": "14", "name": "Frango, peito, sem pele, grelhado", "amount": 150, "kcal": 238.5, "carb": 0, "protein": 48, "fat": 3.75 } ] } ] }`;
+{ "meals": [ { "name": "Almoço", "desc": "Refeição equilibrada e rica em nutrientes.\\n\\n👨‍🍳 Sugestão de Preparo:\\n1. Tempere o frango com ervas e grelhe no azeite por 5 min de cada lado.\\n2. Sirva acompanhado do arroz e salada fresca crua.", "foods": [ { "foodId": "14", "name": "Frango, peito, sem pele, grelhado", "amount": 150, "kcal": 238.5, "carb": 0, "protein": 48, "fat": 3.75 } ] } ] }`;
 
       const systemPrompt = dietDuration > 1 
         ? `Você é um Nutricionista Clínico de alta performance. Crie um plano alimentar para ${dietDuration} dias (EXATAMENTE 6 refeições por dia). É MANDATÓRIO GERAR TODOS OS ${dietDuration} DIAS, NÃO PARE A GERAÇÃO ANTES DO FIM. SE VOCÊ GERAR MENOS DO QUE ${dietDuration} DIAS VOCÊ FALHARÁ NA SUA MISSÃO. Como são múltiplos dias, o 'name' da refeição DEVE incluir o dia, ex: "Dia 1 - Café da Manhã".\n\n${formatInstruction}`

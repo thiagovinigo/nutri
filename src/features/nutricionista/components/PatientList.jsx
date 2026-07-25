@@ -1094,13 +1094,13 @@ export default function PatientList({
                                                   {isEditing ? (
                                                     <textarea 
                                                       className="crm-input" 
-                                                      style={{ width: '100%', minHeight: '60px', marginTop: '4px', fontSize: '0.9rem' }} 
+                                                      style={{ width: '100%', minHeight: '100px', marginTop: '4px', fontSize: '0.9rem', lineHeight: '1.4' }} 
                                                       value={editingMealDesc} 
                                                       onChange={e => setEditingMealDesc(e.target.value)} 
                                                     />
                                                   ) : (
                                                     <div>
-                                                      {m.desc && <span>{m.desc}</span>}
+                                                      {m.desc && <span style={{ whiteSpace: 'pre-wrap', display: 'block', marginTop: '4px', lineHeight: '1.4', color: 'var(--crm-text-muted)' }}>{m.desc}</span>}
                                                       {m.foods && m.foods.length > 0 && (
                                                         <div style={{ marginTop: '8px', padding: '8px', backgroundColor: 'var(--crm-surface)', borderRadius: '4px', border: '1px solid #E2E8F0' }}>
                                                           {m.foods.map((f, fIdx) => (
@@ -1385,7 +1385,7 @@ export default function PatientList({
                                                           const activeRecipe = viewedPatient.recipes?.find(r => r.title === cons.dietTitle);
                                                           return (
                                                             <li key={midx} style={{ marginBottom: '8px', paddingBottom: '8px', borderBottom: '1px solid #E2E8F0' }}>
-                                                              <strong style={{ color: 'var(--crm-text-main)' }}>{m.name}:</strong> {m.desc}
+                                                              <strong style={{ color: 'var(--crm-text-main)' }}>{m.name}:</strong> <span style={{ whiteSpace: 'pre-wrap', display: 'block', marginTop: '4px', lineHeight: '1.4' }}>{m.desc}</span>
                                                               {m.foods && m.foods.length > 0 && (
                                                                 <div style={{ marginTop: '8px', padding: '8px', backgroundColor: 'var(--crm-surface)', borderRadius: '4px', border: '1px solid #E2E8F0' }}>
                                                                   {m.foods.map((f, fIdx) => {

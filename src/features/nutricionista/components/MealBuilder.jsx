@@ -195,13 +195,13 @@ export default function MealBuilder({ meal, onChange, onDelete, onDrop, aversion
         </div>
       )}
 
-      {/* Fallback para texto livre ou anotações */}
+      {/* Instruções, sugestão ou modo de preparo */}
       <textarea 
         className="crm-input" 
-        style={{ width: '100%', minHeight: '60px', resize: 'vertical', background: 'transparent', border: '1px solid var(--crm-border)', fontSize: '0.85rem' }} 
+        style={{ width: '100%', minHeight: '110px', resize: 'vertical', background: 'transparent', border: '1px solid var(--crm-border)', fontSize: '0.85rem', lineHeight: '1.4' }} 
         value={meal.desc || ''} 
         onChange={(e) => onChange({ ...meal, desc: e.target.value })} 
-        placeholder="Anotações extras ou itens sem cálculo matemático..." 
+        placeholder="Sugestão de consumo ou modo de preparo completo (pode usar quebras de linha)..." 
       />
     </div>
   );
