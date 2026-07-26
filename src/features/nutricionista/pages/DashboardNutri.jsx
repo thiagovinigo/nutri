@@ -387,28 +387,79 @@ Exemplo de formato:
     try {
       let promptContext = `Objetivo: ${activePatient.objective}. Idade: ${activePatient.age || 'Não informada'}. Sexo: ${activePatient.gender === 'M' ? 'Masculino' : 'Feminino'}.`;
       
+      // Dados físicos e metabólicos
       const physicalSummary = [];
       if (physicalEval.weight) physicalSummary.push(`Peso: ${physicalEval.weight}kg`);
       if (physicalEval.height) physicalSummary.push(`Altura: ${physicalEval.height}cm`);
       if (physicalEval.bodyFat) physicalSummary.push(`% de Gordura: ${physicalEval.bodyFat}%`);
+      if (physicalEval.muscleMass) physicalSummary.push(`Massa Muscular: ${physicalEval.muscleMass}kg`);
+      if (physicalEval.tmb) physicalSummary.push(`TMB: ${physicalEval.tmb} kcal`);
+      if (physicalEval.get) physicalSummary.push(`GET: ${physicalEval.get} kcal`);
       if (physicalSummary.length > 0) {
         promptContext += `\nAvaliação Física Atual: ${physicalSummary.join(', ')}`;
       }
 
-      if (anamnesis) promptContext += `\nAnamnese: ${anamnesis}`;
+      // Nível de atividade física
+      const activityLabels = {
+        '1.2': 'Sedentário (sem exercício)',
+        '1.375': 'Levemente Ativo (1-3x/semana)',
+        '1.55': 'Moderadamente Ativo (3-5x/semana)',
+        '1.725': 'Muito Ativo (6-7x/semana)',
+        '1.9': 'Extremamente Ativo (atleta/2x dia)'
+      };
+      if (physicalEval.activityLevel) {
+        promptContext += `\nNível de Atividade Atual: ${activityLabels[physicalEval.activityLevel] || physicalEval.activityLevel}`;
+      }
 
-      const systemPrompt = `Você é um Personal Trainer de elite e fisiologista do exercício (nível Balestrini/Muzy).
-Sua missão é criar uma Ficha de Treino perfeitamente estruturada para o paciente com base nos dados fornecidos.
+      // Restrições, lesões e contraindicações
+      if (activePatient.restrictions) {
+        promptContext += `\nRestrições / Contraindicações / Lesões: ${activePatient.restrictions} — RESPEITE RIGOROSAMENTE ao montar os exercícios.`;
+      }
+
+      // Medicamentos em uso
+      if (activePatient.medications) {
+        promptContext += `\nMedicamentos em Uso: ${activePatient.medications} — considere possíveis impactos na performance e frequência cardíaca.`;
+      }
+
+      // Anamnese
+      if (anamnesis) promptContext += `\nAnamnese Clínica: ${anamnesis}`;
+
+      // Resultado dos exames laboratoriais (se disponível)
+      if (examResult) {
+        promptContext += `\n\nEXAMES LABORATORIAIS RECENTES (análise clínica):\n${examResult}\n— Leve em conta marcadores como colesterol, glicemia, hemoglobina, hormônios, etc. ao definir intensidade e volume de treino.`;
+      }
+
+      // Dieta prescrita — resumo de macros
+      if (dietMeals && dietMeals.length > 0) {
+        const totalKcal = dietMeals.reduce((sum, m) => sum + (m.foods?.reduce((s, f) => s + (f.kcal || 0), 0) || 0), 0);
+        const totalPtn = dietMeals.reduce((sum, m) => sum + (m.foods?.reduce((s, f) => s + (f.protein || 0), 0) || 0), 0);
+        const totalCarb = dietMeals.reduce((sum, m) => sum + (m.foods?.reduce((s, f) => s + (f.carb || 0), 0) || 0), 0);
+        const totalFat = dietMeals.reduce((sum, m) => sum + (m.foods?.reduce((s, f) => s + (f.fat || 0), 0) || 0), 0);
+        if (totalKcal > 0) {
+          promptContext += `\n\nDIETA PRESCRITA (macros totais do plano alimentar atual): ${Math.round(totalKcal)} kcal | Proteína: ${Math.round(totalPtn)}g | Carboidrato: ${Math.round(totalCarb)}g | Gordura: ${Math.round(totalFat)}g`;
+          promptContext += `\n— Ajuste o volume e intensidade do treino considerando a disponibilidade calórica. Em déficit calórico, prefira menor volume. Em superávit, mais volume e hipertrofia.`;
+        }
+      }
+
+      const systemPrompt = `Você é um Personal Trainer de elite e fisiologista do exercício (nível Balestrini/Muzy) com formação clínica em nutrição esportiva.
+Sua missão é criar uma Ficha de Treino perfeitamente estruturada, cientificamente embasada e 100% personalizada para o paciente com base em TODOS os dados fornecidos.
+
+DIRETRIZES OBRIGATÓRIAS:
+- Respeite TODAS as restrições, lesões e contraindicações informadas (substitua exercícios proibidos por alternativas seguras)
+- Considere os resultados dos exames laboratoriais ao definir intensidade (ex: anemia → evitar alta intensidade; alteração hormonal → ajustar volume)
+- Calibre volume e intensidade pela dieta prescrita (déficit calórico → menor volume; superávit → maior volume)
+- Adapte a frequência semanal ao nível de atividade atual do paciente
+- Para cada exercício, especifique séries, repetições E tempo de descanso
 
 Você deve retornar EXATAMENTE UM JSON contendo os seguintes campos:
-- title: O nome da periodização (Ex: "Hipertrofia - ABC", "Emagrecimento - FullBody")
+- title: O nome da periodização (Ex: "Hipertrofia - ABC", "Emagrecimento - FullBody 3x")
 - days: Um array de objetos representando cada dia de treino da rotina.
 Cada objeto em 'days' deve ter:
-  - dayName: O nome do dia ou divisão (Ex: "Treino A - Peito e Tríceps", "Treino B - Costas")
+  - dayName: O nome do dia ou divisão (Ex: "Treino A - Peito e Tríceps", "Treino B - Costas e Bíceps")
   - exercises: Um array de objetos. Cada objeto deve ter:
-    - name: O nome do exercício (Ex: "Supino Reto")
-    - sets: Número de séries (Ex: "4")
-    - reps: Repetições e instruções (Ex: "10 a 12 (Descanso 60s)")
+    - name: O nome do exercício (Ex: "Supino Reto com Barra")
+    - sets: Número de séries como string (Ex: "4")
+    - reps: Repetições, carga sugerida e descanso (Ex: "10-12 reps | Descanso: 60s")
 
 Não inclua textos fora do JSON. Apenas o JSON puro.`;
 

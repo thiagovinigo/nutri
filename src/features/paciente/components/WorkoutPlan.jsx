@@ -1,145 +1,412 @@
-import React, { useState } from 'react';
-import { Dumbbell, CheckCircle, Award, CheckSquare, Square } from 'lucide-react';
+import React, { useState, useMemo } from 'react';
+import { Dumbbell, CheckCircle, Award, CheckSquare, Square, ChevronDown, ChevronUp, Flame, Calendar, Zap } from 'lucide-react';
 import { useAppContext } from '../../../context/AppContext';
+
+// Distribui os dias de treino nos dias da semana automaticamente
+function assignWorkoutDays(trainingDays = []) {
+  const weekDays = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
+  const count = trainingDays.length;
+
+  // Mapeamento fixo por quantidade de dias de treino
+  const schedules = {
+    1: [3],           // Qua
+    2: [2, 5],        // Ter, Sex
+    3: [1, 3, 5],     // Seg, Qua, Sex
+    4: [1, 2, 4, 5],  // Seg, Ter, Qui, Sex
+    5: [1, 2, 3, 4, 5], // Seg a Sex
+    6: [1, 2, 3, 4, 5, 6], // Seg a Sáb
+    7: [0, 1, 2, 3, 4, 5, 6], // todos
+  };
+
+  const trainingWeekDays = schedules[Math.min(count, 7)] || schedules[3];
+
+  return weekDays.map((dayLabel, idx) => {
+    const trainingIdx = trainingWeekDays.indexOf(idx);
+    if (trainingIdx !== -1 && trainingDays[trainingIdx]) {
+      return { dayLabel, dayIndex: idx, workout: trainingDays[trainingIdx], isRest: false };
+    }
+    return { dayLabel, dayIndex: idx, workout: null, isRest: true };
+  });
+}
+
+// Obtém a data de domingo da semana atual (começo da semana)
+function getWeekStart() {
+  const now = new Date();
+  const day = now.getDay(); // 0 = Dom
+  const diff = now.getDate() - day;
+  return new Date(now.getFullYear(), now.getMonth(), diff);
+}
+
+// Formata data como dd/mm/yyyy para comparar com workoutLogs
+function formatDate(dateObj) {
+  return dateObj.toLocaleDateString('pt-BR');
+}
 
 export default function WorkoutPlan({ activePatient }) {
   const { markWorkoutDone, completeQuest } = useAppContext();
-  const [completedDays, setCompletedDays] = useState({});
-  const [checkedExercises, setCheckedExercises] = useState({}); // { dayName: { exIdx: boolean } }
+  const [expandedDay, setExpandedDay] = useState(null);
+  const [checkedExercises, setCheckedExercises] = useState({});
+  const [localCompleted, setLocalCompleted] = useState({});
 
   const workoutPlan = activePatient?.workoutPlan;
+  const workoutLogs = activePatient?.workoutLogs || [];
 
-  const toggleExercise = (dayName, exIdx, totalExercises) => {
-    if (completedDays[dayName]) return;
+  const today = new Date();
+  const todayIndex = today.getDay(); // 0 = Dom
+  const weekStart = getWeekStart();
+
+  // Monta a agenda da semana
+  const weekSchedule = useMemo(() => {
+    if (!workoutPlan?.days) return [];
+    return assignWorkoutDays(workoutPlan.days);
+  }, [workoutPlan]);
+
+  // Verifica se um dia da semana foi concluído esta semana
+  const isDayCompletedThisWeek = (dayIndex, dayName) => {
+    if (localCompleted[dayIndex]) return true;
+    const dateOfDay = new Date(weekStart);
+    dateOfDay.setDate(weekStart.getDate() + dayIndex);
+    const dateStr = formatDate(dateOfDay);
+    return workoutLogs.some(log => log.date === dateStr && log.dayName === dayName);
+  };
+
+  const isPastDay = (dayIndex) => dayIndex < todayIndex;
+  const isToday = (dayIndex) => dayIndex === todayIndex;
+
+  const toggleExercise = (dayIndex, dayName, exIdx, totalExercises) => {
+    if (localCompleted[dayIndex] || isDayCompletedThisWeek(dayIndex, dayName)) return;
 
     setCheckedExercises(prev => {
-      const dayChecks = prev[dayName] || {};
+      const key = `${dayIndex}`;
+      const dayChecks = prev[key] || {};
       const newChecks = { ...dayChecks, [exIdx]: !dayChecks[exIdx] };
-      const newPrev = { ...prev, [dayName]: newChecks };
-      
-      // Auto-submit if all checked
-      const allChecked = Object.keys(newChecks).length === totalExercises && Object.values(newChecks).every(v => v);
+      const newPrev = { ...prev, [key]: newChecks };
+
+      // Auto-complete se todos marcados
+      const allChecked =
+        Object.keys(newChecks).length === totalExercises &&
+        Object.values(newChecks).every(v => v);
       if (allChecked) {
-        setTimeout(() => handleCompleteDay(dayName, newChecks, totalExercises), 300);
+        setTimeout(() => handleCompleteDay(dayIndex, dayName, newChecks, totalExercises), 400);
       }
-      
+
       return newPrev;
     });
   };
 
-  const handleCompleteDay = (dayName, checksArg = null, totalExercises = 0) => {
-    if (completedDays[dayName]) return;
-    
-    const dayChecks = checksArg || checkedExercises[dayName] || {};
-    const completedList = Object.keys(dayChecks).filter(k => dayChecks[k]).map(k => parseInt(k));
-    
-    // Se o usuário clicar no botão sem marcar todos, totalExercises vem como argumento
-    // Se for clicado do botão manual, precisamos pegar do plano
-    const actualTotal = totalExercises || workoutPlan?.days?.find(d => d.dayName === dayName)?.exercises?.length || 0;
+  const handleCompleteDay = (dayIndex, dayName, checksArg = null, totalExercises = 0) => {
+    if (localCompleted[dayIndex] || isDayCompletedThisWeek(dayIndex, dayName)) return;
 
-    // Animação/State
-    setCompletedDays(prev => ({ ...prev, [dayName]: true }));
-    
-    // Lógica
-    markWorkoutDone(activePatient.id, dayName, completedList, actualTotal);
-    completeQuest(activePatient.id, 15); // XP por treinar
+    const dayChecks = checksArg || checkedExercises[`${dayIndex}`] || {};
+    const completedList = Object.keys(dayChecks).filter(k => dayChecks[k]).map(k => parseInt(k));
+
+    const dateOfDay = new Date(weekStart);
+    dateOfDay.setDate(weekStart.getDate() + dayIndex);
+    const dateStr = formatDate(dateOfDay);
+
+    setLocalCompleted(prev => ({ ...prev, [dayIndex]: true }));
+    markWorkoutDone(activePatient.id, dayName, completedList, totalExercises, dateStr);
+    completeQuest(activePatient.id, 15);
   };
 
+  // Contagem da semana
+  const weeklyDoneCount = weekSchedule.filter(d =>
+    !d.isRest && isDayCompletedThisWeek(d.dayIndex, d.workout?.dayName)
+  ).length;
+  const weeklyTrainingCount = weekSchedule.filter(d => !d.isRest).length;
+
+  if (!workoutPlan) {
+    return (
+      <div className="animate-pop-in" style={{ paddingBottom: '30px' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+          <h2 style={{ fontSize: '1.4rem', color: 'var(--crm-text-main)', display: 'flex', alignItems: 'center', gap: '8px', margin: 0 }}>
+            <Dumbbell color="#3b82f6" /> Meu Treino
+          </h2>
+        </div>
+        <div style={{ padding: '32px 24px', backgroundColor: 'var(--crm-surface)', borderRadius: '16px', textAlign: 'center', border: '1px dashed #CBD5E1' }}>
+          <Dumbbell size={36} color="var(--crm-text-muted)" style={{ marginBottom: '12px' }} />
+          <p style={{ color: 'var(--crm-text-muted)', margin: 0 }}>Nenhuma ficha de treino foi prescrita ainda.</p>
+          <p style={{ color: 'var(--crm-text-muted)', margin: '4px 0 0', fontSize: '0.85rem' }}>Aguarde seu nutricionista cadastrar seu plano.</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <div className="animate-pop-in" style={{ position: 'relative', paddingBottom: '30px' }}>
+    <div className="animate-pop-in" style={{ paddingBottom: '30px' }}>
+      {/* Header */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
         <h2 style={{ fontSize: '1.4rem', color: 'var(--crm-text-main)', display: 'flex', alignItems: 'center', gap: '8px', margin: 0 }}>
           <Dumbbell color="#3b82f6" /> Meu Treino
         </h2>
+        <span style={{
+          display: 'flex', alignItems: 'center', gap: '6px',
+          backgroundColor: weeklyDoneCount === weeklyTrainingCount && weeklyTrainingCount > 0 ? '#D1FAE5' : 'rgba(59,130,246,0.1)',
+          color: weeklyDoneCount === weeklyTrainingCount && weeklyTrainingCount > 0 ? '#059669' : '#3B82F6',
+          padding: '6px 12px', borderRadius: '20px', fontSize: '0.85rem', fontWeight: '600'
+        }}>
+          <Flame size={14} />
+          {weeklyDoneCount}/{weeklyTrainingCount} treinos esta semana
+        </span>
       </div>
 
-      {!workoutPlan ? (
-        <div style={{ padding: '24px', backgroundColor: 'var(--crm-surface-2, var(--crm-bg))', borderRadius: '16px', textAlign: 'center', border: '1px dashed #CBD5E1' }}>
-          <Dumbbell size={32} color='var(--crm-text-muted)' style={{ marginBottom: '16px' }} />
-          <p style={{ color: 'var(--crm-text-muted)', margin: 0 }}>Nenhuma ficha de treino foi prescrita ainda.</p>
+      {/* Card da periodização */}
+      <div style={{ padding: '14px 16px', backgroundColor: 'rgba(59, 130, 246, 0.08)', borderRadius: '12px', border: '1px solid #BFDBFE', marginBottom: '20px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <Zap size={16} color="#3B82F6" />
+          <h3 style={{ margin: 0, color: '#1D4ED8', fontSize: '1rem', fontWeight: '700' }}>{workoutPlan.title}</h3>
         </div>
-      ) : (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-          <div style={{ padding: '16px', backgroundColor: 'rgba(59, 130, 246, 0.1)', borderRadius: '12px', border: '1px solid #BFDBFE' }}>
-            <h3 style={{ margin: 0, color: '#1D4ED8', fontSize: '1.2rem' }}>{workoutPlan.title}</h3>
-            <p style={{ margin: '4px 0 0', color: '#3B82F6', fontSize: '0.9rem' }}>Ficha gerada por IA Personal</p>
-          </div>
+        <p style={{ margin: '4px 0 0 24px', color: '#3B82F6', fontSize: '0.82rem' }}>Ficha personalizada — IA Personal Trainer</p>
+      </div>
 
-          {workoutPlan.days?.map((day, idx) => {
-            const isCompleted = completedDays[day.dayName];
-            const totalExercises = day.exercises?.length || 0;
-            const dayChecks = checkedExercises[day.dayName] || {};
-            const completedCount = Object.values(dayChecks).filter(v => v).length;
+      {/* Calendário semanal */}
+      <div style={{ marginBottom: '20px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '12px' }}>
+          <Calendar size={15} color="var(--crm-text-muted)" />
+          <span style={{ fontSize: '0.82rem', color: 'var(--crm-text-muted)', fontWeight: '600', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+            Semana Atual
+          </span>
+        </div>
+
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: '6px' }}>
+          {weekSchedule.map((slot) => {
+            const done = !slot.isRest && isDayCompletedThisWeek(slot.dayIndex, slot.workout?.dayName);
+            const missed = !slot.isRest && isPastDay(slot.dayIndex) && !done && !isToday(slot.dayIndex);
+            const isTodaySlot = isToday(slot.dayIndex);
+
+            let bg = 'var(--crm-surface)';
+            let border = '1px solid var(--crm-border)';
+            let textColor = 'var(--crm-text-muted)';
+            let dotColor = '#94A3B8';
+            let emoji = '';
+
+            if (slot.isRest) {
+              bg = 'var(--crm-bg)';
+              border = '1px dashed var(--crm-border)';
+              emoji = '🏖️';
+            } else if (done) {
+              bg = '#D1FAE5';
+              border = '1.5px solid #34D399';
+              textColor = '#065F46';
+              dotColor = '#10B981';
+              emoji = '✓';
+            } else if (missed) {
+              bg = 'rgba(239,68,68,0.06)';
+              border = '1px solid rgba(239,68,68,0.2)';
+              textColor = '#F87171';
+              emoji = '✗';
+            } else if (isTodaySlot && !slot.isRest) {
+              bg = 'rgba(59,130,246,0.12)';
+              border = '2px solid #3B82F6';
+              textColor = '#1D4ED8';
+              emoji = '→';
+            }
 
             return (
-              <div key={idx} style={{ padding: '20px', backgroundColor: 'var(--crm-surface)', borderRadius: '16px', border: '1px solid #E2E8F0', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.05)' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-                  <h4 style={{ margin: 0, color: 'var(--crm-text-main)', fontSize: '1.1rem' }}>{day.dayName}</h4>
-                  {isCompleted ? (
-                    <span style={{ backgroundColor: '#D1FAE5', color: '#059669', padding: '4px 8px', borderRadius: '12px', fontSize: '0.8rem', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '4px' }}><Award size={14} /> Feito!</span>
-                  ) : (
-                    <span style={{ fontSize: '0.85rem', color: 'var(--crm-text-muted)' }}>{completedCount}/{totalExercises}</span>
-                  )}
-                </div>
-                
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginBottom: '20px' }}>
-                  {day.exercises?.map((ex, exIdx) => {
-                    const isExChecked = dayChecks[exIdx] || isCompleted;
-                    return (
-                      <div 
-                        key={exIdx} 
-                        onClick={() => toggleExercise(day.dayName, exIdx, totalExercises)}
-                        style={{ 
-                          display: 'flex', gap: '12px', alignItems: 'center', padding: '12px', 
-                          backgroundColor: isExChecked ? '#F0FDF4' : 'var(--crm-surface-2, var(--crm-bg))', 
-                          borderRadius: '8px', 
-                          borderLeft: `3px solid ${isExChecked ? '#22C55E' : '#3B82F6'}`,
-                          cursor: isCompleted ? 'default' : 'pointer',
-                          transition: 'all 0.2s'
-                        }}
-                      >
-                        {isExChecked ? <CheckSquare size={20} color="#22C55E" /> : <Square size={20} color='var(--crm-text-muted)' />}
-                        <span style={{ 
-                          color: isExChecked ? '#166534' : 'var(--crm-text-main)', 
-                          fontWeight: '500', 
-                          fontSize: '0.95rem',
-                          textDecoration: isExChecked ? 'line-through' : 'none',
-                          opacity: isExChecked ? 0.7 : 1
-                        }}>
-                          {typeof ex === 'object' ? `${ex.name} - ${ex.sets}x${ex.reps}` : ex}
-                        </span>
-                      </div>
-                    );
-                  })}
-                </div>
-
-                <button 
-                  onClick={() => handleCompleteDay(day.dayName, null, totalExercises)}
-                  disabled={isCompleted}
-                  className="btn-3d"
-                  style={{ 
-                    width: '100%', 
-                    backgroundColor: isCompleted ? 'var(--crm-border)' : '#10B981', 
-                    color: isCompleted ? 'var(--crm-text-muted)' : 'var(--crm-surface)', 
-                    border: 'none', 
-                    padding: '12px', 
-                    borderRadius: '12px', 
-                    fontWeight: 'bold', 
-                    display: 'flex', 
-                    justifyContent: 'center', 
-                    alignItems: 'center', 
-                    gap: '8px', 
-                    cursor: isCompleted ? 'not-allowed' : 'pointer', 
-                    boxShadow: isCompleted ? 'none' : '0 4px 0 #059669',
-                    transition: 'all 0.2s'
-                  }}>
-                  <CheckCircle size={18} /> {isCompleted ? 'Treino Concluído' : 'Marcar como Concluído Hoje'}
-                </button>
+              <div
+                key={slot.dayIndex}
+                onClick={() => {
+                  if (!slot.isRest) {
+                    setExpandedDay(expandedDay === slot.dayIndex ? null : slot.dayIndex);
+                  }
+                }}
+                style={{
+                  display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
+                  padding: '10px 4px', borderRadius: '12px', background: bg, border,
+                  cursor: slot.isRest ? 'default' : 'pointer', transition: 'all 0.2s',
+                  minHeight: '72px', position: 'relative'
+                }}
+              >
+                <span style={{ fontSize: '0.7rem', fontWeight: '700', color: textColor, marginBottom: '4px' }}>
+                  {slot.dayLabel}
+                </span>
+                <span style={{ fontSize: '1rem' }}>
+                  {slot.isRest ? '🏖️' : done ? '✅' : missed ? '❌' : isTodaySlot ? '🔥' : '⚪'}
+                </span>
+                {!slot.isRest && (
+                  <span style={{ fontSize: '0.6rem', color: textColor, marginTop: '4px', textAlign: 'center', lineHeight: 1.2, fontWeight: '500' }}>
+                    {slot.workout?.dayName?.split(' - ')[0] || 'Treino'}
+                  </span>
+                )}
+                {isTodaySlot && !slot.isRest && (
+                  <div style={{
+                    position: 'absolute', top: '-4px', right: '-4px',
+                    width: '10px', height: '10px', borderRadius: '50%',
+                    backgroundColor: '#3B82F6', border: '2px solid var(--crm-bg)'
+                  }} />
+                )}
               </div>
             );
           })}
         </div>
-      )}
+      </div>
+
+      {/* Treino do dia / expandido */}
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+        {weekSchedule.filter(s => !s.isRest).map((slot) => {
+          const day = slot.workout;
+          if (!day) return null;
+          const isExpanded = expandedDay === slot.dayIndex;
+          const done = isDayCompletedThisWeek(slot.dayIndex, day.dayName);
+          const isTodaySlot = isToday(slot.dayIndex);
+          const totalExercises = day.exercises?.length || 0;
+          const dayChecks = checkedExercises[`${slot.dayIndex}`] || {};
+          const completedCount = Object.values(dayChecks).filter(v => v).length;
+          const missed = isPastDay(slot.dayIndex) && !done && !isTodaySlot;
+
+          return (
+            <div
+              key={slot.dayIndex}
+              style={{
+                borderRadius: '16px',
+                border: done
+                  ? '1.5px solid #34D399'
+                  : isTodaySlot
+                  ? '2px solid #3B82F6'
+                  : missed
+                  ? '1px solid rgba(239,68,68,0.25)'
+                  : '1px solid var(--crm-border)',
+                backgroundColor: done
+                  ? 'rgba(209,250,229,0.3)'
+                  : isTodaySlot
+                  ? 'rgba(59,130,246,0.05)'
+                  : 'var(--crm-surface)',
+                overflow: 'hidden',
+                transition: 'all 0.2s',
+                opacity: missed ? 0.65 : 1
+              }}
+            >
+              {/* Header do treino */}
+              <div
+                onClick={() => setExpandedDay(isExpanded ? null : slot.dayIndex)}
+                style={{
+                  display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+                  padding: '16px 20px', cursor: 'pointer'
+                }}
+              >
+                <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                  <div style={{
+                    width: '36px', height: '36px', borderRadius: '10px',
+                    backgroundColor: done ? '#D1FAE5' : isTodaySlot ? 'rgba(59,130,246,0.15)' : 'var(--crm-surface-2, var(--crm-bg))',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center'
+                  }}>
+                    {done
+                      ? <Award size={18} color="#059669" />
+                      : <Dumbbell size={18} color={isTodaySlot ? '#3B82F6' : 'var(--crm-text-muted)'} />
+                    }
+                  </div>
+                  <div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                      <span style={{ fontWeight: '700', fontSize: '0.95rem', color: 'var(--crm-text-main)' }}>
+                        {day.dayName}
+                      </span>
+                      {isTodaySlot && !done && (
+                        <span style={{
+                          fontSize: '0.7rem', fontWeight: '600', color: '#3B82F6',
+                          backgroundColor: 'rgba(59,130,246,0.1)', padding: '2px 8px', borderRadius: '10px'
+                        }}>
+                          HOJE
+                        </span>
+                      )}
+                      {done && (
+                        <span style={{
+                          fontSize: '0.7rem', fontWeight: '600', color: '#059669',
+                          backgroundColor: '#D1FAE5', padding: '2px 8px', borderRadius: '10px'
+                        }}>
+                          CONCLUÍDO ✓
+                        </span>
+                      )}
+                      {missed && (
+                        <span style={{
+                          fontSize: '0.7rem', fontWeight: '600', color: '#EF4444',
+                          backgroundColor: 'rgba(239,68,68,0.1)', padding: '2px 8px', borderRadius: '10px'
+                        }}>
+                          PERDIDO
+                        </span>
+                      )}
+                    </div>
+                    <span style={{ fontSize: '0.78rem', color: 'var(--crm-text-muted)' }}>
+                      {slot.dayLabel} — {totalExercises} exercícios
+                      {!done && isExpanded && ` · ${completedCount}/${totalExercises} marcados`}
+                    </span>
+                  </div>
+                </div>
+                {isExpanded ? <ChevronUp size={18} color="var(--crm-text-muted)" /> : <ChevronDown size={18} color="var(--crm-text-muted)" />}
+              </div>
+
+              {/* Exercícios expandidos */}
+              {isExpanded && (
+                <div style={{ padding: '0 20px 20px' }}>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginBottom: '16px' }}>
+                    {day.exercises?.map((ex, exIdx) => {
+                      const isExChecked = (dayChecks[exIdx] || done);
+                      return (
+                        <div
+                          key={exIdx}
+                          onClick={() => toggleExercise(slot.dayIndex, day.dayName, exIdx, totalExercises)}
+                          style={{
+                            display: 'flex', gap: '12px', alignItems: 'center', padding: '12px 14px',
+                            backgroundColor: isExChecked ? '#F0FDF4' : 'var(--crm-surface-2, var(--crm-bg))',
+                            borderRadius: '10px',
+                            borderLeft: `3px solid ${isExChecked ? '#22C55E' : isTodaySlot ? '#3B82F6' : '#94A3B8'}`,
+                            cursor: done ? 'default' : 'pointer',
+                            transition: 'all 0.2s'
+                          }}
+                        >
+                          {isExChecked
+                            ? <CheckSquare size={18} color="#22C55E" />
+                            : <Square size={18} color="var(--crm-text-muted)" />
+                          }
+                          <div style={{ flex: 1 }}>
+                            <span style={{
+                              color: isExChecked ? '#166534' : 'var(--crm-text-main)',
+                              fontWeight: '600', fontSize: '0.9rem',
+                              textDecoration: isExChecked ? 'line-through' : 'none',
+                              opacity: isExChecked ? 0.75 : 1
+                            }}>
+                              {typeof ex === 'object' ? ex.name : ex}
+                            </span>
+                            {typeof ex === 'object' && (ex.sets || ex.reps) && (
+                              <div style={{ fontSize: '0.78rem', color: 'var(--crm-text-muted)', marginTop: '2px' }}>
+                                {ex.sets && `${ex.sets} séries`}{ex.sets && ex.reps && ' · '}{ex.reps}
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+
+                  {!done && (
+                    <button
+                      onClick={() => handleCompleteDay(slot.dayIndex, day.dayName, null, totalExercises)}
+                      className="btn-3d"
+                      style={{
+                        width: '100%', backgroundColor: '#10B981', color: '#fff',
+                        border: 'none', padding: '13px', borderRadius: '12px', fontWeight: 'bold',
+                        display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '8px',
+                        cursor: 'pointer', boxShadow: '0 4px 0 #059669', transition: 'all 0.2s', fontSize: '0.95rem'
+                      }}
+                    >
+                      <CheckCircle size={18} /> Marcar Treino como Concluído
+                    </button>
+                  )}
+
+                  {done && (
+                    <div style={{
+                      textAlign: 'center', padding: '12px', borderRadius: '12px',
+                      backgroundColor: '#D1FAE5', color: '#065F46', fontWeight: '700', fontSize: '0.9rem',
+                      display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px'
+                    }}>
+                      <Award size={18} /> Treino concluído! +15 XP 🎉
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+          );
+        })}
+      </div>
     </div>
   );
 }
