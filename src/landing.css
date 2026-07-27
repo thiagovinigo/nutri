@@ -3,9 +3,9 @@
 :root {
   --w-bg: #FAFAFA;
   --w-bg-white: #FFFFFF;
-  --w-primary: #10b981;    /* Emerald 500 */
-  --w-primary-dark: #047857; /* Emerald 700 */
-  --w-mint: #d1fae5;       /* Emerald 100 */
+  --w-primary: #a855f7;    /* Roxo da logo (N monograma) */
+  --w-primary-dark: #3949ab; /* Índigo da logo (N monograma) */
+  --w-mint: #ede4fb;       /* Tint claro do roxo, mesmo papel que o mint antes */
   --w-text-main: #0f172a;  /* Slate 900 */
   --w-text-muted: #475569; /* Slate 600 */
   --w-border: #e2e8f0;     /* Slate 200 */

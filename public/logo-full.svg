@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="900" height="220" viewBox="0 0 900 220">
+  <defs>
+    <linearGradient id="ng" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#a855f7"/>
+      <stop offset="1" stop-color="#3949ab"/>
+    </linearGradient>
+  </defs>
+  <rect width="900" height="220" fill="#0f0f19"/>
+
+  <!-- N estilizado: mesma geometria do monograma (barras + diagonal), escalado pra
+       casar com a altura maiúscula do texto que segue -->
+  <g transform="translate(60,50)">
+    <rect x="0" y="0" width="22" height="120" rx="6" fill="url(#ng)"/>
+    <rect x="98" y="0" width="22" height="120" rx="6" fill="url(#ng)"/>
+    <polygon points="22,4 62,4 120,116 80,116" fill="url(#ng)"/>
+  </g>
+
+  <!-- Restante do nome, mesma cor, logo em seguida do N (o N do desenho FAZ o papel
+       da letra inicial — o texto abaixo já começa em "utrivvo") -->
+  <text x="200" y="150" font-family="Arial, Helvetica, sans-serif" font-weight="800" font-size="120" fill="url(#ng)" letter-spacing="-2">utrivvo</text>
+</svg>

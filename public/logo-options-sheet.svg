@@ -1,0 +1,109 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="960" height="520" viewBox="0 0 960 520">
+  <defs>
+    <linearGradient id="g1" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#863bff"/>
+      <stop offset="0.55" stop-color="#7e14ff"/>
+      <stop offset="1" stop-color="#47bfff"/>
+    </linearGradient>
+    <linearGradient id="g2" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#a855f7"/>
+      <stop offset="1" stop-color="#3949ab"/>
+    </linearGradient>
+    <linearGradient id="coreGrad" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#ede6ff"/>
+      <stop offset="1" stop-color="#c9b8ff"/>
+    </linearGradient>
+  </defs>
+
+  <rect width="960" height="520" fill="#0f0f19"/>
+
+  <!-- Grid: 4 colunas x 2 linhas, cada célula 240x260 -->
+  <!-- 1: Chama + núcleo -->
+  <g transform="translate(20,20)">
+    <rect width="200" height="220" rx="16" fill="#17171f"/>
+    <g transform="translate(76,20) scale(1.0)">
+      <path d="M24.5 2.5 C27 8 20 12 22 17 C23.2 19.6 27 18.5 28.5 15 C33.5 20 35.5 27.5 32 34.5 C28.8 41 20.5 44.5 13.5 41.5 C6.5 38.5 3.5 30.5 6.5 23.5 C8.7 18.3 13.5 16 15.5 11.5 C17.2 7.6 20.8 4 24.5 2.5 Z" fill="url(#g1)"/>
+      <path d="M23.5 20.5 C26.5 23.5 28.5 27.5 27 32 C25.6 36.2 21 38.5 17 37 C13 35.5 11 31 12.5 27 C13.6 24 16.3 22.7 18 20 C19.6 22 21.5 22.5 23.5 20.5 Z" fill="url(#coreGrad)" opacity="0.9"/>
+    </g>
+    <text x="100" y="165" text-anchor="middle" fill="#8a8aa3" font-family="Arial" font-size="12">1 · Chama + núcleo</text>
+    <text x="100" y="195" text-anchor="middle" fill="#f2f2f7" font-family="Arial" font-weight="bold" font-size="18">Nutrivvo</text>
+  </g>
+
+  <!-- 2: Folha com flick de chama -->
+  <g transform="translate(240,20)">
+    <rect width="200" height="220" rx="16" fill="#17171f"/>
+    <g transform="translate(76,18)">
+      <path d="M24 2 C36 10 40 26 30 38 C22 47 8 44 3 34 C-2 24 4 10 16 5 C19 3.5 21.5 2.5 24 2 Z" fill="url(#g1)"/>
+      <path d="M22 6 C24 10 21 14 24 17" stroke="#ede6ff" stroke-width="2.4" fill="none" stroke-linecap="round" opacity="0.85"/>
+      <path d="M8 34 C16 30 20 22 22 12" stroke="#ede6ff" stroke-width="1.6" fill="none" stroke-linecap="round" opacity="0.5"/>
+    </g>
+    <text x="100" y="165" text-anchor="middle" fill="#8a8aa3" font-family="Arial" font-size="12">2 · Folha-chama</text>
+    <text x="100" y="195" text-anchor="middle" fill="#f2f2f7" font-family="Arial" font-weight="bold" font-size="18">Nutrivvo</text>
+  </g>
+
+  <!-- 3: Monograma N geométrico -->
+  <g transform="translate(460,20)">
+    <rect width="200" height="220" rx="16" fill="#17171f"/>
+    <g transform="translate(72,20)">
+      <rect x="0" y="0" width="9" height="40" rx="3" fill="url(#g2)"/>
+      <rect x="39" y="0" width="9" height="40" rx="3" fill="url(#g2)"/>
+      <polygon points="9,2 22,2 48,38 35,38" fill="url(#g2)"/>
+    </g>
+    <text x="100" y="165" text-anchor="middle" fill="#8a8aa3" font-family="Arial" font-size="12">3 · Monograma N</text>
+    <text x="100" y="195" text-anchor="middle" fill="#f2f2f7" font-family="Arial" font-weight="bold" font-size="18">Nutrivvo</text>
+  </g>
+
+  <!-- 4: Pulso/EKG em N -->
+  <g transform="translate(680,20)">
+    <rect width="200" height="220" rx="16" fill="#17171f"/>
+    <g transform="translate(64,38)">
+      <path d="M0 12 L14 12 L20 -6 L28 30 L34 12 L44 12 L50 -10 L58 24 L64 12 L72 12"
+        stroke="url(#g1)" stroke-width="5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+    </g>
+    <text x="100" y="165" text-anchor="middle" fill="#8a8aa3" font-family="Arial" font-size="12">4 · Pulso/EKG</text>
+    <text x="100" y="195" text-anchor="middle" fill="#f2f2f7" font-family="Arial" font-weight="bold" font-size="18">Nutrivvo</text>
+  </g>
+
+  <!-- 5: Semente brotando -->
+  <g transform="translate(20,280)">
+    <rect width="200" height="220" rx="16" fill="#17171f"/>
+    <g transform="translate(76,26)">
+      <ellipse cx="24" cy="26" rx="17" ry="21" fill="url(#g1)"/>
+      <path d="M22 4 C18 -2 10 -1 8 3 C13 6 16 4 22 4 Z" fill="url(#coreGrad)"/>
+    </g>
+    <text x="100" y="165" text-anchor="middle" fill="#8a8aa3" font-family="Arial" font-size="12">5 · Semente brotando</text>
+    <text x="100" y="195" text-anchor="middle" fill="#f2f2f7" font-family="Arial" font-weight="bold" font-size="18">Nutrivvo</text>
+  </g>
+
+  <!-- 6: Badge circular com chama vazada -->
+  <g transform="translate(240,280)">
+    <rect width="200" height="220" rx="16" fill="#17171f"/>
+    <g transform="translate(76,18)">
+      <path d="M24 0 A24 24 0 1 0 24.01 0 Z
+           M25 6 C28 12 21 15 23 20 C27 20 29 17 30 15 C34 19 35 27 30 33 C26 38 18 39 14 34 C10 29 12 22 17 19 C19 17 20 12 25 6 Z"
+        fill="url(#g2)" fill-rule="evenodd" clip-rule="evenodd"/>
+    </g>
+    <text x="100" y="165" text-anchor="middle" fill="#8a8aa3" font-family="Arial" font-size="12">6 · Badge com vazado</text>
+    <text x="100" y="195" text-anchor="middle" fill="#f2f2f7" font-family="Arial" font-weight="bold" font-size="18">Nutrivvo</text>
+  </g>
+
+  <!-- 7: Chama dupla espelhada -->
+  <g transform="translate(460,280)">
+    <rect width="200" height="220" rx="16" fill="#17171f"/>
+    <g transform="translate(70,22)">
+      <path d="M14 2 C20 8 16 14 18 18 C22 14 20 8 26 4 C32 12 32 24 26 30 C22 34 18 34 16 30 C14 34 10 34 6 30 C0 24 0 12 6 4 C10 8 8 14 12 18 C14 14 8 8 14 2 Z" fill="url(#g1)"/>
+    </g>
+    <text x="100" y="165" text-anchor="middle" fill="#8a8aa3" font-family="Arial" font-size="12">7 · Chama espelhada</text>
+    <text x="100" y="195" text-anchor="middle" fill="#f2f2f7" font-family="Arial" font-weight="bold" font-size="18">Nutrivvo</text>
+  </g>
+
+  <!-- 8: Faísca angular/facetada -->
+  <g transform="translate(680,280)">
+    <rect width="200" height="220" rx="16" fill="#17171f"/>
+    <g transform="translate(76,20)">
+      <polygon points="24,0 32,14 24,12 30,24 18,18 22,34 8,20 14,17 6,8 20,10" fill="url(#g2)"/>
+    </g>
+    <text x="100" y="165" text-anchor="middle" fill="#8a8aa3" font-family="Arial" font-size="12">8 · Faísca facetada</text>
+    <text x="100" y="195" text-anchor="middle" fill="#f2f2f7" font-family="Arial" font-weight="bold" font-size="18">Nutrivvo</text>
+  </g>
+</svg>
