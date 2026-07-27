@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowRight, BrainCircuit, Activity, Bot, ShieldCheck, HeartPulse } from 'lucide-react';
+import { ArrowRight, BrainCircuit, Activity, Bot, ShieldCheck, HeartPulse, Dumbbell, Stethoscope, Wallet } from 'lucide-react';
 import '../landing.css';
 
 export default function LandingPage() {
@@ -22,15 +22,15 @@ export default function LandingPage() {
 
   return (
     <div className="wellness-body">
-      
+
       {/* Navbar */}
       <nav className="w-nav">
-        <div className="w-logo wellness-heading">Vytal.</div>
+        <div className="w-logo wellness-heading">Nutrivvo.</div>
         <div className="w-nav-links">
           <a href="#features">Recursos</a>
           <a href="#benefits">Benefícios</a>
-          <button 
-            className="w-btn w-btn-outline" 
+          <button
+            className="w-btn w-btn-outline"
             style={{ padding: '8px 20px' }}
             onClick={() => navigate('/login')}
           >
@@ -49,7 +49,7 @@ export default function LandingPage() {
             <span>CRM, Gamificação e IA.</span>
           </h1>
           <p className="w-hero-subtitle" data-w-reveal>
-            Transforme pacientes em fãs. O Vytal combina uma gestão clínica poderosa para você com uma experiência gamificada e imersiva para o seu paciente.
+            Transforme pacientes em fãs. O Nutrivvo combina uma gestão clínica poderosa para você com uma experiência gamificada e imersiva para o seu paciente.
           </p>
           <div className="w-hero-actions" data-w-reveal>
             <button className="w-btn w-btn-primary" onClick={() => navigate('/cadastro?role=nutricionista')}>
@@ -75,7 +75,7 @@ export default function LandingPage() {
       {/* Features Grid */}
       <section id="features" className="w-features">
         <div className="w-section-header" data-w-reveal>
-          <h2 className="w-section-title wellness-heading">Por que escolher o Vytal?</h2>
+          <h2 className="w-section-title wellness-heading">Por que escolher o Nutrivvo?</h2>
           <p className="w-section-desc">Ferramentas desenhadas especificamente para aumentar a adesão ao plano alimentar e reduzir o tempo de consulta.</p>
         </div>
 
@@ -85,17 +85,47 @@ export default function LandingPage() {
             <h3 className="w-feature-title wellness-heading">Inteligência de Cohorts</h3>
             <p className="w-feature-desc">Nosso CRM prevê automaticamente quem está com risco de abandono com base na frequência do paciente no app, permitindo uma ação rápida.</p>
           </div>
-          
+
           <div className="w-feature-card" data-w-reveal>
             <div className="w-icon-box"><Activity size={28} /></div>
             <h3 className="w-feature-title wellness-heading">Alta Gamificação</h3>
             <p className="w-feature-desc">Dietas monótonas são do passado. O paciente constrói uma 'Ofensiva Diária', acumula XP a cada refeição e visualiza o progresso visualmente.</p>
           </div>
-          
+
           <div className="w-feature-card" data-w-reveal>
             <div className="w-icon-box"><Bot size={28} /></div>
-            <h3 className="w-feature-title wellness-heading">Vytal Bot (IA Clínica)</h3>
+            <h3 className="w-feature-title wellness-heading">Nutrivvo Bot (IA Clínica)</h3>
             <p className="w-feature-desc">Uma assistente treinada que conhece o peso, dieta e evolução do paciente. Ela responde dúvidas sobre substituições, poupando seu WhatsApp.</p>
+          </div>
+
+          <div className="w-feature-card" data-w-reveal>
+            <div className="w-icon-box"><ShieldCheck size={28} /></div>
+            <h3 className="w-feature-title wellness-heading">Dietas com IA (de verdade)</h3>
+            <p className="w-feature-desc">Gere cardápios completos de 1 a 30 dias considerando exames, restrições e medicamentos — com receitas de verdade, nome apetitoso e modo de preparo, não só uma lista de alimentos.</p>
+          </div>
+
+          <div className="w-feature-card" data-w-reveal>
+            <div className="w-icon-box"><Dumbbell size={28} /></div>
+            <h3 className="w-feature-title wellness-heading">Ficha de Treino com IA</h3>
+            <p className="w-feature-desc">Periodização completa calibrada pela dieta prescrita, exames laboratoriais e restrições físicas do paciente — pronta em segundos, sem sair da consulta.</p>
+          </div>
+
+          <div className="w-feature-card" data-w-reveal>
+            <div className="w-icon-box"><Stethoscope size={28} /></div>
+            <h3 className="w-feature-title wellness-heading">Análise de Exames com IA</h3>
+            <p className="w-feature-desc">Anexe os exames do paciente e receba uma análise clínica completa, com evolução comparada ao histórico e parecer pronto para orientar a conduta.</p>
+          </div>
+
+          <div className="w-feature-card" data-w-reveal>
+            <div className="w-icon-box"><Wallet size={28} /></div>
+            <h3 className="w-feature-title wellness-heading">Financeiro Integrado</h3>
+            <p className="w-feature-desc">Controle planos, vencimentos e cobranças direto no CRM, com lembretes automáticos de renovação enviados por WhatsApp.</p>
+          </div>
+
+          <div className="w-feature-card" data-w-reveal>
+            <div className="w-icon-box"><HeartPulse size={28} /></div>
+            <h3 className="w-feature-title wellness-heading">Check-in Diário por Foto</h3>
+            <p className="w-feature-desc">O paciente fotografa a refeição e a IA identifica os alimentos e estima as porções — registro rápido, sem digitação, direto no diário alimentar.</p>
           </div>
         </div>
       </section>
@@ -133,8 +163,8 @@ export default function LandingPage() {
         <div className="w-cta-inner" data-w-reveal>
           <h2 className="w-cta-title wellness-heading">Pronto para a nova era da nutrição?</h2>
           <p className="w-cta-desc">Junte-se à plataforma que está revolucionando o acompanhamento clínico.</p>
-          <button 
-            className="w-btn" 
+          <button
+            className="w-btn"
             style={{background: 'white', color: 'var(--w-primary-dark)', padding: '16px 32px', fontSize: '1.1rem'}}
             onClick={() => navigate('/cadastro?role=nutricionista')}
           >
@@ -145,7 +175,7 @@ export default function LandingPage() {
 
       {/* Footer */}
       <footer className="w-footer">
-        <p>© 2026 Vytal. Todos os direitos reservados.</p>
+        <p>© 2026 Nutrivvo. Todos os direitos reservados.</p>
       </footer>
 
     </div>

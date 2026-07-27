@@ -40,7 +40,7 @@ export default function DietPlan({ activePatient }) {
         ? meal.foods.map(f => `${f.amount}g de ${f.name}`).join(', ')
         : (meal.desc || 'alimentos variados');
       const aversions = activePatient?.aversions || 'Nenhuma aversão registrada';
-      const prompt = `Você é um Chef Nutricional da Vytal. Sua missão é sugerir uma receita prática e rápida utilizando os seguintes ingredientes: ${foodsList}. Se precisar, pode adicionar temperos básicos (sal, pimenta, azeite, ervas).
+      const prompt = `Você é um Chef Nutricional da Nutrivvo. Sua missão é sugerir uma receita prática e rápida utilizando os seguintes ingredientes: ${foodsList}. Se precisar, pode adicionar temperos básicos (sal, pimenta, azeite, ervas).
       INSTRUÇÕES:
       - O paciente NÃO COME (aversões/restrições): ${aversions}. JAMAIS use esses ingredientes.
       - Retorne em formato Markdown (## Nome da Receita, ### Ingredientes, ### Modo de Preparo).

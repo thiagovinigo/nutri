@@ -30,7 +30,7 @@ export function AppProvider({ children }) {
   };
 
   const [clinicConfig, setClinicConfig] = useState({
-    name: 'Vytal',
+    name: 'Nutrivvo',
     primaryColor: '#3949AB',
     scheduleConfig: {
       workingDays: [1, 2, 3, 4, 5], // Seg a Sex

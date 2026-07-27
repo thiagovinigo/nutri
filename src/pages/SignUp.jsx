@@ -175,7 +175,7 @@ export default function SignUp() {
   return (
     <div style={{ display: 'flex', minHeight: '100vh', justifyContent: 'center', alignItems: 'center', backgroundColor: '#f8fafc', padding: '20px' }}>
       <div style={{ width: '400px', padding: '40px', backgroundColor: 'white', borderRadius: '12px', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)' }}>
-        <h1 style={{ fontSize: '1.8rem', fontWeight: 'bold', marginBottom: '8px', textAlign: 'center', color: '#0f172a' }}>Vytal</h1>
+        <h1 style={{ fontSize: '1.8rem', fontWeight: 'bold', marginBottom: '8px', textAlign: 'center', color: '#0f172a' }}>Nutrivvo</h1>
         <p style={{ textAlign: 'center', color: '#64748b', marginBottom: '32px' }}>Crie sua conta gratuitamente</p>
         
         {errorMsg && (

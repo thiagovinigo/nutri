@@ -144,7 +144,7 @@ export default function FinancialCRM({
       return;
     }
 
-    const message = `Olá, ${patient.name}! 🌟 Passando para lembrar sobre a renovação do seu plano de acompanhamento nutricional (${plan.name}) no Vytal. Qualquer dúvida estou à disposição!`;
+    const message = `Olá, ${patient.name}! 🌟 Passando para lembrar sobre a renovação do seu plano de acompanhamento nutricional (${plan.name}) no Nutrivvo. Qualquer dúvida estou à disposição!`;
     const url = `https://wa.me/55${phone}?text=${encodeURIComponent(message)}`;
     window.open(url, '_blank');
   };

@@ -12,7 +12,7 @@ export default function ChatBot({ activePatient, currentRecipe, chatHistory, set
 
   return (
     <div className="animate-pop-in">
-      <h2 style={styles.sectionTitle}><MessageCircle color="#3b82f6" /> Vytal Bot (Clínica)</h2>
+      <h2 style={styles.sectionTitle}><MessageCircle color="#3b82f6" /> Nutrivvo Bot (Clínica)</h2>
       <p style={{ margin: '-10px 0 16px 0', fontSize: '0.85rem', color: 'var(--crm-text-muted)' }}>IA Médica conectada ao seu prontuário</p>
       
       <div style={styles.chatContainer}>
@@ -20,7 +20,7 @@ export default function ChatBot({ activePatient, currentRecipe, chatHistory, set
             {chatHistory.length === 0 && (
               <div style={{ textAlign: 'center', color: 'var(--crm-text-muted)', marginTop: '20px', padding: '20px', backgroundColor: 'var(--crm-surface-2, var(--crm-bg))', borderRadius: '12px' }}>
                 <Activity size={32} color='var(--crm-text-muted)' style={{ marginBottom: '12px' }} />
-                <p style={{ margin: 0, fontSize: '0.95rem' }}>Olá, {activePatient.name}. Sou a inteligência artificial clínica da Vytal. Como está sua aderência ao protocolo focado em {activePatient.objective} hoje?</p>
+                <p style={{ margin: 0, fontSize: '0.95rem' }}>Olá, {activePatient.name}. Sou a inteligência artificial clínica da Nutrivvo. Como está sua aderência ao protocolo focado em {activePatient.objective} hoje?</p>
               </div>
             )}
             {chatHistory.map((msg, idx) => (

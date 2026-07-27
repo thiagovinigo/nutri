@@ -306,7 +306,7 @@ export default function PatientList({
       
       <div className="crm-sidebar">
         <div style={{ marginBottom: '40px' }}>
-          <h2 className="crm-sidebar-brand">{clinicConfig?.name || 'Vytal'}</h2>
+          <h2 className="crm-sidebar-brand">{clinicConfig?.name || 'Nutrivvo'}</h2>
           <span className="crm-sidebar-tag">CRM Clínico</span>
           <button onClick={() => navigate('/')} className="crm-sidebar-exit">Sair (Trocar Papel)</button>
         </div>
@@ -934,7 +934,7 @@ export default function PatientList({
 
                 const handleSendCobrança = () => {
                   if (!phone) { alert('Paciente sem telefone cadastrado no perfil.'); return; }
-                  const msg = `Olá, ${viewedPatient.name}! 🌟 Passando para lembrar sobre o pagamento/renovação do seu plano (${activePlan.name} - R$ ${activePlan.price}) no Vytal. Qualquer dúvida estou à disposição!`;
+                  const msg = `Olá, ${viewedPatient.name}! 🌟 Passando para lembrar sobre o pagamento/renovação do seu plano (${activePlan.name} - R$ ${activePlan.price}) no Nutrivvo. Qualquer dúvida estou à disposição!`;
                   window.open(`https://wa.me/55${phone}?text=${encodeURIComponent(msg)}`, '_blank');
                 };
 
@@ -1652,7 +1652,7 @@ export default function PatientList({
                   <h3 style={{ color: '#DC2626', display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '16px' }}>
                     <AlertTriangle size={20} /> Pacientes em Risco de Abandono (Churn)
                   </h3>
-                  <p style={{ color: '#991B1B', marginBottom: '16px', fontSize: '0.95rem' }}>O Vytal identificou pacientes com queda abrupta de engajamento na última semana.</p>
+                  <p style={{ color: '#991B1B', marginBottom: '16px', fontSize: '0.95rem' }}>O Nutrivvo identificou pacientes com queda abrupta de engajamento na última semana.</p>
                   {churnAlertMessage && (
                     <div role="status" style={{ marginBottom: '16px', padding: '10px 14px', backgroundColor: 'var(--crm-surface)', border: '1px solid #FCA5A5', borderRadius: '8px', color: '#991B1B', fontSize: '0.85rem' }}>
                       {churnAlertMessage}
@@ -1852,7 +1852,7 @@ export default function PatientList({
                     <div>
                       <div className="settings-content-header">
                         <h2>Identidade Visual (White-Label)</h2>
-                        <p>Personalize o Vytal com as cores e nome da sua clínica.</p>
+                        <p>Personalize o Nutrivvo com as cores e nome da sua clínica.</p>
                       </div>
                       <div className="settings-fieldset">
                         <label className="crm-label">Nome da Clínica</label>
@@ -1878,7 +1878,7 @@ export default function PatientList({
                     <div>
                       <div className="settings-content-header">
                         <h2>Assinatura e Faturamento</h2>
-                        <p>Gerencie o plano da sua conta Vytal.</p>
+                        <p>Gerencie o plano da sua conta Nutrivvo.</p>
                       </div>
                       
                       <div style={{ padding: '24px', backgroundColor: 'var(--crm-surface-2, var(--crm-bg))', borderRadius: '12px', border: '1px solid var(--crm-border)', marginBottom: '32px' }}>
@@ -1894,7 +1894,7 @@ export default function PatientList({
                       
                       <div style={{ border: '1px solid var(--crm-border)', borderRadius: '12px', overflow: 'hidden' }}>
                         <div style={{ padding: '24px', borderBottom: '1px solid var(--crm-border)' }}>
-                          <h4 style={{ fontWeight: '700', fontSize: '1.2rem', marginBottom: '8px' }}>Vytal Premium</h4>
+                          <h4 style={{ fontWeight: '700', fontSize: '1.2rem', marginBottom: '8px' }}>Nutrivvo Premium</h4>
                           <p style={{ color: 'var(--crm-text-muted)', fontSize: '0.95rem', margin: 0 }}>Pacientes ilimitados, White-label completo, relatórios customizados e IA preditiva de Cohorts.</p>
                         </div>
                         <div style={{ padding: '24px', backgroundColor: 'var(--crm-surface-2, var(--crm-bg))', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>

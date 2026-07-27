@@ -131,7 +131,7 @@ export default function PatientApp() {
       const dietContext = currentRecipe ? currentRecipe.meals.map(m => `- ${m.name}: ${m.desc}`).join('\n') : 'Nenhuma dieta estruturada ativa no momento.';
       const lastWeight = activePatient.weights && activePatient.weights.length > 0 ? activePatient.weights[activePatient.weights.length - 1].value + ' kg' : 'Não informado';
       const waterIntake = activePatient.waterGlasses ? (activePatient.waterGlasses * 250) + ' ml' : 'Nenhuma água registrada hoje';
-      const systemPrompt = `Você é a Vytal Bot, assistente clínica da Vytal. Perfil: Médica nutricionista, técnica e baseada em evidências. Objetivo: Tirar dúvidas sobre o plano alimentar e evolução. DADOS: Nome: ${activePatient.name}. Objetivo: ${activePatient.objective}. Restrições: ${activePatient.restrictions || 'Nenhuma'}. BIOMETRIA ATUAL -> Peso: ${lastWeight}. Ingestão de Água hoje: ${waterIntake}. PLANO ATUAL: ${dietContext}. Responda de forma concisa e em pt-BR.`;
+      const systemPrompt = `Você é a Nutrivvo Bot, assistente clínica da Nutrivvo. Perfil: Médica nutricionista, técnica e baseada em evidências. Objetivo: Tirar dúvidas sobre o plano alimentar e evolução. DADOS: Nome: ${activePatient.name}. Objetivo: ${activePatient.objective}. Restrições: ${activePatient.restrictions || 'Nenhuma'}. BIOMETRIA ATUAL -> Peso: ${lastWeight}. Ingestão de Água hoje: ${waterIntake}. PLANO ATUAL: ${dietContext}. Responda de forma concisa e em pt-BR.`;
 
       const data = await callOpenAIBridge({ system_prompt: systemPrompt, messages: newHistory });
       setChatHistory([...newHistory, { role: 'assistant', content: data.choices[0].message.content }]);
@@ -155,7 +155,7 @@ export default function PatientApp() {
             <div className="animate-pulse-glow" style={{width: '60px', height: '60px', borderRadius: '50%', background: 'var(--primary-color)', margin: '0 auto 16px', display: 'flex', alignItems: 'center', justifyContent: 'center'}}>
               <span style={{fontSize: '32px'}}>🍏</span>
             </div>
-            <h1 style={{color: 'var(--patient-text)', margin: '0 0 8px 0', fontSize: '1.8rem'}}>Vytal App</h1>
+            <h1 style={{color: 'var(--patient-text)', margin: '0 0 8px 0', fontSize: '1.8rem'}}>Nutrivvo App</h1>
             <p style={{color: 'var(--patient-text-muted)', margin: 0}}>Acesse seu plano de Alta Performance</p>
           </div>
           {loginError && <div style={{backgroundColor: 'rgba(255,0,85,0.1)', color: 'var(--accent-color)', padding: '12px', borderRadius: '8px', marginBottom: '16px', fontSize: '0.9rem', border: '1px solid var(--accent-color)'}}>{loginError}</div>}

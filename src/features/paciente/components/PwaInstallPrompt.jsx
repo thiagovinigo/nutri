@@ -72,7 +72,7 @@ export default function PwaInstallPrompt() {
     }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
         <h4 style={{ margin: 0, fontSize: '1rem', display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <Download size={18} /> Instale o Vytal App
+          <Download size={18} /> Instale o Nutrivvo App
         </h4>
         <button onClick={() => setShowBanner(false)} style={{ background: 'none', border: 'none', color: 'rgba(255,255,255,0.7)', cursor: 'pointer' }}>
           <X size={20} />

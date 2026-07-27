@@ -80,8 +80,8 @@ export default defineConfig(({ mode }) => {
       },
       manifest: {
         id: '/',
-        name: 'Vytal',
-        short_name: 'Vytal',
+        name: 'Nutrivvo',
+        short_name: 'Nutrivvo',
         description: 'Plataforma de Nutrição Inteligente',
         theme_color: '#3949AB',
         background_color: '#f8fafc',

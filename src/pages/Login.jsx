@@ -66,7 +66,7 @@ export default function Login() {
   return (
     <div style={{ display: 'flex', height: '100vh', justifyContent: 'center', alignItems: 'center', backgroundColor: '#f8fafc' }}>
       <div style={{ width: '400px', padding: '40px', backgroundColor: 'white', borderRadius: '8px', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}>
-        <h1 style={{ fontSize: '1.8rem', fontWeight: 'bold', marginBottom: '8px', textAlign: 'center', color: '#0f172a' }}>Vytal</h1>
+        <h1 style={{ fontSize: '1.8rem', fontWeight: 'bold', marginBottom: '8px', textAlign: 'center', color: '#0f172a' }}>Nutrivvo</h1>
         <p style={{ textAlign: 'center', color: '#64748b', marginBottom: '32px' }}>Faça login para acessar sua conta</p>
         
         {errorMsg && (

@@ -9,7 +9,7 @@ export default function ShareableMilestone({ onClose }) {
     if (navigator.share) {
       try {
         await navigator.share({
-          title: 'Vytal App - Dia Perfeito!',
+          title: 'Nutrivvo App - Dia Perfeito!',
           text: 'Mais um dia de Alta Performance concluído 100% no meu projeto nutricional! 🚀🍏',
         });
       } catch {
