@@ -62,6 +62,18 @@ export default function QuestBoard({ activePatient }) {
 
   const selectedDateFormatted = selectedDateObj.toLocaleDateString('pt-BR');
 
+  // Sem isso, arrastar o dedo sobre o modal de sono (fixed) rola a página por
+  // trás no mobile — ao fechar o modal a tela fica numa posição diferente de
+  // onde estava, parecendo um bug para o paciente.
+  useEffect(() => {
+    if (!showSleepModal) return;
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    return () => {
+      document.body.style.overflow = previousOverflow;
+    };
+  }, [showSleepModal]);
+
   const currentRecipe = activePatient?.recipes?.length > 0 ? activePatient.recipes[activePatient.recipes.length - 1] : null;
 
   let filteredMeals = currentRecipe ? currentRecipe.meals : [];
