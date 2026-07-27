@@ -397,7 +397,7 @@ export default function DietPlan({ activePatient }) {
                             </div>
 
                             <div style={{ marginTop: '12px', display: 'flex', gap: '8px', justifyContent: 'flex-end', borderTop: '1px solid rgba(139,92,246,0.3)', paddingTop: '12px' }}>
-                              <button onClick={() => handleGenerateRecipe(m, mIdx)} disabled={isRecipeLoading} className="btn-3d btn-secondary" style={{ padding: '7px 14px', fontSize: '0.8rem', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                              <button onClick={() => handleGenerateRecipe(m, mIdx, r.title)} disabled={isRecipeLoading} className="btn-3d btn-secondary" style={{ padding: '7px 14px', fontSize: '0.8rem', display: 'flex', alignItems: 'center', gap: '4px' }}>
                                 <RefreshCw size={13} /> Regerar
                               </button>
                               <button onClick={() => toggleFlip(mIdx)} className="btn-3d btn-primary" style={{ padding: '7px 14px', fontSize: '0.8rem' }}>

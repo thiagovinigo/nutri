@@ -99,6 +99,9 @@ export default function ConsultationFlow({
   const [selectedExamFiles, setSelectedExamFiles] = useState([]);
   const [prescriptionTab, setPrescriptionTab] = useState('cardapio');
 
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- tmb/get/bodyFat/massaGorda/massaMagra/setPhysicalEval
+  // são as SAÍDAS calculadas por este efeito; incluí-las nas deps criaria um ciclo autorreferente.
+  // Só entram como deps os campos de ENTRADA do cálculo (peso, altura, dobras, etc. — ver array abaixo).
   useEffect(() => {
     if (physicalEval) {
       const weight = parseFloat(physicalEval.weight);

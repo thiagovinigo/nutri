@@ -18,9 +18,12 @@ service cloud.firestore {
       allow create: if request.auth != null
         && request.resource.data.nutricionista_id == request.auth.uid;
 
-      // Paciente novo pode ler e deletar o documento temporário gerado pelo nutri (ID atua como token)
+      // Paciente novo pode ler o documento temporário gerado pelo nutri antes de ter conta (ID atua como token de convite)
       allow read: if resource.data.status == 'inativo';
-      allow delete: if request.auth != null 
+      // Só o próprio paciente reivindicando o convite (uid == patientId) pode apagar o placeholder,
+      // nunca outro usuário autenticado qualquer
+      allow delete: if request.auth != null
+        && request.auth.uid == patientId
         && resource.data.status == 'inativo';
     }
 

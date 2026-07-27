@@ -5,6 +5,39 @@ import ShareableMilestone from './ShareableMilestone';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 
+// Fotos de câmera podem chegar com vários MB; a Vercel rejeita (413) requisições
+// acima de ~4.5MB antes mesmo de chegar na função serverless. Reduzimos a imagem
+// no navegador antes de enviar para a IA, evitando o estouro do limite.
+const MAX_PHOTO_DIMENSION = 1280;
+const PHOTO_JPEG_QUALITY = 0.75;
+
+function compressImageFile(file, maxDimension = MAX_PHOTO_DIMENSION, quality = PHOTO_JPEG_QUALITY) {
+  return new Promise((resolve, reject) => {
+    const img = new window.Image();
+    const objectUrl = URL.createObjectURL(file);
+    img.onload = () => {
+      URL.revokeObjectURL(objectUrl);
+      let { width, height } = img;
+      if (width > maxDimension || height > maxDimension) {
+        const scale = maxDimension / Math.max(width, height);
+        width = Math.round(width * scale);
+        height = Math.round(height * scale);
+      }
+      const canvas = document.createElement('canvas');
+      canvas.width = width;
+      canvas.height = height;
+      const ctx = canvas.getContext('2d');
+      ctx.drawImage(img, 0, 0, width, height);
+      resolve(canvas.toDataURL('image/jpeg', quality));
+    };
+    img.onerror = () => {
+      URL.revokeObjectURL(objectUrl);
+      reject(new Error('Não foi possível processar essa foto.'));
+    };
+    img.src = objectUrl;
+  });
+}
+
 export default function QuestBoard({ activePatient }) {
   const { completeQuest, markMealDone, addExtraMealLog, updateWater, addSleepLog, updatePatient } = useAppContext();
   
@@ -177,56 +210,58 @@ export default function QuestBoard({ activePatient }) {
     setPreviewImage(URL.createObjectURL(file));
 
     try {
-      const reader = new FileReader();
-      reader.onload = async () => {
-        const base64Image = reader.result;
-        try {
-          let promptText = '';
-          if (activeMealIndex === 'extra') {
-             promptText = `Você é um assistente inteligente de diário alimentar. O usuário enviou uma foto de uma refeição livre. Use formatação Markdown. 1) Liste os alimentos que você vê na imagem, já incluindo ao lado de cada um a estimativa de peso EM GRAMAS (obrigatório). 2) Dê uma mensagem amigável e motivadora (max 3 frases).`;
-          } else {
-             const mealTarget = currentRecipe.meals[activeMealIndex];
-             promptText = `Você é um assistente inteligente de diário alimentar. O usuário deveria comer: "${mealTarget.desc}". Use formatação Markdown. 1) Liste os alimentos reais que você vê na foto, já incluindo ao lado de cada um a estimativa de peso EM GRAMAS (obrigatório). 2) Diga amigavelmente se parece estar dentro do planejado (max 3 frases).`;
-          }
+      const base64Image = await compressImageFile(file);
 
-          const response = await fetch('/api/openai-bridge', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              system_prompt: 'Você é um assistente virtual amigável ajudando um usuário a registrar seu diário alimentar. Aja de forma leve e motivadora.',
-              messages: [{ role: 'user', content: [{ type: 'text', text: promptText }, { type: 'image_url', image_url: { url: base64Image } }] }]
-            })
-          });
-          if (!response.ok) {
-            const errData = await response.json();
-            console.error("OpenAI Error:", errData);
-            throw new Error(errData.error?.message || 'Erro na rede ou na API.');
-          }
-          const data = await response.json();
-          const aiFeedback = data.choices[0].message.content;
-          if (activeMealIndex === 'extra') {
-            addExtraMealLog(activePatient.id, aiFeedback, selectedExtraMealName, selectedDateFormatted);
-            completeQuest(activePatient.id, 5); 
-          } else {
-            const mealName = currentRecipe.meals[activeMealIndex]?.name || 'Refeição';
-            markMealDone(activePatient.id, activePatient.recipes.length - 1, activeMealIndex, aiFeedback, mealName, selectedDateFormatted);
-            completeQuest(activePatient.id, 20); 
-          }
-          setPreviewImage(null);
-          setActiveMealIndex(null);
-        } catch (apiError) {
-          const errMsg = apiError.message || 'Não consegui analisar essa foto agora. Tente novamente em instantes.';
-          setAnalysisError(errMsg);
-          alert("ERRO NA IA: " + errMsg);
-          setPreviewImage(null);
-        } finally {
-          setAnalyzing(false);
+      let promptText = '';
+      if (activeMealIndex === 'extra') {
+         promptText = `Você é um assistente inteligente de diário alimentar. O usuário enviou uma foto de uma refeição livre. Use formatação Markdown. 1) Liste os alimentos que você vê na imagem, já incluindo ao lado de cada um a estimativa de peso EM GRAMAS (obrigatório). 2) Dê uma mensagem amigável e motivadora (max 3 frases).`;
+      } else {
+         const mealTarget = currentRecipe.meals[activeMealIndex];
+         promptText = `Você é um assistente inteligente de diário alimentar. O usuário deveria comer: "${mealTarget.desc}". Use formatação Markdown. 1) Liste os alimentos reais que você vê na foto, já incluindo ao lado de cada um a estimativa de peso EM GRAMAS (obrigatório). 2) Diga amigavelmente se parece estar dentro do planejado (max 3 frases).`;
+      }
+
+      const response = await fetch('/api/openai-bridge', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          system_prompt: 'Você é um assistente virtual amigável ajudando um usuário a registrar seu diário alimentar. Aja de forma leve e motivadora.',
+          messages: [{ role: 'user', content: [{ type: 'text', text: promptText }, { type: 'image_url', image_url: { url: base64Image } }] }]
+        })
+      });
+      if (!response.ok) {
+        // A resposta de erro nem sempre é JSON (ex: a Vercel retorna texto puro
+        // "Request Entity Too Large" em 413, antes mesmo de chegar na função).
+        const rawErrText = await response.text();
+        let errMsg = response.status === 413
+          ? 'Essa foto é grande demais para a IA processar. Tente tirar outra foto ou escolher uma com resolução menor.'
+          : 'Erro na rede ou na API.';
+        try {
+          const errData = JSON.parse(rawErrText);
+          errMsg = errData.error?.message || errMsg;
+        } catch {
+          // corpo não era JSON — mantém a mensagem amigável já definida acima
         }
-      };
-      reader.readAsDataURL(file);
-    } catch (error) {
-      setAnalysisError('Não consegui processar essa foto. Tente novamente.');
+        console.error("OpenAI Error:", rawErrText);
+        throw new Error(errMsg);
+      }
+      const data = await response.json();
+      const aiFeedback = data.choices[0].message.content;
+      if (activeMealIndex === 'extra') {
+        addExtraMealLog(activePatient.id, aiFeedback, selectedExtraMealName, selectedDateFormatted);
+        completeQuest(activePatient.id, 5);
+      } else {
+        const mealName = currentRecipe.meals[activeMealIndex]?.name || 'Refeição';
+        markMealDone(activePatient.id, activePatient.recipes.length - 1, activeMealIndex, aiFeedback, mealName, selectedDateFormatted);
+        completeQuest(activePatient.id, 20);
+      }
       setPreviewImage(null);
+      setActiveMealIndex(null);
+    } catch (apiError) {
+      const errMsg = apiError.message || 'Não consegui analisar essa foto agora. Tente novamente em instantes.';
+      setAnalysisError(errMsg);
+      alert("ERRO NA IA: " + errMsg);
+      setPreviewImage(null);
+    } finally {
       setAnalyzing(false);
     }
   };

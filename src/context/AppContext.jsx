@@ -1,4 +1,4 @@
-import React, { createContext, useState, useContext, useEffect } from 'react';
+import React, { createContext, useState, useContext, useEffect, useCallback } from 'react';
 import { auth, db } from '../services/firebase';
 import { onAuthStateChanged } from 'firebase/auth';
 import { collection, doc, getDoc, getDocs, addDoc, updateDoc, deleteDoc, query, where } from 'firebase/firestore';
@@ -71,7 +71,7 @@ export function AppProvider({ children }) {
       fetchDietTemplates();
       fetchRecipes();
     }
-  }, [profile]);
+  }, [profile, fetchPatients, fetchAppointments, fetchDietTemplates, fetchRecipes]);
 
   const bypassLoginAsPatient = (patient) => {
     setSession({ uid: patient.id });
@@ -95,7 +95,7 @@ export function AppProvider({ children }) {
         setProfile({ id: userId, role: 'incomplete_patient' });
       }
     } catch(e) {
-      console.log('Erro ao buscar perfil:', e);
+      console.error('Erro ao buscar perfil:', e);
     }
   };
 
@@ -112,7 +112,7 @@ export function AppProvider({ children }) {
     }
   };
 
-  const fetchPatients = async () => {
+  const fetchPatients = useCallback(async () => {
     try {
       if (profile.role === 'paciente') {
         const docRef = doc(db, 'patients', profile.id);
@@ -145,9 +145,9 @@ export function AppProvider({ children }) {
     } catch(e) {
       console.error("Erro ao buscar pacientes:", e);
     }
-  };
+  }, [profile]);
 
-  const fetchAppointments = async () => {
+  const fetchAppointments = useCallback(async () => {
     try {
       const q = query(collection(db, 'appointments'), where('nutricionista_id', '==', profile.id));
       const querySnapshot = await getDocs(q);
@@ -156,9 +156,9 @@ export function AppProvider({ children }) {
     } catch(e) {
       console.error("Erro ao buscar agenda:", e);
     }
-  };
+  }, [profile]);
 
-  const fetchDietTemplates = async () => {
+  const fetchDietTemplates = useCallback(async () => {
     try {
       const q = query(collection(db, 'dietTemplates'), where('nutricionista_id', '==', profile.id));
       const querySnapshot = await getDocs(q);
@@ -167,9 +167,9 @@ export function AppProvider({ children }) {
     } catch(e) {
       console.error("Erro ao buscar modelos de dieta:", e);
     }
-  };
+  }, [profile]);
 
-  const fetchRecipes = async () => {
+  const fetchRecipes = useCallback(async () => {
     try {
       const q = query(collection(db, 'recipes'), where('nutricionista_id', '==', profile.id));
       const querySnapshot = await getDocs(q);
@@ -178,7 +178,7 @@ export function AppProvider({ children }) {
     } catch(e) {
       console.error("Erro ao buscar receitas:", e);
     }
-  };
+  }, [profile]);
 
   // CRUD Pacientes — sempre atualiza o estado local; só tenta sincronizar
   // com o Firestore quando o Firebase está configurado. Se a chamada ao

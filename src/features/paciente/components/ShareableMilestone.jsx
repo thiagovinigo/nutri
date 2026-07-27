@@ -12,8 +12,8 @@ export default function ShareableMilestone({ onClose }) {
           title: 'Vytal App - Dia Perfeito!',
           text: 'Mais um dia de Alta Performance concluído 100% no meu projeto nutricional! 🚀🍏',
         });
-      } catch (err) {
-        console.log('Cancelado ou erro no share', err);
+      } catch {
+        // Usuário cancelou o compartilhamento nativo — não é um erro
       }
     } else {
       alert("Print a tela e poste no Instagram marcando seu Nutri! 📸");
