@@ -54,64 +54,10 @@ export function AppProvider({ children }) {
     }
   };
 
-  useEffect(() => {
-    if (!auth) return;
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
-      setSession(user);
-      if (user) fetchProfile(user.uid);
-      else setProfile(null);
-    });
-    return () => unsubscribe();
-  }, []);
-
-  useEffect(() => {
-    if (profile && !profile.isBypass) {
-      fetchPatients();
-      fetchAppointments();
-      fetchDietTemplates();
-      fetchRecipes();
-    }
-  }, [profile, fetchPatients, fetchAppointments, fetchDietTemplates, fetchRecipes]);
-
-  const bypassLoginAsPatient = (patient) => {
-    setSession({ uid: patient.id });
-    setProfile({ id: patient.id, role: 'paciente', isBypass: true });
-    setPatients([patient]);
-    setActivePatientId(patient.id);
-  };
-
-  const fetchProfile = async (userId) => {
-    try {
-      const docRef = doc(db, 'users', userId);
-      const docSnap = await getDoc(docRef);
-      if (docSnap.exists()) {
-        const data = docSnap.data();
-        setProfile({ id: docSnap.id, ...data });
-        if (data.clinicConfig) {
-          setClinicConfig(data.clinicConfig);
-        }
-      } else {
-        // Fallback for incomplete registration (Auth exists but no Firestore doc)
-        setProfile({ id: userId, role: 'incomplete_patient' });
-      }
-    } catch(e) {
-      console.error('Erro ao buscar perfil:', e);
-    }
-  };
-
-  const updateProfile = async (updates) => {
-    if (!profile?.id) return;
-    try {
-      setProfile(prev => ({ ...prev, ...updates }));
-      if (!isFirebaseConfigured) return;
-      const { doc, updateDoc } = await import('firebase/firestore');
-      const { db } = await import('../services/firebase');
-      await updateDoc(doc(db, 'users', profile.id), updates);
-    } catch (e) {
-      console.error('Erro ao atualizar perfil:', e);
-    }
-  };
-
+  // Declaradas antes dos useEffect abaixo: o array de dependências de um
+  // useEffect é avaliado de forma síncrona no momento da chamada, então
+  // referenciar uma const ainda não inicializada aqui causa
+  // "Cannot access 'X' before initialization" em produção (build minificado).
   const fetchPatients = useCallback(async () => {
     try {
       if (profile.role === 'paciente') {
@@ -179,6 +125,64 @@ export function AppProvider({ children }) {
       console.error("Erro ao buscar receitas:", e);
     }
   }, [profile]);
+
+  useEffect(() => {
+    if (!auth) return;
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      setSession(user);
+      if (user) fetchProfile(user.uid);
+      else setProfile(null);
+    });
+    return () => unsubscribe();
+  }, []);
+
+  useEffect(() => {
+    if (profile && !profile.isBypass) {
+      fetchPatients();
+      fetchAppointments();
+      fetchDietTemplates();
+      fetchRecipes();
+    }
+  }, [profile, fetchPatients, fetchAppointments, fetchDietTemplates, fetchRecipes]);
+
+  const bypassLoginAsPatient = (patient) => {
+    setSession({ uid: patient.id });
+    setProfile({ id: patient.id, role: 'paciente', isBypass: true });
+    setPatients([patient]);
+    setActivePatientId(patient.id);
+  };
+
+  const fetchProfile = async (userId) => {
+    try {
+      const docRef = doc(db, 'users', userId);
+      const docSnap = await getDoc(docRef);
+      if (docSnap.exists()) {
+        const data = docSnap.data();
+        setProfile({ id: docSnap.id, ...data });
+        if (data.clinicConfig) {
+          setClinicConfig(data.clinicConfig);
+        }
+      } else {
+        // Fallback for incomplete registration (Auth exists but no Firestore doc)
+        setProfile({ id: userId, role: 'incomplete_patient' });
+      }
+    } catch(e) {
+      console.error('Erro ao buscar perfil:', e);
+    }
+  };
+
+  const updateProfile = async (updates) => {
+    if (!profile?.id) return;
+    try {
+      setProfile(prev => ({ ...prev, ...updates }));
+      if (!isFirebaseConfigured) return;
+      const { doc, updateDoc } = await import('firebase/firestore');
+      const { db } = await import('../services/firebase');
+      await updateDoc(doc(db, 'users', profile.id), updates);
+    } catch (e) {
+      console.error('Erro ao atualizar perfil:', e);
+    }
+  };
 
   // CRUD Pacientes — sempre atualiza o estado local; só tenta sincronizar
   // com o Firestore quando o Firebase está configurado. Se a chamada ao
