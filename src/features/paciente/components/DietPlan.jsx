@@ -5,6 +5,7 @@ import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import tacoData from '../../../data/taco.json';
 import { useAppContext } from '../../../context/AppContext';
+import { callOpenAIBridge } from '../../../utils/openaiBridge';
 
 export default function DietPlan({ activePatient }) {
   const { updatePatient } = useAppContext();
@@ -45,17 +46,10 @@ export default function DietPlan({ activePatient }) {
       - Retorne em formato Markdown (## Nome da Receita, ### Ingredientes, ### Modo de Preparo).
       - Mantenha a resposta super focada na praticidade para o dia a dia.`;
 
-      const response = await fetch('/api/openai-bridge', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          system_prompt: "Você é um assistente culinário focado em dietas de alta performance.",
-          messages: [{ role: 'user', content: prompt }]
-        })
+      const data = await callOpenAIBridge({
+        system_prompt: "Você é um assistente culinário focado em dietas de alta performance.",
+        messages: [{ role: 'user', content: prompt }]
       });
-
-      if (!response.ok) throw new Error('Network error');
-      const data = await response.json();
       const content = data.choices[0].message.content;
       
       // Salva no banco de dados do paciente para não perder ao trocar de aba
@@ -65,8 +59,8 @@ export default function DietPlan({ activePatient }) {
       updatePatient(activePatient.id, { aiRecipes: newAiRecipes });
       
     } catch (err) {
-      // Se der erro, salva a mensagem de erro (ou não salva nada, só mostra um alert)
-      alert('Infelizmente não foi possível gerar a receita no momento. Verifique sua conexão e tente novamente.');
+      console.error('Erro ao gerar receita com IA:', err);
+      alert(err.message || 'Infelizmente não foi possível gerar a receita no momento. Verifique sua conexão e tente novamente.');
       setFlippedCards(prev => ({ ...prev, [mIdx]: false }));
     } finally {
       setIsRecipeLoading(false);

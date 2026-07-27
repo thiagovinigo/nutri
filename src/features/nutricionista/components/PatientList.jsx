@@ -3,6 +3,7 @@ import { Users, Calendar, PlayCircle, Trash2, Plus, Eye, Edit3, TrendingUp, Uten
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, Legend, ResponsiveContainer } from 'recharts';
 import { useNavigate } from 'react-router-dom';
 import { useAppContext } from '../../../context/AppContext';
+import { callOpenAIBridge } from '../../../utils/openaiBridge';
 import WeeklyCalendar from './WeeklyCalendar';
 import FinancialCRM from './FinancialCRM';
 import ReactMarkdown from 'react-markdown';
@@ -1500,17 +1501,11 @@ export default function PatientList({
                   <button className="crm-btn-secondary" style={{ display: 'flex', alignItems: 'center', gap: '8px' }} onClick={async () => {
                     setIsGeneratingRecipe(true);
                     try {
-                      const response = await fetch('/api/openai-bridge', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({
-                          system_prompt: "Você é um chef e nutricionista de alta gastronomia saudável. Retorne APENAS um JSON válido com o seguinte formato: { \"title\": \"Nome da Receita\", \"description\": \"Descrição\", \"ingredients\": [\"Ingrediente 1\", \"Ingrediente 2\"], \"instructions\": \"Passo a passo\" }",
-                          messages: [{ role: "user", content: "Crie uma receita saudável, rápida e inovadora." }],
-                          format_json: true
-                        })
+                      const data = await callOpenAIBridge({
+                        system_prompt: "Você é um chef e nutricionista de alta gastronomia saudável. Retorne APENAS um JSON válido com o seguinte formato: { \"title\": \"Nome da Receita\", \"description\": \"Descrição\", \"ingredients\": [\"Ingrediente 1\", \"Ingrediente 2\"], \"instructions\": \"Passo a passo\" }",
+                        messages: [{ role: "user", content: "Crie uma receita saudável, rápida e inovadora." }],
+                        format_json: true
                       });
-                      if (!response.ok) throw new Error("Erro na API.");
-                      const data = await response.json();
                       const parsed = JSON.parse(data.choices[0].message.content);
                       setRecipeTitle(parsed.title || '');
                       setRecipeDescription(parsed.description || '');

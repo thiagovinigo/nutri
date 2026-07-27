@@ -11,6 +11,7 @@ import ChatBot from '../components/ChatBot';
 import Profile from '../components/Profile';
 import PwaInstallPrompt from '../components/PwaInstallPrompt';
 import { getFirebaseErrorMessage } from '../../../utils/firebaseErrors';
+import { callOpenAIBridge } from '../../../utils/openaiBridge';
 
 export default function PatientApp() {
   const { patients, activePatientId, setActivePatientId, markNotificationsRead, session, profile, setBypassPatient, fetchProfile, updatePatient } = useAppContext();
@@ -132,15 +133,10 @@ export default function PatientApp() {
       const waterIntake = activePatient.waterGlasses ? (activePatient.waterGlasses * 250) + ' ml' : 'Nenhuma água registrada hoje';
       const systemPrompt = `Você é a Vytal Bot, assistente clínica da Vytal. Perfil: Médica nutricionista, técnica e baseada em evidências. Objetivo: Tirar dúvidas sobre o plano alimentar e evolução. DADOS: Nome: ${activePatient.name}. Objetivo: ${activePatient.objective}. Restrições: ${activePatient.restrictions || 'Nenhuma'}. BIOMETRIA ATUAL -> Peso: ${lastWeight}. Ingestão de Água hoje: ${waterIntake}. PLANO ATUAL: ${dietContext}. Responda de forma concisa e em pt-BR.`;
 
-      const response = await fetch('/api/openai-bridge', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ system_prompt: systemPrompt, messages: newHistory })
-      });
-      if (!response.ok) throw new Error('Erro na rede ou na API.');
-      const data = await response.json();
+      const data = await callOpenAIBridge({ system_prompt: systemPrompt, messages: newHistory });
       setChatHistory([...newHistory, { role: 'assistant', content: data.choices[0].message.content }]);
     } catch (error) {
+      console.error('Erro no chat da IA:', error);
       setChatHistory([...newHistory, { role: 'assistant', content: "Erro de conexão clínica. Tente mais tarde." }]);
     } finally {
       setIsChatLoading(false);

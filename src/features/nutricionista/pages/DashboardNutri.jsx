@@ -4,6 +4,7 @@ import ConsultationFlow from '../components/ConsultationFlow';
 import PatientList from '../components/PatientList';
 import { extractTextFromPDF } from '../../../services/pdfService';
 import tacoData from '../../../data/taco.json';
+import { callOpenAIBridge } from '../../../utils/openaiBridge';
 
 export default function DashboardNutri() {
   const { 
@@ -261,11 +262,8 @@ export default function DashboardNutri() {
         }
       }
 
-      const response = await fetch('/api/openai-bridge', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          system_prompt: `Você é um motor de IA clínica estilo MedHub focado em nutrição funcional. 
+      const data = await callOpenAIBridge({
+          system_prompt: `Você é um motor de IA clínica estilo MedHub focado em nutrição funcional.
 Analise TODOS os resultados laboratoriais e de imagem anexados com detalhamento completo. 
 Retorne o resultado OBRIGATORIAMENTE em texto formatado em Markdown, sem texto de introdução ou conclusão.
 Use EXATAMENTE as seções com headers ## conforme mostrado abaixo (você deve usar esses exatos títulos):
@@ -293,10 +291,7 @@ Você atua como um comitê clínico de alta performance onde o Nutricionista é 
 ## 5. Referências Clínicas
 Cite as fontes científicas, guidelines atualizados (como Diretrizes da SBC, SBD, ASPEN, ESPEN, ou artigos pubmed relevantes) que basearam as análises e intervenções sugeridas acima. Cite pelo menos 2 referências.`,
           messages: [{ role: "user", content: contentArray }]
-        })
       });
-      if (!response.ok) throw new Error("Erro na rede ou na API.");
-      const data = await response.json();
       const rawResult = data.choices[0].message.content;
       setExamResult(rawResult);
       setExamUploaded(true);
@@ -349,17 +344,11 @@ Exemplo de formato:
         ? `Você é um Nutricionista Clínico de alta performance. Crie um plano alimentar para ${dietDuration} dias (EXATAMENTE 6 refeições por dia). É MANDATÓRIO GERAR TODOS OS ${dietDuration} DIAS, NÃO PARE A GERAÇÃO ANTES DO FIM. SE VOCÊ GERAR MENOS DO QUE ${dietDuration} DIAS VOCÊ FALHARÁ NA SUA MISSÃO. Como são múltiplos dias, o 'name' da refeição DEVE incluir o dia, ex: "Dia 1 - Café da Manhã".\n\n${formatInstruction}`
         : `Você é um Nutricionista Clínico de alta performance. Crie um plano alimentar para 1 dia. Crie EXATAMENTE 6 refeições.\n\n${formatInstruction}`;
 
-      const response = await fetch('/api/openai-bridge', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
+      const data = await callOpenAIBridge({
           system_prompt: systemPrompt,
           messages: [{ role: "user", content: `Crie um cardápio considerando este contexto clínico:\n\n${promptContext}` }],
           format_json: true
-        })
       });
-      if (!response.ok) throw new Error("Erro na rede ou na API.");
-      const data = await response.json();
       const parsed = JSON.parse(data.choices[0].message.content);
       
       if (!dietTitle) {
@@ -463,17 +452,11 @@ Cada objeto em 'days' deve ter:
 
 Não inclua textos fora do JSON. Apenas o JSON puro.`;
 
-      const response = await fetch('/api/openai-bridge', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
+      const data = await callOpenAIBridge({
           system_prompt: systemPrompt,
           messages: [{ role: "user", content: `Crie a ficha de treino para:\n\n${promptContext}` }],
           format_json: true
-        })
       });
-      if (!response.ok) throw new Error("Erro na rede ou na API.");
-      const data = await response.json();
       const parsed = JSON.parse(data.choices[0].message.content);
       
       setWorkoutPlan(parsed);
@@ -517,17 +500,11 @@ Não inclua textos fora do JSON. Apenas o JSON puro.`;
         ? "Você é um consultor clínico e comportamental sênior de nutrição. Dê uma SÍNTESE CLÍNICA INTELIGENTE em 2 ou 3 parágrafos curtos e focados:\n1) Resumo do comportamento recente (ingestão de água, qualidade do sono, adesão às refeições).\n2) Integração com Cohorts: Avalie o risco de abandono (Se o paciente está em risco ou perdendo foco, justifique cruzando os dados de queda de engajamento, falha de sono ou água).\n3) Conduta e foco para a próxima consulta.\nSeja extremamente analítico, direto e entregue o diagnóstico mastigado."
         : "Você é um consultor clínico e comportamental sênior de nutrição. Este é o PRIMEIRO contato com o paciente. Faça uma análise inicial com base nos dados fornecidos (incluindo sono e água iniciais, se houver). Se o status no Cohort indicar risco de abandono precoce, destaque os possíveis motivos e recomende uma ação imediata de engajamento. NÃO invente evolução.";
 
-      const response = await fetch('/api/openai-bridge', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
+      const data = await callOpenAIBridge({
           system_prompt: sysPrompt,
           messages: [{ role: "user", content: `Analise os dados deste paciente e gere a síntese clínica:\n${patientDataString}` }],
           format_json: false
-        })
       });
-      if (!response.ok) throw new Error("Erro na rede ou na API.");
-      const data = await response.json();
       setSynthesisResult(data.choices[0].message.content);
     } catch (error) {
       setSynthesisError(error.message || 'Erro ao gerar síntese da IA.');
