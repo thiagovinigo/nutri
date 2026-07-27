@@ -83,7 +83,8 @@ export default function ConsultationFlow({
   dietDuration, setDietDuration,
   dietMeals, setDietMeals,
   workoutPlan, setWorkoutPlan,
-  isGenerating,
+  isGeneratingDiet,
+  isGeneratingWorkout,
   analyzeExamWithAI,
   generateDietFromAI,
   generateWorkoutFromAI,
@@ -559,8 +560,8 @@ export default function ConsultationFlow({
                           <button className="crm-btn-primary" onClick={async () => {
                             await generateDietFromAI();
                             setPrescriptionTab('cardapio');
-                          }} disabled={isGenerating} style={{ flex: 1, backgroundColor: '#10B981', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '8px', padding: '12px' }}>
-                            <Sparkles size={16} color='var(--crm-surface)' /> {isGenerating ? 'Analisando...' : 'Sugerir com IA'}
+                          }} disabled={isGeneratingDiet} style={{ flex: 1, backgroundColor: '#10B981', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '8px', padding: '12px' }}>
+                            <Sparkles size={16} color='var(--crm-surface)' /> {isGeneratingDiet ? 'Analisando...' : 'Sugerir com IA'}
                           </button>
                         </div>
                         {examResult && (
@@ -691,8 +692,8 @@ export default function ConsultationFlow({
                     </p>
                     <button className="crm-btn-primary" onClick={async () => {
                       await generateWorkoutFromAI();
-                    }} disabled={isGenerating} style={{ width: '100%', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '8px', padding: '12px' }}>
-                      <Sparkles size={16} color='var(--crm-surface)' /> {isGenerating ? 'Gerando Treino...' : 'Gerar Ficha de Treino com IA'}
+                    }} disabled={isGeneratingWorkout} style={{ width: '100%', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '8px', padding: '12px' }}>
+                      <Sparkles size={16} color='var(--crm-surface)' /> {isGeneratingWorkout ? 'Gerando Treino...' : 'Gerar Ficha de Treino com IA'}
                     </button>
                   </div>
 

@@ -84,7 +84,8 @@ export default function DashboardNutri() {
   const [dietDuration, setDietDuration] = useState(1);
   const [dietMeals, setDietMeals] = useState([]);
   const [workoutPlan, setWorkoutPlan] = useState(null);
-  const [isGenerating, setIsGenerating] = useState(false);
+  const [isGeneratingDiet, setIsGeneratingDiet] = useState(false);
+  const [isGeneratingWorkout, setIsGeneratingWorkout] = useState(false);
 
   const [examError, setExamError] = useState('');
   const [dietError, setDietError] = useState('');
@@ -303,7 +304,7 @@ Cite as fontes científicas, guidelines atualizados (como Diretrizes da SBC, SBD
   };
 
   const generateDietFromAI = async () => {
-    setIsGenerating(true);
+    setIsGeneratingDiet(true);
     setDietError('');
     try {
       let promptContext = `Objetivo: ${activePatient.objective}. Restrições: ${activePatient.restrictions || 'Nenhuma'}. Idade: ${activePatient.age || 'Não informada'}. Sexo: ${activePatient.gender === 'M' ? 'Masculino' : 'Feminino'}.`;
@@ -327,10 +328,11 @@ Cite as fontes científicas, guidelines atualizados (como Diretrizes da SBC, SBD
       const miniTaco = tacoData.map(f => ({ id: f.id, name: f.name, kcal: f.kcal, carb: f.carb, ptn: f.protein, fat: f.fat }));
       promptContext += `\n\nBANCO DE DADOS DE ALIMENTOS PERMITIDOS (TACO - Valores por 100g):\n${JSON.stringify(miniTaco)}`;
 
-      const formatInstruction = `Você deve retornar EXATAMENTE UM JSON contendo um array chamado 'meals'. Cada item no array deve ter 'name' (Nome da Refeição), 'desc' (Instruções gerais e preparo) e um array 'foods'.
-No campo 'desc', você DEVE incluir:
-1) A frase curta com a sugestão ou objetivo da refeição (ex: "Iniciar o dia com uma refeição rica em proteínas e carboidratos complexos.").
-2) Duas quebras de linha (\\n\\n), seguidas pelo título "👨‍🍳 Sugestão de Preparo:" e um passo a passo completo e prático ensinando o paciente a preparar e combinar os alimentos dessa refeição.
+      const formatInstruction = `Você deve retornar EXATAMENTE UM JSON contendo um array chamado 'meals'. Cada item no array deve ter 'name' (Nome da Refeição, ex: "Almoço"), 'desc' (a receita completa) e um array 'foods'.
+Você é também um Chef de cozinha saudável: o campo 'desc' deve ler como uma RECEITA de verdade, gostosa e convidativa — nunca uma lista fria de instruções técnicas. No campo 'desc', você DEVE incluir, nesta ordem:
+1) Um nome apetitoso e criativo para o prato, com um emoji (ex: "🍳 Omelete Cremosa de Espinafre com Queijo"), não apenas o nome genérico dos alimentos.
+2) Uma frase curta e convidativa explicando por que esse prato é gostoso e como ele ajuda no objetivo do paciente (tom de chef que ama comida boa, não de relatório clínico).
+3) Duas quebras de linha (\\n\\n), seguidas pelo título "👨‍🍳 Modo de Preparo:" e um passo a passo saboroso — combine temperos, texturas, técnicas de preparo (grelhar, refogar, temperar) e dicas de sabor, usando APENAS os alimentos listados em 'foods' desta refeição.
 Para cada alimento em 'foods', você DEVE buscar um item correspondente no BANCO DE DADOS DE ALIMENTOS PERMITIDOS e retornar:
 - foodId: id do alimento no banco
 - name: nome exato do alimento no banco
@@ -338,7 +340,7 @@ Para cada alimento em 'foods', você DEVE buscar um item correspondente no BANCO
 - kcal, carb, protein, fat: os valores nutricionais multiplicados pela quantidade recomendada (se 100g tem 100kcal, 50g terá 50kcal) (number)
 
 Exemplo de formato:
-{ "meals": [ { "name": "Almoço", "desc": "Refeição equilibrada e rica em nutrientes.\\n\\n👨‍🍳 Sugestão de Preparo:\\n1. Tempere o frango com ervas e grelhe no azeite por 5 min de cada lado.\\n2. Sirva acompanhado do arroz e salada fresca crua.", "foods": [ { "foodId": "14", "name": "Frango, peito, sem pele, grelhado", "amount": 150, "kcal": 238.5, "carb": 0, "protein": 48, "fat": 3.75 } ] } ] }`;
+{ "meals": [ { "name": "Almoço", "desc": "🍗 Frango Grelhado ao Alecrim com Arroz Soltinho\\n\\nUm clássico reconfortante que combina uma proteína suculenta com um arroz levinho — perfeito para manter a energia sem pesar.\\n\\n👨‍🍳 Modo de Preparo:\\n1. Tempere o frango com alecrim, alho e uma pitada de sal, deixando descansar 10 min para pegar sabor.\\n2. Grelhe em fogo médio por 5-6 min de cada lado até dourar por fora e ficar suculento por dentro.\\n3. Sirva com o arroz soltinho e a salada fresca crua ao lado.", "foods": [ { "foodId": "14", "name": "Frango, peito, sem pele, grelhado", "amount": 150, "kcal": 238.5, "carb": 0, "protein": 48, "fat": 3.75 } ] } ] }`;
 
       const systemPrompt = dietDuration > 1 
         ? `Você é um Nutricionista Clínico de alta performance. Crie um plano alimentar para ${dietDuration} dias (EXATAMENTE 6 refeições por dia). É MANDATÓRIO GERAR TODOS OS ${dietDuration} DIAS, NÃO PARE A GERAÇÃO ANTES DO FIM. SE VOCÊ GERAR MENOS DO QUE ${dietDuration} DIAS VOCÊ FALHARÁ NA SUA MISSÃO. Como são múltiplos dias, o 'name' da refeição DEVE incluir o dia, ex: "Dia 1 - Café da Manhã".\n\n${formatInstruction}`
@@ -355,23 +357,18 @@ Exemplo de formato:
         setDietTitle(`Plano Personalizado - ${new Date().toLocaleDateString('pt-BR')}`);
       }
       
-      // Anexa as novas refeições ao final das existentes
-      setDietMeals(prev => {
-        const currentCount = prev.length;
-        const newMeals = parsed.meals || [];
-        // Se já existem refeições, podemos adicionar um prefixo para separar os dias,
-        // ou simplesmente anexar.
-        return [...prev, ...newMeals];
-      });
+      // Substitui o plano atual pelo recém-gerado (a duração escolhida já define
+      // o plano completo — gerar de novo não deve empilhar dias em cima do anterior)
+      setDietMeals(parsed.meals || []);
     } catch (error) {
       setDietError(error.message || 'Erro ao gerar dieta com IA.');
     } finally {
-      setIsGenerating(false);
+      setIsGeneratingDiet(false);
     }
   };
 
   const generateWorkoutFromAI = async () => {
-    setIsGenerating(true);
+    setIsGeneratingWorkout(true);
     setDietError('');
     try {
       let promptContext = `Objetivo: ${activePatient.objective}. Idade: ${activePatient.age || 'Não informada'}. Sexo: ${activePatient.gender === 'M' ? 'Masculino' : 'Feminino'}.`;
@@ -463,7 +460,7 @@ Não inclua textos fora do JSON. Apenas o JSON puro.`;
     } catch (error) {
       setDietError(error.message || 'Erro ao gerar treino com IA.');
     } finally {
-      setIsGenerating(false);
+      setIsGeneratingWorkout(false);
     }
   };
 
@@ -590,7 +587,8 @@ Não inclua textos fora do JSON. Apenas o JSON puro.`;
         dietDuration={dietDuration} setDietDuration={setDietDuration}
         dietMeals={dietMeals} setDietMeals={setDietMeals}
         workoutPlan={workoutPlan} setWorkoutPlan={setWorkoutPlan}
-        isGenerating={isGenerating}
+        isGeneratingDiet={isGeneratingDiet}
+        isGeneratingWorkout={isGeneratingWorkout}
         analyzeExamWithAI={analyzeExamWithAI}
         generateDietFromAI={generateDietFromAI}
         generateWorkoutFromAI={generateWorkoutFromAI}
