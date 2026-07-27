@@ -1,6 +1,6 @@
-# Vytal V2.0 — Master Product Strategy & Executable Roadmap
+# Nutrivvo V2.0 — Master Product Strategy & Executable Roadmap
 **Autor:** Antigravity (IA Co-Pilot & Product Lead)  
-**Metodologia:** Execução do ecossistema de 27 skills (`.agents/skills`) aplicada ao contexto real da plataforma Vytal.
+**Metodologia:** Execução do ecossistema de 27 skills (`.agents/skills`) aplicada ao contexto real da plataforma Nutrivvo.
 
 ---
 
@@ -10,7 +10,7 @@
 1. **Visão:** Ser o primeiro "Agente Ativo de Saúde" do mercado de nutrição, transformando softwares estáticos de consultório em assistentes comportamentais proativos 24/7.
 2. **Segmento-Alvo:** Nutricionistas clínicos, consultorias de emagrecimento esportivo e clínicas integrativas que atendem pacientes particulares em modelos de recorrência (plano semestral/anual ou mensalidade).
 3. **O Problema:** Softwares como Dietbox e Nutrium são arquivos digitais passivos. O paciente sai motivado da consulta, mas após 14 dias esquece de abrir o app, não bebe água, perde o foco e abandona o tratamento (churn > 50% no 3º mês).
-4. **A Solução (Vytal V2):** Um ecossistema híbrido onde o CRM gera inteligência preditiva (Cohorts de Risco) e uma IA Proativa vai até onde o paciente está (WhatsApp) para cobrar água, receber foto do prato e registrar XP sem fricção.
+4. **A Solução (Nutrivvo V2):** Um ecossistema híbrido onde o CRM gera inteligência preditiva (Cohorts de Risco) e uma IA Proativa vai até onde o paciente está (WhatsApp) para cobrar água, receber foto do prato e registrar XP sem fricção.
 5. **Diferenciação:**
    - *Para o Paciente:* Gamificação High-End (Dark Mode, XP, Milestones compartilháveis e PWA sem burocracia de lojas de app).
    - *Para o Nutricionista:* Síntese Clínica de IA mastigada antes da consulta e alertas preventivos de evasão.
@@ -28,7 +28,7 @@
   - **Input 3 (Resgate Clínico):** Tempo médio de resposta do Nutricionista no CRM ao receber um status vermelho de "Perdendo Foco" no painel de Cohorts.
 
 ### 1.3. OKR Cascade Trimestral (V2 Launch)
-- **Objetivo da Empresa (O1):** Tornar o Vytal a plataforma com a maior taxa de adesão clínica do Brasil.
+- **Objetivo da Empresa (O1):** Tornar o Nutrivvo a plataforma com a maior taxa de adesão clínica do Brasil.
   - *KR1:* Elevar a taxa média de retenção dos pacientes na 4ª semana de 35% (média do mercado) para 70%.
   - *KR2:* Atingir 15.000 fotos de refeição processadas e validadas por IA no trimestre.
 - **Objetivo de Produto & Engenharia (O2):** Zerar a fricção de engajamento do paciente na dieta.
@@ -41,17 +41,17 @@
 ## 2. Análise Competitiva & Posicionamento (`competitive-analysis`, `ideal-customer-profile`, `persona`)
 
 ### 2.1. Matriz de Concorrência
-| Concorrente | Ponto Forte | Ponto Fraco (Gaps de Mercado) | Oportunidade / Posicionamento Vytal |
+| Concorrente | Ponto Forte | Ponto Fraco (Gaps de Mercado) | Oportunidade / Posicionamento Nutrivvo |
 | :--- | :--- | :--- | :--- |
-| **Dietbox / WebDiet** | Tradição, banco enorme de alimentos e receitas normatizadas. | Apps genéricos, sem gamificação real, passivos (paciente tem que lembrar de entrar). | **Gamificação Viral + PWA Premium:** O Vytal transforma a dieta num jogo diário com recompensas visuais e milestones compartilháveis. |
-| **Nutrium** | Interface de consultório limpa e excelente marketing. | Focado em relatórios estáticos de PDF; zero inteligência preditiva ou alertas de evasão. | **Inteligência de Cohorts & Síntese:** O Vytal avisa o Nutri *antes* do paciente desistir, cruzando queda de sono/água com risco de abandono. |
+| **Dietbox / WebDiet** | Tradição, banco enorme de alimentos e receitas normatizadas. | Apps genéricos, sem gamificação real, passivos (paciente tem que lembrar de entrar). | **Gamificação Viral + PWA Premium:** O Nutrivvo transforma a dieta num jogo diário com recompensas visuais e milestones compartilháveis. |
+| **Nutrium** | Interface de consultório limpa e excelente marketing. | Focado em relatórios estáticos de PDF; zero inteligência preditiva ou alertas de evasão. | **Inteligência de Cohorts & Síntese:** O Nutrivvo avisa o Nutri *antes* do paciente desistir, cruzando queda de sono/água com risco de abandono. |
 | **MyFitnessPal / Noom** | Excelente contagem autônoma de calorias (B2C direto). | Desconectado do profissional de saúde; não serve para gestão clínica de consultório (B2B). | **CRM Híbrido B2B2C:** A precisão do app B2C conectada em tempo real ao prontuário do Nutricionista que prescreveu a conduta. |
 
 ### 2.2. Ideal Customer Profile (ICP - Nutricionista)
 - **Perfil:** Nutricionista Clínica ou Esportiva, idade entre 25 e 45 anos, com consultório particular (físico ou online) atendendo de 20 a 100 pacientes ativos por mês.
 - **Modelo de Cobrança:** Cobra entre R$ 250 e R$ 600 por consulta ou vende pacotes de acompanhamento trimestral/semestral.
 - **Dores Principais:** Perde 30% a 50% dos pacientes no 2º mês porque eles "desanimam" ou têm vergonha de voltar sem ter seguido a dieta. Perde horas extras montando PDFs de cardápio no fim de semana.
-- **Proposta de Valor Vytal:** O Vytal assume o papel de "cobrador simpático" e co-piloto entre as consultas, garantindo que o paciente chegue ao 3º mês engajado e gerando renovação de contrato.
+- **Proposta de Valor Nutrivvo:** O Nutrivvo assume o papel de "cobrador simpático" e co-piloto entre as consultas, garantindo que o paciente chegue ao 3º mês engajado e gerando renovação de contrato.
 
 ### 2.3. Persona de Produto (Paciente Gamificado)
 - **Nome & Perfil:** "Enize", 34 anos, arquiteta, rotina intensa, treina 3x na semana e quer emagrecer 6kg com saúde.
@@ -64,7 +64,7 @@
 
 ## 3. Descoberta & Jornada do Cliente (`discovery`, `customer-journey`, `opportunity-tree`)
 
-### 3.1. Mapa da Jornada do Paciente Vytal (7 Estágios)
+### 3.1. Mapa da Jornada do Paciente Nutrivvo (7 Estágios)
 ```mermaid
 graph TD
     A[1. Consciência: Recebe Link de Convite ?vincular=] --> B[2. Onboarding: Preenche dados no Cadastro Self-healing]
@@ -89,7 +89,7 @@ graph TD
 ## 4. Arquitetura Funcional & Especificação (`prd`, `user-stories`, `acceptance-criteria`, `hypothesis`)
 
 ### 4.1. PRD Enxuto — Módulo WhatsApp Proativo & IA Vision
-- **Objetivo:** Permitir que o Vytal interaja com o paciente no WhatsApp, enviando lembretes proativos e recebendo check-ins por foto validados por Inteligência Artificial (`gpt-4o-mini` Vision).
+- **Objetivo:** Permitir que o Nutrivvo interaja com o paciente no WhatsApp, enviando lembretes proativos e recebendo check-ins por foto validados por Inteligência Artificial (`gpt-4o-mini` Vision).
 - **User Stories (Formato Mike Cohn / INVEST):**
   - `US-01: Como paciente ativo, quero receber um lembrete no WhatsApp no horário da minha refeição principal, para que eu não esqueça de me alimentar corretamente.`
   - `US-02: Como paciente, quero responder o lembrete com a foto do meu prato, para que a IA avalie minha refeição e credite meu XP sem eu precisar abrir o aplicativo.`
@@ -98,14 +98,14 @@ graph TD
 ### 4.2. Critérios de Aceite (Gherkin)
 ```gherkin
 Feature: Check-in de Refeição Zero-Friction via WhatsApp
-  Scenario: Paciente envia foto de prato saudável e ganha XP no Vytal
-    Given que o paciente "Thiago" possui uma conta ativa no Vytal com telefone vinculado
+  Scenario: Paciente envia foto de prato saudável e ganha XP no Nutrivvo
+    Given que o paciente "Thiago" possui uma conta ativa no Nutrivvo com telefone vinculado
     And está no horário previsto para o "Almoço" na dieta prescrita
     When o sistema disparar a mensagem proativa no WhatsApp e Thiago responder com uma imagem de um prato com frango, arroz e salada
     Then o webhook do backend deve capturar a imagem e enviá-la ao endpoint serverless "/api/openai-bridge" com modelo Vision
     And a IA deve retornar status "saudável", pontuação de adesão "90%" e resumo nutricional
     And o banco Firestore deve ser atualizado somando "+20 XP" e incrementando o "streak" do paciente
-    And o bot do WhatsApp deve responder: "Excelente escolha, Thiago! 🥗 +20 XP creditados no seu Vytal!"
+    And o bot do WhatsApp deve responder: "Excelente escolha, Thiago! 🥗 +20 XP creditados no seu Nutrivvo!"
 ```
 
 ### 4.3. Matriz de Hipóteses & Pretotyping (`hypothesis`, `experiment-design`)
@@ -150,7 +150,7 @@ Para governança, suporte e controle financeiro da operação da V2, a arquitetu
 - **Controle Remoto de Modelos e Prompts:** Capacidade do Super-Admin chavear modelos da OpenAI em tempo real ou calibrar system prompts globais sem necessidade de novo deploy na Vercel.
 
 ### 5.5. Gestão Financeira & Planos do Consultório (`💰 CRM Financeiro do Nutri`)
-Para fechar com chave de ouro a autonomia do consultório e eliminar a necessidade de tabelas externas de Excel ou CRMs legados, o Vytal V2 incorpora o controle de faturamento do próprio Nutricionista:
+Para fechar com chave de ouro a autonomia do consultório e eliminar a necessidade de tabelas externas de Excel ou CRMs legados, o Nutrivvo V2 incorpora o controle de faturamento do próprio Nutricionista:
 - **Catálogo Customizado de Honorários:** Cadastro de preços de consultas avulsas, retornos e pacotes (ex: *Trimestral R$ 900*, *Semestral R$ 1.500*).
 - **Prontuário Financeiro:** Tracking de status de pagamento (Pago, Pendente, Atrasado) por paciente na própria interface.
 - **Inteligência Preditiva de Renovação:** O sistema cruza o vencimento de um plano com o status de adesão no Cohort, avisando o profissional o momento exato de oferecer a renovação de contrato para clientes com alta ofensiva.

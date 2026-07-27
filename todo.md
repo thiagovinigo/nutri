@@ -1,6 +1,6 @@
-# Roadmap do Produto Ã¢â‚¬â€� Vytal (VisÃƒÂ£o de PM)
+# Roadmap do Produto Ã¢â‚¬â€� Nutrivvo (VisÃƒÂ£o de PM)
 
-Este documento traduz os aprendizados das trilhas de Product Management (0Ã¢â€ â€™1 e 1Ã¢â€ â€™100) em um backlog acionÃƒÂ¡vel para o Vytal. NÃƒÂ³s jÃƒÂ¡ concluÃƒÂ­mos as Fases de Discovery e o protÃƒÂ³tipo inicial. Agora, focaremos nas prÃƒÂ³ximas fases dos frameworks de PM.
+Este documento traduz os aprendizados das trilhas de Product Management (0Ã¢â€ â€™1 e 1Ã¢â€ â€™100) em um backlog acionÃƒÂ¡vel para o Nutrivvo. NÃƒÂ³s jÃƒÂ¡ concluÃƒÂ­mos as Fases de Discovery e o protÃƒÂ³tipo inicial. Agora, focaremos nas prÃƒÂ³ximas fases dos frameworks de PM.
 
 > **Nota (14/07/2026):** uma auditoria de produto encontrou vÃƒÂ¡rios itens abaixo marcados `[x]` que nÃƒÂ£o correspondiam ao estado real do cÃƒÂ³digo (existiam sÃƒÂ³ como mock/decorativo). Foram desmarcados e detalhados em `spec.md`. Tratar esta lista como o estado real, nÃƒÂ£o aspiracional.
 
@@ -10,7 +10,7 @@ Este documento traduz os aprendizados das trilhas de Product Management (0Ã¢â
 *Objetivo: Substituir as gambiarras do protÃƒÂ³tipo (mocks/dados na memÃƒÂ³ria) por uma infraestrutura viÃƒÂ¡vel para o mundo real, garantindo que o "walking skeleton" suporte usuÃƒÂ¡rios de verdade.*
 
 - [x] **Core UI & Roteamento:** Telas separadas para Paciente e Nutricionista com navegaÃƒÂ§ÃƒÂ£o fluida.
-- [x] **IA Nativa (Frontend):** GeraÃƒÂ§ÃƒÂ£o de cardÃƒÂ¡pios, ChatBot (Vytal Bot) e leitor de PDF (pdf.js) integrados no navegador.
+- [x] **IA Nativa (Frontend):** GeraÃƒÂ§ÃƒÂ£o de cardÃƒÂ¡pios, ChatBot (Nutrivvo Bot) e leitor de PDF (pdf.js) integrados no navegador.
 - [x] **Banco de Dados Real (Supabase/Firebase):** 
   - Migrar o estado global (`AppContext.jsx`) para tabelas SQL (UsuÃƒÂ¡rios, Pacientes, Receitas, Consultas).
 - [x] **AutenticaÃƒÂ§ÃƒÂ£o:** 
@@ -27,7 +27,7 @@ Este documento traduz os aprendizados das trilhas de Product Management (0Ã¢â
 - [ ] **InstrumentaÃƒÂ§ÃƒÂ£o de AARRR:**
   - Instalar PostHog ou Google Analytics para medir Activation (Pacientes que usam >3 dias seguidos) e Retention. *(SÃƒÂ³ o Firebase Analytics estÃƒÂ¡ inicializado, sem nenhum evento customizado disparado ainda.)*
 - [x] **PWA (Progressive Web App):** 
-  - Configurar `manifest.json` e Service Worker para permitir que o Paciente instale o Vytal no celular direto pelo navegador.
+  - Configurar `manifest.json` e Service Worker para permitir que o Paciente instale o Nutrivvo no celular direto pelo navegador.
 - [x] **Loop de Feedback:** 
   - Inserir botÃƒÂ£o de reporte rÃƒÂ¡pido de bugs/sugestÃƒÂµes dentro do app.
 - [x] **Deploy de LanÃƒÂ§amento:** 
@@ -40,10 +40,10 @@ Este documento traduz os aprendizados das trilhas de Product Management (0Ã¢â
 *Objetivo: Confirmar que a retenÃƒÂ§ÃƒÂ£o achatou na curva e que o LTV > CAC, aplicando a pesquisa Sean Ellis.*
 
 - [ ] **Pesquisa Sean Ellis:** 
-  - Disparar survey: *"Como vocÃƒÂª se sentiria se o Vytal deixasse de existir?"* (Meta: >40% Muito Desapontado).
+  - Disparar survey: *"Como vocÃƒÂª se sentiria se o Nutrivvo deixasse de existir?"* (Meta: >40% Muito Desapontado).
 - [ ] **Growth Features (PLG):** 
   - Sistema de convite orgÃƒÂ¢nico (Indique o Nutri e ganhe uma avaliaÃƒÂ§ÃƒÂ£o grÃƒÂ¡tis).
-  - **Self-Service Sign Up:** Permitir que o paciente faÃƒÂ§a cadastro avulso pelo app e ganhe 1 Consulta GrÃƒÂ¡tis com a IA (Vytal Bot) para testar a experiÃƒÂªncia.
+  - **Self-Service Sign Up:** Permitir que o paciente faÃƒÂ§a cadastro avulso pelo app e ganhe 1 Consulta GrÃƒÂ¡tis com a IA (Nutrivvo Bot) para testar a experiÃƒÂªncia.
 - [x] **Monitoramento de RetenÃƒÂ§ÃƒÂ£o:**
   - Dashboards em tempo real do nÃƒÂ­vel de XP e Ofensiva dos pacientes.
 
@@ -82,7 +82,7 @@ Consolidado a partir da auditoria de produto e do `spec.md`. Ordenado por priori
 - [x] VisÃƒÂ£o "Patient 360": um painel ÃƒÂºnico por paciente reunindo plano, food log, check-ins, peso, mensagens e anotaÃƒÂ§ÃƒÂµes (hoje estÃƒÂ¡ espalhado em abas separadas).
 
 ### ComunicaÃƒÂ§ÃƒÂ£o nutricionista Ã¢â€ â€� paciente
-- `[x]` Canal de mensagens diretas entre nutricionista e paciente (hoje sÃ³ existe o Vytal Bot de IA; nÃ£o hÃ¡ como o profissional mandar uma mensagem real).
+- `[x]` Canal de mensagens diretas entre nutricionista e paciente (hoje sÃ³ existe o Nutrivvo Bot de IA; nÃ£o hÃ¡ como o profissional mandar uma mensagem real).
 - [ ] NotificaÃƒÂ§ÃƒÂµes push/e-mail para o paciente quando uma nova dieta ÃƒÂ© prescrita ou uma consulta ÃƒÂ© confirmada.
 
 ### Analytics e instrumentaÃƒÂ§ÃƒÂ£o
@@ -104,16 +104,16 @@ Consolidado a partir da auditoria de produto e do `spec.md`. Ordenado por priori
 
 ## Ã°Å¸Â§Â­ ComitÃƒÂª de Produto Inovador Ã¢â‚¬â€� ValidaÃƒÂ§ÃƒÂ£o de Features (14/07/2026)
 
-AvaliaÃƒÂ§ÃƒÂ£o do que jÃƒÂ¡ existe vs. o que um produto de referÃƒÂªncia em nutriÃƒÂ§ÃƒÂ£o digital (Nutrium, Practice Better, MealCircle do lado profissional; Noom, MyFitnessPal, HealthifyMe do lado paciente) precisa ter em 2026, cruzado com o combo que sÃƒÂ³ o Vytal tenta fazer hoje: CRM + gamificaÃƒÂ§ÃƒÂ£o + IA num produto sÃƒÂ³.
+AvaliaÃƒÂ§ÃƒÂ£o do que jÃƒÂ¡ existe vs. o que um produto de referÃƒÂªncia em nutriÃƒÂ§ÃƒÂ£o digital (Nutrium, Practice Better, MealCircle do lado profissional; Noom, MyFitnessPal, HealthifyMe do lado paciente) precisa ter em 2026, cruzado com o combo que sÃƒÂ³ o Nutrivvo tenta fazer hoje: CRM + gamificaÃƒÂ§ÃƒÂ£o + IA num produto sÃƒÂ³.
 
 ### Validado Ã¢â‚¬â€� manter e priorizar
 - **Combo CRM + app gamificado + IA clÃƒÂ­nica.** Ãƒâ€° o ponto de diferenciaÃƒÂ§ÃƒÂ£o real. Nenhum concorrente pesquisado junta os trÃƒÂªs; a maioria ÃƒÂ© ou ferramenta de gestÃƒÂ£o (Nutrium, Practice Better) ou app de paciente (Noom, MyFitnessPal). Vale proteger esse posicionamento em vez de diluir com features genÃƒÂ©ricas.
-- **Vytal Bot com contexto do plano ativo.** JÃƒÂ¡ responde considerando a dieta prescrita Ã¢â‚¬â€� alinhado com a tendÃƒÂªncia de "IA + SaÃƒÂºde ClÃƒÂ­nica" apontada pela pesquisa de mercado, mas ainda sem dados biomÃƒÂ©tricos.
+- **Nutrivvo Bot com contexto do plano ativo.** JÃƒÂ¡ responde considerando a dieta prescrita Ã¢â‚¬â€� alinhado com a tendÃƒÂªncia de "IA + SaÃƒÂºde ClÃƒÂ­nica" apontada pela pesquisa de mercado, mas ainda sem dados biomÃƒÂ©tricos.
 - **Cohorts / risco de abandono no CRM.** Validado como o recurso de maior potencial competitivo Ã¢â‚¬â€� nenhum concorrente pequeno oferece isso hoje pronto; precisa sÃƒÂ³ deixar de ser mock (jÃƒÂ¡ listado no backlog acima).
 - **AnÃƒÂ¡lise de exame em PDF via IA.** Diferencial real frente a concorrentes puramente "app de dieta" Ã¢â‚¬â€� poucos cruzam exame laboratorial com prescriÃƒÂ§ÃƒÂ£o automaticamente.
 
 ### Gaps identificados Ã¢â‚¬â€� features que faltam
-- [x] **Contexto biomÃƒÂ©trico no Vytal Bot e na geraÃƒÂ§ÃƒÂ£o de dieta:** conectar dados de sono/atividade (Apple Health, Google Fit) para a IA ajustar recomendaÃƒÂ§ÃƒÂµes Ã¢â‚¬â€� ÃƒÂ© citado como "linha de base esperada" pelos apps premium de 2026, hoje o Vytal sÃƒÂ³ usa dados manuais (peso via `prompt()`).
+- [x] **Contexto biomÃƒÂ©trico no Nutrivvo Bot e na geraÃƒÂ§ÃƒÂ£o de dieta:** conectar dados de sono/atividade (Apple Health, Google Fit) para a IA ajustar recomendaÃƒÂ§ÃƒÂµes Ã¢â‚¬â€� ÃƒÂ© citado como "linha de base esperada" pelos apps premium de 2026, hoje o Nutrivvo sÃƒÂ³ usa dados manuais (peso via `prompt()`).
 - [x] **Food log fora do plano prescrito:** hoje sÃƒÂ³ existe o "Comeu algo diferente?" com foto avulsa; falta um diÃƒÂ¡rio alimentar livre (sem depender de ter uma dieta ativa) para pacientes em fase de diagnÃƒÂ³stico/anamnese, antes da primeira prescriÃƒÂ§ÃƒÂ£o.
 - [ ] **Telemedicina/consulta em vÃƒÂ­deo integrada:** hoje a "consulta" no CRM ÃƒÂ© sÃƒÂ³ um formulÃƒÂ¡rio preenchido pelo nutricionista; nÃƒÂ£o hÃƒÂ¡ chamada de vÃƒÂ­deo nem histÃƒÂ³rico de sessÃƒÂ£o gravado. Concorrentes de practice management (Practice Better) jÃƒÂ¡ oferecem isso nativo.
 - [ ] **Biblioteca de receitas/planos reutilizÃƒÂ¡veis:** hoje cada dieta ÃƒÂ© gerada do zero por IA a cada consulta; um nutricionista com 50 pacientes precisa reaproveitar templates de cardÃƒÂ¡pio, nÃƒÂ£o recriar tudo toda vez.
@@ -164,7 +164,7 @@ SÃƒÂ­ntese dos dois comitÃƒÂªs acima em uma ordem de execuÃƒÂ§ÃƒÂ
 **Onda 2 Ã¢â‚¬â€� O diferencial competitivo (maior retorno por esforÃƒÂ§o)**
 4. Cohorts real: modelo de previsÃƒÂ£o + envio de fato do alerta. Este ÃƒÂ© o item que o comitÃƒÂª de produto inovador e a pesquisa de mercado apontam como o maior diferencial Ã¢â‚¬â€� prioridade mÃƒÂ¡xima entre as features novas.
 5. [x] GrÃƒÂ¡fico de evoluÃƒÂ§ÃƒÂ£o de peso no CRM (troca lista Ã¢â€ â€™ linha do tempo) Ã¢â‚¬â€� prÃƒÂ©-requisito visual para o Cohorts parecer "inteligente" de verdade.
-6. Contexto biomÃƒÂ©trico no Vytal Bot (mesmo que sÃƒÂ³ manual no inÃƒÂ­cio, sem integrar wearable ainda) Ã¢â‚¬â€� data mÃƒÂ­nima para comeÃƒÂ§ar a construir a diferenciaÃƒÂ§ÃƒÂ£o de IA clÃƒÂ­nica.
+6. Contexto biomÃƒÂ©trico no Nutrivvo Bot (mesmo que sÃƒÂ³ manual no inÃƒÂ­cio, sem integrar wearable ainda) Ã¢â‚¬â€� data mÃƒÂ­nima para comeÃƒÂ§ar a construir a diferenciaÃƒÂ§ÃƒÂ£o de IA clÃƒÂ­nica.
 
 **Onda 3 Ã¢â‚¬â€� MonetizaÃƒÂ§ÃƒÂ£o e crescimento**
 7. Stripe real + limite de plano aplicado.
@@ -194,7 +194,7 @@ SÃƒÂ­ntese dos dois comitÃƒÂªs acima em uma ordem de execuÃƒÂ§ÃƒÂ
 - [x] `firestore.rules` criado na raiz do projeto, isolando `patients`/`appointments` por `nutricionista_id`. **Ainda precisa ser publicado manualmente** (Firebase Console ou `firebase deploy --only firestore:rules` no projeto `nutribase-fea35`) Ã¢â‚¬â€� nenhuma automaÃƒÂ§ÃƒÂ£o faz esse deploy sozinha.
 - [x] Peso do paciente: trocado `window.prompt()` por modal prÃƒÂ³prio em `Profile.jsx`.
 - [x] Ãƒï¿½cone de coraÃƒÂ§ÃƒÂ£o decorativo removido do `TopBar` (nÃƒÂ£o tinha mecÃƒÂ¢nica real associada).
-- [ ] **VerificaÃƒÂ§ÃƒÂ£o ao vivo pendente:** rodei lint (sem erros novos) e confirmei via cÃƒÂ³digo que o guard nÃƒÂ£o bloqueia o modo dev, mas a automaÃƒÂ§ÃƒÂ£o de navegador desta sessÃƒÂ£o ficou instÃƒÂ¡vel no meio do teste do modal de peso e do chat Ã¢â‚¬â€� vale um clique manual rÃƒÂ¡pido em `/paciente` Ã¢â€ â€™ Vytal Bot e Perfil Ã¢â€ â€™ Informar Meu Peso antes de considerar 100% validado.
+- [ ] **VerificaÃƒÂ§ÃƒÂ£o ao vivo pendente:** rodei lint (sem erros novos) e confirmei via cÃƒÂ³digo que o guard nÃƒÂ£o bloqueia o modo dev, mas a automaÃƒÂ§ÃƒÂ£o de navegador desta sessÃƒÂ£o ficou instÃƒÂ¡vel no meio do teste do modal de peso e do chat Ã¢â‚¬â€� vale um clique manual rÃƒÂ¡pido em `/paciente` Ã¢â€ â€™ Nutrivvo Bot e Perfil Ã¢â€ â€™ Informar Meu Peso antes de considerar 100% validado.
 - [ ] Instabilidade do canal de escrita do Firestore (erro 503 observado nos testes) nÃƒÂ£o foi resolvida Ã¢â‚¬â€� ÃƒÂ© de infraestrutura/rede do ambiente, nÃƒÂ£o do cÃƒÂ³digo. O padrÃƒÂ£o "local-first" jÃƒÂ¡ em uso evita que isso trave a UI, mas vale investigar se persiste fora deste ambiente de dev.
 - [ ] "Trocar Papel" no CRM (`Sair (Trocar Papel)`) foi mantido como estÃƒÂ¡ Ã¢â‚¬â€� na prÃƒÂ¡tica sÃƒÂ³ navega pra landing page, nÃƒÂ£o ÃƒÂ© um bypass de seguranÃƒÂ§a como os botÃƒÂµes do Login.
 
@@ -221,7 +221,7 @@ SÃƒÂ­ntese dos dois comitÃƒÂªs acima em uma ordem de execuÃƒÂ§ÃƒÂ
 - [ ] **InstrumentaÃƒÂ§ÃƒÂ£o de AARRR:**
   - Instalar PostHog ou Google Analytics para medir Activation (Pacientes que usam >3 dias seguidos) e Retention. *(SÃƒÂ³ o Firebase Analytics estÃƒÂ¡ inicializado, sem nenhum evento customizado disparado ainda.)*
 - [x] **PWA (Progressive Web App):** 
-  - Configurar `manifest.json` e Service Worker para permitir que o Paciente instale o Vytal no celular direto pelo navegador.
+  - Configurar `manifest.json` e Service Worker para permitir que o Paciente instale o Nutrivvo no celular direto pelo navegador.
 - [x] **Loop de Feedback:** 
   - Inserir botÃƒÂ£o de reporte rÃƒÂ¡pido de bugs/sugestÃƒÂµes dentro do app.
 - [x] **Deploy de LanÃƒÂ§amento:** 
@@ -234,10 +234,10 @@ SÃƒÂ­ntese dos dois comitÃƒÂªs acima em uma ordem de execuÃƒÂ§ÃƒÂ
 *Objetivo: Confirmar que a retenÃƒÂ§ÃƒÂ£o achatou na curva e que o LTV > CAC, aplicando a pesquisa Sean Ellis.*
 
 - [ ] **Pesquisa Sean Ellis:** 
-  - Disparar survey: *"Como vocÃƒÂª se sentiria se o Vytal deixasse de existir?"* (Meta: >40% Muito Desapontado).
+  - Disparar survey: *"Como vocÃƒÂª se sentiria se o Nutrivvo deixasse de existir?"* (Meta: >40% Muito Desapontado).
 - [ ] **Growth Features (PLG):** 
   - Sistema de convite orgÃƒÂ¢nico (Indique o Nutri e ganhe uma avaliaÃƒÂ§ÃƒÂ£o grÃƒÂ¡tis).
-  - **Self-Service Sign Up:** Permitir que o paciente faÃƒÂ§a cadastro avulso pelo app e ganhe 1 Consulta GrÃƒÂ¡tis com a IA (Vytal Bot) para testar a experiÃƒÂªncia.
+  - **Self-Service Sign Up:** Permitir que o paciente faÃƒÂ§a cadastro avulso pelo app e ganhe 1 Consulta GrÃƒÂ¡tis com a IA (Nutrivvo Bot) para testar a experiÃƒÂªncia.
 - [x] **Monitoramento de RetenÃƒÂ§ÃƒÂ£o:**
   - Dashboards em tempo real do nÃƒÂ­vel de XP e Ofensiva dos pacientes.
 
@@ -276,7 +276,7 @@ Consolidado a partir da auditoria de produto e do `spec.md`. Ordenado por priori
 - [x] VisÃƒÂ£o "Patient 360": um painel ÃƒÂºnico por paciente reunindo plano, food log, check-ins, peso, mensagens e anotaÃƒÂ§ÃƒÂµes (hoje estÃƒÂ¡ espalhado em abas separadas).
 
 ### ComunicaÃƒÂ§ÃƒÂ£o nutricionista Ã¢â€ â€� paciente
-- [ ] Canal de mensagens diretas entre nutricionista e paciente (hoje sÃƒÂ³ existe o Vytal Bot de IA; nÃƒÂ£o hÃƒÂ¡ como o profissional mandar uma mensagem real).
+- [ ] Canal de mensagens diretas entre nutricionista e paciente (hoje sÃƒÂ³ existe o Nutrivvo Bot de IA; nÃƒÂ£o hÃƒÂ¡ como o profissional mandar uma mensagem real).
 - [ ] NotificaÃƒÂ§ÃƒÂµes push/e-mail para o paciente quando uma nova dieta ÃƒÂ© prescrita ou uma consulta ÃƒÂ© confirmada.
 
 ### Analytics e instrumentaÃƒÂ§ÃƒÂ£o
@@ -298,16 +298,16 @@ Consolidado a partir da auditoria de produto e do `spec.md`. Ordenado por priori
 
 ## Ã°Å¸Â§Â­ ComitÃƒÂª de Produto Inovador Ã¢â‚¬â€� ValidaÃƒÂ§ÃƒÂ£o de Features (14/07/2026)
 
-AvaliaÃƒÂ§ÃƒÂ£o do que jÃƒÂ¡ existe vs. o que um produto de referÃƒÂªncia em nutriÃƒÂ§ÃƒÂ£o digital (Nutrium, Practice Better, MealCircle do lado profissional; Noom, MyFitnessPal, HealthifyMe do lado paciente) precisa ter em 2026, cruzado com o combo que sÃƒÂ³ o Vytal tenta fazer hoje: CRM + gamificaÃƒÂ§ÃƒÂ£o + IA num produto sÃƒÂ³.
+AvaliaÃƒÂ§ÃƒÂ£o do que jÃƒÂ¡ existe vs. o que um produto de referÃƒÂªncia em nutriÃƒÂ§ÃƒÂ£o digital (Nutrium, Practice Better, MealCircle do lado profissional; Noom, MyFitnessPal, HealthifyMe do lado paciente) precisa ter em 2026, cruzado com o combo que sÃƒÂ³ o Nutrivvo tenta fazer hoje: CRM + gamificaÃƒÂ§ÃƒÂ£o + IA num produto sÃƒÂ³.
 
 ### Validado Ã¢â‚¬â€� manter e priorizar
 - **Combo CRM + app gamificado + IA clÃƒÂ­nica.** Ãƒâ€° o ponto de diferenciaÃƒÂ§ÃƒÂ£o real. Nenhum concorrente pesquisado junta os trÃƒÂªs; a maioria ÃƒÂ© ou ferramenta de gestÃƒÂ£o (Nutrium, Practice Better) ou app de paciente (Noom, MyFitnessPal). Vale proteger esse posicionamento em vez de diluir com features genÃƒÂ©ricas.
-- **Vytal Bot com contexto do plano ativo.** JÃƒÂ¡ responde considerando a dieta prescrita Ã¢â‚¬â€� alinhado com a tendÃƒÂªncia de "IA + SaÃƒÂºde ClÃƒÂ­nica" apontada pela pesquisa de mercado, mas ainda sem dados biomÃƒÂ©tricos.
+- **Nutrivvo Bot com contexto do plano ativo.** JÃƒÂ¡ responde considerando a dieta prescrita Ã¢â‚¬â€� alinhado com a tendÃƒÂªncia de "IA + SaÃƒÂºde ClÃƒÂ­nica" apontada pela pesquisa de mercado, mas ainda sem dados biomÃƒÂ©tricos.
 - **Cohorts / risco de abandono no CRM.** Validado como o recurso de maior potencial competitivo Ã¢â‚¬â€� nenhum concorrente pequeno oferece isso hoje pronto; precisa sÃƒÂ³ deixar de ser mock (jÃƒÂ¡ listado no backlog acima).
 - **AnÃƒÂ¡lise de exame em PDF via IA.** Diferencial real frente a concorrentes puramente "app de dieta" Ã¢â‚¬â€� poucos cruzam exame laboratorial com prescriÃƒÂ§ÃƒÂ£o automaticamente.
 
 ### Gaps identificados Ã¢â‚¬â€� features que faltam
-- [x] **Contexto biomÃƒÂ©trico no Vytal Bot e na geraÃƒÂ§ÃƒÂ£o de dieta:** conectar dados de sono/atividade (Apple Health, Google Fit) para a IA ajustar recomendaÃƒÂ§ÃƒÂµes Ã¢â‚¬â€� ÃƒÂ© citado como "linha de base esperada" pelos apps premium de 2026, hoje o Vytal sÃƒÂ³ usa dados manuais (peso via `prompt()`).
+- [x] **Contexto biomÃƒÂ©trico no Nutrivvo Bot e na geraÃƒÂ§ÃƒÂ£o de dieta:** conectar dados de sono/atividade (Apple Health, Google Fit) para a IA ajustar recomendaÃƒÂ§ÃƒÂµes Ã¢â‚¬â€� ÃƒÂ© citado como "linha de base esperada" pelos apps premium de 2026, hoje o Nutrivvo sÃƒÂ³ usa dados manuais (peso via `prompt()`).
 - [x] **Food log fora do plano prescrito:** hoje sÃƒÂ³ existe o "Comeu algo diferente?" com foto avulsa; falta um diÃƒÂ¡rio alimentar livre (sem depender de ter uma dieta ativa) para pacientes em fase de diagnÃƒÂ³stico/anamnese, antes da primeira prescriÃƒÂ§ÃƒÂ£o.
 - [ ] **Telemedicina/consulta em vÃƒÂ­deo integrada:** hoje a "consulta" no CRM ÃƒÂ© sÃƒÂ³ um formulÃƒÂ¡rio preenchido pelo nutricionista; nÃƒÂ£o hÃƒÂ¡ chamada de vÃƒÂ­deo nem histÃƒÂ³rico de sessÃƒÂ£o gravado. Concorrentes de practice management (Practice Better) jÃƒÂ¡ oferecem isso nativo.
 - [ ] **Biblioteca de receitas/planos reutilizÃƒÂ¡veis:** hoje cada dieta ÃƒÂ© gerada do zero por IA a cada consulta; um nutricionista com 50 pacientes precisa reaproveitar templates de cardÃƒÂ¡pio, nÃƒÂ£o recriar tudo toda vez.
@@ -358,7 +358,7 @@ SÃƒÂ­ntese dos dois comitÃƒÂªs acima em uma ordem de execuÃƒÂ§ÃƒÂ
 **Onda 2 Ã¢â‚¬â€� O diferencial competitivo (maior retorno por esforÃƒÂ§o)**
 4. Cohorts real: modelo de previsÃƒÂ£o + envio de fato do alerta. Este ÃƒÂ© o item que o comitÃƒÂª de produto inovador e a pesquisa de mercado apontam como o maior diferencial Ã¢â‚¬â€� prioridade mÃƒÂ¡xima entre as features novas.
 5. [x] GrÃƒÂ¡fico de evoluÃƒÂ§ÃƒÂ£o de peso no CRM (troca lista Ã¢â€ â€™ linha do tempo) Ã¢â‚¬â€� prÃƒÂ©-requisito visual para o Cohorts parecer "inteligente" de verdade.
-6. Contexto biomÃƒÂ©trico no Vytal Bot (mesmo que sÃƒÂ³ manual no inÃƒÂ­cio, sem integrar wearable ainda) Ã¢â‚¬â€� data mÃƒÂ­nima para comeÃƒÂ§ar a construir a diferenciaÃƒÂ§ÃƒÂ£o de IA clÃƒÂ­nica.
+6. Contexto biomÃƒÂ©trico no Nutrivvo Bot (mesmo que sÃƒÂ³ manual no inÃƒÂ­cio, sem integrar wearable ainda) Ã¢â‚¬â€� data mÃƒÂ­nima para comeÃƒÂ§ar a construir a diferenciaÃƒÂ§ÃƒÂ£o de IA clÃƒÂ­nica.
 
 **Onda 3 Ã¢â‚¬â€� MonetizaÃƒÂ§ÃƒÂ£o e crescimento**
 7. Stripe real + limite de plano aplicado.
@@ -388,7 +388,7 @@ SÃƒÂ­ntese dos dois comitÃƒÂªs acima em uma ordem de execuÃƒÂ§ÃƒÂ
 - [x] `firestore.rules` criado na raiz do projeto, isolando `patients`/`appointments` por `nutricionista_id`. **Ainda precisa ser publicado manualmente** (Firebase Console ou `firebase deploy --only firestore:rules` no projeto `nutribase-fea35`) Ã¢â‚¬â€� nenhuma automaÃƒÂ§ÃƒÂ£o faz esse deploy sozinha.
 - [x] Peso do paciente: trocado `window.prompt()` por modal prÃƒÂ³prio em `Profile.jsx`.
 - [x] Ãƒcone de coraÃƒÂ§ÃƒÂ£o decorativo removido do `TopBar` (nÃƒÂ£o tinha mecÃƒÂ¢nica real associada).
-- [ ] **VerificaÃƒÂ§ÃƒÂ£o ao vivo pendente:** rodei lint (sem erros novos) e confirmei via cÃƒÂ³digo que o guard nÃƒÂ£o bloqueia o modo dev, mas a automaÃƒÂ§ÃƒÂ£o de navegador desta sessÃƒÂ£o ficou instÃƒÂ¡vel no meio do teste do modal de peso e do chat Ã¢â‚¬â€� vale um clique manual rÃƒÂ¡pido em `/paciente` Ã¢â€ â€™ Vytal Bot e Perfil Ã¢â€ â€™ Informar Meu Peso antes de considerar 100% validado.
+- [ ] **VerificaÃƒÂ§ÃƒÂ£o ao vivo pendente:** rodei lint (sem erros novos) e confirmei via cÃƒÂ³digo que o guard nÃƒÂ£o bloqueia o modo dev, mas a automaÃƒÂ§ÃƒÂ£o de navegador desta sessÃƒÂ£o ficou instÃƒÂ¡vel no meio do teste do modal de peso e do chat Ã¢â‚¬â€� vale um clique manual rÃƒÂ¡pido em `/paciente` Ã¢â€ â€™ Nutrivvo Bot e Perfil Ã¢â€ â€™ Informar Meu Peso antes de considerar 100% validado.
 - [ ] Instabilidade do canal de escrita do Firestore (erro 503 observado nos testes) nÃƒÂ£o foi resolvida Ã¢â‚¬â€� ÃƒÂ© de infraestrutura/rede do ambiente, nÃƒÂ£o do cÃƒÂ³digo. O padrÃƒÂ£o "local-first" jÃƒÂ¡ em uso evita que isso trave a UI, mas vale investigar se persiste fora deste ambiente de dev.
 - [ ] "Trocar Papel" no CRM (`Sair (Trocar Papel)`) foi mantido como estÃƒÂ¡ Ã¢â‚¬â€� na prÃƒÂ¡tica sÃƒÂ³ navega pra landing page, nÃƒÂ£o ÃƒÂ© um bypass de seguranÃƒÂ§a como os botÃƒÂµes do Login.
 

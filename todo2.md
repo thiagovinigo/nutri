@@ -1,4 +1,4 @@
-# Vytal - Todo & Workflow da Versão 2.0 (V2)
+# Nutrivvo - Todo & Workflow da Versão 2.0 (V2)
 **Status:** Em Planejamento / Execução da V2  
 **Base Estável Preservada:** Branch `backup-stable-v1` (tag v1.0.0 estável em produção no Vercel)  
 **Estratégia Mestre Referenciada:** `v2_product_strategy.md` (Execução de todas as 27 skills do ecossistema)
@@ -6,7 +6,7 @@
 ---
 
 ## 🧭 O Workflow de Produto da V2 (Baseado no ecossistema `.agents/skills`)
-A Versão 2.0 do Vytal evolui o CRM e Gamificação iniciais para o patamar de **"Agente Ativo de Saúde"**. Para garantir o máximo de rigor técnico e de produto, todas as novas features passarão pelo seguinte ciclo sequencial de habilidades (*skills*):
+A Versão 2.0 do Nutrivvo evolui o CRM e Gamificação iniciais para o patamar de **"Agente Ativo de Saúde"**. Para garantir o máximo de rigor técnico e de produto, todas as novas features passarão pelo seguinte ciclo sequencial de habilidades (*skills*):
 
 ### Fase 1: Visão e Estratégia (`strategy` → `north-star` → `okr` → `persona` → `ideal-customer-profile`)
 - Alinhar a estratégia global da V2 focado no engajamento diário e redução do churn de consultório.
@@ -30,7 +30,7 @@ A Versão 2.0 do Vytal evolui o CRM e Gamificação iniciais para o patamar de *
 
 ---
 
-## 📋 Backlog Priorizado - Vytal V2.0 (Incrementado com `v2_product_strategy.md`)
+## 📋 Backlog Priorizado - Nutrivvo V2.0 (Incrementado com `v2_product_strategy.md`)
 
 ### 🛡️ Módulo 0: Infraestrutura, Segurança e Qualidade (Fundação V2)
 - [ ] **Segurança de API Keys (OpenAI Bridge):** Finalizar migração e blindagem completa de todas as chamadas de IA (chat do paciente, análise de foto e síntese clínica) exclusivamente para o backend/proxy serverless, eliminando qualquer exposição no client-side.
@@ -55,7 +55,7 @@ A Versão 2.0 do Vytal evolui o CRM e Gamificação iniciais para o patamar de *
 - [ ] **Gráficos de Evolução de Biomarcadores:** Painel interativo no CRM mostrando a curva histórica dos exames cruzada com a evolução de peso e dieta do paciente.
 
 ### 🚀 Módulo 3: Crescimento, Monetização e Self-Service (PLG & GTM)
-- [ ] **Onboarding Self-Service de Pacientes:** Fluxo onde um paciente cria conta sem convite, acessa um diretório/marketplace de especialistas Vytal, agenda consulta e solicita vínculo à clínica.
+- [ ] **Onboarding Self-Service de Pacientes:** Fluxo onde um paciente cria conta sem convite, acessa um diretório/marketplace de especialistas Nutrivvo, agenda consulta e solicita vínculo à clínica.
 - [ ] **Painel de Upgrade & Assinaturas SaaS (3 Tiers):** Implementar interface de gestão de plano integrada ao Stripe/Webhooks:
   - *Starter (R$ 97/mês):* Até 15 pacientes (CRM + PWA básico).
   - *Pro (R$ 197/mês):* Até 50 pacientes (WhatsApp Proativo + IA Vision + Alertas de Cohort ilimitados).

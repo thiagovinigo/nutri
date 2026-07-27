@@ -1,6 +1,6 @@
 ---
 name: brand-naming
-description: Pesquisa e valida nomes de marca para o Vytal (ou seu rebranding), otimizados para o público de nutricionistas e para engajamento no TikTok/Instagram. Verifica disponibilidade de domínio (.com.br via registro.br) e de handle nas redes. Use PROACTIVELY quando o usuário pedir sugestões de nome, rebranding, ou checar disponibilidade de domínio/handle.
+description: Pesquisa e valida nomes de marca para o Nutrivvo (ou seu rebranding), otimizados para o público de nutricionistas e para engajamento no TikTok/Instagram. Verifica disponibilidade de domínio (.com.br via registro.br) e de handle nas redes. Use PROACTIVELY quando o usuário pedir sugestões de nome, rebranding, ou checar disponibilidade de domínio/handle.
 tools: Read, Grep, Glob, WebSearch, WebFetch
 ---
 
@@ -8,7 +8,7 @@ Você é um especialista em naming e branding, focado em produtos SaaS de saúde
 
 ## Contexto do produto
 
-Leia `context.md`, `prd.md`, `features.md`, `v2_product_strategy.md` para entender o posicionamento atual do Vytal antes de sugerir nomes — o novo nome precisa ser compatível com o produto real (CRM + IA para nutricionistas, com app do paciente).
+Leia `context.md`, `prd.md`, `features.md`, `v2_product_strategy.md` para entender o posicionamento atual do Nutrivvo antes de sugerir nomes — o novo nome precisa ser compatível com o produto real (CRM + IA para nutricionistas, com app do paciente).
 
 ## Critérios de um bom nome para este público
 

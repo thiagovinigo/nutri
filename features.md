@@ -1,6 +1,6 @@
-# Features do Produto — Vytal
+# Features do Produto — Nutrivvo
 
-Este documento detalha o mapa de funcionalidades do Vytal, dividindo o que já foi construído e validado em produção, e as funcionalidades planejadas para o futuro (Backlog).
+Este documento detalha o mapa de funcionalidades do Nutrivvo, dividindo o que já foi construído e validado em produção, e as funcionalidades planejadas para o futuro (Backlog).
 
 ---
 
@@ -28,8 +28,8 @@ Este documento detalha o mapa de funcionalidades do Vytal, dividindo o que já f
 - **Editor de Treinos:** Prescrição manual de planilhas de exercícios físicos diretamente no prontuário do paciente, integrados à visualização do App Mobile.
 
 ### IA Nativa e IA Clínica
-- **Geração de Dietas Automática:** O Vytal Bot cria o cardápio baseando-se nos inputs e preferências coletados.
-- **ChatBot Clínico (Vytal Bot):** Assistente virtual do lado do paciente que tem o contexto completo da dieta atual prescrita e tira dúvidas em tempo real.
+- **Geração de Dietas Automática:** O Nutrivvo Bot cria o cardápio baseando-se nos inputs e preferências coletados.
+- **ChatBot Clínico (Nutrivvo Bot):** Assistente virtual do lado do paciente que tem o contexto completo da dieta atual prescrita e tira dúvidas em tempo real.
 - **Análise de Exames Médicos:** Leitura e extração automática de arquivos PDF (exames de sangue, etc.) utilizando IA para alimentar a anamnese.
 
 ### Infraestrutura, Backend & Segurança
@@ -48,13 +48,13 @@ Este documento detalha o mapa de funcionalidades do Vytal, dividindo o que já f
 - **Patient 360 Dashboard:** Um painel único no CRM reunindo todas as métricas do paciente: food log visual, peso em gráfico de linha, plano e anotações.
 
 ### Interação e Flexibilidade Nutricional
-- **Chat Direto Nutricionista ↔ Paciente:** Abertura de um canal de mensagens humanas além do Vytal Bot.
+- **Chat Direto Nutricionista ↔ Paciente:** Abertura de um canal de mensagens humanas além do Nutrivvo Bot.
 - **Biblioteca de Templates Reutilizáveis:** Permitir que o nutricionista salve protocolos completos de dieta (30 dias, marmitas, suplementos) e aplique em pacientes diferentes sem redigitar tudo.
 - **Receitas Bônus (Biblioteca de Fáceis):** Uma aba apenas com receitas anexadas avulsas para o paciente, sem estarem necessariamente alocadas no planejamento do dia.
 - **Diário Alimentar Livre:** O paciente poder fotografar refeições que estão fora da prescrição (úteis para a fase de anamnese antes do primeiro cardápio oficial).
 
 ### Saúde, Biometria e Contexto
-- **Integração com Wearables:** Conectar o Vytal Bot ao Apple Health / Google Fit para ajustar recomendações baseadas no gasto calórico em tempo real (dados de sono, treino).
+- **Integração com Wearables:** Conectar o Nutrivvo Bot ao Apple Health / Google Fit para ajustar recomendações baseadas no gasto calórico em tempo real (dados de sono, treino).
 - **Gráfico de Evolução (CRM):** Substituir a lista textual de medições de peso por um gráfico visual claro no prontuário clínico.
 
 ### Negócios (Monetização B2B)
@@ -65,4 +65,4 @@ Este documento detalha o mapa de funcionalidades do Vytal, dividindo o que já f
 ---
 
 ## 🔬 Em Investigação (Edge Cases a Tratar)
-- **Múltiplos Nutricionistas por Paciente:** Como resolver o conflito de um paciente com um CPF/E-mail que deseja ser atendido por dois profissionais distintos que utilizam o Vytal? Atualmente o modelo o amarra de forma 1:N ao nutricionista que gerou o primeiro link.
+- **Múltiplos Nutricionistas por Paciente:** Como resolver o conflito de um paciente com um CPF/E-mail que deseja ser atendido por dois profissionais distintos que utilizam o Nutrivvo? Atualmente o modelo o amarra de forma 1:N ao nutricionista que gerou o primeiro link.

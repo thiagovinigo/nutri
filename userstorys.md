@@ -1,5 +1,5 @@
-# Vytal Nutri - Product Requirements & User Stories
-*Documento vivo consolidando o Passado, Presente e Futuro das features do Vytal usando frameworks de PM.*
+# Nutrivvo Nutri - Product Requirements & User Stories
+*Documento vivo consolidando o Passado, Presente e Futuro das features do Nutrivvo usando frameworks de PM.*
 
 ---
 
@@ -56,7 +56,7 @@ Abaixo estão os próximos Épicos, estruturados com **PRD, Hipóteses, Históri
 ## 💰 Épico 04: Monetização SaaS B2B (Stripe)
 *Referência: `todo.md` - Integração com Stripe e Limite de Pacientes.*
 
-- **PRD Summary:** Profissionais usarão o Vytal como sistema de gestão e pagarão assinaturas. O sistema deve travar o cadastro de novos pacientes caso o limite do plano free/básico seja excedido.
+- **PRD Summary:** Profissionais usarão o Nutrivvo como sistema de gestão e pagarão assinaturas. O sistema deve travar o cadastro de novos pacientes caso o limite do plano free/básico seja excedido.
 - **Hipótese:** Acreditamos que oferecendo 5 pacientes grátis e cobrando R$ 149/mês pelo ilimitado, teremos uma conversão de 15% de usuários ativos para pagantes.
 - **Pre-mortem:** *O que pode dar errado?* O webhook do Stripe falhar e usuários pagantes ficarem com a conta bloqueada, gerando suporte furioso. *Mitigação:* Implementar "Grace Period" de 3 dias caso o webhook não processe o pagamento imediatamente.
 
@@ -94,7 +94,7 @@ Abaixo estão os próximos Épicos, estruturados com **PRD, Hipóteses, Históri
 
 ---
 
-## ⚕️ Épico 06: Vytal Co-pilot Avançado (Exames e Psicologia)
+## ⚕️ Épico 06: Nutrivvo Co-pilot Avançado (Exames e Psicologia)
 *Referência: `todo.md` - Upload de Exames e Detecção de Ansiedade Alimentar.*
 
 - **PRD Summary:** Permitir que o paciente faça upload do PDF do seu exame diretamente pelo app gamificado antes da consulta, e criar uma inteligência que percebe ansiedade alimentar pelo chat.
@@ -110,7 +110,7 @@ Abaixo estão os próximos Épicos, estruturados com **PRD, Hipóteses, Históri
   - **Then** o arquivo aparece no CRM do Nutricionista e a IA pré-processa os biomarcadores.
 
 **US 6.2: Detecção de Padrão de Ansiedade (Comportamental)**
-- *User Story:* Como IA (Vytal Bot), quero notar se o paciente relatou comer doces fora de hora em dias com 0 XP no sono, para alertar o nutricionista de um padrão de ansiedade.
+- *User Story:* Como IA (Nutrivvo Bot), quero notar se o paciente relatou comer doces fora de hora em dias com 0 XP no sono, para alertar o nutricionista de um padrão de ansiedade.
 - *Acceptance Criteria:*
   - **Given** que o paciente marcou "Sono Ruim" 3 vezes e inseriu log de "Chocolate" no chat
   - **When** o nutricionista abre o Dashboard
@@ -121,7 +121,7 @@ Abaixo estão os próximos Épicos, estruturados com **PRD, Hipóteses, Históri
 ## ⌚ Épico 07: O Ecossistema Integrado (Wearables e Apple Health)
 *Referência: `pm.md` - Contexto Biométrico e HealthKit.*
 
-- **PRD Summary:** Abandonar o registro manual de passos e sono dependendo do paciente, importando diretamente dos smartwatches para o Vytal.
+- **PRD Summary:** Abandonar o registro manual de passos e sono dependendo do paciente, importando diretamente dos smartwatches para o Nutrivvo.
 - **Hipótese:** Acreditamos que integrar o HealthKit vai aumentar o "Daily Active Users" (DAU), pois o paciente abrirá o app apenas para ver seu XP sincronizar magicamente, sem fricção manual.
 - **Pre-mortem:** *O que pode dar errado?* As APIs de saúde mobile mudam com frequência e quebram no PWA. *Mitigação:* Usar bibliotecas consolidadas e lidar com o fallback manual (se não sincronizar, exibe o input padrão).
 
@@ -129,7 +129,7 @@ Abaixo estão os próximos Épicos, estruturados com **PRD, Hipóteses, Históri
 **US 7.1: Sincronização de Sono e Passos**
 - *User Story:* Como paciente premium, quero conectar meu Apple Watch/Google Fit, para que minhas calorias gastas e tempo de sono completem os checks diários automaticamente.
 - *Acceptance Criteria:*
-  - **Given** que autorizei o Vytal no Apple Health
+  - **Given** que autorizei o Nutrivvo no Apple Health
   - **When** eu abro o QuestBoard
   - **Then** a barra de Passos e a barra de Sono são preenchidas sozinhas e o XP é computado.
 
@@ -153,7 +153,7 @@ Abaixo estão os próximos Épicos, estruturados com **PRD, Hipóteses, Históri
 
 ---
 
-## 🤖 Épico 07: Vytal Bot no WhatsApp (Proativo)
+## 🤖 Épico 07: Nutrivvo Bot no WhatsApp (Proativo)
 *Referência: `todo.md` - Integração WhatsApp Proativa.*
 
 - **PRD Summary:** Estender o CRM para fora do App. O paciente passará a receber acompanhamento ativo no WhatsApp, com a IA cobrando horários de refeição, alertando sobre deslizes diários e confirmando consultas de forma conversacional.
@@ -188,7 +188,7 @@ Abaixo estão os próximos Épicos, estruturados com **PRD, Hipóteses, Históri
 - *Acceptance Criteria:*
   - **Given** que o bot me enviou o lembrete do almoço
   - **When** eu envio uma foto do prato no WhatsApp
-  - **Then** a IA (Vision) analisa a foto, entende que está na dieta, e automaticamente marca o Check-in no Vytal App, me dando os XP correspondentes.
+  - **Then** a IA (Vision) analisa a foto, entende que está na dieta, e automaticamente marca o Check-in no Nutrivvo App, me dando os XP correspondentes.
 
 
 ---

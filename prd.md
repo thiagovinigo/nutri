@@ -1,7 +1,7 @@
-# Product Requirements Document (PRD) - Vytal
+# Product Requirements Document (PRD) - Nutrivvo
 
 ## 1. Visão Geral do Produto
-**Nome:** Vytal  
+**Nome:** Nutrivvo  
 **Missão:** Ser o sinal vital do acompanhamento integrado de saúde — a ponte entre nutricionistas/personals e pacientes que resolve o problema de adesão ao tratamento através de gamificação e Inteligência Artificial.
 **Problema:** Pacientes abandonam planos alimentares e de treinos por falta de acompanhamento diário, e profissionais gastam muito tempo montando protocolos em vez de focar na relação clínica.
 
@@ -27,7 +27,7 @@ A plataforma consiste em uma interface dupla (Toggle no frontend para MVP) const
   - Histórico de exames com resumos mastigados pela IA.
   - Botão de inserção de peso rápido (Log de medição).
   - Notas do prontuário (Recados do Nutri).
-- **Chatbot (Vytal Bot):** *(Escopo Futuro)* Um co-piloto treinado no plano do paciente para tirar dúvidas de substituição de alimentos 24/7.
+- **Chatbot (Nutrivvo Bot):** *(Escopo Futuro)* Um co-piloto treinado no plano do paciente para tirar dúvidas de substituição de alimentos 24/7.
 
 ## 4. Requisitos Não Funcionais
 - **Estética "Dark Mode Premium":** O sistema conta com suporte oficial a Dark Mode em todo o CRM e no App do paciente, utilizando um design neo-brutalista premium com detalhes em neon, sombras sólidas e vidro fosco (glassmorphism), reduzindo o estresse cognitivo.

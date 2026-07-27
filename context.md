@@ -1,9 +1,9 @@
-# Vytal Nutri - Project Context (Source of Truth)
+# Nutrivvo Nutri - Project Context (Source of Truth)
 
-Este documento é a "fonte da verdade" do estado atual de engenharia e produto do Vytal Nutri. Ele serve como contexto base para execução de skills de PM e tomada de decisões arquiteturais.
+Este documento é a "fonte da verdade" do estado atual de engenharia e produto do Nutrivvo Nutri. Ele serve como contexto base para execução de skills de PM e tomada de decisões arquiteturais.
 
 ## 1. Visão Geral do Produto
-O Vytal Nutri é uma plataforma dual-sided focada em resolver o problema de adesão em tratamentos de saúde (Nutrição e Personal Training). 
+O Nutrivvo Nutri é uma plataforma dual-sided focada em resolver o problema de adesão em tratamentos de saúde (Nutrição e Personal Training). 
 A plataforma possui duas interfaces distintas que se comunicam em tempo real:
 1. **CRM do Profissional (Nutricionista/Personal):** Uma interface Desktop/Web para gerenciar pacientes, criar dietas com ajuda de IA, prescrever treinos e agendar consultas híbridas.
 2. **App do Paciente (PWA Mobile):** Um aplicativo gamificado (estilo Duolingo) onde o paciente faz check-ins diários (água, refeições, treinos) para ganhar XP e manter sua ofensiva ("streak").
@@ -28,7 +28,7 @@ A plataforma possui duas interfaces distintas que se comunicam em tempo real:
 - **QuestBoard Diário:** Missões para ganhar XP e manter o fogo (Streak).
 - **Aba "Meu Plano":** Visualização das dietas e planilhas de treinos prescritas.
 - **Acompanhamento (Logging):** Registro de peso com cálculo de bioimpedância.
-- **Chatbot (Vytal Bot):** IA do lado do paciente para responder dúvidas sobre o plano prescrito (ainda rodando no client-side).
+- **Chatbot (Nutrivvo Bot):** IA do lado do paciente para responder dúvidas sobre o plano prescrito (ainda rodando no client-side).
 
 ## 4. Limitações Conhecidas e Débitos Técnicos (Backlog Imediato)
 - **Segurança da IA no Paciente:** A chave da OpenAI ainda está exposta no lado do paciente (chamadas diretas do client). Precisa ser migrada para a Edge Function, igual foi feito no lado do Nutricionista.

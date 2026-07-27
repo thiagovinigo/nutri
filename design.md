@@ -1,6 +1,6 @@
-# Vytal Design System & Theming
+# Nutrivvo Design System & Theming
 
-Este documento serve como referência de **Design Tokens** para garantir que a Vytal funcione perfeitamente tanto no Modo Claro quanto no Modo Escuro (Dark Mode Premium).
+Este documento serve como referência de **Design Tokens** para garantir que a Nutrivvo funcione perfeitamente tanto no Modo Claro quanto no Modo Escuro (Dark Mode Premium).
 
 ## Regra de Ouro
 NUNCA utilize cores hexadecimais (como `#FFFFFF` ou `#F8FAFC`) diretamente nas propriedades `style={{}}` ou no CSS dos componentes. **Sempre** utilize as variáveis CSS mapeadas aqui.

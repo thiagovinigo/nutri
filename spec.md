@@ -1,4 +1,4 @@
-# spec.md — Correções e Redesign Vytal
+# spec.md — Correções e Redesign Nutrivvo
 
 Deriva da auditoria de UX/UI/mercado feita em 14/07/2026. Este documento lista o que será corrigido nesta rodada, o porquê, e o que fica para depois.
 
@@ -32,7 +32,7 @@ Hoje o CRM usa sidebar branca, paleta genérica azul/slate de tutorial. Direçã
 
 ## 4. App do paciente — bugs de navegação/acessibilidade
 
-- `BottomNav.jsx`: os 4 ícones (Início, Plano, Vytal Bot, Perfil) não têm `aria-label` nem texto — adicionar as duas coisas.
+- `BottomNav.jsx`: os 4 ícones (Início, Plano, Nutrivvo Bot, Perfil) não têm `aria-label` nem texto — adicionar as duas coisas.
 - `App.jsx` (`FeedbackButton`): fixo no canto inferior direito, cobre o ícone "Perfil" da bottom nav em `/paciente`. Corrigido subindo o botão acima da nav só nessa rota.
 
 ## 5. Erros de IA sem feedback visível
