@@ -577,16 +577,16 @@ export default function ConsultationFlow({
               {prescriptionTab === 'ferramentas' && (
                 <div className="animate-pop-in">
                   {/* Assistentes de Prescrição */}
-                  <div style={{ marginBottom: '32px', padding: '24px', backgroundColor: '#F0FDF4', border: '1px solid #BBF7D0', borderRadius: '12px' }}>
-                    <h3 style={{ fontSize: '1.1rem', color: '#166534', marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <div style={{ marginBottom: '32px', padding: '24px', backgroundColor: 'var(--crm-accent-soft)', border: '1px solid var(--crm-border)', borderRadius: '12px' }}>
+                    <h3 style={{ fontSize: '1.1rem', color: 'var(--crm-accent)', marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '8px' }}>
                       <Sparkles size={18} /> Como você deseja iniciar a prescrição?
                     </h3>
                     <div style={{ display: 'flex', gap: '16px', flexWrap: 'wrap' }}>
                       <div style={{ flex: '1 1 300px' }}>
                         <div style={{ display: 'flex', gap: '8px' }}>
-                          <select 
-                            className="crm-input" 
-                            style={{ width: '100px', borderColor: '#10B981', color: '#166534', backgroundColor: 'var(--crm-surface)' }}
+                          <select
+                            className="crm-input"
+                            style={{ width: '100px' }}
                             value={dietDuration}
                             onChange={e => setDietDuration(Number(e.target.value))}
                           >
@@ -598,12 +598,12 @@ export default function ConsultationFlow({
                           <button className="crm-btn-primary" onClick={async () => {
                             await generateDietFromAI();
                             setPrescriptionTab('cardapio');
-                          }} disabled={isGeneratingDiet} style={{ flex: 1, backgroundColor: '#10B981', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '8px', padding: '12px' }}>
+                          }} disabled={isGeneratingDiet} style={{ flex: 1, display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '8px', padding: '12px' }}>
                             <Sparkles size={16} color='var(--crm-surface)' /> {isGeneratingDiet ? 'Analisando...' : 'Sugerir com IA'}
                           </button>
                         </div>
                         {examResult && (
-                          <p style={{ fontSize: '0.8rem', color: '#15803D', marginTop: '8px', textAlign: 'center' }}>
+                          <p style={{ fontSize: '0.8rem', color: 'var(--crm-text-muted)', marginTop: '8px', textAlign: 'center' }}>
                             A IA utilizará a análise dos exames como base.
                           </p>
                         )}
@@ -661,13 +661,19 @@ export default function ConsultationFlow({
                     <label className="crm-label" style={{ marginBottom: 0 }}>Suplementos e Vitaminas Prescritos</label>
                     <button
                       className="crm-btn-primary"
-                      style={{ backgroundColor: '#10B981', display: 'flex', alignItems: 'center', gap: '8px' }}
+                      style={{ display: 'flex', alignItems: 'center', gap: '8px' }}
                       onClick={generateSupplementsFromAI}
-                      disabled={isGeneratingSupplements}
+                      disabled={isGeneratingSupplements || dietMeals.length === 0}
+                      title={dietMeals.length === 0 ? 'Crie ao menos uma refeição no cardápio antes de pedir sugestão de suplementos' : ''}
                     >
                       <Sparkles size={16} /> {isGeneratingSupplements ? 'Analisando...' : 'Sugerir com IA'}
                     </button>
                   </div>
+                  {dietMeals.length === 0 && (
+                    <p style={{ fontSize: '0.8rem', color: 'var(--crm-text-muted)', marginTop: '-6px', marginBottom: '12px' }}>
+                      A sugestão por IA fica disponível depois que pelo menos uma refeição (manual ou gerada por IA) existir no cardápio.
+                    </p>
+                  )}
 
                   <div style={{ display: 'flex', gap: '8px', marginBottom: '16px' }}>
                     <select
