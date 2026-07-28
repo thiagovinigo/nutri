@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { FileText, Activity, Sparkles, Edit3, Send, Plus, X, Upload, CheckCircle, Trash2, GripVertical, Download, Dumbbell } from 'lucide-react';
+import { FileText, Activity, Sparkles, Edit3, Send, Plus, X, Upload, CheckCircle, Trash2, GripVertical, Download, Dumbbell, AlertTriangle } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import MealBuilder from './MealBuilder';
@@ -656,11 +656,18 @@ export default function ConsultationFlow({
                     <h3 style={{ fontSize: '1.1rem', color: 'var(--crm-text-main)', marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '8px' }}>
                       <Sparkles size={18} color="var(--crm-primary)" /> Sugestão de Suplementos (IA Nutricionista)
                     </h3>
-                    <p style={{ color: 'var(--crm-text-muted)', fontSize: '0.95rem', marginBottom: '16px' }}>
-                      {dietMeals.length === 0
-                        ? 'Crie ao menos uma refeição no cardápio antes — a IA usa as refeições já montadas pra sugerir o melhor horário de cada suplemento.'
-                        : 'A IA usará anamnese, exames e as refeições já criadas para sugerir suplementos e em qual refeição tomar cada um.'}
-                    </p>
+                    {dietMeals.length === 0 ? (
+                      <div role="alert" style={{ display: 'flex', gap: '10px', alignItems: 'flex-start', padding: '12px 14px', backgroundColor: 'var(--crm-warn-soft)', border: '1px solid var(--crm-warn-soft-border)', borderRadius: '8px', marginBottom: '16px' }}>
+                        <AlertTriangle size={18} color="var(--crm-warn-text)" style={{ flexShrink: 0, marginTop: '1px' }} />
+                        <p style={{ color: 'var(--crm-warn-text)', fontSize: '0.9rem', margin: 0, fontWeight: 500 }}>
+                          Nenhuma refeição no cardápio ainda — isso não é um erro, é só que a IA precisa das refeições pra saber em qual delas sugerir cada suplemento. Vá na aba "Refeições do Cardápio" e crie o cardápio primeiro (manualmente ou com "Sugerir com IA"), depois volte aqui.
+                        </p>
+                      </div>
+                    ) : (
+                      <p style={{ color: 'var(--crm-text-muted)', fontSize: '0.95rem', marginBottom: '16px' }}>
+                        A IA usará anamnese, exames e as refeições já criadas para sugerir suplementos e em qual refeição tomar cada um.
+                      </p>
+                    )}
                     <button
                       className="crm-btn-primary"
                       onClick={generateSupplementsFromAI}

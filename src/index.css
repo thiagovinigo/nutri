@@ -39,6 +39,8 @@
   --crm-warn-text: #92400E;
   --crm-good-soft: #E9F6F0;
   --crm-good-soft-border: #A7D8C2;
+  --crm-warn-soft: #FBF0E1;
+  --crm-warn-soft-border: #F3D9A8;
   --crm-font-family: 'Inter', sans-serif;
   --crm-font-heading: 'Outfit', 'Inter', sans-serif;
   --crm-shadow-sm: 0 1px 2px 0 rgba(15, 23, 42, 0.05);
@@ -77,6 +79,8 @@
   --crm-warn-text: #FCD34D;
   --crm-good-soft: rgba(16, 185, 129, 0.12);
   --crm-good-soft-border: rgba(110, 231, 183, 0.35);
+  --crm-warn-soft: rgba(245, 158, 11, 0.12);
+  --crm-warn-soft-border: rgba(252, 211, 77, 0.35);
 }
 
 * { box-sizing: border-box; margin: 0; padding: 0; }
