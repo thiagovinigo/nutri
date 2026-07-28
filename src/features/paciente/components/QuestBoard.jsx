@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { Target, Check, Camera, Sparkles, Flame, Droplets, AlertCircle, X, ChevronLeft, ChevronRight, Moon } from 'lucide-react';
 import { useAppContext } from '../../../context/AppContext';
 import ShareableMilestone from './ShareableMilestone';
@@ -553,11 +554,15 @@ export default function QuestBoard({ activePatient }) {
         </div>
       )}
 
-      {/* Modal de Sono */}
-      {showSleepModal && (
+      {/* Modal de Sono — renderizado via portal direto no document.body:
+          o wrapper .animate-pop-in acima usa transform (mesmo scale(1) parado
+          no fill-mode "forwards" conta), o que vira containing block de
+          position:fixed e prende o modal dentro dos limites do wrapper em vez
+          da viewport real — quebra visível só em telas mais curtas (mobile). */}
+      {showSleepModal && createPortal(
         <div style={{
-          position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, 
-          backgroundColor: 'rgba(15, 23, 42, 0.8)', 
+          position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
+          backgroundColor: 'rgba(15, 23, 42, 0.8)',
           display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 1000,
           backdropFilter: 'blur(4px)'
         }}>
@@ -619,7 +624,8 @@ export default function QuestBoard({ activePatient }) {
               Salvar Registro
             </button>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </div>
   );
