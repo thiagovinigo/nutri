@@ -25,9 +25,11 @@ We'll know we're right when **o nutricionista consegue anexar uma receita a uma 
 ## Scope
 **MVP (Milestone 1)** — Dentro do `MealBuilder.jsx` (cada card de refeição), adicionar uma forma de escolher uma receita salva (`recipeLibrary`) e anexá-la àquela refeição específica: preenche `meal.name` (se vazio) e `meal.desc` com o conteúdo da receita, igual ao que já acontece no drag-and-drop, mas via um seletor explícito (não exige arrastar).
 
-**Milestone 2** — Catálogo estruturado de suplementos/vitaminas: lista fixa (`src/data/supplements.json`, mesmo padrão do `taco.json`) com nome, categoria e dosagem padrão, substituindo/complementando o textarea livre de "Vitaminas e Suplementos" por um seletor com busca, no mesmo padrão do `MealBuilder.jsx`. Cada suplemento prescrito tem uma **quantidade estruturada** (ex: "1000mg", "2 cápsulas" — mesmo papel que a gramatura tem pra alimentos do TACO), e o **paciente consegue confirmar no app que tomou** aquele suplemento (check-in, no mesmo padrão de confirmação já usado pra refeições/treino — `markMealDone`/`markWorkoutDone` em `AppContext.jsx`). Isso estende a feature pro lado do paciente, não só da prescrição.
+**Milestone 2** — A aba "Vitaminas e Suplementos" continua existindo como está (textarea livre onde o nutricionista escreve o que quiser), **complementada** por duas novas formas de preencher, sem substituir a atual:
+  - **Anexar da lista nova**: catálogo fixo (`src/data/supplements.json`, mesmo padrão do `taco.json`) com nome, categoria e **quantidade estruturada** (ex: "1000mg", "2 cápsulas" — mesmo papel que a gramatura tem pra alimentos do TACO). Um seletor permite escolher um item do catálogo e "anexar" (dar um add), no mesmo padrão do seletor de receitas do Milestone 1.
+  - **Sugerir com IA**: botão que funciona como um agente, no mesmo padrão de `generateDietFromAI` — lê o que o nutricionista já escreveu no campo; se estiver vazio, sugere a lista completa (100%) com base em anamnese estruturada + resultado de exames; se já tiver conteúdo, complementa em vez de substituir.
 
-**Milestone 3** — Botão "Sugerir com IA" na aba de Suplementos, usando anamnese estruturada + resultado de exames como contexto (mesmo padrão de `generateDietFromAI`), sugerindo suplementos do catálogo com base no histórico clínico do paciente — só habilitado depois que as refeições já estiverem criadas (per pedido do usuário).
+**Milestone 3** — Cada suplemento prescrito (com sua quantidade) vira algo que o **paciente confirma no app** que tomou — check-in, no mesmo padrão já usado pra refeições (`markMealDone`, que registra em `foodLogs` com `mealIdx`/`log`/`date`/`time`) e treino (`markWorkoutDone`). Esses check-ins de suplemento **entram como dado na Síntese Clínica por IA** (`generatePatientSynthesis`) e na avaliação da consulta, junto com adesão à dieta e ao treino — hoje a síntese não considera suplementos porque eles nunca foram um dado estruturado, só texto solto.
 
 **Out of scope**
 - Envio/notificação do paciente sobre suplementos — já coberto por feature separada (notificação de dieta prescrita, backlog).
@@ -41,8 +43,8 @@ We'll know we're right when **o nutricionista consegue anexar uma receita a uma 
 | # | Milestone | Outcome | Status | Plan |
 |---|---|---|---|---|
 | 1 | Anexar receita salva à refeição específica no MealBuilder | Nutricionista escolhe uma receita salva dentro do card de uma refeição e ela preenche nome/descrição daquela refeição, sem criar uma refeição solta vazia | complete | `.claude/plans/prescricao-receitas-suplementos.plan.md` |
-| 2 | Catálogo estruturado de suplementos/vitaminas | Substitui/complementa o textarea livre por um seletor com busca, mesmo padrão do TACO | pending | — |
-| 3 | Sugestão de suplementos por IA (anamnese + exames) | Botão de IA sugere suplementos do catálogo com base no histórico clínico, habilitado só com refeições já criadas | pending | — |
+| 2 | Catálogo estruturado de suplementos/vitaminas + sugestão por IA | Seletor de catálogo e botão de IA complementam (não substituem) o texto livre atual | complete | `.claude/plans/prescricao-receitas-suplementos.plan.md` |
+| 3 | Check-in do paciente + Síntese Clínica considera suplementos | Paciente confirma cada suplemento tomado; adesão entra na Síntese Clínica por IA | complete | `.claude/plans/prescricao-receitas-suplementos.plan.md` |
 
 ## Open Questions
 - [x] Catálogo de suplementos: lista fixa curada agora (mesmo padrão do `taco.json`), sem base externa.

@@ -40,13 +40,14 @@ function compressImageFile(file, maxDimension = MAX_PHOTO_DIMENSION, quality = P
 }
 
 export default function QuestBoard({ activePatient }) {
-  const { completeQuest, markMealDone, addExtraMealLog, updateWater, addSleepLog, updatePatient } = useAppContext();
+  const { completeQuest, markMealDone, markSupplementDone, addExtraMealLog, updateWater, addSleepLog, updatePatient } = useAppContext();
   
   const [selectedDateObj, setSelectedDateObj] = useState(new Date());
   
   const [analyzing, setAnalyzing] = useState(false);
   const [previewImage, setPreviewImage] = useState(null);
   const [activeMealIndex, setActiveMealIndex] = useState(null);
+  const [expandedDescIdx, setExpandedDescIdx] = useState(null);
   const [analysisError, setAnalysisError] = useState(null);
   const [checkInMealIndex, setCheckInMealIndex] = useState(null);
   const [ateOnTime, setAteOnTime] = useState(null);
@@ -112,6 +113,10 @@ export default function QuestBoard({ activePatient }) {
   
   const getMealLog = (mealName) => {
     return (activePatient.foodLogs || []).find(log => log.date === selectedDateFormatted && log.mealName === mealName);
+  };
+
+  const getSupplementLog = (supplementName) => {
+    return (activePatient.supplementLogs || []).find(log => log.date === selectedDateFormatted && log.name === supplementName);
   };
 
   const totalMeals = currentRecipe ? currentRecipe.meals.length : 0;
@@ -450,7 +455,19 @@ export default function QuestBoard({ activePatient }) {
                     <h4 style={{margin: 0, fontSize: '1.1rem', color: isDone ? 'var(--primary-color)' : 'var(--patient-text)', display: 'flex', alignItems: 'center', gap: '8px'}}>
                       {isDone && <Check size={18} color="var(--primary-color)" />} {meal.name}
                     </h4>
-                    {meal.desc && <p style={{margin: '6px 0 10px 0', fontSize: '0.85rem', color: 'var(--patient-text-muted)', whiteSpace: 'pre-wrap', lineHeight: '1.4'}}>{meal.desc}</p>}
+                    {meal.desc && (
+                      <>
+                        <button
+                          onClick={() => setExpandedDescIdx(expandedDescIdx === idx ? null : idx)}
+                          style={{ background: 'none', border: 'none', color: 'var(--primary-color)', fontSize: '0.8rem', fontWeight: 600, cursor: 'pointer', padding: '4px 0', display: 'flex', alignItems: 'center', gap: '4px' }}
+                        >
+                          {expandedDescIdx === idx ? '▾ Ocultar modo de preparo' : '▸ Ver modo de preparo'}
+                        </button>
+                        {expandedDescIdx === idx && (
+                          <p style={{margin: '6px 0 10px 0', fontSize: '0.85rem', color: 'var(--patient-text-muted)', whiteSpace: 'pre-wrap', lineHeight: '1.4'}}>{meal.desc}</p>
+                        )}
+                      </>
+                    )}
                     {meal.foods && meal.foods.length > 0 && (
                       <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginTop: '6px' }}>
                         {meal.foods.map((f, fi) => (
@@ -544,6 +561,36 @@ export default function QuestBoard({ activePatient }) {
               </div>
             );
           })}
+
+          {currentRecipe?.supplementsList && currentRecipe.supplementsList.length > 0 && (
+            <>
+              <h2 style={{fontSize: '1.2rem', fontWeight: '800', marginBottom: '16px', marginTop: '24px', display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--patient-text)'}}>💊 Suplementos e Vitaminas</h2>
+              {currentRecipe.supplementsList.map((supplement) => {
+                const supLog = getSupplementLog(supplement.name);
+                const supDone = !!supLog;
+                return (
+                  <div key={supplement.id} className="patient-card patient-glass" style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px', borderColor: supDone ? 'var(--primary-color)' : 'var(--glass-border)'}}>
+                    <div>
+                      <h4 style={{margin: 0, fontSize: '1rem', color: supDone ? 'var(--primary-color)' : 'var(--patient-text)', display: 'flex', alignItems: 'center', gap: '8px'}}>
+                        {supDone && <Check size={16} color="var(--primary-color)" />} {supplement.name}
+                      </h4>
+                      <span style={{fontSize: '0.8rem', color: 'var(--patient-text-muted)'}}>{supplement.dosage}</span>
+                    </div>
+                    {!supDone ? (
+                      <button className="btn-3d btn-primary" style={{padding: '8px 12px', fontSize: '0.85rem', whiteSpace: 'nowrap'}} onClick={() => {
+                        markSupplementDone(activePatient.id, supplement.id, supplement.name, selectedDateFormatted);
+                        completeQuest(activePatient.id, 5);
+                      }}>
+                        <Check size={16} style={{marginRight: '4px'}} /> Tomei
+                      </button>
+                    ) : (
+                      <span style={{backgroundColor: 'rgba(16, 185, 129, 0.2)', color: 'var(--primary-color)', padding: '6px 12px', borderRadius: '12px', fontWeight: 'bold', fontSize: '0.8rem', whiteSpace: 'nowrap'}}>CONCLUÍDO</span>
+                    )}
+                  </div>
+                );
+              })}
+            </>
+          )}
 
         </>
       ) : (

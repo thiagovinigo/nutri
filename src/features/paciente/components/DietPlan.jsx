@@ -362,9 +362,12 @@ export default function DietPlan({ activePatient }) {
                             )}
 
                             {m.desc && (
-                              <p style={{ margin: '0 0 12px 0', fontSize: '0.85rem', color: 'var(--patient-text-muted)', whiteSpace: 'pre-wrap', fontStyle: 'italic' }}>
-                                💬 {m.desc}
-                              </p>
+                              <button
+                                onClick={() => toggleFlip(mIdx)}
+                                style={{ background: 'none', border: 'none', color: 'var(--primary-color)', fontSize: '0.82rem', fontWeight: 600, cursor: 'pointer', padding: '4px 0', marginBottom: '8px', display: 'flex', alignItems: 'center', gap: '4px' }}
+                              >
+                                📖 Ver modo de preparo
+                              </button>
                             )}
 
                             {/* IA Recipe button */}
@@ -386,13 +389,23 @@ export default function DietPlan({ activePatient }) {
                           <div className="flip-card-back patient-card patient-glass" style={{ borderRadius: '16px', padding: '16px', display: 'flex', flexDirection: 'column' }}>
                             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px', borderBottom: '1px solid rgba(139,92,246,0.3)', paddingBottom: '10px' }}>
                               <h4 style={{ margin: 0, display: 'flex', alignItems: 'center', gap: '6px', color: '#8b5cf6', fontSize: '0.95rem' }}>
-                                <Sparkles size={16} /> Receita da IA — {m.name}
+                                <Sparkles size={16} /> {m.name}
                               </h4>
                               <button onClick={() => toggleFlip(mIdx)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--patient-text-muted)', padding: '4px' }}>
                                 <X size={18} />
                               </button>
                             </div>
 
+                            {m.desc && (
+                              <div style={{ marginBottom: '12px', paddingBottom: '12px', borderBottom: '1px solid rgba(139,92,246,0.2)' }}>
+                                <strong style={{ display: 'block', color: 'var(--patient-text)', fontSize: '0.85rem', marginBottom: '6px' }}>📖 Modo de Preparo</strong>
+                                <p style={{ margin: 0, fontSize: '0.88rem', color: 'var(--patient-text-muted)', whiteSpace: 'pre-wrap', lineHeight: '1.5' }}>{m.desc}</p>
+                              </div>
+                            )}
+
+                            <strong style={{ display: 'flex', alignItems: 'center', gap: '6px', color: '#8b5cf6', fontSize: '0.85rem', marginBottom: '6px' }}>
+                              <Sparkles size={14} /> Receita da IA
+                            </strong>
                             <div className="markdown-content" style={{ flex: 1, overflowY: 'auto', color: 'var(--patient-text)', fontSize: '0.9rem' }}>
                               {isRecipeLoading && loadingMealIdx === mIdx ? (
                                 <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '32px 0', color: '#8b5cf6' }}>

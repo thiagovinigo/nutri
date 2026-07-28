@@ -288,6 +288,17 @@ export function AppProvider({ children }) {
     await updatePatient(patientId, { foodLogs: newFoodLogs });
   };
 
+  const markSupplementDone = async (patientId, supplementId, name, date = new Date().toLocaleDateString('pt-BR')) => {
+    const p = patients.find(pat => pat.id === patientId);
+    if (!p) return;
+
+    const time = new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+    const newSupplementLog = { id: `supplement-${Date.now()}`, date, time, name, supplementId };
+    const newSupplementLogs = [...(p.supplementLogs || []), newSupplementLog];
+
+    await updatePatient(patientId, { supplementLogs: newSupplementLogs });
+  };
+
   const addExtraMealLog = async (patientId, aiFeedback, mealName = 'Refeição Livre', date = new Date().toLocaleDateString('pt-BR')) => {
     const p = patients.find(pat => pat.id === patientId);
     if (!p) return;
@@ -563,7 +574,7 @@ export function AppProvider({ children }) {
       isLoadingPatients,
       clinicConfig, updateClinicConfig,
       addPatient, updatePatient, deletePatient,
-      addRecipe, updateMealAiRecipe, markMealDone, addExtraMealLog, markWorkoutDone, addWeight, addSleepLog, addExam, completeQuest, updateWater,
+      addRecipe, updateMealAiRecipe, markMealDone, markSupplementDone, addExtraMealLog, markWorkoutDone, addWeight, addSleepLog, addExam, completeQuest, updateWater,
       addNotification, markNotificationsRead,
       appointments, addAppointment, cancelAppointment, markAppointmentDone,
       dietTemplates, addDietTemplate, deleteDietTemplate,

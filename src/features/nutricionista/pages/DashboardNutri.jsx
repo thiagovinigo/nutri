@@ -4,6 +4,7 @@ import ConsultationFlow from '../components/ConsultationFlow';
 import PatientList from '../components/PatientList';
 import { extractTextFromPDF } from '../../../services/pdfService';
 import tacoData from '../../../data/taco.json';
+import supplementsData from '../../../data/supplements.json';
 import { callOpenAIBridge } from '../../../utils/openaiBridge';
 import { formatAnamnesisAnswers } from '../../../utils/anamnesis';
 import { DEFAULT_TEMPLATE as DEFAULT_ANAMNESIS_TEMPLATE } from '../components/AnamnesisTemplateSettings';
@@ -88,10 +89,12 @@ export default function DashboardNutri() {
   const [dietTitle, setDietTitle] = useState('');
   const [dietDescription, setDietDescription] = useState('');
   const [dietSupplements, setDietSupplements] = useState('');
+  const [dietSupplementsList, setDietSupplementsList] = useState([]);
   const [dietDuration, setDietDuration] = useState(1);
   const [dietMeals, setDietMeals] = useState([]);
   const [workoutPlan, setWorkoutPlan] = useState(null);
   const [isGeneratingDiet, setIsGeneratingDiet] = useState(false);
+  const [isGeneratingSupplements, setIsGeneratingSupplements] = useState(false);
   const [isGeneratingWorkout, setIsGeneratingWorkout] = useState(false);
 
   const [examError, setExamError] = useState('');
@@ -215,6 +218,7 @@ export default function DashboardNutri() {
     setDietTitle('');
     setDietDescription('');
     setDietSupplements('');
+    setDietSupplementsList([]);
     setDietDuration(1);
     setDietMeals([]);
     setWorkoutPlan(null);
@@ -231,6 +235,7 @@ export default function DashboardNutri() {
     setDietTitle('');
     setDietDescription('');
     setDietSupplements('');
+    setDietSupplementsList([]);
     setDietDuration(1);
     setDietMeals([]);
     setWorkoutPlan(null);
@@ -377,6 +382,42 @@ Exemplo de formato:
     }
   };
 
+  const generateSupplementsFromAI = async () => {
+    setIsGeneratingSupplements(true);
+    setDietError('');
+    try {
+      let promptContext = `Objetivo: ${activePatient.objective}. Idade: ${activePatient.age || 'Não informada'}. Sexo: ${activePatient.gender === 'M' ? 'Masculino' : 'Feminino'}.`;
+      if (activePatient.restrictions) promptContext += `\nRestrições/Contraindicações: ${activePatient.restrictions}`;
+      if (activePatient.medications) promptContext += `\nMedicamentos em uso: ${activePatient.medications}`;
+      if (anamnesisText) promptContext += `\nAnamnese: ${anamnesisText}`;
+      if (examResult) promptContext += `\nAnálise de Exames: ${examResult}`;
+
+      const catalogList = supplementsData.map(s => `${s.name} (dose usual: ${s.defaultDosage})`).join(', ');
+      promptContext += `\n\nCATÁLOGO DISPONÍVEL: ${catalogList}`;
+
+      const hasExisting = dietSupplementsList.length > 0 || dietSupplements.trim().length > 0;
+      if (hasExisting) {
+        const existingList = dietSupplementsList.map(s => `${s.name} (${s.dosage})`).join(', ') || 'nenhum';
+        promptContext += `\n\nO NUTRICIONISTA JÁ PRESCREVEU: ${existingList}. Observações adicionais já escritas: "${dietSupplements || 'nenhuma'}". Sugira APENAS suplementos complementares que ainda não estão nessa lista — não repita os que já existem.`;
+      } else {
+        promptContext += `\n\nNenhum suplemento foi prescrito ainda. Sugira uma lista completa e adequada ao caso clínico acima.`;
+      }
+
+      const data = await callOpenAIBridge({
+        system_prompt: `Você é um Nutricionista Clínico especialista em suplementação. Retorne EXATAMENTE UM JSON com um array 'supplements', cada item com 'name' (nome do suplemento, preferencialmente do catálogo fornecido) e 'dosage' (dose recomendada, ex: "1000mg" ou "1 cápsula"). Não inclua explicações fora do JSON.`,
+        messages: [{ role: "user", content: `Sugira suplementos considerando este contexto clínico:\n\n${promptContext}` }],
+        format_json: true
+      });
+      const parsed = JSON.parse(data.choices[0].message.content);
+      const suggested = (parsed.supplements || []).map(s => ({ id: Date.now().toString() + Math.random().toString(36).slice(2), name: s.name, dosage: s.dosage }));
+      setDietSupplementsList([...dietSupplementsList, ...suggested]);
+    } catch (error) {
+      setDietError(error.message || 'Erro ao sugerir suplementos com IA.');
+    } finally {
+      setIsGeneratingSupplements(false);
+    }
+  };
+
   const generateWorkoutFromAI = async () => {
     setIsGeneratingWorkout(true);
     setDietError('');
@@ -482,6 +523,7 @@ Não inclua textos fora do JSON. Apenas o JSON puro.`;
       const hasHistory = patient.consultations && patient.consultations.length > 0;
       
       const recentFoodLogs = (patient.foodLogs || []).slice(-15).map(f => `[${f.date} ${f.time}] ${f.mealName}: ${f.log}`).join(' | ') || 'Nenhum registro de refeição recente';
+      const recentSupplementLogs = (patient.supplementLogs || []).slice(-15).map(s => `[${s.date} ${s.time}] ${s.name}`).join(' | ') || 'Nenhum registro de suplemento tomado';
       const recentWaterLogs = patient.waterLogs ? Object.entries(patient.waterLogs).slice(-7).map(([date, ml]) => `${date}: ${ml}ml`).join(' | ') : 'Nenhum registro de água';
       const recentSleepLogs = (patient.sleepLogs || []).slice(-7).map(s => `${s.date}: ${s.hours}h (${s.quality})`).join(' | ') || 'Nenhum registro de sono';
       const statusCohort = patient.status === 'em_risco' ? '⚠️ EM RISCO DE ABANDONO (PERDENDO FOCO)' : (patient.status || 'Ativo');
@@ -501,6 +543,7 @@ Não inclua textos fora do JSON. Apenas o JSON puro.`;
       Consumo de Água Recente: ${recentWaterLogs}
       Qualidade do Sono Recente: ${recentSleepLogs}
       Diário Alimentar Recente: ${recentFoodLogs}
+      Adesão a Suplementos/Vitaminas Recente: ${recentSupplementLogs}
       `;
 
       const sysPrompt = hasHistory 
@@ -538,6 +581,7 @@ Não inclua textos fora do JSON. Apenas o JSON puro.`;
       dietTitle: dietTitle,
       dietMeals: formattedMeals,
       dietSupplements: dietSupplements,
+      dietSupplementsList: dietSupplementsList,
       dietDescription: dietDescription,
       workoutPlan: workoutPlan
     };
@@ -554,6 +598,7 @@ Não inclua textos fora do JSON. Apenas o JSON puro.`;
         title: dietTitle || 'Plano Alimentar Padrão',
         description: dietDescription,
         supplements: dietSupplements,
+        supplementsList: dietSupplementsList,
         meals: formattedMeals
       }];
     }
@@ -595,10 +640,13 @@ Não inclua textos fora do JSON. Apenas o JSON puro.`;
         dietTitle={dietTitle} setDietTitle={setDietTitle}
         dietDescription={dietDescription} setDietDescription={setDietDescription}
         dietSupplements={dietSupplements} setDietSupplements={setDietSupplements}
+        dietSupplementsList={dietSupplementsList} setDietSupplementsList={setDietSupplementsList}
         dietDuration={dietDuration} setDietDuration={setDietDuration}
         dietMeals={dietMeals} setDietMeals={setDietMeals}
         workoutPlan={workoutPlan} setWorkoutPlan={setWorkoutPlan}
         isGeneratingDiet={isGeneratingDiet}
+        generateSupplementsFromAI={generateSupplementsFromAI}
+        isGeneratingSupplements={isGeneratingSupplements}
         isGeneratingWorkout={isGeneratingWorkout}
         analyzeExamWithAI={analyzeExamWithAI}
         generateDietFromAI={generateDietFromAI}

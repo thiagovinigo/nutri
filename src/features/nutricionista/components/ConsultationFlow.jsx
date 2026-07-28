@@ -5,6 +5,7 @@ import remarkGfm from 'remark-gfm';
 import MealBuilder from './MealBuilder';
 import WorkoutBuilder from './WorkoutBuilder';
 import { DEFAULT_TEMPLATE } from './AnamnesisTemplateSettings';
+import supplementsData from '../../../data/supplements.json';
 
 function normTitle(s) {
   return (s || '').toLowerCase()
@@ -81,6 +82,9 @@ export default function ConsultationFlow({
   dietTitle, setDietTitle,
   dietDescription, setDietDescription,
   dietSupplements, setDietSupplements,
+  dietSupplementsList, setDietSupplementsList,
+  generateSupplementsFromAI,
+  isGeneratingSupplements,
   dietDuration, setDietDuration,
   dietMeals, setDietMeals,
   workoutPlan, setWorkoutPlan,
@@ -653,16 +657,76 @@ export default function ConsultationFlow({
 
               {prescriptionTab === 'suplementos' && (
                 <div className="animate-pop-in" style={{ marginBottom: '32px' }}>
-                  <label className="crm-label">Vitaminas e Suplementação Manipulada</label>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px', flexWrap: 'wrap', gap: '12px' }}>
+                    <label className="crm-label" style={{ marginBottom: 0 }}>Suplementos e Vitaminas Prescritos</label>
+                    <button
+                      className="crm-btn-primary"
+                      style={{ backgroundColor: '#10B981', display: 'flex', alignItems: 'center', gap: '8px' }}
+                      onClick={generateSupplementsFromAI}
+                      disabled={isGeneratingSupplements}
+                    >
+                      <Sparkles size={16} /> {isGeneratingSupplements ? 'Analisando...' : 'Sugerir com IA'}
+                    </button>
+                  </div>
+
+                  <div style={{ display: 'flex', gap: '8px', marginBottom: '16px' }}>
+                    <select
+                      className="crm-input"
+                      style={{ flex: 1 }}
+                      value=""
+                      onChange={(e) => {
+                        if (!e.target.value) return;
+                        const item = supplementsData.find(s => s.id === e.target.value);
+                        if (item) {
+                          setDietSupplementsList([...dietSupplementsList, { id: Date.now().toString(), name: item.name, dosage: item.defaultDosage }]);
+                        }
+                        e.target.value = '';
+                      }}
+                    >
+                      <option value="" disabled>+ Anexar da lista de suplementos...</option>
+                      {supplementsData.map(s => (
+                        <option key={s.id} value={s.id}>{s.name} ({s.defaultDosage})</option>
+                      ))}
+                    </select>
+                  </div>
+
+                  {dietSupplementsList.length > 0 && (
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginBottom: '20px' }}>
+                      {dietSupplementsList.map((item, idx) => (
+                        <div key={item.id} style={{ display: 'flex', gap: '8px', alignItems: 'center', backgroundColor: 'var(--crm-surface-2, var(--crm-bg))', padding: '8px 12px', borderRadius: '8px', border: '1px solid var(--crm-border)' }}>
+                          <strong style={{ flex: 1, color: 'var(--crm-text-main)', fontSize: '0.9rem' }}>{item.name}</strong>
+                          <input
+                            type="text"
+                            className="crm-input"
+                            style={{ width: '140px', padding: '6px 8px', fontSize: '0.85rem' }}
+                            value={item.dosage}
+                            onChange={(e) => {
+                              const newList = [...dietSupplementsList];
+                              newList[idx] = { ...item, dosage: e.target.value };
+                              setDietSupplementsList(newList);
+                            }}
+                          />
+                          <button
+                            onClick={() => setDietSupplementsList(dietSupplementsList.filter((_, i) => i !== idx))}
+                            style={{ background: 'none', border: 'none', color: 'var(--crm-danger)', cursor: 'pointer' }}
+                          >
+                            <Trash2 size={16} />
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+
+                  <label className="crm-label">Observações Adicionais</label>
                   <p style={{ fontSize: '0.85rem', color: 'var(--crm-text-muted)', marginBottom: '16px' }}>
-                    Descreva os suplementos, dosagens e horários. Este conteúdo aparecerá em destaque no aplicativo do paciente.
+                    Horários, orientações de uso ou qualquer detalhe que não se encaixe na lista acima.
                   </p>
-                  <textarea 
-                    className="crm-input" 
-                    placeholder="Ex: Ômega 3 (1000mg) - 1 cápsula após o almoço..." 
-                    value={dietSupplements} 
-                    onChange={e => setDietSupplements(e.target.value)} 
-                    style={{ minHeight: '250px', resize: 'vertical' }} 
+                  <textarea
+                    className="crm-input"
+                    placeholder="Ex: Tomar o Ômega 3 sempre após o almoço..."
+                    value={dietSupplements}
+                    onChange={e => setDietSupplements(e.target.value)}
+                    style={{ minHeight: '150px', resize: 'vertical' }}
                   />
                 </div>
               )}
