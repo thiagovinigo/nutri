@@ -1,7 +1,7 @@
 # Backlog — Nutrivvo
 
-> Consolidado a partir de `todo.md`, `todo2.md` e das sessões de rebranding/correções de 27-28/07/2026.
-> Fonte de verdade única — os arquivos antigos continuam existindo como histórico detalhado, mas use este pra visão geral.
+> **Backlog unificado (28/07/2026).** Este é o único documento de backlog do projeto — `todo.md`, `todo2.md` e `backlog-user-stories.md` foram aposentados nesta data (conteúdo relevante consolidado aqui; os arquivos continuam no repo só como histórico bruto, não use como referência ativa).
+> Consolidado a partir desses 3 arquivos, das sessões de rebranding/correções de 27-28/07/2026, do benchmark competitivo (`market-scout`), do cruzamento de documentos (`doc-innovator`) e do discovery de produto de 28/07/2026.
 
 ---
 
@@ -79,8 +79,19 @@
 
 ## 💬 Comunicação nutricionista ↔ paciente
 
-- [ ] Canal de mensagens diretas (hoje só existe o bot de IA)
-- [ ] Notificações push/e-mail quando dieta é prescrita ou consulta confirmada
+> Detalhe de stories consolidado de `backlog-user-stories.md` (aposentado 28/07/2026). Story 1 (telefone no cadastro) já está feita — pré-requisito de tudo abaixo.
+
+| # | Story | Prioridade | Status |
+|---|-------|-----------|--------|
+| 2 | Publicar `firestore.rules` em produção | P0 | Pendente — só você tem acesso ao Firebase CLI (~1h) |
+| 3 | Validar cobrança/recibo por WhatsApp ponta-a-ponta | P0 | Pendente (~2h) — considerar badge "telefone não confirmado" quando `phone === '11999999999'` |
+| 4 | Canal de mensagens diretas Nutri ↔ Paciente | P1 | Pendente (~3-4 dias) — nova coleção `directMessages` (já referenciada vazia em `AppContext.jsx`), depende da Story 2 (regra de segurança dedicada) |
+| 5 | Notificações de dieta prescrita / consulta confirmada | P1 | Pendente (~1 dia) — reusar `addNotification`, disparar em `finishConsultation` e na confirmação de agendamento |
+| 6 | Lembretes proativos de refeição via WhatsApp | P2 | Bloqueada — decidir provider (Meta Official API vs Evolution/Baileys) antes de estimar |
+| 7 | Check-in de refeição por foto no WhatsApp | P2 | Bloqueada — depende da Story 6 (mesma infra de bot) |
+
+- [ ] Canal de mensagens diretas (hoje só existe o bot de IA) — Story 4 acima
+- [ ] Notificações push/e-mail quando dieta é prescrita ou consulta confirmada — Story 5 acima
 
 ## 📊 Analytics e instrumentação
 
@@ -94,7 +105,7 @@
 
 ---
 
-## 🚀 V2 — Grandes iniciativas (ver `todo2.md` para detalhe completo)
+## 🚀 V2 — Grandes iniciativas
 
 ### Módulo: Agente Ativo de Saúde via WhatsApp
 - PRD e escolha de provider (Meta Official API vs Evolution/Baileys)
@@ -139,7 +150,8 @@
 > Cruzado contra backlog.md, features.md, context.md e o código real (DietPlan.jsx, QuestBoard.jsx, ConsultationFlow.jsx, PatientList.jsx) pra eliminar falsos positivos — "lista de compras" e "diário alimentar livre" foram descartados por já estarem implementados (ver débito de documentação abaixo).
 
 **Clínico**
-- [ ] **Formulário de anamnese estruturado e pré-consulta** — hoje a anamnese é um `<textarea>` livre preenchido pelo nutricionista durante a consulta (`ConsultationFlow.jsx`); o paciente nunca preenche nada antes. Concorrentes (Practice Better) mandam "intake packets" customizáveis antes da sessão. Dá pra reaproveitar o fluxo de convite já existente: `formSchema` dinâmico por nutricionista, preenchido pelo paciente via link de convite.
+- [x] ~~Formulário de anamnese estruturado~~ — feito em 28/07/2026: nutricionista configura os campos (texto curto/longo/escolha única) em Configurações e preenche estruturado durante a consulta, substituindo o `<textarea>` livre. PRD e plano em `.claude/prds/anamnese-pre-consulta.prd.md` / `.claude/plans/anamnese-pre-consulta.plan.md`. **Decisão de escopo:** paciente preencher sozinho antes da consulta foi tirado do roadmap (ver item abaixo, que é uma versão mais leve dessa ideia).
+- [ ] **Paciente sugere atualização da própria anamnese entre consultas** (Discovery 28/07/2026, H3) — não é o paciente preenchendo o formulário inteiro (isso já foi descartado), é um mini check-in leve ("mudou algo desde a última vez? novo medicamento, nova restrição?") que só *sugere* uma atualização pro nutricionista confirmar na próxima consulta — autoridade clínica continua 100% do nutricionista, mas o dado não fica parado até a próxima visita presencial.
 - [ ] **Rastreamento nutricional estruturado (micronutrientes)** — `foodLogs` hoje não tem calorias/macros/micronutrientes estruturados, só estimativa da IA Vision por foto (bom pra engajamento, insuficiente clinicamente pra casos como anemia/hipertensão/deficiência de B12). Construir via proxy serverless pra base TACO (tabela brasileira) ou Open Food Facts, novo `type: 'structured'` em `foodLogs`.
 - [ ] **Scanner de código de barras** — depende do item acima (banco nutricional estruturado). `BarcodeDetector` API nativa (PWA Android/Chrome) + fallback `zxing-js` pra iOS, casando EAN com Open Food Facts.
 
