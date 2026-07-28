@@ -12,6 +12,7 @@ export default function Profile({ activePatient }) {
   const [editGender, setEditGender] = useState('M');
   const [editAversions, setEditAversions] = useState('');
   const [editMedications, setEditMedications] = useState('');
+  const [editPhone, setEditPhone] = useState('');
   const [profileSaved, setProfileSaved] = useState(false);
   const [showWeightModal, setShowWeightModal] = useState(false);
   const [weightInput, setWeightInput] = useState('');
@@ -27,6 +28,17 @@ export default function Profile({ activePatient }) {
       setEditAversions(activePatient.aversions || '');
       setEditMedications(activePatient.medications || '');
     }
+  }, [activePatient]);
+
+  const formatPhone = (v) => {
+    const digits = v.replace(/\D/g, '').slice(0, 11);
+    return digits
+      .replace(/^(\d{2})(\d)/, '($1) $2')
+      .replace(/(\d{5})(\d{4})$/, '$1-$2');
+  };
+
+  useEffect(() => {
+    if (activePatient) setEditPhone(formatPhone(activePatient.phone || ''));
   }, [activePatient]);
 
   
@@ -73,7 +85,7 @@ export default function Profile({ activePatient }) {
   const handleSaveProfile = (e) => {
     e.preventDefault();
     if(activePatient) {
-      updatePatient(activePatient.id, { ...activePatient, name: editName, email: editEmail, cpf: editCpf, age: editAge, gender: editGender, aversions: editAversions, medications: editMedications });
+      updatePatient(activePatient.id, { ...activePatient, name: editName, email: editEmail, cpf: editCpf, age: editAge, gender: editGender, aversions: editAversions, medications: editMedications, phone: editPhone.replace(/\D/g, '') });
       setProfileSaved(true);
       setTimeout(() => setProfileSaved(false), 3000);
     }
@@ -117,6 +129,10 @@ export default function Profile({ activePatient }) {
         <div>
           <label style={{display: 'block', marginBottom: '6px', fontSize: '0.9rem', color: 'var(--crm-text-muted)'}}>CPF</label>
           <input type="text" value={editCpf} onChange={e => setEditCpf(e.target.value)} style={{width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid #cbd5e1', boxSizing: 'border-box'}} />
+        </div>
+        <div>
+          <label style={{display: 'block', marginBottom: '6px', fontSize: '0.9rem', color: 'var(--crm-text-muted)'}}>Telefone (WhatsApp)</label>
+          <input type="text" value={editPhone} onChange={e => setEditPhone(formatPhone(e.target.value))} placeholder="(99) 99999-9999" style={{width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid #cbd5e1', boxSizing: 'border-box'}} />
         </div>
         <div style={{ display: 'flex', gap: '16px' }}>
           <div style={{ flex: 1 }}>
