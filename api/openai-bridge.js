@@ -4,6 +4,11 @@ export const config = {
       sizeLimit: '50mb',
     },
   },
+  // Planos de dieta longos (ex: 7 dias, 42 refeições com receitas completas)
+  // podem legitimamente levar mais que o limite padrão da Vercel (10s no
+  // Hobby) só pra gerar a resposta da OpenAI — sem isso a função é morta
+  // no meio e o cliente fica esperando um 504 que nunca chega a tempo.
+  maxDuration: 120,
 };
 
 export default async function handler(req, res) {
@@ -45,19 +50,34 @@ export default async function handler(req, res) {
       requestBody.response_format = { type: 'json_object' };
     }
 
-    const response = await fetch('https://api.openai.com/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${OPENAI_API_KEY}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(requestBody),
-    });
+    // Timeout próprio, abaixo do maxDuration da função: se a OpenAI travar,
+    // preferimos responder com um erro claro em vez de deixar a Vercel matar
+    // a função no meio e o cliente ficar esperando indefinidamente.
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 110000);
+
+    let response;
+    try {
+      response = await fetch('https://api.openai.com/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${OPENAI_API_KEY}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(requestBody),
+        signal: controller.signal,
+      });
+    } finally {
+      clearTimeout(timeoutId);
+    }
 
     const data = await response.json();
     res.status(response.status).json(data);
   } catch (error) {
     console.error("Erro na OpenAI API Bridge:", error);
+    if (error.name === 'AbortError') {
+      return res.status(504).json({ error: { message: 'A IA demorou demais para responder (timeout interno). Tente novamente ou reduza a duração do plano.' } });
+    }
     res.status(500).json({ error: error.message });
   }
 }

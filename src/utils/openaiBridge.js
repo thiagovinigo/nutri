@@ -10,11 +10,28 @@ const FRIENDLY_STATUS_MESSAGES = {
 };
 
 export async function callOpenAIBridge(payload) {
-  const response = await fetch('/api/openai-bridge', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(payload),
-  });
+  // Timeout no cliente: mesmo que a rede trave em algum ponto entre o
+  // navegador e a Vercel (proxy, CDN etc.), a UI não deve ficar presa em
+  // "Analisando..." pra sempre — deve sempre virar um erro visível.
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 130000);
+
+  let response;
+  try {
+    response = await fetch('/api/openai-bridge', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+      signal: controller.signal,
+    });
+  } catch (error) {
+    if (error.name === 'AbortError') {
+      throw new Error('A IA demorou demais para responder. Tente novamente ou reduza a duração/complexidade do pedido.');
+    }
+    throw error;
+  } finally {
+    clearTimeout(timeoutId);
+  }
 
   if (!response.ok) {
     const rawText = await response.text();
