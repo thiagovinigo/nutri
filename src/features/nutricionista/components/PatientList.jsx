@@ -940,7 +940,7 @@ export default function PatientList({
 
                 const handleSendRecibo = () => {
                   if (!phone) { alert('Paciente sem telefone cadastrado no perfil.'); return; }
-                  const msg = `🧾 *RECIBO DE PAGAMENTO - VYTAL*\n\nConfirmamos o recebimento do valor de *R$ ${activePlan.price}* referente ao plano *${activePlan.name}* do(a) paciente *${viewedPatient.name}*.\n\nStatus: Confirmado e Quitado 🟢\nData: ${new Date().toLocaleDateString('pt-BR')}\n\nMuito obrigado pela confiança em nosso acompanhamento nutricional! 🍎✨`;
+                  const msg = `🧾 *RECIBO DE PAGAMENTO - NUTRIVVO*\n\nConfirmamos o recebimento do valor de *R$ ${activePlan.price}* referente ao plano *${activePlan.name}* do(a) paciente *${viewedPatient.name}*.\n\nStatus: Confirmado e Quitado 🟢\nData: ${new Date().toLocaleDateString('pt-BR')}\n\nMuito obrigado pela confiança em nosso acompanhamento nutricional! 🍎✨`;
                   window.open(`https://wa.me/55${phone}?text=${encodeURIComponent(msg)}`, '_blank');
                 };
 

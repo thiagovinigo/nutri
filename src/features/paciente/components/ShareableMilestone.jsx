@@ -42,7 +42,7 @@ export default function ShareableMilestone({ onClose }) {
             </div>
           </div>
           
-          <p style={{fontSize: '0.8rem', color: 'var(--crm-text-muted)', marginTop: '24px', letterSpacing: '1px'}}>VYTAL PERFORMANCE</p>
+          <p style={{fontSize: '0.8rem', color: 'var(--crm-text-muted)', marginTop: '24px', letterSpacing: '1px'}}>NUTRIVVO PERFORMANCE</p>
         </div>
 
         <button className="btn-3d btn-primary" style={{width: '100%', marginTop: '24px', fontSize: '1.2rem', padding: '16px'}} onClick={handleShare}>

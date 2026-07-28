@@ -17,7 +17,7 @@ export default function TopBar({ streak, gems, notifications = [], onOpenNotific
     <div style={styles.topbar} className="patient-glass">
       {/* Logo — absolutamente centrada na topbar */}
       <div style={styles.brand}>
-        VYTAL
+        NUTRIVVO
       </div>
 
       {/* Stats — ancorados à direita */}
