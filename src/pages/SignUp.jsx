@@ -10,6 +10,7 @@ export default function SignUp() {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [cpf, setCpf] = useState('');
+  const [phone, setPhone] = useState('');
   const [birthDate, setBirthDate] = useState('');
   const [crn, setCrn] = useState('');
   const [password, setPassword] = useState('');
@@ -38,6 +39,7 @@ export default function SignUp() {
           if (data.name) setName(data.name);
           if (data.email) setEmail(data.email);
           if (data.cpf) setCpf(data.cpf);
+          if (data.phone) setPhone(data.phone);
           if (data.birthDate) setBirthDate(data.birthDate);
         }
       }).catch(e => console.warn('Erro ao carregar dados do link direto', e));
@@ -75,6 +77,7 @@ export default function SignUp() {
       const userDoc = {
         name: name,
         email: email,
+        phone: phone || '11999999999',
         role: role,
         createdAt: new Date().toISOString()
       };
@@ -100,6 +103,7 @@ export default function SignUp() {
           name: name,
           email: email, // garantindo o email no doc também
           cpf: cpf,
+          phone: phone || '11999999999',
           birthDate: birthDate,
           age: calculatedAge,
           nutricionista_id: nutriIdParam || null,
@@ -121,7 +125,7 @@ export default function SignUp() {
             const tempDocSnap = await getDoc(tempDocRef);
             if (tempDocSnap.exists()) {
               // Mescla os dados do cadastro temporário com o default (sobrescrevendo o default)
-              initialData = { ...initialData, ...tempDocSnap.data(), name: name, email: email, cpf: cpf, birthDate: birthDate, age: calculatedAge, status: 'ativo' };
+              initialData = { ...initialData, ...tempDocSnap.data(), name: name, email: email, cpf: cpf, phone: phone || tempDocSnap.data().phone || '11999999999', birthDate: birthDate, age: calculatedAge, status: 'ativo' };
               // Deleta o temporário
               await deleteDoc(tempDocRef);
             }
@@ -230,6 +234,24 @@ export default function SignUp() {
               value={email}
               onChange={e => setEmail(e.target.value)}
               placeholder="joao@email.com"
+            />
+          </div>
+
+          <div style={{ marginBottom: '16px' }}>
+            <label style={{ display: 'block', marginBottom: '6px', fontWeight: '500', color: '#334155' }}>Telefone (WhatsApp)</label>
+            <input
+              type="tel"
+              required
+              style={{ width: '100%', padding: '10px 12px', borderRadius: '6px', border: '1px solid #cbd5e1' }}
+              value={phone}
+              onChange={e => {
+                let v = e.target.value.replace(/\D/g, '');
+                if (v.length > 11) v = v.slice(0, 11);
+                v = v.replace(/^(\d{2})(\d)/, '($1) $2');
+                v = v.replace(/(\d{5})(\d{4})$/, '$1-$2');
+                setPhone(v);
+              }}
+              placeholder="(11) 99999-9999"
             />
           </div>
 

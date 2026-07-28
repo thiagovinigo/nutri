@@ -22,7 +22,7 @@ export default function PatientList({
   handleCreateAppointment, cancelAppointment, startConsultation,
   showPatientModal, setShowPatientModal,
   openNewPatientModal, openEditPatientModal, editingPatient, handleDeletePatient,
-  patName, setPatName, patObj, setPatObj, patRest, setPatRest, patCpf, setPatCpf, patEmail, setPatEmail, patBirthDate, setPatBirthDate, patGender, setPatGender, patAversions, setPatAversions, patMedications, setPatMedications, handleSavePatient,
+  patName, setPatName, patObj, setPatObj, patRest, setPatRest, patCpf, setPatCpf, patEmail, setPatEmail, patPhone, setPatPhone, patBirthDate, setPatBirthDate, patGender, setPatGender, patAversions, setPatAversions, patMedications, setPatMedications, handleSavePatient,
   viewingPatientId, setViewingPatientId,
   synthesisResult, setSynthesisResult, isSynthesizing, generatePatientSynthesis, synthesisError,
   addNotification, addExam,
@@ -2015,6 +2015,16 @@ export default function PatientList({
                   <label className="crm-label">E-mail</label>
                   <input type="email" className="crm-input" placeholder="email@paciente.com" value={patEmail} onChange={e => setPatEmail(e.target.value)} required />
                 </div>
+              </div>
+              <div style={{ marginBottom: '16px' }}>
+                <label className="crm-label">Telefone (WhatsApp)</label>
+                <input type="tel" className="crm-input" placeholder="(11) 99999-9999" value={patPhone} onChange={e => {
+                  let v = e.target.value.replace(/\D/g, '');
+                  if (v.length > 11) v = v.slice(0, 11);
+                  v = v.replace(/^(\d{2})(\d)/, '($1) $2');
+                  v = v.replace(/(\d{5})(\d{4})$/, '$1-$2');
+                  setPatPhone(v);
+                }} required />
               </div>
               <div style={{ display: 'flex', gap: '12px', marginBottom: '16px' }}>
                 <div style={{ flex: 1.2 }}>

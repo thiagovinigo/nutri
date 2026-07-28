@@ -34,6 +34,7 @@ export default function DashboardNutri() {
   const [patObj, setPatObj] = useState('');
   const [patRest, setPatRest] = useState('');
   const [patCpf, setPatCpf] = useState('');
+  const [patPhone, setPatPhone] = useState('');
   const [patEmail, setPatEmail] = useState('');
   const [patBirthDate, setPatBirthDate] = useState('');
   const [patGender, setPatGender] = useState('M');
@@ -114,13 +115,16 @@ export default function DashboardNutri() {
 
   const openNewPatientModal = () => {
     setEditingPatient(null);
-    setPatName(''); setPatObj(''); setPatRest(''); setPatCpf(''); setPatEmail(''); setPatBirthDate(''); setPatGender('M'); setPatAversions(''); setPatMedications('');
+    setPatName(''); setPatObj(''); setPatRest(''); setPatCpf(''); setPatEmail(''); setPatPhone(''); setPatBirthDate(''); setPatGender('M'); setPatAversions(''); setPatMedications('');
     setShowPatientModal(true);
   };
 
   const openEditPatientModal = (p) => {
     setEditingPatient(p.id);
-    setPatName(p.name); setPatObj(p.objective); setPatRest(p.restrictions); setPatCpf(p.cpf || ''); setPatEmail(p.email || ''); setPatBirthDate(p.birthDate || ''); setPatGender(p.gender || 'M'); setPatAversions(p.aversions || ''); setPatMedications(p.medications || '');
+    // Pacientes cadastrados antes do campo de telefone existir não têm p.phone —
+    // usamos um número padrão de placeholder pra não travar a edição; o
+    // nutricionista corrige na hora se precisar mandar WhatsApp de verdade.
+    setPatName(p.name); setPatObj(p.objective); setPatRest(p.restrictions); setPatCpf(p.cpf || ''); setPatEmail(p.email || ''); setPatPhone(p.phone || '11999999999'); setPatBirthDate(p.birthDate || ''); setPatGender(p.gender || 'M'); setPatAversions(p.aversions || ''); setPatMedications(p.medications || '');
     setShowPatientModal(true);
   };
 
@@ -147,8 +151,8 @@ export default function DashboardNutri() {
       return;
     }
 
-    if (!patCpf || !patEmail) {
-      alert("CPF e E-mail são obrigatórios!");
+    if (!patCpf || !patEmail || !patPhone) {
+      alert("CPF, E-mail e Telefone são obrigatórios!");
       return;
     }
     
@@ -162,9 +166,9 @@ export default function DashboardNutri() {
     }
 
     if (editingPatient) {
-      await updatePatient(editingPatient, { name: patName, objective: patObj, restrictions: patRest, cpf: patCpf, email: patEmail, birthDate: patBirthDate, age: calculatedAge, gender: patGender, aversions: patAversions, medications: patMedications });
+      await updatePatient(editingPatient, { name: patName, objective: patObj, restrictions: patRest, cpf: patCpf, email: patEmail, phone: patPhone, birthDate: patBirthDate, age: calculatedAge, gender: patGender, aversions: patAversions, medications: patMedications });
     } else {
-      const newId = await addPatient(patName, patObj, patRest, patCpf, normalizeEmail(patEmail), patAversions, patMedications, patBirthDate, patGender, calculatedAge);
+      const newId = await addPatient(patName, patObj, patRest, patCpf, normalizeEmail(patEmail), patAversions, patMedications, patBirthDate, patGender, calculatedAge, patPhone);
       if (patEmail && newId) {
         const link = `${window.location.origin}/cadastro?vincular=${newId}`;
         try {
@@ -622,7 +626,7 @@ Não inclua textos fora do JSON. Apenas o JSON puro.`;
         handleCreateAppointment={handleCreateAppointment} cancelAppointment={cancelAppointment} startConsultation={startConsultation}
         showPatientModal={showPatientModal} setShowPatientModal={setShowPatientModal}
         openNewPatientModal={openNewPatientModal} openEditPatientModal={openEditPatientModal} editingPatient={editingPatient} handleDeletePatient={handleDeletePatient}
-        patName={patName} setPatName={setPatName} patObj={patObj} setPatObj={setPatObj} patRest={patRest} setPatRest={setPatRest} patCpf={patCpf} setPatCpf={setPatCpf} patEmail={patEmail} setPatEmail={setPatEmail} patBirthDate={patBirthDate} setPatBirthDate={setPatBirthDate} patGender={patGender} setPatGender={setPatGender} patAversions={patAversions} setPatAversions={setPatAversions} patMedications={patMedications} setPatMedications={setPatMedications} handleSavePatient={handleSavePatient}
+        patName={patName} setPatName={setPatName} patObj={patObj} setPatObj={setPatObj} patRest={patRest} setPatRest={setPatRest} patCpf={patCpf} setPatCpf={setPatCpf} patEmail={patEmail} setPatEmail={setPatEmail} patPhone={patPhone} setPatPhone={setPatPhone} patBirthDate={patBirthDate} setPatBirthDate={setPatBirthDate} patGender={patGender} setPatGender={setPatGender} patAversions={patAversions} setPatAversions={setPatAversions} patMedications={patMedications} setPatMedications={setPatMedications} handleSavePatient={handleSavePatient}
         viewingPatientId={viewingPatientId} setViewingPatientId={setViewingPatientId}
         synthesisResult={synthesisResult} setSynthesisResult={setSynthesisResult} isSynthesizing={isSynthesizing} generatePatientSynthesis={generatePatientSynthesis}
         synthesisError={synthesisError}

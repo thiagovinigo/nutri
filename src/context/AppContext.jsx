@@ -188,10 +188,10 @@ export function AppProvider({ children }) {
   // com o Firestore quando o Firebase está configurado. Se a chamada ao
   // Firestore falhar mesmo assim, o estado local já foi atualizado — nunca
   // falha em silêncio para o usuário.
-  const addPatient = async (name, objective, restrictions, cpf, email, aversions, medications, birthDate, gender, age) => {
+  const addPatient = async (name, objective, restrictions, cpf, email, aversions, medications, birthDate, gender, age, phone) => {
     const localId = `local-${Date.now()}`;
     const newPatient = {
-      name, objective, restrictions, cpf: cpf || '', email: email || '', aversions: aversions || '', medications: medications || '', status: 'inativo', streak: 0, xp: 0, waterGlasses: 0, records: 'Novo paciente.', age: age || '', birthDate: birthDate || '', gender: gender || 'M', recipes: [], weights: []
+      name, objective, restrictions, cpf: cpf || '', email: email || '', phone: phone || '11999999999', aversions: aversions || '', medications: medications || '', status: 'inativo', streak: 0, xp: 0, waterGlasses: 0, records: 'Novo paciente.', age: age || '', birthDate: birthDate || '', gender: gender || 'M', recipes: [], weights: []
     };
     if (profile) newPatient.nutricionista_id = profile.id;
 
