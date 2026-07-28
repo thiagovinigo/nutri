@@ -361,20 +361,42 @@ Exemplo de formato:
         ? `Você é um Nutricionista Clínico de alta performance. Crie um plano alimentar para ${dietDuration} dias (EXATAMENTE 6 refeições por dia). É MANDATÓRIO GERAR TODOS OS ${dietDuration} DIAS, NÃO PARE A GERAÇÃO ANTES DO FIM. SE VOCÊ GERAR MENOS DO QUE ${dietDuration} DIAS VOCÊ FALHARÁ NA SUA MISSÃO. Como são múltiplos dias, o 'name' da refeição DEVE incluir o dia, ex: "Dia 1 - Café da Manhã".\n\n${formatInstruction}`
         : `Você é um Nutricionista Clínico de alta performance. Crie um plano alimentar para 1 dia. Crie EXATAMENTE 6 refeições.\n\n${formatInstruction}`;
 
-      const data = await callOpenAIBridge({
-          system_prompt: systemPrompt,
-          messages: [{ role: "user", content: `Crie um cardápio considerando este contexto clínico:\n\n${promptContext}` }],
-          format_json: true
-      });
-      const parsed = JSON.parse(data.choices[0].message.content);
-      
+      // A IA ocasionalmente retorna refeições sem o array 'foods' preenchido
+      // (falha silenciosa já documentada no backlog — não é determinístico,
+      // então a mitigação é validar e tentar de novo, não confiar na 1ª resposta).
+      const MAX_ATTEMPTS = 3;
+      let meals = [];
+      let lastAttemptHadMeals = false;
+      for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
+        const data = await callOpenAIBridge({
+            system_prompt: systemPrompt,
+            messages: [{ role: "user", content: `Crie um cardápio considerando este contexto clínico:\n\n${promptContext}` }],
+            format_json: true
+        });
+        const parsed = JSON.parse(data.choices[0].message.content);
+        meals = parsed.meals || [];
+        lastAttemptHadMeals = meals.length > 0;
+        const allMealsHaveFoods = meals.length > 0 && meals.every(m => Array.isArray(m.foods) && m.foods.length > 0);
+        if (allMealsHaveFoods) break;
+        if (attempt < MAX_ATTEMPTS) {
+          console.warn(`generateDietFromAI: tentativa ${attempt} veio sem alimentos preenchidos em alguma refeição, tentando de novo...`);
+        }
+      }
+
       if (!dietTitle) {
         setDietTitle(`Plano Personalizado - ${new Date().toLocaleDateString('pt-BR')}`);
       }
-      
+
       // Substitui o plano atual pelo recém-gerado (a duração escolhida já define
       // o plano completo — gerar de novo não deve empilhar dias em cima do anterior)
-      setDietMeals(parsed.meals || []);
+      setDietMeals(meals);
+
+      const stillMissingFoods = meals.some(m => !Array.isArray(m.foods) || m.foods.length === 0);
+      if (stillMissingFoods) {
+        setDietError(lastAttemptHadMeals
+          ? 'A IA gerou o cardápio, mas algumas refeições vieram sem os alimentos detalhados mesmo após tentar de novo. Revise manualmente ou gere novamente.'
+          : 'A IA não conseguiu gerar o cardápio após várias tentativas. Tente novamente em instantes.');
+      }
     } catch (error) {
       setDietError(error.message || 'Erro ao gerar dieta com IA.');
     } finally {
