@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { Dumbbell, CheckCircle, Award, CheckSquare, Square, ChevronDown, ChevronUp, Flame, Calendar, Zap } from 'lucide-react';
+import { Dumbbell, CheckCircle, Award, CheckSquare, Square, ChevronDown, ChevronUp, Flame, Calendar, Zap, Circle, Minus } from 'lucide-react';
 import { useAppContext } from '../../../context/AppContext';
 
 // Distribui os dias de treino nos dias da semana automaticamente
@@ -177,29 +177,22 @@ export default function WorkoutPlan({ activePatient }) {
             let bg = 'var(--crm-surface)';
             let border = '1px solid var(--crm-border)';
             let textColor = 'var(--crm-text-muted)';
-            let dotColor = '#94A3B8';
-            let emoji = '';
 
             if (slot.isRest) {
               bg = 'var(--crm-bg)';
               border = '1px dashed var(--crm-border)';
-              emoji = '🏖️';
             } else if (done) {
               bg = '#D1FAE5';
               border = '1.5px solid #34D399';
               textColor = '#065F46';
-              dotColor = '#10B981';
-              emoji = '✓';
             } else if (missed) {
               bg = 'rgba(239,68,68,0.06)';
               border = '1px solid rgba(239,68,68,0.2)';
               textColor = '#F87171';
-              emoji = '✗';
             } else if (isTodaySlot && !slot.isRest) {
               bg = 'rgba(59,130,246,0.12)';
               border = '2px solid #3B82F6';
               textColor = '#1D4ED8';
-              emoji = '→';
             }
 
             return (
@@ -220,8 +213,18 @@ export default function WorkoutPlan({ activePatient }) {
                 <span style={{ fontSize: '0.7rem', fontWeight: '700', color: textColor, marginBottom: '4px' }}>
                   {slot.dayLabel}
                 </span>
-                <span style={{ fontSize: '1rem' }}>
-                  {slot.isRest ? '🏖️' : done ? '✅' : missed ? '❌' : isTodaySlot ? '🔥' : '⚪'}
+                <span style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '18px' }}>
+                  {slot.isRest ? (
+                    <span style={{ fontSize: '0.95rem' }}>🏖️</span>
+                  ) : done ? (
+                    <CheckCircle size={16} color="#10B981" />
+                  ) : missed ? (
+                    <Minus size={16} color="#F87171" />
+                  ) : isTodaySlot ? (
+                    <Flame size={16} color="#3B82F6" />
+                  ) : (
+                    <Circle size={13} color="#94A3B8" />
+                  )}
                 </span>
                 {!slot.isRest && (
                   <span style={{ fontSize: '0.6rem', color: textColor, marginTop: '4px', textAlign: 'center', lineHeight: 1.2, fontWeight: '500' }}>
