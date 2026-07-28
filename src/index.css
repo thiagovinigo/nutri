@@ -41,6 +41,10 @@
   --crm-good-soft-border: #A7D8C2;
   --crm-warn-soft: #FBF0E1;
   --crm-warn-soft-border: #F3D9A8;
+  /* Fundo de botão desabilitado — precisa manter contraste AA com o
+     texto/ícone branco de .crm-btn-primary; --crm-border (#E2E8F0) é
+     claro demais pra isso (1.23:1), então usa um slate mais escuro. */
+  --crm-disabled-bg: #64748B;
   --crm-font-family: 'Inter', sans-serif;
   --crm-font-heading: 'Outfit', 'Inter', sans-serif;
   --crm-shadow-sm: 0 1px 2px 0 rgba(15, 23, 42, 0.05);
@@ -81,6 +85,7 @@
   --crm-good-soft-border: rgba(110, 231, 183, 0.35);
   --crm-warn-soft: rgba(245, 158, 11, 0.12);
   --crm-warn-soft-border: rgba(252, 211, 77, 0.35);
+  --crm-disabled-bg: #334155;
 }
 
 * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -229,6 +234,15 @@ body { overflow-x: hidden; -webkit-font-smoothing: antialiased; font-family: var
 .crm-btn-primary:hover {
   background-color: #7e22ce;
   box-shadow: var(--crm-shadow-md);
+}
+.crm-btn-primary:disabled {
+  background-color: var(--crm-disabled-bg);
+  cursor: not-allowed;
+  box-shadow: none;
+}
+.crm-btn-primary:disabled:hover {
+  background-color: var(--crm-disabled-bg);
+  box-shadow: none;
 }
 .crm-btn-secondary {
   background-color: transparent;
