@@ -6,6 +6,39 @@ import { doc, getDoc, setDoc } from 'firebase/firestore';
 import { getFirebaseErrorMessage } from '../utils/firebaseErrors';
 import { useAppContext } from '../context/AppContext';
 
+const NLogo = () => (
+  <svg width="40" height="40" viewBox="0 0 48 48" fill="none">
+    <defs>
+      <linearGradient id="loginNGrad" x1="0" y1="0" x2="1" y2="1">
+        <stop offset="0" stopColor="#c084fc" />
+        <stop offset="1" stopColor="#6366f1" />
+      </linearGradient>
+    </defs>
+    <rect x="0" y="0" width="9" height="40" rx="3" fill="url(#loginNGrad)" />
+    <rect x="39" y="0" width="9" height="40" rx="3" fill="url(#loginNGrad)" />
+    <polygon points="9,2 22,2 48,38 35,38" fill="url(#loginNGrad)" />
+  </svg>
+);
+
+const darkInputStyle = {
+  width: '100%',
+  padding: '12px 14px',
+  borderRadius: '10px',
+  border: '1px solid rgba(255,255,255,0.12)',
+  backgroundColor: 'rgba(255,255,255,0.05)',
+  color: '#f1f5f9',
+  fontSize: '0.95rem',
+  outline: 'none',
+};
+
+const darkLabelStyle = {
+  display: 'block',
+  marginBottom: '6px',
+  fontWeight: '500',
+  color: '#cbd5e1',
+  fontSize: '0.9rem',
+};
+
 export default function Login() {
   const { patients, bypassLoginAsPatient } = useAppContext();
   const [email, setEmail] = useState('');
@@ -20,7 +53,7 @@ export default function Login() {
     e.preventDefault();
     setLoading(true);
     setErrorMsg('');
-    
+
     if (!auth || !db) {
       setErrorMsg('Firebase não está configurado. Preencha o arquivo .env!');
       setLoading(false);
@@ -30,14 +63,14 @@ export default function Login() {
     try {
       const userCredential = await signInWithEmailAndPassword(auth, email, password);
       const user = userCredential.user;
-      
+
       // Checar se o perfil é nutricionista ou paciente no Firestore
       const docRef = doc(db, 'users', user.uid);
       const docSnap = await getDoc(docRef);
-        
+
       if (docSnap.exists()) {
         const profile = docSnap.data();
-        
+
         // Se houver um link de convite e ele for paciente (ou não ter role salva), atualiza o vínculo
         if (nutriIdParam && profile.role !== 'nutricionista') {
           await setDoc(doc(db, 'patients', user.uid), {
@@ -55,7 +88,7 @@ export default function Login() {
         // Se não houver role salva, redireciona por padrão para nutri
         navigate('/nutri');
       }
-      
+
     } catch (error) {
       setErrorMsg(getFirebaseErrorMessage(error));
     } finally {
@@ -64,83 +97,108 @@ export default function Login() {
   };
 
   return (
-    <div style={{ display: 'flex', height: '100vh', justifyContent: 'center', alignItems: 'center', backgroundColor: '#f8fafc' }}>
-      <div style={{ width: '400px', padding: '40px', backgroundColor: 'white', borderRadius: '8px', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}>
-        <h1 style={{ fontSize: '1.8rem', fontWeight: 'bold', marginBottom: '8px', textAlign: 'center', color: '#0f172a' }}>Nutrivvo</h1>
-        <p style={{ textAlign: 'center', color: '#64748b', marginBottom: '32px' }}>Faça login para acessar sua conta</p>
-        
+    <div style={{
+      display: 'flex', height: '100vh', justifyContent: 'center', alignItems: 'center',
+      backgroundColor: '#0a0a14', position: 'relative', overflow: 'hidden'
+    }}>
+      {/* Glow roxo de fundo */}
+      <div style={{
+        position: 'absolute', top: '50%', left: '50%', width: '700px', height: '700px',
+        transform: 'translate(-50%, -50%)', pointerEvents: 'none',
+        background: 'radial-gradient(circle, rgba(168,85,247,0.35) 0%, rgba(99,102,241,0.15) 45%, transparent 70%)',
+        filter: 'blur(10px)'
+      }} />
+
+      <div style={{
+        width: '400px', padding: '40px', position: 'relative', zIndex: 1,
+        backgroundColor: 'rgba(20, 20, 32, 0.75)', backdropFilter: 'blur(20px)',
+        border: '1px solid rgba(255,255,255,0.08)', borderRadius: '20px',
+        boxShadow: '0 25px 60px -15px rgba(0,0,0,0.6)'
+      }}>
+        <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '16px' }}>
+          <NLogo />
+        </div>
+        <h1 style={{ fontSize: '1.8rem', fontWeight: 'bold', marginBottom: '8px', textAlign: 'center', color: '#f8fafc' }}>Nutrivvo</h1>
+        <p style={{ textAlign: 'center', color: '#94a3b8', marginBottom: '32px' }}>Faça login para acessar sua conta</p>
+
         {errorMsg && (
-          <div style={{ padding: '12px', backgroundColor: '#fee2e2', color: '#991b1b', borderRadius: '6px', marginBottom: '16px', fontSize: '0.9rem' }}>
+          <div style={{ padding: '12px', backgroundColor: 'rgba(239,68,68,0.12)', border: '1px solid rgba(239,68,68,0.3)', color: '#fca5a5', borderRadius: '10px', marginBottom: '16px', fontSize: '0.9rem' }}>
             {errorMsg}
           </div>
         )}
 
         <form onSubmit={handleLogin}>
           <div style={{ marginBottom: '16px' }}>
-            <label style={{ display: 'block', marginBottom: '6px', fontWeight: '500', color: '#334155' }}>E-mail</label>
-            <input 
-              type="email" 
+            <label style={darkLabelStyle}>E-mail</label>
+            <input
+              type="email"
               required
-              style={{ width: '100%', padding: '10px 12px', borderRadius: '6px', border: '1px solid #cbd5e1' }}
+              style={darkInputStyle}
               value={email}
               onChange={e => setEmail(e.target.value)}
             />
           </div>
           <div style={{ marginBottom: '24px' }}>
-            <label style={{ display: 'block', marginBottom: '6px', fontWeight: '500', color: '#334155' }}>Senha</label>
-            <input 
-              type="password" 
+            <label style={darkLabelStyle}>Senha</label>
+            <input
+              type="password"
               required
-              style={{ width: '100%', padding: '10px 12px', borderRadius: '6px', border: '1px solid #cbd5e1' }}
+              style={darkInputStyle}
               value={password}
               onChange={e => setPassword(e.target.value)}
             />
           </div>
-          <button 
-            type="submit" 
+          <button
+            type="submit"
             disabled={loading}
-            style={{ width: '100%', padding: '12px', backgroundColor: '#2563eb', color: 'white', borderRadius: '6px', border: 'none', fontWeight: 'bold', cursor: loading ? 'not-allowed' : 'pointer' }}
+            style={{
+              width: '100%', padding: '13px', color: 'white', borderRadius: '10px', border: 'none',
+              fontWeight: 'bold', cursor: loading ? 'not-allowed' : 'pointer', fontSize: '0.95rem',
+              background: 'linear-gradient(135deg, #a855f7 0%, #6366f1 100%)',
+              boxShadow: '0 8px 20px -6px rgba(168,85,247,0.5)',
+              opacity: loading ? 0.7 : 1,
+            }}
           >
             {loading ? 'Entrando...' : 'Entrar'}
           </button>
-          
+
           <div style={{ marginTop: '24px', textAlign: 'center' }}>
-            <span style={{ color: '#64748b' }}>Ainda não tem conta? </span>
-            <Link to={nutriIdParam ? `/cadastro?nutri=${nutriIdParam}` : "/cadastro"} style={{ color: '#2563eb', textDecoration: 'none', fontWeight: 'bold' }}>Cadastre-se grátis</Link>
+            <span style={{ color: '#94a3b8' }}>Ainda não tem conta? </span>
+            <Link to={nutriIdParam ? `/cadastro?nutri=${nutriIdParam}` : "/cadastro"} style={{ color: '#c084fc', textDecoration: 'none', fontWeight: 'bold' }}>Cadastre-se grátis</Link>
           </div>
 
           {import.meta.env.DEV && (
-            <div style={{ marginTop: '32px', paddingTop: '24px', borderTop: '1px solid #e2e8f0', textAlign: 'center' }}>
-              <p style={{ color: '#64748b', fontSize: '0.9rem', marginBottom: '16px' }}>Ou teste as interfaces sem login (visível só em dev):</p>
-                <div style={{ display: 'flex', gap: '12px', justifyContent: 'center', flexWrap: 'wrap' }}>
+            <div style={{ marginTop: '32px', paddingTop: '24px', borderTop: '1px solid rgba(255,255,255,0.08)', textAlign: 'center' }}>
+              <p style={{ color: '#94a3b8', fontSize: '0.9rem', marginBottom: '16px' }}>Ou teste as interfaces sem login (visível só em dev):</p>
+              <div style={{ display: 'flex', gap: '12px', justifyContent: 'center', flexWrap: 'wrap' }}>
+                <button
+                  type="button"
+                  onClick={() => navigate('/nutri')}
+                  style={{ padding: '8px 16px', backgroundColor: 'rgba(255,255,255,0.06)', color: '#cbd5e1', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.12)', cursor: 'pointer', fontSize: '0.9rem', fontWeight: '500' }}
+                >
+                  Modo Nutricionista
+                </button>
+                <button
+                  type="button"
+                  onClick={() => navigate('/paciente')}
+                  style={{ padding: '8px 16px', backgroundColor: 'rgba(255,255,255,0.06)', color: '#cbd5e1', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.12)', cursor: 'pointer', fontSize: '0.9rem', fontWeight: '500' }}
+                >
+                  Modo Paciente
+                </button>
+                {patients.find(p => p.name && p.name.toLowerCase().includes('lucas')) && (
                   <button
                     type="button"
-                    onClick={() => navigate('/nutri')}
-                    style={{ padding: '8px 16px', backgroundColor: '#f1f5f9', color: '#334155', borderRadius: '6px', border: '1px solid #cbd5e1', cursor: 'pointer', fontSize: '0.9rem', fontWeight: '500' }}
+                    onClick={() => {
+                      const lucas = patients.find(p => p.name && p.name.toLowerCase().includes('lucas'));
+                      bypassLoginAsPatient(lucas);
+                      navigate('/paciente');
+                    }}
+                    style={{ padding: '8px 16px', backgroundColor: 'rgba(34,197,94,0.15)', color: '#86efac', borderRadius: '8px', border: '1px solid rgba(34,197,94,0.3)', cursor: 'pointer', fontSize: '0.9rem', fontWeight: 'bold' }}
                   >
-                    Modo Nutricionista
+                    BYPASS MODO TESTE (DEV)
                   </button>
-                  <button
-                    type="button"
-                    onClick={() => navigate('/paciente')}
-                    style={{ padding: '8px 16px', backgroundColor: '#f1f5f9', color: '#334155', borderRadius: '6px', border: '1px solid #cbd5e1', cursor: 'pointer', fontSize: '0.9rem', fontWeight: '500' }}
-                  >
-                    Modo Paciente
-                  </button>
-                  {patients.find(p => p.name && p.name.toLowerCase().includes('lucas')) && (
-                    <button
-                      type="button"
-                      onClick={() => {
-                        const lucas = patients.find(p => p.name && p.name.toLowerCase().includes('lucas'));
-                        bypassLoginAsPatient(lucas);
-                        navigate('/paciente');
-                      }}
-                      style={{ padding: '8px 16px', backgroundColor: '#dcfce7', color: '#166534', borderRadius: '6px', border: '1px solid #bbf7d0', cursor: 'pointer', fontSize: '0.9rem', fontWeight: 'bold' }}
-                    >
-                      BYPASS MODO TESTE (DEV)
-                    </button>
-                  )}
-                </div>
+                )}
+              </div>
             </div>
           )}
         </form>

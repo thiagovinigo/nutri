@@ -6,6 +6,36 @@ import { doc, setDoc, getDoc, deleteDoc } from 'firebase/firestore';
 import { getFirebaseErrorMessage } from '../utils/firebaseErrors';
 import { useAppContext } from '../context/AppContext';
 
+const NLogo = () => (
+  <svg width="40" height="40" viewBox="0 0 48 48" fill="none">
+    <defs>
+      <linearGradient id="signupNGrad" x1="0" y1="0" x2="1" y2="1">
+        <stop offset="0" stopColor="#c084fc" />
+        <stop offset="1" stopColor="#6366f1" />
+      </linearGradient>
+    </defs>
+    <rect x="0" y="0" width="9" height="40" rx="3" fill="url(#signupNGrad)" />
+    <rect x="39" y="0" width="9" height="40" rx="3" fill="url(#signupNGrad)" />
+    <polygon points="9,2 22,2 48,38 35,38" fill="url(#signupNGrad)" />
+  </svg>
+);
+
+const darkInputStyle = {
+  width: '100%',
+  padding: '10px 12px',
+  borderRadius: '10px',
+  border: '1px solid rgba(255,255,255,0.12)',
+  backgroundColor: 'rgba(255,255,255,0.05)',
+  color: '#f1f5f9',
+};
+
+const darkLabelStyle = {
+  display: 'block',
+  marginBottom: '6px',
+  fontWeight: '500',
+  color: '#cbd5e1',
+};
+
 export default function SignUp() {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
@@ -177,24 +207,38 @@ export default function SignUp() {
   };
 
   return (
-    <div style={{ display: 'flex', minHeight: '100vh', justifyContent: 'center', alignItems: 'center', backgroundColor: '#f8fafc', padding: '20px' }}>
-      <div style={{ width: '400px', padding: '40px', backgroundColor: 'white', borderRadius: '12px', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)' }}>
-        <h1 style={{ fontSize: '1.8rem', fontWeight: 'bold', marginBottom: '8px', textAlign: 'center', color: '#0f172a' }}>Nutrivvo</h1>
-        <p style={{ textAlign: 'center', color: '#64748b', marginBottom: '32px' }}>Crie sua conta gratuitamente</p>
-        
+    <div style={{ display: 'flex', minHeight: '100vh', justifyContent: 'center', alignItems: 'center', backgroundColor: '#0a0a14', padding: '20px', position: 'relative', overflow: 'hidden' }}>
+      <div style={{
+        position: 'absolute', top: '50%', left: '50%', width: '700px', height: '700px',
+        transform: 'translate(-50%, -50%)', pointerEvents: 'none',
+        background: 'radial-gradient(circle, rgba(168,85,247,0.35) 0%, rgba(99,102,241,0.15) 45%, transparent 70%)',
+        filter: 'blur(10px)'
+      }} />
+      <div style={{
+        width: '400px', padding: '40px', position: 'relative', zIndex: 1,
+        backgroundColor: 'rgba(20, 20, 32, 0.75)', backdropFilter: 'blur(20px)',
+        border: '1px solid rgba(255,255,255,0.08)', borderRadius: '20px',
+        boxShadow: '0 25px 60px -15px rgba(0,0,0,0.6)'
+      }}>
+        <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '16px' }}>
+          <NLogo />
+        </div>
+        <h1 style={{ fontSize: '1.8rem', fontWeight: 'bold', marginBottom: '8px', textAlign: 'center', color: '#f8fafc' }}>Nutrivvo</h1>
+        <p style={{ textAlign: 'center', color: '#94a3b8', marginBottom: '32px' }}>Crie sua conta gratuitamente</p>
+
         {errorMsg && (
-          <div style={{ padding: '12px', backgroundColor: '#fee2e2', color: '#991b1b', borderRadius: '6px', marginBottom: '16px', fontSize: '0.9rem' }}>
+          <div style={{ padding: '12px', backgroundColor: 'rgba(239,68,68,0.12)', border: '1px solid rgba(239,68,68,0.3)', color: '#fca5a5', borderRadius: '10px', marginBottom: '16px', fontSize: '0.9rem' }}>
             {errorMsg}
           </div>
         )}
 
         <form onSubmit={handleSignUp}>
           <div style={{ marginBottom: '16px' }}>
-            <label style={{ display: 'block', marginBottom: '6px', fontWeight: '500', color: '#334155' }}>Nome Completo</label>
+            <label style={darkLabelStyle}>Nome Completo</label>
             <input 
               type="text" 
               required
-              style={{ width: '100%', padding: '10px 12px', borderRadius: '6px', border: '1px solid #cbd5e1' }}
+              style={darkInputStyle}
               value={name}
               onChange={e => setName(e.target.value)}
               placeholder="João da Silva"
@@ -203,22 +247,22 @@ export default function SignUp() {
 
           <div style={{ display: 'flex', gap: '16px', marginBottom: '16px' }}>
             <div style={{ flex: 1 }}>
-              <label style={{ display: 'block', marginBottom: '6px', fontWeight: '500', color: '#334155' }}>{role === 'nutricionista' ? 'CPF / CNPJ' : 'CPF'}</label>
+              <label style={darkLabelStyle}>{role === 'nutricionista' ? 'CPF / CNPJ' : 'CPF'}</label>
               <input 
                 type="text" 
                 required
-                style={{ width: '100%', padding: '10px 12px', borderRadius: '6px', border: '1px solid #cbd5e1' }}
+                style={darkInputStyle}
                 value={cpf}
                 onChange={handleDocumentChange}
                 placeholder={role === 'nutricionista' ? 'CPF ou CNPJ' : '111.111.111-11'}
               />
             </div>
             <div style={{ flex: 1 }}>
-              <label style={{ display: 'block', marginBottom: '6px', fontWeight: '500', color: '#334155' }}>Data Nasc.</label>
+              <label style={darkLabelStyle}>Data Nasc.</label>
               <input 
                 type="date" 
                 required
-                style={{ width: '100%', padding: '10px 12px', borderRadius: '6px', border: '1px solid #cbd5e1' }}
+                style={darkInputStyle}
                 value={birthDate}
                 onChange={e => setBirthDate(e.target.value)}
               />
@@ -226,11 +270,11 @@ export default function SignUp() {
           </div>
 
           <div style={{ marginBottom: '16px' }}>
-            <label style={{ display: 'block', marginBottom: '6px', fontWeight: '500', color: '#334155' }}>E-mail</label>
+            <label style={darkLabelStyle}>E-mail</label>
             <input 
               type="email" 
               required
-              style={{ width: '100%', padding: '10px 12px', borderRadius: '6px', border: '1px solid #cbd5e1' }}
+              style={darkInputStyle}
               value={email}
               onChange={e => setEmail(e.target.value)}
               placeholder="joao@email.com"
@@ -238,11 +282,11 @@ export default function SignUp() {
           </div>
 
           <div style={{ marginBottom: '16px' }}>
-            <label style={{ display: 'block', marginBottom: '6px', fontWeight: '500', color: '#334155' }}>Telefone (WhatsApp)</label>
+            <label style={darkLabelStyle}>Telefone (WhatsApp)</label>
             <input
               type="tel"
               required
-              style={{ width: '100%', padding: '10px 12px', borderRadius: '6px', border: '1px solid #cbd5e1' }}
+              style={darkInputStyle}
               value={phone}
               onChange={e => {
                 let v = e.target.value.replace(/\D/g, '');
@@ -257,11 +301,11 @@ export default function SignUp() {
 
           {role === 'nutricionista' && (
             <div style={{ marginBottom: '16px' }}>
-              <label style={{ display: 'block', marginBottom: '6px', fontWeight: '500', color: '#334155' }}>CRN</label>
+              <label style={darkLabelStyle}>CRN</label>
               <input 
                 type="text" 
                 required
-                style={{ width: '100%', padding: '10px 12px', borderRadius: '6px', border: '1px solid #cbd5e1' }}
+                style={darkInputStyle}
                 value={crn}
                 onChange={e => setCrn(e.target.value)}
                 placeholder="Ex: CRN-3 12345"
@@ -271,11 +315,11 @@ export default function SignUp() {
 
           <div style={{ display: 'flex', gap: '16px', marginBottom: '24px' }}>
             <div style={{ flex: 1 }}>
-              <label style={{ display: 'block', marginBottom: '6px', fontWeight: '500', color: '#334155' }}>Senha</label>
+              <label style={darkLabelStyle}>Senha</label>
               <input 
                 type="password" 
                 required
-                style={{ width: '100%', padding: '10px 12px', borderRadius: '6px', border: '1px solid #cbd5e1' }}
+                style={darkInputStyle}
                 value={password}
                 onChange={e => setPassword(e.target.value)}
                 placeholder="Mínimo 6 char"
@@ -283,11 +327,11 @@ export default function SignUp() {
               />
             </div>
             <div style={{ flex: 1 }}>
-              <label style={{ display: 'block', marginBottom: '6px', fontWeight: '500', color: '#334155' }}>Confirmação</label>
+              <label style={darkLabelStyle}>Confirmação</label>
               <input 
                 type="password" 
                 required
-                style={{ width: '100%', padding: '10px 12px', borderRadius: '6px', border: '1px solid #cbd5e1' }}
+                style={darkInputStyle}
                 value={confirmPassword}
                 onChange={e => setConfirmPassword(e.target.value)}
                 placeholder="Repita a senha"
@@ -298,27 +342,27 @@ export default function SignUp() {
 
           {!nutriIdParam && !vincularId && (
             <div style={{ marginBottom: '32px' }}>
-              <label style={{ display: 'block', marginBottom: '12px', fontWeight: '500', color: '#334155' }}>Eu sou...</label>
+              <label style={{ display: 'block', marginBottom: '12px', fontWeight: '500', color: '#cbd5e1' }}>Eu sou...</label>
               <div style={{ display: 'flex', gap: '12px' }}>
-                <div 
+                <div
                   onClick={() => setRole('paciente')}
-                  style={{ 
-                    flex: 1, padding: '12px', textAlign: 'center', borderRadius: '8px', cursor: 'pointer', border: '2px solid',
-                    borderColor: role === 'paciente' ? '#2563eb' : '#e2e8f0',
-                    backgroundColor: role === 'paciente' ? '#eff6ff' : 'white',
-                    color: role === 'paciente' ? '#1e40af' : '#64748b',
+                  style={{
+                    flex: 1, padding: '12px', textAlign: 'center', borderRadius: '10px', cursor: 'pointer', border: '2px solid',
+                    borderColor: role === 'paciente' ? '#a855f7' : 'rgba(255,255,255,0.12)',
+                    backgroundColor: role === 'paciente' ? 'rgba(168,85,247,0.15)' : 'rgba(255,255,255,0.03)',
+                    color: role === 'paciente' ? '#e9d5ff' : '#94a3b8',
                     fontWeight: role === 'paciente' ? 'bold' : 'normal'
                   }}
                 >
                   🥗 Paciente
                 </div>
-                <div 
+                <div
                   onClick={() => setRole('nutricionista')}
-                  style={{ 
-                    flex: 1, padding: '12px', textAlign: 'center', borderRadius: '8px', cursor: 'pointer', border: '2px solid',
-                    borderColor: role === 'nutricionista' ? '#2563eb' : '#e2e8f0',
-                    backgroundColor: role === 'nutricionista' ? '#eff6ff' : 'white',
-                    color: role === 'nutricionista' ? '#1e40af' : '#64748b',
+                  style={{
+                    flex: 1, padding: '12px', textAlign: 'center', borderRadius: '10px', cursor: 'pointer', border: '2px solid',
+                    borderColor: role === 'nutricionista' ? '#a855f7' : 'rgba(255,255,255,0.12)',
+                    backgroundColor: role === 'nutricionista' ? 'rgba(168,85,247,0.15)' : 'rgba(255,255,255,0.03)',
+                    color: role === 'nutricionista' ? '#e9d5ff' : '#94a3b8',
                     fontWeight: role === 'nutricionista' ? 'bold' : 'normal'
                   }}
                 >
@@ -328,17 +372,23 @@ export default function SignUp() {
             </div>
           )}
 
-          <button 
-            type="submit" 
+          <button
+            type="submit"
             disabled={loading}
-            style={{ width: '100%', padding: '14px', backgroundColor: '#2563eb', color: 'white', borderRadius: '6px', border: 'none', fontWeight: 'bold', cursor: loading ? 'not-allowed' : 'pointer', fontSize: '1rem' }}
+            style={{
+              width: '100%', padding: '14px', color: 'white', borderRadius: '10px', border: 'none',
+              fontWeight: 'bold', cursor: loading ? 'not-allowed' : 'pointer', fontSize: '1rem',
+              background: 'linear-gradient(135deg, #a855f7 0%, #6366f1 100%)',
+              boxShadow: '0 8px 20px -6px rgba(168,85,247,0.5)',
+              opacity: loading ? 0.7 : 1,
+            }}
           >
             {loading ? 'Criando Conta...' : (role === 'paciente' ? 'Criar e Ganhar 1 Consulta Grátis' : 'Criar Conta de Especialista')}
           </button>
 
           <div style={{ marginTop: '24px', textAlign: 'center' }}>
-            <span style={{ color: '#64748b' }}>Já tem uma conta? </span>
-            <Link to={nutriIdParam ? `/login?nutri=${nutriIdParam}` : "/login"} style={{ color: '#2563eb', textDecoration: 'none', fontWeight: 'bold' }}>Faça login aqui</Link>
+            <span style={{ color: '#94a3b8' }}>Já tem uma conta? </span>
+            <Link to={nutriIdParam ? `/login?nutri=${nutriIdParam}` : "/login"} style={{ color: '#c084fc', textDecoration: 'none', fontWeight: 'bold' }}>Faça login aqui</Link>
           </div>
         </form>
       </div>
