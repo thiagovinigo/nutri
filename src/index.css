@@ -32,6 +32,11 @@
   --crm-danger: #EF4444; /* Red 500 */
   --crm-good: #10B981;
   --crm-warn: #F59E0B;
+  /* Variantes escurecidas pra uso como TEXTO (não fundo/ícone/dot) — as cores
+     acima (#10B981, #F59E0B) reprovam contraste WCAG AA como texto em fundo
+     claro (auditoria 28/07/2026: 2.54:1 e 2.15:1, mínimo exigido é 4.5:1). */
+  --crm-good-text: #047857;
+  --crm-warn-text: #92400E;
   --crm-font-family: 'Inter', sans-serif;
   --crm-font-heading: 'Outfit', 'Inter', sans-serif;
   --crm-shadow-sm: 0 1px 2px 0 rgba(15, 23, 42, 0.05);
@@ -66,6 +71,8 @@
   --crm-text-muted: #94A3B8;
   --crm-accent-soft: #2e1065; /* Roxo escuro (tint dark) */
   --crm-calendar-filter: invert(1) brightness(0.8);
+  --crm-good-text: #6EE7B7;
+  --crm-warn-text: #FCD34D;
 }
 
 * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -192,7 +199,11 @@ body { overflow-x: hidden; -webkit-font-smoothing: antialiased; font-family: var
 }
 .crm-sidebar-exit:hover { color: var(--crm-text-main); }
 .crm-btn-primary {
-  background-color: var(--crm-primary);
+  /* Usa --crm-primary-hover (não --crm-primary) como cor de repouso:
+     texto branco sobre --crm-primary reprova WCAG AA (3.96:1, auditoria
+     28/07/2026); --crm-primary-hover já passava (5.38:1) e é a mesma
+     família de roxo da marca. */
+  background-color: var(--crm-primary-hover);
   color: white;
   border: none;
   padding: 10px 16px;
@@ -208,7 +219,7 @@ body { overflow-x: hidden; -webkit-font-smoothing: antialiased; font-family: var
   box-shadow: var(--crm-shadow-sm);
 }
 .crm-btn-primary:hover {
-  background-color: var(--crm-primary-hover);
+  background-color: #7e22ce;
   box-shadow: var(--crm-shadow-md);
 }
 .crm-btn-secondary {
@@ -362,11 +373,11 @@ input[type="date"].crm-input::-webkit-calendar-picker-indicator {
 }
 .crm-badge-blue::before { background-color: var(--crm-accent); }
 .crm-badge-green {
-  background-color: #E9F6F0; color: var(--crm-good);
+  background-color: #E9F6F0; color: var(--crm-good-text);
 }
 .crm-badge-green::before { background-color: var(--crm-good); }
 .crm-badge-orange {
-  background-color: #FBF0E1; color: var(--crm-warn);
+  background-color: #FBF0E1; color: var(--crm-warn-text);
 }
 .crm-badge-orange::before { background-color: var(--crm-warn); }
 
@@ -602,6 +613,27 @@ input[type="date"].crm-input::-webkit-calendar-picker-indicator {
 }
 .recipe-draggable:active {
   cursor: grabbing;
+}
+
+/* ----------------------------------------------------
+   RESPONSIVIDADE (TABLET / JANELA ESTREITA)
+------------------------------------------------------- */
+@media (max-width: 1024px) and (min-width: 769px) {
+  /* Entre o desktop cheio (260px) e o empilhamento mobile, a sidebar
+     só estreita — evita sobrar pouco espaço pro conteúdo em tablets
+     e janelas de navegador redimensionadas. */
+  .crm-sidebar {
+    width: 200px;
+    padding: 20px 12px;
+  }
+  .crm-sidebar-brand {
+    font-size: 1.15rem;
+  }
+  .crm-nav-btn {
+    padding: 10px 10px;
+    font-size: 0.85rem;
+    gap: 8px;
+  }
 }
 
 /* ----------------------------------------------------

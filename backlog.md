@@ -59,11 +59,11 @@
 
 ## 🎨 Visual — pendente de polimento
 
-- [ ] Cores hardcoded fora do roxo da marca em pontos pontuais — ver item 6 de "Próximas Missões"
-- [ ] Contraste de cor nunca auditado formalmente (WCAG AA) — várias combinações estão na faixa duvidosa
-- [ ] Sidebar do CRM fixa em 260px, sem breakpoint pra tablet/janela estreita
-- [ ] Nenhum loading state visível ao trocar de aba no CRM (só em "Gerar Síntese"/dieta)
-- [ ] Modais de "Novo Agendamento"/"Novo Paciente" sem validação inline nem foco automático
+- [x] ~~Cores hardcoded fora do roxo da marca~~ — corrigido em 28/07/2026: `BonusRecipes.jsx` (abas "Da Nutri"/"Minhas Receitas", botão "Salvar Nova Receita Livre") trocado de azul/violeta hardcoded pra `var(--primary-color)`/`var(--primary-shadow)`. O botão "Nova Receita" já usava `.crm-btn-primary` (variável de marca) — item já estava resolvido ali.
+- [x] ~~Contraste de cor nunca auditado formalmente (WCAG AA)~~ — auditado em 28/07/2026. Achados reais: texto verde `#10B981` (2.54:1) e âmbar `#F59E0B` (2.15:1) reprovavam AA como cor de texto — criadas variantes `--crm-good-text`/`--crm-warn-text` (mais escuras, ≥4.9:1) pra uso como texto, mantendo as cores originais só pra fundo/ícone/dot. Texto branco sobre `.crm-btn-primary` também reprovava (3.96:1) — botão passou a usar `--crm-primary-hover` como cor de repouso (5.38:1).
+- [x] ~~Sidebar do CRM fixa em 260px, sem breakpoint pra tablet/janela estreita~~ — corrigido em 28/07/2026: novo `@media (max-width: 1024px) and (min-width: 769px)` estreita a sidebar pra 200px entre o desktop cheio e o empilhamento mobile (que já existia em 768px).
+- [x] ~~Nenhum loading state visível ao trocar de aba no CRM~~ — corrigido em 28/07/2026: novo `isLoadingPatients` no `AppContext.jsx`, mostra "Carregando pacientes…" em vez de "Nenhum paciente encontrado" enquanto o fetch inicial do Firestore não resolve.
+- [x] ~~Modais de "Novo Agendamento"/"Novo Paciente" sem validação inline nem foco automático~~ — `autoFocus` adicionado ao primeiro campo dos dois modais em 28/07/2026. Validação já existia via `required` nativo do HTML (confirmado em teste manual nesta sessão).
 
 ---
 

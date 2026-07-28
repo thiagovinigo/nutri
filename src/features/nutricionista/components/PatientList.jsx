@@ -34,7 +34,7 @@ export default function PatientList({
   clinicConfig, updateClinicConfig
 }) {
   const navigate = useNavigate();
-  const { profile, updateProfile, updatePatient, theme, toggleTheme } = useAppContext();
+  const { profile, updateProfile, updatePatient, theme, toggleTheme, isLoadingPatients } = useAppContext();
   const viewedPatient = patients.find(p => p.id === viewingPatientId);
 
   const [copiedGeneralLink, setCopiedGeneralLink] = useState(false);
@@ -382,7 +382,7 @@ export default function PatientList({
                 </div>
                 <div className="crm-card" style={{ flex: '1 1 200px', cursor: 'pointer', borderLeft: '3px solid #10B981' }} onClick={() => setView('financeiro')} title="Clique para gerenciar honorários e planos">
                   <div style={{ fontSize: '0.85rem', color: 'var(--crm-text-muted)', fontWeight: '600', textTransform: 'uppercase', letterSpacing: '0.04em' }}>Receita Prevista</div>
-                  <div style={{ fontSize: '1.8rem', fontWeight: '800', color: '#10B981', marginTop: '4px', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                  <div style={{ fontSize: '1.8rem', fontWeight: '800', color: 'var(--crm-good-text)', marginTop: '4px', display: 'flex', alignItems: 'center', gap: '4px' }}>
                     <DollarSign size={20} />
                     {(() => {
                       const defaultPlans = [{ id: 'plano_avulso', price: 250 }, { id: 'plano_mensal', price: 350 }, { id: 'plano_trimestral', price: 900 }];
@@ -560,7 +560,9 @@ export default function PatientList({
                     </tr>
                   </thead>
                   <tbody>
-                    {sortedFilteredPatients.length === 0 && (
+                    {isLoadingPatients ? (
+                      <tr><td colSpan="6" style={{ textAlign: 'center', color: 'var(--crm-text-muted)', padding: '32px 0' }}>Carregando pacientes…</td></tr>
+                    ) : sortedFilteredPatients.length === 0 && (
                       <tr><td colSpan="6" style={{ textAlign: 'center', color: 'var(--crm-text-muted)', padding: '32px 0' }}>Nenhum paciente encontrado.</td></tr>
                     )}
                     {sortedFilteredPatients.map(p => (
@@ -1598,7 +1600,7 @@ export default function PatientList({
                 </div>
                 
                 <div className="crm-card" style={{ flex: '1 1 200px', display: 'flex', alignItems: 'center', gap: '16px' }}>
-                  <div style={{ padding: '16px', backgroundColor: '#ECFDF5', borderRadius: '50%', color: '#10B981' }}>
+                  <div style={{ padding: '16px', backgroundColor: '#ECFDF5', borderRadius: '50%', color: 'var(--crm-good-text)' }}>
                     <Activity size={32} />
                   </div>
                   <div>
@@ -1755,7 +1757,7 @@ export default function PatientList({
                           </div>
                         </div>
                         <button type="submit" className="crm-btn-primary">Salvar Perfil</button>
-                        {profSaved && <p style={{ color: 'var(--crm-good)', fontSize: '0.85rem', fontWeight: 600, marginTop: '16px' }}>Perfil salvo com sucesso!</p>}
+                        {profSaved && <p style={{ color: 'var(--crm-good-text)', fontSize: '0.85rem', fontWeight: 600, marginTop: '16px' }}>Perfil salvo com sucesso!</p>}
                       </form>
                     </div>
                   )}
@@ -1935,7 +1937,7 @@ export default function PatientList({
             <form onSubmit={handleCreateAppointment}>
               <div style={{ marginBottom: '16px' }}>
                 <label className="crm-label">Paciente</label>
-                <select className="crm-input" value={apptPatientId} onChange={e => setApptPatientId(e.target.value)} required>
+                <select autoFocus className="crm-input" value={apptPatientId} onChange={e => setApptPatientId(e.target.value)} required>
                   <option value="" disabled>Selecione...</option>
                   {patients.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
                 </select>
@@ -2009,7 +2011,7 @@ export default function PatientList({
             <form onSubmit={handleSavePatient}>
               <div style={{ marginBottom: '16px' }}>
                 <label className="crm-label">Nome Completo</label>
-                <input type="text" className="crm-input" value={patName} onChange={e => setPatName(e.target.value)} required />
+                <input autoFocus type="text" className="crm-input" value={patName} onChange={e => setPatName(e.target.value)} required />
               </div>
               <div style={{ display: 'flex', gap: '16px', marginBottom: '16px' }}>
                 <div style={{ flex: 1 }}>

@@ -10,6 +10,7 @@ export function AppProvider({ children }) {
   const [profile, setProfile] = useState(null);
 
   const [patients, setPatients] = useState([]);
+  const [isLoadingPatients, setIsLoadingPatients] = useState(true);
   const [appointments, setAppointments] = useState([]);
   const [dietTemplates, setDietTemplates] = useState([]);
   const [recipeLibrary, setRecipeLibrary] = useState([]);
@@ -90,6 +91,8 @@ export function AppProvider({ children }) {
       }
     } catch(e) {
       console.error("Erro ao buscar pacientes:", e);
+    } finally {
+      setIsLoadingPatients(false);
     }
   }, [profile]);
 
@@ -150,6 +153,7 @@ export function AppProvider({ children }) {
     setProfile({ id: patient.id, role: 'paciente', isBypass: true });
     setPatients([patient]);
     setActivePatientId(patient.id);
+    setIsLoadingPatients(false);
   };
 
   const fetchProfile = async (userId) => {
@@ -556,6 +560,7 @@ export function AppProvider({ children }) {
       session, profile,
       patients: computedPatients, activePatientId, setActivePatientId,
       fetchProfile, fetchPatients, fetchAppointments, updateProfile,
+      isLoadingPatients,
       clinicConfig, updateClinicConfig,
       addPatient, updatePatient, deletePatient,
       addRecipe, updateMealAiRecipe, markMealDone, addExtraMealLog, markWorkoutDone, addWeight, addSleepLog, addExam, completeQuest, updateWater,
@@ -570,6 +575,7 @@ export function AppProvider({ children }) {
       setBypassPatient: (mockPat) => {
         setPatients([mockPat]);
         setActivePatientId(mockPat.id);
+        setIsLoadingPatients(false);
       },
       theme,
       toggleTheme

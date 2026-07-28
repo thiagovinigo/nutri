@@ -82,7 +82,7 @@ export default function BonusRecipes({ activePatient }) {
                 <h3 style={{ margin: '0 0 4px 0', color: 'var(--crm-text-main)', fontSize: '1.1rem', fontWeight: '700' }}>{recipe.title}</h3>
                 <span style={{ fontSize: '0.85rem', color: 'var(--crm-text-muted)' }}>Adicionado em {recipe.date}</span>
               </div>
-              <div style={{ color: '#3b82f6', backgroundColor: 'var(--crm-surface-2, var(--crm-bg))', padding: '8px', borderRadius: '50%' }}>
+              <div style={{ color: 'var(--primary-color)', backgroundColor: 'var(--crm-surface-2, var(--crm-bg))', padding: '8px', borderRadius: '50%' }}>
                 {expandedId === recipe.id ? <ChevronUp size={20} /> : <ChevronDown size={20} />}
               </div>
             </button>
@@ -103,19 +103,19 @@ export default function BonusRecipes({ activePatient }) {
     <div className="animate-pop-in">
       <div style={{ marginBottom: '24px' }}>
         <h2 style={{ color: 'var(--crm-text-main)', fontSize: '1.5rem', fontWeight: '800', marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <ChefHat size={24} color="#3b82f6" /> Biblioteca de Receitas
+          <ChefHat size={24} color="var(--primary-color)" /> Biblioteca de Receitas
         </h2>
         
         <div style={{ display: 'flex', gap: '8px', backgroundColor: 'var(--crm-surface-2)', padding: '4px', borderRadius: '12px' }}>
           <button 
             onClick={() => setActiveTab('nutri')}
-            style={{ flex: 1, padding: '10px', borderRadius: '8px', border: 'none', fontWeight: 'bold', cursor: 'pointer', transition: 'all 0.2s', backgroundColor: activeTab === 'nutri' ? 'var(--crm-surface)' : 'transparent', color: activeTab === 'nutri' ? '#3b82f6' : 'var(--crm-text-muted)', boxShadow: activeTab === 'nutri' ? '0 2px 4px rgba(0,0,0,0.05)' : 'none' }}
+            style={{ flex: 1, padding: '10px', borderRadius: '8px', border: 'none', fontWeight: 'bold', cursor: 'pointer', transition: 'all 0.2s', backgroundColor: activeTab === 'nutri' ? 'var(--crm-surface)' : 'transparent', color: activeTab === 'nutri' ? 'var(--primary-color)' : 'var(--crm-text-muted)', boxShadow: activeTab === 'nutri' ? '0 2px 4px rgba(0,0,0,0.05)' : 'none' }}
           >
             Da Nutri
           </button>
           <button 
             onClick={() => setActiveTab('personal')}
-            style={{ flex: 1, padding: '10px', borderRadius: '8px', border: 'none', fontWeight: 'bold', cursor: 'pointer', transition: 'all 0.2s', backgroundColor: activeTab === 'personal' ? 'var(--crm-surface)' : 'transparent', color: activeTab === 'personal' ? '#3b82f6' : 'var(--crm-text-muted)', boxShadow: activeTab === 'personal' ? '0 2px 4px rgba(0,0,0,0.05)' : 'none' }}
+            style={{ flex: 1, padding: '10px', borderRadius: '8px', border: 'none', fontWeight: 'bold', cursor: 'pointer', transition: 'all 0.2s', backgroundColor: activeTab === 'personal' ? 'var(--crm-surface)' : 'transparent', color: activeTab === 'personal' ? 'var(--primary-color)' : 'var(--crm-text-muted)', boxShadow: activeTab === 'personal' ? '0 2px 4px rgba(0,0,0,0.05)' : 'none' }}
           >
             Minhas Receitas
           </button>
@@ -127,7 +127,7 @@ export default function BonusRecipes({ activePatient }) {
       {activeTab === 'personal' && (
         <div>
           {!showAddForm ? (
-            <button className="btn-3d" onClick={() => setShowAddForm(true)} style={{ width: '100%', marginBottom: '16px', backgroundColor: '#8b5cf6', color: 'var(--crm-surface)', border: 'none', padding: '14px', borderRadius: '12px', fontWeight: 'bold', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '8px', cursor: 'pointer', boxShadow: '0 4px 0 #7c3aed' }}>
+            <button className="btn-3d" onClick={() => setShowAddForm(true)} style={{ width: '100%', marginBottom: '16px', backgroundColor: 'var(--primary-color)', color: 'var(--crm-surface)', border: 'none', padding: '14px', borderRadius: '12px', fontWeight: 'bold', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '8px', cursor: 'pointer', boxShadow: '0 4px 0 var(--primary-shadow)' }}>
               <Plus size={20} /> Salvar Nova Receita Livre
             </button>
           ) : (
@@ -151,7 +151,7 @@ export default function BonusRecipes({ activePatient }) {
                 />
                 <div style={{ display: 'flex', gap: '12px', marginTop: '8px' }}>
                   <button type="button" onClick={() => setShowAddForm(false)} style={{ flex: 1, padding: '12px', borderRadius: '8px', border: '1px solid #cbd5e1', background: 'var(--crm-surface)', color: 'var(--crm-text-muted)', fontWeight: 'bold', cursor: 'pointer' }}>Cancelar</button>
-                  <button type="submit" className="btn-3d" style={{ flex: 1, padding: '12px', borderRadius: '8px', border: 'none', background: '#8b5cf6', color: 'var(--crm-surface)', fontWeight: 'bold', cursor: 'pointer', boxShadow: '0 4px 0 #7c3aed', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '8px' }}><Save size={18}/> Salvar</button>
+                  <button type="submit" className="btn-3d" style={{ flex: 1, padding: '12px', borderRadius: '8px', border: 'none', background: 'var(--primary-color)', color: 'var(--crm-surface)', fontWeight: 'bold', cursor: 'pointer', boxShadow: '0 4px 0 var(--primary-shadow)', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '8px' }}><Save size={18}/> Salvar</button>
                 </div>
               </form>
             </div>

@@ -867,7 +867,7 @@ export default function ConsultationFlow({
                 </button>
               </div>
               {finishedMessage && (
-                <div style={{ marginTop: '16px', padding: '14px 16px', backgroundColor: '#E9F6F0', border: '1px solid #A7D8C2', borderRadius: '8px', color: 'var(--crm-good)', fontSize: '0.9rem', fontWeight: 600 }}>
+                <div style={{ marginTop: '16px', padding: '14px 16px', backgroundColor: '#E9F6F0', border: '1px solid #A7D8C2', borderRadius: '8px', color: 'var(--crm-good-text)', fontSize: '0.9rem', fontWeight: 600 }}>
                   {finishedMessage}
                 </div>
               )}

@@ -257,7 +257,7 @@ export default function FinancialCRM({
               <span style={{ fontSize: '0.85rem', color: 'var(--crm-text-muted)', fontWeight: '600', textTransform: 'uppercase' }}>
                 Recebimentos Confirmados (Pagos)
               </span>
-              <div style={{ fontSize: '2rem', fontWeight: '800', marginTop: '8px', color: '#10B981' }}>
+              <div style={{ fontSize: '2rem', fontWeight: '800', marginTop: '8px', color: 'var(--crm-good-text)' }}>
                 R$ {totalRevenueReceived.toLocaleString('pt-BR')}
               </div>
               <span style={{ fontSize: '0.8rem', color: 'var(--crm-text-muted)', display: 'flex', alignItems: 'center', gap: '4px', marginTop: '4px' }}>
@@ -269,7 +269,7 @@ export default function FinancialCRM({
               <span style={{ fontSize: '0.85rem', color: 'var(--crm-text-muted)', fontWeight: '600', textTransform: 'uppercase' }}>
                 A Receber / Pendente
               </span>
-              <div style={{ fontSize: '2rem', fontWeight: '800', marginTop: '8px', color: '#F59E0B' }}>
+              <div style={{ fontSize: '2rem', fontWeight: '800', marginTop: '8px', color: 'var(--crm-warn-text)' }}>
                 R$ {totalPending.toLocaleString('pt-BR')}
               </div>
               <span style={{ fontSize: '0.8rem', color: 'var(--crm-text-muted)', display: 'flex', alignItems: 'center', gap: '4px', marginTop: '4px' }}>
@@ -337,7 +337,7 @@ export default function FinancialCRM({
                         </div>
 
                         <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                          <span style={{ padding: '6px 12px', borderRadius: '20px', background: 'rgba(16, 185, 129, 0.1)', color: '#10B981', fontSize: '0.8rem', fontWeight: '700' }}>
+                          <span style={{ padding: '6px 12px', borderRadius: '20px', background: 'rgba(16, 185, 129, 0.1)', color: 'var(--crm-good-text)', fontSize: '0.8rem', fontWeight: '700' }}>
                             🔥 Alta Adesão (Apto para Upgrade)
                           </span>
                           <button 
@@ -479,7 +479,7 @@ export default function FinancialCRM({
                               borderRadius: '6px', 
                               border: '1px solid #10B981', 
                               background: 'rgba(16, 185, 129, 0.05)', 
-                              color: '#10B981', 
+                              color: 'var(--crm-good-text)', 
                               fontWeight: '600', 
                               cursor: 'pointer',
                               display: 'inline-flex',
@@ -515,7 +515,7 @@ export default function FinancialCRM({
                     {pl.durationDays} dias
                   </span>
                 </div>
-                <div style={{ fontSize: '1.8rem', fontWeight: '800', color: '#10B981', marginBottom: '12px' }}>
+                <div style={{ fontSize: '1.8rem', fontWeight: '800', color: 'var(--crm-good-text)', marginBottom: '12px' }}>
                   R$ {pl.price?.toLocaleString('pt-BR')}
                 </div>
                 <p style={{ color: 'var(--crm-text-muted)', fontSize: '0.9rem', lineHeight: '1.4', margin: '0 0 20px 0' }}>
