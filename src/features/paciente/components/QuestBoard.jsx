@@ -52,6 +52,7 @@ export default function QuestBoard({ activePatient }) {
   const [checkInMealIndex, setCheckInMealIndex] = useState(null);
   const [ateOnTime, setAteOnTime] = useState(null);
   const [followedDiet, setFollowedDiet] = useState(null);
+  const [tookSupplements, setTookSupplements] = useState(null);
   const [divergenceText, setDivergenceText] = useState('');
   const [showMilestone, setShowMilestone] = useState(false);
   const [showExtraMealSelector, setShowExtraMealSelector] = useState(false);
@@ -115,10 +116,6 @@ export default function QuestBoard({ activePatient }) {
     return (activePatient.foodLogs || []).find(log => log.date === selectedDateFormatted && log.mealName === mealName);
   };
 
-  const getSupplementLog = (supplementName) => {
-    return (activePatient.supplementLogs || []).find(log => log.date === selectedDateFormatted && log.name === supplementName);
-  };
-
   const totalMeals = currentRecipe ? currentRecipe.meals.length : 0;
   const completedMeals = currentRecipe ? currentRecipe.meals.filter(m => getMealLog(m.name)).length : 0;
   const progressPercent = totalMeals > 0 ? Math.round((completedMeals / totalMeals) * 100) : 0;
@@ -175,6 +172,7 @@ export default function QuestBoard({ activePatient }) {
     setCheckInMealIndex(idx);
     setAteOnTime(null);
     setFollowedDiet(null);
+    setTookSupplements(null);
     setDivergenceText('');
   };
 
@@ -191,15 +189,22 @@ export default function QuestBoard({ activePatient }) {
 
     const mealName = currentRecipe.meals[idx]?.name || 'Refeição';
     markMealDone(activePatient.id, activePatient.recipes.length - 1, idx, logStr, mealName, selectedDateFormatted);
-    
+
+    const mealSupplements = (currentRecipe.supplementsList || []).filter(s => s.mealName === mealName);
+    if (tookSupplements === true) {
+      mealSupplements.forEach(s => markSupplementDone(activePatient.id, s.id, s.name, selectedDateFormatted));
+    }
+
     // XP Rewards
     let xp = 10;
     if (ateOnTime && followedDiet) xp = 20;
+    if (mealSupplements.length > 0 && tookSupplements === true) xp += 5;
     completeQuest(activePatient.id, xp);
 
     setCheckInMealIndex(null);
     setAteOnTime(null);
     setFollowedDiet(null);
+    setTookSupplements(null);
     setDivergenceText('');
   };
 
@@ -502,6 +507,26 @@ export default function QuestBoard({ activePatient }) {
                         </ul>
                       </div>
                     )}
+                    {(() => {
+                      const mealSupplements = (currentRecipe.supplementsList || []).filter(s => s.mealName === meal.name);
+                      if (mealSupplements.length === 0) return null;
+                      return (
+                        <div style={{ marginBottom: '16px' }}>
+                          <label style={{display: 'block', fontSize: '0.95rem', color: 'var(--patient-text)', marginBottom: '8px', fontWeight: 600}}>
+                            💊 Tomou os suplementos desta refeição?
+                          </label>
+                          <div style={{ marginBottom: '8px', padding: '10px 12px', backgroundColor: 'var(--patient-surface)', borderRadius: '8px', border: '1px solid var(--glass-border)' }}>
+                            <ul style={{ margin: 0, paddingLeft: '20px', color: 'var(--patient-text-muted)', fontSize: '0.85rem' }}>
+                              {mealSupplements.map(s => <li key={s.id}>{s.name} — {s.dosage}</li>)}
+                            </ul>
+                          </div>
+                          <div style={{ display: 'flex', gap: '8px' }}>
+                            <button className={`btn-3d ${tookSupplements === true ? 'btn-primary' : 'btn-secondary'}`} style={{flex: 1, padding: '8px', fontSize: '0.9rem'}} onClick={() => setTookSupplements(true)}>Sim</button>
+                            <button className={`btn-3d ${tookSupplements === false ? 'btn-primary' : 'btn-secondary'}`} style={{flex: 1, padding: '8px', fontSize: '0.9rem'}} onClick={() => setTookSupplements(false)}>Não</button>
+                          </div>
+                        </div>
+                      );
+                    })()}
                     <label style={{display: 'block', fontSize: '0.95rem', color: 'var(--patient-text)', marginBottom: '8px', fontWeight: 600}}>Comeu no horário planejado?</label>
                       <div style={{ display: 'flex', gap: '8px' }}>
                         <button className={`btn-3d ${ateOnTime === true ? 'btn-primary' : 'btn-secondary'}`} style={{flex: 1, padding: '8px', fontSize: '0.9rem'}} onClick={() => setAteOnTime(true)}>Sim</button>
@@ -561,36 +586,6 @@ export default function QuestBoard({ activePatient }) {
               </div>
             );
           })}
-
-          {currentRecipe?.supplementsList && currentRecipe.supplementsList.length > 0 && (
-            <>
-              <h2 style={{fontSize: '1.2rem', fontWeight: '800', marginBottom: '16px', marginTop: '24px', display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--patient-text)'}}>💊 Suplementos e Vitaminas</h2>
-              {currentRecipe.supplementsList.map((supplement) => {
-                const supLog = getSupplementLog(supplement.name);
-                const supDone = !!supLog;
-                return (
-                  <div key={supplement.id} className="patient-card patient-glass" style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px', borderColor: supDone ? 'var(--primary-color)' : 'var(--glass-border)'}}>
-                    <div>
-                      <h4 style={{margin: 0, fontSize: '1rem', color: supDone ? 'var(--primary-color)' : 'var(--patient-text)', display: 'flex', alignItems: 'center', gap: '8px'}}>
-                        {supDone && <Check size={16} color="var(--primary-color)" />} {supplement.name}
-                      </h4>
-                      <span style={{fontSize: '0.8rem', color: 'var(--patient-text-muted)'}}>{supplement.dosage}</span>
-                    </div>
-                    {!supDone ? (
-                      <button className="btn-3d btn-primary" style={{padding: '8px 12px', fontSize: '0.85rem', whiteSpace: 'nowrap'}} onClick={() => {
-                        markSupplementDone(activePatient.id, supplement.id, supplement.name, selectedDateFormatted);
-                        completeQuest(activePatient.id, 5);
-                      }}>
-                        <Check size={16} style={{marginRight: '4px'}} /> Tomei
-                      </button>
-                    ) : (
-                      <span style={{backgroundColor: 'rgba(16, 185, 129, 0.2)', color: 'var(--primary-color)', padding: '6px 12px', borderRadius: '12px', fontWeight: 'bold', fontSize: '0.8rem', whiteSpace: 'nowrap'}}>CONCLUÍDO</span>
-                    )}
-                  </div>
-                );
-              })}
-            </>
-          )}
 
         </>
       ) : (

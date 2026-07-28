@@ -577,37 +577,32 @@ export default function ConsultationFlow({
               {prescriptionTab === 'ferramentas' && (
                 <div className="animate-pop-in">
                   {/* Assistentes de Prescrição */}
-                  <div style={{ marginBottom: '32px', padding: '24px', backgroundColor: 'var(--crm-accent-soft)', border: '1px solid var(--crm-border)', borderRadius: '12px' }}>
-                    <h3 style={{ fontSize: '1.1rem', color: 'var(--crm-accent)', marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                      <Sparkles size={18} /> Como você deseja iniciar a prescrição?
+                  <div style={{ padding: '24px', backgroundColor: 'var(--crm-surface-2, var(--crm-bg))', border: '1px solid var(--crm-border)', borderRadius: '12px', marginBottom: '24px' }}>
+                    <h3 style={{ fontSize: '1.1rem', color: 'var(--crm-text-main)', marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      <Sparkles size={18} color="var(--crm-primary)" /> Gerador de Cardápio (IA Nutricionista)
                     </h3>
-                    <div style={{ display: 'flex', gap: '16px', flexWrap: 'wrap' }}>
-                      <div style={{ flex: '1 1 300px' }}>
-                        <div style={{ display: 'flex', gap: '8px' }}>
-                          <select
-                            className="crm-input"
-                            style={{ width: '100px' }}
-                            value={dietDuration}
-                            onChange={e => setDietDuration(Number(e.target.value))}
-                          >
-                            <option value={1}>1 Dia</option>
-                            <option value={7}>7 Dias</option>
-                            <option value={15}>15 Dias</option>
-                            <option value={30}>30 Dias</option>
-                          </select>
-                          <button className="crm-btn-primary" onClick={async () => {
-                            await generateDietFromAI();
-                            setPrescriptionTab('cardapio');
-                          }} disabled={isGeneratingDiet} style={{ flex: 1, display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '8px', padding: '12px' }}>
-                            <Sparkles size={16} color='var(--crm-surface)' /> {isGeneratingDiet ? 'Analisando...' : 'Sugerir com IA'}
-                          </button>
-                        </div>
-                        {examResult && (
-                          <p style={{ fontSize: '0.8rem', color: 'var(--crm-text-muted)', marginTop: '8px', textAlign: 'center' }}>
-                            A IA utilizará a análise dos exames como base.
-                          </p>
-                        )}
-                      </div>
+                    <p style={{ color: 'var(--crm-text-muted)', fontSize: '0.95rem', marginBottom: '16px' }}>
+                      A IA usará os dados de anamnese, exames e objetivo do paciente para montar o cardápio.
+                      {examResult && ' A análise de exames também será considerada.'}
+                    </p>
+                    <div style={{ display: 'flex', gap: '8px' }}>
+                      <select
+                        className="crm-input"
+                        style={{ width: '110px' }}
+                        value={dietDuration}
+                        onChange={e => setDietDuration(Number(e.target.value))}
+                      >
+                        <option value={1}>1 Dia</option>
+                        <option value={7}>7 Dias</option>
+                        <option value={15}>15 Dias</option>
+                        <option value={30}>30 Dias</option>
+                      </select>
+                      <button className="crm-btn-primary" onClick={async () => {
+                        await generateDietFromAI();
+                        setPrescriptionTab('cardapio');
+                      }} disabled={isGeneratingDiet} style={{ flex: 1, display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '8px', padding: '12px' }}>
+                        <Sparkles size={16} color='var(--crm-surface)' /> {isGeneratingDiet ? 'Analisando...' : 'Sugerir com IA'}
+                      </button>
                     </div>
                   </div>
 
@@ -657,24 +652,26 @@ export default function ConsultationFlow({
 
               {prescriptionTab === 'suplementos' && (
                 <div className="animate-pop-in" style={{ marginBottom: '32px' }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px', flexWrap: 'wrap', gap: '12px' }}>
-                    <label className="crm-label" style={{ marginBottom: 0 }}>Suplementos e Vitaminas Prescritos</label>
+                  <div style={{ padding: '24px', backgroundColor: 'var(--crm-surface-2, var(--crm-bg))', border: '1px solid var(--crm-border)', borderRadius: '12px', marginBottom: '24px' }}>
+                    <h3 style={{ fontSize: '1.1rem', color: 'var(--crm-text-main)', marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      <Sparkles size={18} color="var(--crm-primary)" /> Sugestão de Suplementos (IA Nutricionista)
+                    </h3>
+                    <p style={{ color: 'var(--crm-text-muted)', fontSize: '0.95rem', marginBottom: '16px' }}>
+                      {dietMeals.length === 0
+                        ? 'Crie ao menos uma refeição no cardápio antes — a IA usa as refeições já montadas pra sugerir o melhor horário de cada suplemento.'
+                        : 'A IA usará anamnese, exames e as refeições já criadas para sugerir suplementos e em qual refeição tomar cada um.'}
+                    </p>
                     <button
                       className="crm-btn-primary"
-                      style={{ display: 'flex', alignItems: 'center', gap: '8px' }}
                       onClick={generateSupplementsFromAI}
                       disabled={isGeneratingSupplements || dietMeals.length === 0}
-                      title={dietMeals.length === 0 ? 'Crie ao menos uma refeição no cardápio antes de pedir sugestão de suplementos' : ''}
+                      style={{ width: '100%', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '8px', padding: '12px' }}
                     >
-                      <Sparkles size={16} /> {isGeneratingSupplements ? 'Analisando...' : 'Sugerir com IA'}
+                      <Sparkles size={16} color='var(--crm-surface)' /> {isGeneratingSupplements ? 'Analisando...' : 'Sugerir com IA'}
                     </button>
                   </div>
-                  {dietMeals.length === 0 && (
-                    <p style={{ fontSize: '0.8rem', color: 'var(--crm-text-muted)', marginTop: '-6px', marginBottom: '12px' }}>
-                      A sugestão por IA fica disponível depois que pelo menos uma refeição (manual ou gerada por IA) existir no cardápio.
-                    </p>
-                  )}
 
+                  <label className="crm-label">Suplementos e Vitaminas Prescritos</label>
                   <div style={{ display: 'flex', gap: '8px', marginBottom: '16px' }}>
                     <select
                       className="crm-input"
@@ -684,7 +681,7 @@ export default function ConsultationFlow({
                         if (!e.target.value) return;
                         const item = supplementsData.find(s => s.id === e.target.value);
                         if (item) {
-                          setDietSupplementsList([...dietSupplementsList, { id: Date.now().toString(), name: item.name, dosage: item.defaultDosage }]);
+                          setDietSupplementsList([...dietSupplementsList, { id: Date.now().toString(), name: item.name, dosage: item.defaultDosage, mealName: dietMeals[0]?.name || '' }]);
                         }
                         e.target.value = '';
                       }}
@@ -699,12 +696,12 @@ export default function ConsultationFlow({
                   {dietSupplementsList.length > 0 && (
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginBottom: '20px' }}>
                       {dietSupplementsList.map((item, idx) => (
-                        <div key={item.id} style={{ display: 'flex', gap: '8px', alignItems: 'center', backgroundColor: 'var(--crm-surface-2, var(--crm-bg))', padding: '8px 12px', borderRadius: '8px', border: '1px solid var(--crm-border)' }}>
-                          <strong style={{ flex: 1, color: 'var(--crm-text-main)', fontSize: '0.9rem' }}>{item.name}</strong>
+                        <div key={item.id} style={{ display: 'flex', gap: '8px', alignItems: 'center', backgroundColor: 'var(--crm-surface-2, var(--crm-bg))', padding: '8px 12px', borderRadius: '8px', border: '1px solid var(--crm-border)', flexWrap: 'wrap' }}>
+                          <strong style={{ flex: '1 1 140px', color: 'var(--crm-text-main)', fontSize: '0.9rem' }}>{item.name}</strong>
                           <input
                             type="text"
                             className="crm-input"
-                            style={{ width: '140px', padding: '6px 8px', fontSize: '0.85rem' }}
+                            style={{ width: '120px', padding: '6px 8px', fontSize: '0.85rem' }}
                             value={item.dosage}
                             onChange={(e) => {
                               const newList = [...dietSupplementsList];
@@ -712,6 +709,21 @@ export default function ConsultationFlow({
                               setDietSupplementsList(newList);
                             }}
                           />
+                          <select
+                            className="crm-input"
+                            style={{ width: '160px', padding: '6px 8px', fontSize: '0.85rem' }}
+                            value={item.mealName || ''}
+                            onChange={(e) => {
+                              const newList = [...dietSupplementsList];
+                              newList[idx] = { ...item, mealName: e.target.value };
+                              setDietSupplementsList(newList);
+                            }}
+                          >
+                            <option value="">Geral (sem refeição)</option>
+                            {dietMeals.map((m, mi) => (
+                              <option key={mi} value={m.name}>{m.name || `Refeição ${mi + 1}`}</option>
+                            ))}
+                          </select>
                           <button
                             onClick={() => setDietSupplementsList(dietSupplementsList.filter((_, i) => i !== idx))}
                             style={{ background: 'none', border: 'none', color: 'var(--crm-danger)', cursor: 'pointer' }}

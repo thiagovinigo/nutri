@@ -395,21 +395,24 @@ Exemplo de formato:
       const catalogList = supplementsData.map(s => `${s.name} (dose usual: ${s.defaultDosage})`).join(', ');
       promptContext += `\n\nCATÁLOGO DISPONÍVEL: ${catalogList}`;
 
+      const mealNames = dietMeals.map(m => m.name).filter(Boolean);
+      promptContext += `\n\nREFEIÇÕES JÁ CRIADAS NESTE CARDÁPIO: ${mealNames.length > 0 ? mealNames.join(', ') : 'nenhuma'}. Para cada suplemento sugerido, indique em qual dessas refeições o paciente deve tomá-lo (campo 'mealName', usando exatamente um dos nomes acima) — use o que fizer mais sentido clinicamente (ex: suplemento com gordura junto de uma refeição principal, estimulante longe do jantar). Se nenhuma refeição servir, deixe 'mealName' como string vazia.`;
+
       const hasExisting = dietSupplementsList.length > 0 || dietSupplements.trim().length > 0;
       if (hasExisting) {
-        const existingList = dietSupplementsList.map(s => `${s.name} (${s.dosage})`).join(', ') || 'nenhum';
+        const existingList = dietSupplementsList.map(s => `${s.name} (${s.dosage}${s.mealName ? `, em ${s.mealName}` : ''})`).join(', ') || 'nenhum';
         promptContext += `\n\nO NUTRICIONISTA JÁ PRESCREVEU: ${existingList}. Observações adicionais já escritas: "${dietSupplements || 'nenhuma'}". Sugira APENAS suplementos complementares que ainda não estão nessa lista — não repita os que já existem.`;
       } else {
         promptContext += `\n\nNenhum suplemento foi prescrito ainda. Sugira uma lista completa e adequada ao caso clínico acima.`;
       }
 
       const data = await callOpenAIBridge({
-        system_prompt: `Você é um Nutricionista Clínico especialista em suplementação. Retorne EXATAMENTE UM JSON com um array 'supplements', cada item com 'name' (nome do suplemento, preferencialmente do catálogo fornecido) e 'dosage' (dose recomendada, ex: "1000mg" ou "1 cápsula"). Não inclua explicações fora do JSON.`,
+        system_prompt: `Você é um Nutricionista Clínico especialista em suplementação. Retorne EXATAMENTE UM JSON com um array 'supplements', cada item com 'name' (nome do suplemento, preferencialmente do catálogo fornecido), 'dosage' (dose recomendada, ex: "1000mg" ou "1 cápsula") e 'mealName' (nome exato de uma das refeições já criadas, ou string vazia se for de uso geral). Não inclua explicações fora do JSON.`,
         messages: [{ role: "user", content: `Sugira suplementos considerando este contexto clínico:\n\n${promptContext}` }],
         format_json: true
       });
       const parsed = JSON.parse(data.choices[0].message.content);
-      const suggested = (parsed.supplements || []).map(s => ({ id: Date.now().toString() + Math.random().toString(36).slice(2), name: s.name, dosage: s.dosage }));
+      const suggested = (parsed.supplements || []).map(s => ({ id: Date.now().toString() + Math.random().toString(36).slice(2), name: s.name, dosage: s.dosage, mealName: mealNames.includes(s.mealName) ? s.mealName : '' }));
       setDietSupplementsList([...dietSupplementsList, ...suggested]);
     } catch (error) {
       setDietError(error.message || 'Erro ao sugerir suplementos com IA.');
