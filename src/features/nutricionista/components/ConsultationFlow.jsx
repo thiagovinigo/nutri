@@ -4,7 +4,7 @@ import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import MealBuilder from './MealBuilder';
 import WorkoutBuilder from './WorkoutBuilder';
-import { useAppContext } from '../../../context/AppContext';
+import { DEFAULT_TEMPLATE } from './AnamnesisTemplateSettings';
 
 function normTitle(s) {
   return (s || '').toLowerCase()
@@ -72,7 +72,8 @@ export default function ConsultationFlow({
   activeApptId,
   consultationStep, setConsultationStep,
   consultationType, setConsultationType,
-  anamnesis, setAnamnesis,
+  anamnesisAnswers, setAnamnesisAnswers,
+  clinicConfig,
   physicalEval, setPhysicalEval,
   examUploaded, setExamUploaded,
   examAnalyzing,
@@ -91,11 +92,11 @@ export default function ConsultationFlow({
   finishConsultation,
   examError, dietError, finishedMessage,
   onSuspend,
-  dietTemplates,
-  recipeLibrary,
-  addBonusRecipe
+  recipeLibrary
 }) {
-  const { addDietTemplate } = useAppContext();
+  const anamnesisTemplate = (clinicConfig?.anamnesisTemplate?.length > 0)
+    ? clinicConfig.anamnesisTemplate
+    : DEFAULT_TEMPLATE;
   const [draggedRecipe, setDraggedRecipe] = useState(null);
   const [selectedExamFiles, setSelectedExamFiles] = useState([]);
   const [prescriptionTab, setPrescriptionTab] = useState('cardapio');
@@ -246,8 +247,41 @@ export default function ConsultationFlow({
                 </select>
               </div>
 
-              <label className="crm-label">Anotações Clínicas de Hoje</label>
-              <textarea className="crm-input" placeholder="Como o paciente tem se sentido? As notas aqui servirão de contexto para a IA gerar a dieta." value={anamnesis} onChange={(e) => setAnamnesis(e.target.value)} style={{ height: '250px', resize: 'vertical' }} />
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+                {anamnesisTemplate.map(field => (
+                  <div key={field.id}>
+                    <label className="crm-label">{field.label}</label>
+                    {field.type === 'texto_longo' && (
+                      <textarea
+                        className="crm-input"
+                        style={{ minHeight: '120px', resize: 'vertical' }}
+                        value={anamnesisAnswers?.[field.id] || ''}
+                        onChange={(e) => setAnamnesisAnswers({ ...anamnesisAnswers, [field.id]: e.target.value })}
+                      />
+                    )}
+                    {field.type === 'escolha_unica' && (
+                      <select
+                        className="crm-input"
+                        value={anamnesisAnswers?.[field.id] || ''}
+                        onChange={(e) => setAnamnesisAnswers({ ...anamnesisAnswers, [field.id]: e.target.value })}
+                      >
+                        <option value="" disabled>Selecione...</option>
+                        {(field.options || []).map(opt => (
+                          <option key={opt} value={opt}>{opt}</option>
+                        ))}
+                      </select>
+                    )}
+                    {field.type === 'texto_curto' && (
+                      <input
+                        type="text"
+                        className="crm-input"
+                        value={anamnesisAnswers?.[field.id] || ''}
+                        onChange={(e) => setAnamnesisAnswers({ ...anamnesisAnswers, [field.id]: e.target.value })}
+                      />
+                    )}
+                  </div>
+                ))}
+              </div>
               <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '24px' }}>
                 <button className="crm-btn-primary" onClick={() => setConsultationStep(2)}>Avançar para Avaliação Física →</button>
               </div>
@@ -573,58 +607,6 @@ export default function ConsultationFlow({
                     </div>
                   </div>
 
-                  <div style={{ marginBottom: '32px', backgroundColor: 'var(--crm-surface)', border: '1px solid var(--crm-border)', borderRadius: '12px', padding: '16px' }}>
-                    <h3 style={{ fontSize: '1.1rem', color: 'var(--crm-text-main)', marginBottom: '8px', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                      <FileText size={18} /> Meus Templates de Dieta
-                    </h3>
-                    <p style={{ fontSize: '0.85rem', color: 'var(--crm-text-muted)', marginBottom: '16px' }}>Carregue um plano alimentar pré-estruturado do seu Diet Builder.</p>
-                    
-                    {(!dietTemplates || dietTemplates.length === 0) ? (
-                      <p style={{ fontSize: '0.85rem', color: 'var(--crm-text-muted)', textAlign: 'center', padding: '20px 0' }}>Nenhum template salvo.</p>
-                    ) : (
-                      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: '12px' }}>
-                        {dietTemplates.map(tpl => (
-                          <div key={tpl.id} style={{ border: '1px solid var(--crm-border)', borderRadius: '8px', padding: '12px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
-                            <div>
-                              <strong style={{ fontSize: '0.95rem', color: 'var(--crm-text-main)' }}>{tpl.title}</strong>
-                              <div style={{ fontSize: '0.8rem', color: 'var(--crm-text-muted)', marginTop: '4px' }}>Duração: {tpl.duration} dias</div>
-                            </div>
-                            <button 
-                              className="crm-btn-secondary" 
-                              style={{ marginTop: '12px', padding: '6px', fontSize: '0.85rem', width: '100%' }}
-                              onClick={() => {
-                                if(window.confirm(`Aplicar o template "${tpl.title}"? As refeições atuais serão substituídas.`)) {
-                                  setDietTitle(tpl.title);
-                                  setDietDuration(tpl.duration);
-                                  
-                                  const allMeals = [];
-                                  if (tpl.days && Array.isArray(tpl.days)) {
-                                    tpl.days.forEach(d => {
-                                      if (d.meals && Array.isArray(d.meals)) {
-                                        d.meals.forEach(m => {
-                                          allMeals.push({
-                                            name: tpl.days.length > 1 ? `Dia ${d.dayIndex} - ${m.name}` : m.name,
-                                            time: m.time || '',
-                                            desc: m.desc || m.items || ''
-                                          });
-                                        });
-                                      }
-                                    });
-                                  }
-                                  
-                                  setDietMeals(allMeals);
-                                  setPrescriptionTab('cardapio');
-                                }
-                              }}
-                            >
-                              Aplicar Template
-                            </button>
-                          </div>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                  
                   <div style={{ backgroundColor: 'var(--crm-surface)', border: '1px solid var(--crm-border)', borderRadius: '12px', padding: '16px' }}>
                     <h3 style={{ fontSize: '1.1rem', color: 'var(--crm-text-main)', marginBottom: '8px', display: 'flex', alignItems: 'center', gap: '8px' }}>
                       <GripVertical size={18} /> Receitas Salvas
@@ -647,15 +629,19 @@ export default function ConsultationFlow({
                                 {rec.ingredients}
                               </div>
                             </div>
-                            <button 
-                              className="crm-btn-primary" 
+                            <button
+                              className="crm-btn-primary"
                               style={{ marginTop: '8px', padding: '4px 8px', fontSize: '0.8rem', width: '100%' }}
                               onClick={() => {
-                                addBonusRecipe(activePatient.id, rec);
-                                alert("Receita anexada ao paciente com sucesso!");
+                                setDietMeals([...dietMeals, {
+                                  name: rec.title,
+                                  desc: `Ingredientes: ${rec.ingredients}\nPreparo: ${rec.instructions}`,
+                                  foods: []
+                                }]);
+                                setPrescriptionTab('cardapio');
                               }}
                             >
-                              <Plus size={14} style={{ marginRight: '4px' }}/> Anexar ao Paciente
+                              <Plus size={14} style={{ marginRight: '4px' }}/> Adicionar ao Cardápio
                             </button>
                           </div>
                         ))}
@@ -840,21 +826,6 @@ export default function ConsultationFlow({
                       </button>
                     )}
                     
-                    {dietMeals.length > 0 && (
-                      <button className="crm-btn-primary" onClick={() => {
-                        if(!dietTitle) {
-                           setDietError('Para salvar como template, dê um título à dieta acima.');
-                           return;
-                        }
-                        if(window.confirm('Salvar dieta atual como um Template reutilizável?')) {
-                           addDietTemplate(dietTitle, dietDuration, [{ dayIndex: 1, meals: dietMeals }]);
-                           alert('Template salvo com sucesso!');
-                        }
-                      }}>
-                        <Sparkles size={16} /> Salvar como Template
-                      </button>
-                    )}
-
                   </div>
                 </div>
               )}

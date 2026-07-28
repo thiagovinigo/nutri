@@ -30,6 +30,8 @@ export default function DietPlan({ activePatient }) {
     );
   };
 
+  const RECIPE_STYLES = ['grelhado(a)', 'refogado(a)', 'assado(a) no forno', 'na air fryer', 'cru(a) em salada', 'cozido(a) no vapor', 'em formato de wrap/enrolado', 'em formato de omelete/frittata', 'em formato de bowl'];
+
   const handleGenerateRecipe = async (meal, mIdx, recipeTitle) => {
     setLoadingMealIdx(mIdx);
     setIsRecipeLoading(true);
@@ -40,20 +42,34 @@ export default function DietPlan({ activePatient }) {
         ? meal.foods.map(f => `${f.amount}g de ${f.name}`).join(', ')
         : (meal.desc || 'alimentos variados');
       const aversions = activePatient?.aversions || 'Nenhuma aversão registrada';
-      const prompt = `Você é um Chef Nutricional da Nutrivvo. Sua missão é sugerir uma receita prática e rápida utilizando os seguintes ingredientes: ${foodsList}. Se precisar, pode adicionar temperos básicos (sal, pimenta, azeite, ervas).
+      // Regerar pede exatamente os mesmos ingredientes de novo -- sem sinalizar
+      // isso pro modelo, ele converge quase sempre pra mesma sugestão óbvia
+      // (ex: ovo+aveia+banana -> panqueca, toda vez). Passamos a receita
+      // anterior como exemplo do que NÃO repetir, mais uma dica de estilo
+      // sorteada, pra forçar variedade real em vez de depender só do random
+      // da API.
+      const recipeKey = `${recipeTitle}-${meal.name}`;
+      const previousRecipe = activePatient.aiRecipes?.[recipeKey];
+      const suggestedStyle = RECIPE_STYLES[Math.floor(Math.random() * RECIPE_STYLES.length)];
+
+      let prompt = `Você é um Chef Nutricional da Nutrivvo. Sua missão é sugerir uma receita prática e rápida utilizando os seguintes ingredientes: ${foodsList}. Se precisar, pode adicionar temperos básicos (sal, pimenta, azeite, ervas).
       INSTRUÇÕES:
       - O paciente NÃO COME (aversões/restrições): ${aversions}. JAMAIS use esses ingredientes.
       - Retorne em formato Markdown (## Nome da Receita, ### Ingredientes, ### Modo de Preparo).
-      - Mantenha a resposta super focada na praticidade para o dia a dia.`;
+      - Mantenha a resposta super focada na praticidade para o dia a dia.
+      - Experimente um preparo no estilo "${suggestedStyle}" pra trazer variedade.`;
+
+      if (previousRecipe) {
+        prompt += `\n\nIMPORTANTE: o paciente já viu a receita abaixo e pediu uma NOVA opção. NÃO repita o mesmo nome nem o mesmo modo de preparo -- gere algo genuinamente diferente:\n---\n${previousRecipe}\n---`;
+      }
 
       const data = await callOpenAIBridge({
-        system_prompt: "Você é um assistente culinário focado em dietas de alta performance.",
+        system_prompt: "Você é um assistente culinário focado em dietas de alta performance. Você é criativo e nunca repete a mesma sugestão duas vezes para o mesmo pedido.",
         messages: [{ role: 'user', content: prompt }]
       });
       const content = data.choices[0].message.content;
-      
+
       // Salva no banco de dados do paciente para não perder ao trocar de aba
-      const recipeKey = `${recipeTitle}-${meal.name}`;
       const newAiRecipes = { ...(activePatient.aiRecipes || {}) };
       newAiRecipes[recipeKey] = content;
       updatePatient(activePatient.id, { aiRecipes: newAiRecipes });

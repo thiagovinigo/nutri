@@ -5,6 +5,8 @@ import PatientList from '../components/PatientList';
 import { extractTextFromPDF } from '../../../services/pdfService';
 import tacoData from '../../../data/taco.json';
 import { callOpenAIBridge } from '../../../utils/openaiBridge';
+import { formatAnamnesisAnswers } from '../../../utils/anamnesis';
+import { DEFAULT_TEMPLATE as DEFAULT_ANAMNESIS_TEMPLATE } from '../components/AnamnesisTemplateSettings';
 
 export default function DashboardNutri() {
   const { 
@@ -13,7 +15,7 @@ export default function DashboardNutri() {
     addPatient, updatePatient, deletePatient,
     appointments, addAppointment, cancelAppointment, markAppointmentDone,
     addNotification,
-    dietTemplates, addDietTemplate, deleteDietTemplate,
+    dietTemplates, deleteDietTemplate,
     recipeLibrary, addLibraryRecipe, deleteLibraryRecipe,
     addBonusRecipe
   } = useAppContext();
@@ -48,7 +50,11 @@ export default function DashboardNutri() {
   const [consultationStep, setConsultationStep] = useState(1);
   const [consultationType, setConsultationType] = useState('Primeira Consulta');
   const [activeApptId, setActiveApptId] = useState(null);
-  const [anamnesis, setAnamnesis] = useState('');
+  const [anamnesisAnswers, setAnamnesisAnswers] = useState({});
+  const anamnesisTemplate = (clinicConfig?.anamnesisTemplate?.length > 0)
+    ? clinicConfig.anamnesisTemplate
+    : DEFAULT_ANAMNESIS_TEMPLATE;
+  const anamnesisText = formatAnamnesisAnswers(anamnesisAnswers, anamnesisTemplate);
   
   const [physicalEval, setPhysicalEval] = useState({
     weight: '',
@@ -201,7 +207,7 @@ export default function DashboardNutri() {
     setActivePatientId(patientId);
     setActiveApptId(apptId);
     setConsultationStep(1);
-    setAnamnesis('');
+    setAnamnesisAnswers({});
     const pat = patients.find(p => p.id === patientId);
     setPhysicalEval({ weight: '', height: '', bodyFat: '', muscleMass: '', waist: '', hips: '', age: pat?.age || '', gender: pat?.gender || 'M', activityLevel: '1.2', tmb: '', get: '', protocoloDobras: 'nenhum', triceps: '', peitoral: '', subescapular: '', axilar: '', suprailiaca: '', abdomen: '', coxa: '', massaGorda: '', massaMagra: '' });
     setExamUploaded(false);
@@ -218,7 +224,7 @@ export default function DashboardNutri() {
   const openConsultation = (p) => {
     setActivePatientId(p.id);
     setConsultationStep(1);
-    setAnamnesis('');
+    setAnamnesisAnswers({});
     setPhysicalEval({ weight: '', height: '', bodyFat: '', muscleMass: '', waist: '', hips: '', age: p.age || '', gender: p.gender || 'M', activityLevel: '1.2', tmb: '', get: '', protocoloDobras: 'nenhum', triceps: '', peitoral: '', subescapular: '', axilar: '', suprailiaca: '', abdomen: '', coxa: '', massaGorda: '', massaMagra: '' });
     setExamUploaded(false);
     setExamResult(null);
@@ -237,7 +243,7 @@ export default function DashboardNutri() {
     setExamError('');
     try {
       let contentArray = [
-        { type: "text", text: `Contexto do paciente: Objetivo é ${activePatient.objective}. Anamnese de hoje: ${anamnesis}.\n\n` }
+        { type: "text", text: `Contexto do paciente: Objetivo é ${activePatient.objective}. Anamnese de hoje: ${anamnesisText}.\n\n` }
       ];
 
       if (activePatient.exams && activePatient.exams.length > 0) {
@@ -326,7 +332,7 @@ Cite as fontes científicas, guidelines atualizados (como Diretrizes da SBC, SBD
         promptContext += `\nAvaliação Física Atual: ${physicalSummary.join(', ')}`;
       }
 
-      if (anamnesis) promptContext += `\nAnamnese: ${anamnesis}`;
+      if (anamnesisText) promptContext += `\nAnamnese: ${anamnesisText}`;
       if (examResult) promptContext += `\nConduta Sugerida pelos Exames:\n${examResult}`;
 
       const miniTaco = tacoData.map(f => ({ id: f.id, name: f.name, kcal: f.kcal, carb: f.carb, ptn: f.protein, fat: f.fat }));
@@ -412,7 +418,7 @@ Exemplo de formato:
       }
 
       // Anamnese
-      if (anamnesis) promptContext += `\nAnamnese Clínica: ${anamnesis}`;
+      if (anamnesisText) promptContext += `\nAnamnese Clínica: ${anamnesisText}`;
 
       // Resultado dos exames laboratoriais (se disponível)
       if (examResult) {
@@ -526,7 +532,7 @@ Não inclua textos fora do JSON. Apenas o JSON puro.`;
       id: Date.now().toString(),
       date: new Date().toISOString(),
       type: consultationType || 'Primeira Consulta',
-      anamnesis: anamnesis,
+      anamnesis: anamnesisText,
       physicalEval: physicalEval,
       examResult: examResult,
       dietTitle: dietTitle,
@@ -539,7 +545,7 @@ Não inclua textos fora do JSON. Apenas o JSON puro.`;
     const updatedConsultations = [...(activePatient.consultations || []), newConsultation];
 
     let updatePayload = { 
-      records: activePatient.records + `\n\n[Consulta - ${new Date().toLocaleDateString('pt-BR')}]:\n${anamnesis}`,
+      records: activePatient.records + `\n\n[Consulta - ${new Date().toLocaleDateString('pt-BR')}]:\n${anamnesisText}`,
       consultations: updatedConsultations
     };
 
@@ -580,7 +586,8 @@ Não inclua textos fora do JSON. Apenas o JSON puro.`;
         activeApptId={activeApptId}
         consultationStep={consultationStep} setConsultationStep={setConsultationStep}
         consultationType={consultationType} setConsultationType={setConsultationType}
-        anamnesis={anamnesis} setAnamnesis={setAnamnesis}
+        anamnesisAnswers={anamnesisAnswers} setAnamnesisAnswers={setAnamnesisAnswers}
+        clinicConfig={clinicConfig}
         physicalEval={physicalEval} setPhysicalEval={setPhysicalEval}
         examUploaded={examUploaded} setExamUploaded={setExamUploaded}
         examAnalyzing={examAnalyzing}
@@ -599,8 +606,7 @@ Não inclua textos fora do JSON. Apenas o JSON puro.`;
         finishConsultation={finishConsultation}
         examError={examError} dietError={dietError} finishedMessage={finishedMessage}
         onSuspend={() => setView(activeApptId ? 'agenda' : 'pacientes')}
-        dietTemplates={dietTemplates} addDietTemplate={addDietTemplate}
-        recipeLibrary={recipeLibrary} addBonusRecipe={addBonusRecipe}
+        recipeLibrary={recipeLibrary}
       />
     );
   }

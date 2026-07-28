@@ -6,6 +6,7 @@ import { useAppContext } from '../../../context/AppContext';
 import { callOpenAIBridge } from '../../../utils/openaiBridge';
 import WeeklyCalendar from './WeeklyCalendar';
 import FinancialCRM from './FinancialCRM';
+import AnamnesisTemplateSettings from './AnamnesisTemplateSettings';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 
@@ -715,7 +716,7 @@ export default function PatientList({
                   if (viewedPatient.consultations) {
                     viewedPatient.consultations.forEach(c => {
                       if (c.physicalEval) {
-                        const date = c.date;
+                        const date = new Date(c.date).toLocaleDateString('pt-BR');
                         const existing = chartData.find(d => d.date === date);
                         const weight = c.physicalEval.weight ? parseFloat(c.physicalEval.weight) : null;
                         const bodyFat = c.physicalEval.bodyFat ? parseFloat(c.physicalEval.bodyFat) : null;
@@ -1723,6 +1724,9 @@ export default function PatientList({
                   <button className={`settings-nav-item ${activeSettingsTab === 'whitelabel' ? 'active' : ''}`} onClick={() => setActiveSettingsTab('whitelabel')}>
                     <Palette size={18} /> Identidade Visual
                   </button>
+                  <button className={`settings-nav-item ${activeSettingsTab === 'anamnese' ? 'active' : ''}`} onClick={() => setActiveSettingsTab('anamnese')}>
+                    <FileText size={18} /> Formulário de Anamnese
+                  </button>
                   <button className={`settings-nav-item ${activeSettingsTab === 'assinatura' ? 'active' : ''}`} onClick={() => setActiveSettingsTab('assinatura')}>
                     <CreditCard size={18} /> Plano e Assinatura
                   </button>
@@ -1872,6 +1876,14 @@ export default function PatientList({
                         Aplicar Identidade Visual
                       </button>
                     </div>
+                  )}
+
+                  {activeSettingsTab === 'anamnese' && (
+                    <AnamnesisTemplateSettings
+                      clinicConfig={clinicConfig}
+                      updateClinicConfig={updateClinicConfig}
+                      addNotification={addNotification}
+                    />
                   )}
 
                   {activeSettingsTab === 'assinatura' && (

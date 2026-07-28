@@ -347,11 +347,12 @@ export default function SignUp() {
                 <div
                   onClick={() => setRole('paciente')}
                   style={{
-                    flex: 1, padding: '12px', textAlign: 'center', borderRadius: '10px', cursor: 'pointer', border: '2px solid',
+                    flex: 1, padding: '12px 6px', textAlign: 'center', borderRadius: '10px', cursor: 'pointer', border: '2px solid',
                     borderColor: role === 'paciente' ? '#a855f7' : 'rgba(255,255,255,0.12)',
                     backgroundColor: role === 'paciente' ? 'rgba(168,85,247,0.15)' : 'rgba(255,255,255,0.03)',
                     color: role === 'paciente' ? '#e9d5ff' : '#94a3b8',
-                    fontWeight: role === 'paciente' ? 'bold' : 'normal'
+                    fontWeight: role === 'paciente' ? 'bold' : 'normal',
+                    fontSize: '0.9rem', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis'
                   }}
                 >
                   🥗 Paciente
@@ -359,11 +360,12 @@ export default function SignUp() {
                 <div
                   onClick={() => setRole('nutricionista')}
                   style={{
-                    flex: 1, padding: '12px', textAlign: 'center', borderRadius: '10px', cursor: 'pointer', border: '2px solid',
+                    flex: 1, padding: '12px 6px', textAlign: 'center', borderRadius: '10px', cursor: 'pointer', border: '2px solid',
                     borderColor: role === 'nutricionista' ? '#a855f7' : 'rgba(255,255,255,0.12)',
                     backgroundColor: role === 'nutricionista' ? 'rgba(168,85,247,0.15)' : 'rgba(255,255,255,0.03)',
                     color: role === 'nutricionista' ? '#e9d5ff' : '#94a3b8',
-                    fontWeight: role === 'nutricionista' ? 'bold' : 'normal'
+                    fontWeight: role === 'nutricionista' ? 'bold' : 'normal',
+                    fontSize: '0.9rem', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis'
                   }}
                 >
                   🩺 Nutricionista
