@@ -679,7 +679,6 @@ Não inclua textos fora do JSON. Apenas o JSON puro.`;
         finishConsultation={finishConsultation}
         examError={examError} dietError={dietError} finishedMessage={finishedMessage}
         onSuspend={() => setView(activeApptId ? 'agenda' : 'pacientes')}
-        recipeLibrary={recipeLibrary}
       />
     );
   }

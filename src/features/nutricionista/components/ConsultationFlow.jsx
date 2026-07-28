@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { FileText, Activity, Sparkles, Edit3, Send, Plus, X, Upload, CheckCircle, Trash2, GripVertical, Download, Dumbbell, AlertTriangle } from 'lucide-react';
+import { FileText, Activity, Sparkles, Edit3, Send, Plus, X, Upload, CheckCircle, Trash2, Download, Dumbbell, AlertTriangle } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import MealBuilder from './MealBuilder';
@@ -95,13 +95,11 @@ export default function ConsultationFlow({
   generateWorkoutFromAI,
   finishConsultation,
   examError, dietError, finishedMessage,
-  onSuspend,
-  recipeLibrary
+  onSuspend
 }) {
   const anamnesisTemplate = (clinicConfig?.anamnesisTemplate?.length > 0)
     ? clinicConfig.anamnesisTemplate
     : DEFAULT_TEMPLATE;
-  const [draggedRecipe, setDraggedRecipe] = useState(null);
   const [selectedExamFiles, setSelectedExamFiles] = useState([]);
   const [prescriptionTab, setPrescriptionTab] = useState('cardapio');
 
@@ -198,22 +196,6 @@ export default function ConsultationFlow({
     physicalEval?.axilar, physicalEval?.suprailiaca, physicalEval?.abdomen, physicalEval?.coxa
   ]);
 
-  const handleDragStart = (e, recipe) => {
-    setDraggedRecipe(recipe);
-    e.dataTransfer.effectAllowed = "copy";
-  };
-
-  const handleDropToMeal = (e, idx) => {
-    e.preventDefault();
-    if (!draggedRecipe) return;
-    const newMeals = [...dietMeals];
-    const oldDesc = newMeals[idx].desc || '';
-    const newContent = `${draggedRecipe.title}\nIngredientes: ${draggedRecipe.ingredients}\nPreparo: ${draggedRecipe.instructions}`;
-    newMeals[idx].desc = oldDesc ? `${oldDesc}\n\n---\n${newContent}` : newContent;
-    setDietMeals(newMeals);
-    setDraggedRecipe(null);
-  };
-  
   return (
     <div className="crm-container" style={{ display: 'flex', height: '100vh' }}>
       <div style={{ width: '280px', backgroundColor: 'var(--crm-surface)', borderRight: '1px solid var(--crm-border)', padding: '24px', display: 'flex', flexDirection: 'column' }}>
@@ -568,15 +550,12 @@ export default function ConsultationFlow({
               <h2 style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '24px' }}><Edit3 color="var(--crm-accent)" /> Prescrição Dietética Estruturada</h2>
               
               <div className="results-tabs">
-                <button className={prescriptionTab === 'cardapio' ? 'results-tab-btn active' : 'results-tab-btn'} onClick={() => setPrescriptionTab('cardapio')}>Refeições do Cardápio</button>
-                <button className={prescriptionTab === 'suplementos' ? 'results-tab-btn active' : 'results-tab-btn'} onClick={() => setPrescriptionTab('suplementos')}>Vitaminas e Suplementos</button>
+                <button className={prescriptionTab === 'cardapio' ? 'results-tab-btn active' : 'results-tab-btn'} onClick={() => setPrescriptionTab('cardapio')}>Dieta e Suplementos</button>
                 <button className={prescriptionTab === 'treino' ? 'results-tab-btn active' : 'results-tab-btn'} onClick={() => setPrescriptionTab('treino')}>Ficha de Treino</button>
-                <button className={prescriptionTab === 'ferramentas' ? 'results-tab-btn active' : 'results-tab-btn'} onClick={() => setPrescriptionTab('ferramentas')}>Ferramentas e Assistentes</button>
               </div>
 
-              {prescriptionTab === 'ferramentas' && (
-                <div className="animate-pop-in">
-                  {/* Assistentes de Prescrição */}
+              {prescriptionTab === 'cardapio' && (
+                <div className="animate-pop-in" style={{ marginBottom: '32px' }}>
                   <div style={{ padding: '24px', backgroundColor: 'var(--crm-surface-2, var(--crm-bg))', border: '1px solid var(--crm-border)', borderRadius: '12px', marginBottom: '24px' }}>
                     <h3 style={{ fontSize: '1.1rem', color: 'var(--crm-text-main)', marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '8px' }}>
                       <Sparkles size={18} color="var(--crm-primary)" /> Gerador de Cardápio (IA Nutricionista)
@@ -597,62 +576,103 @@ export default function ConsultationFlow({
                         <option value={15}>15 Dias</option>
                         <option value={30}>30 Dias</option>
                       </select>
-                      <button className="crm-btn-primary" onClick={async () => {
-                        await generateDietFromAI();
-                        setPrescriptionTab('cardapio');
-                      }} disabled={isGeneratingDiet} style={{ flex: 1, display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '8px', padding: '12px' }}>
+                      <button className="crm-btn-primary" onClick={generateDietFromAI} disabled={isGeneratingDiet} style={{ flex: 1, display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '8px', padding: '12px' }}>
                         <Sparkles size={16} color='var(--crm-surface)' /> {isGeneratingDiet ? 'Analisando...' : 'Sugerir com IA'}
                       </button>
                     </div>
                   </div>
 
-                  <div style={{ backgroundColor: 'var(--crm-surface)', border: '1px solid var(--crm-border)', borderRadius: '12px', padding: '16px' }}>
-                    <h3 style={{ fontSize: '1.1rem', color: 'var(--crm-text-main)', marginBottom: '8px', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                      <GripVertical size={18} /> Receitas Salvas
-                    </h3>
-                    <p style={{ fontSize: '0.85rem', color: 'var(--crm-text-muted)', marginBottom: '16px' }}>Para utilizar, clique em <strong>Adicionar</strong> para incluir a receita como uma nova refeição no cardápio.</p>
-                    
-                    {(!recipeLibrary || recipeLibrary.length === 0) ? (
-                      <p style={{ fontSize: '0.85rem', color: 'var(--crm-text-muted)', textAlign: 'center', padding: '20px 0' }}>Sua biblioteca está vazia.</p>
-                    ) : (
-                      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: '12px', maxHeight: '400px', overflowY: 'auto' }}>
-                        {recipeLibrary.map(rec => (
-                          <div 
-                            key={rec.id} 
-                            className="recipe-draggable"
-                            style={{ display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}
-                          >
-                            <div>
-                              <strong>{rec.title}</strong>
-                              <div style={{ fontSize: '0.75rem', color: 'var(--crm-text-muted)', marginTop: '4px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                                {rec.ingredients}
-                              </div>
-                            </div>
-                            <button
-                              className="crm-btn-primary"
-                              style={{ marginTop: '8px', padding: '4px 8px', fontSize: '0.8rem', width: '100%' }}
-                              onClick={() => {
-                                setDietMeals([...dietMeals, {
-                                  name: rec.title,
-                                  desc: `Ingredientes: ${rec.ingredients}\nPreparo: ${rec.instructions}`,
-                                  foods: []
-                                }]);
-                                setPrescriptionTab('cardapio');
-                              }}
-                            >
-                              <Plus size={14} style={{ marginRight: '4px' }}/> Adicionar ao Cardápio
-                            </button>
-                          </div>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                </div>
-              )}
+                  <div style={{ marginBottom: '24px' }}>
+                    <label className="crm-label">Título do Plano Alimentar</label>
+                    <input type="text" className="crm-input" placeholder="Ex: Dieta de Transição (Verão)" value={dietTitle} onChange={e => setDietTitle(e.target.value)} style={{ fontWeight: '600', fontSize: '1.1rem', marginBottom: '16px' }} />
 
-              {prescriptionTab === 'suplementos' && (
-                <div className="animate-pop-in" style={{ marginBottom: '32px' }}>
-                  <div style={{ padding: '24px', backgroundColor: 'var(--crm-surface-2, var(--crm-bg))', border: '1px solid var(--crm-border)', borderRadius: '12px', marginBottom: '24px' }}>
+                    <label className="crm-label">Orientações Gerais do Plano (Opcional)</label>
+                    <textarea className="crm-input" placeholder="Orientações, metas ou visão geral da dieta..." value={dietDescription} onChange={e => setDietDescription(e.target.value)} style={{ minHeight: '80px', resize: 'vertical' }} />
+                  </div>
+
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+                    <h3 style={{ fontSize: '1.1rem', color: 'var(--crm-text-main)' }}>Refeições do Cardápio</h3>
+
+                    {(() => {
+                      let totalKcal = 0, totalCarb = 0, totalPtn = 0, totalFat = 0;
+                      dietMeals.forEach(m => {
+                        if (m.foods) {
+                          m.foods.forEach(f => {
+                            totalKcal += f.kcal;
+                            totalCarb += f.carb;
+                            totalPtn += f.protein;
+                            totalFat += f.fat;
+                          });
+                        }
+                      });
+
+                      return (totalKcal > 0) ? (
+                        <div style={{ display: 'flex', gap: '12px', fontSize: '0.85rem', backgroundColor: 'var(--crm-surface-2, var(--crm-bg))', padding: '8px 12px', borderRadius: '8px', border: '1px solid var(--crm-border)' }}>
+                          <div><strong>Kcal Total:</strong> <span style={{color: 'var(--crm-accent)'}}>{totalKcal.toFixed(0)}</span></div>
+                          <div><strong>Carb:</strong> {totalCarb.toFixed(0)}g</div>
+                          <div><strong>Ptn:</strong> {totalPtn.toFixed(0)}g</div>
+                          <div><strong>Gord:</strong> {totalFat.toFixed(0)}g</div>
+                        </div>
+                      ) : null;
+                    })()}
+                  </div>
+
+                  {dietMeals.length === 0 ? (
+                    <div style={{ padding: '40px', textAlign: 'center', backgroundColor: 'var(--crm-surface)', border: '2px dashed var(--crm-border)', borderRadius: '8px' }}>
+                      <p style={{ color: 'var(--crm-text-muted)' }}>Nenhuma refeição cadastrada. Adicione manualmente ou use o gerador de IA acima.</p>
+                    </div>
+                  ) : (
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                      {dietMeals.map((meal, idx) => (
+                        <MealBuilder
+                          key={idx}
+                          meal={meal}
+                          aversions={activePatient?.aversions}
+                          onChange={(updatedMeal) => {
+                            const newMeals = [...dietMeals];
+                            newMeals[idx] = updatedMeal;
+                            setDietMeals(newMeals);
+                          }}
+                          onDelete={() => setDietMeals(dietMeals.filter((_, i) => i !== idx))}
+                        />
+                      ))}
+                    </div>
+                  )}
+
+                  <div style={{ marginTop: '16px', display: 'flex', gap: '8px' }}>
+                    <select
+                      className="crm-input"
+                      style={{ flex: 1, textAlign: 'center', borderStyle: 'dashed', cursor: 'pointer' }}
+                      value=""
+                      onChange={(e) => {
+                        if (e.target.value) {
+                          setDietMeals([...dietMeals, { name: e.target.value === 'Nova Refeição' ? '' : e.target.value, desc: '', foods: [] }]);
+                          e.target.value = '';
+                        }
+                      }}
+                    >
+                      <option value="" disabled>+ Adicionar Refeição Manualmente</option>
+                      <option value="Café da Manhã">Café da Manhã</option>
+                      <option value="Lanche da Manhã">Lanche da Manhã</option>
+                      <option value="Almoço">Almoço</option>
+                      <option value="Lanche da Tarde">Lanche da Tarde</option>
+                      <option value="Pré-Treino">Pré-Treino</option>
+                      <option value="Pós-Treino">Pós-Treino</option>
+                      <option value="Jantar">Jantar</option>
+                      <option value="Ceia">Ceia</option>
+                      <option value="Nova Refeição">Outra / Personalizada</option>
+                    </select>
+                  </div>
+
+                  {dietMeals.length > 0 && (
+                    <div style={{ display: 'flex', marginTop: '32px' }}>
+                      <button className="crm-btn-secondary" onClick={() => setDietMeals([])} style={{ color: 'var(--crm-danger)', borderColor: 'var(--crm-danger)' }}>
+                        <Trash2 size={16} /> Limpar Tudo
+                      </button>
+                    </div>
+                  )}
+
+                  <div style={{ padding: '24px', backgroundColor: 'var(--crm-surface-2, var(--crm-bg))', border: '1px solid var(--crm-border)', borderRadius: '12px', margin: '32px 0 24px' }}>
                     <h3 style={{ fontSize: '1.1rem', color: 'var(--crm-text-main)', marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '8px' }}>
                       <Sparkles size={18} color="var(--crm-primary)" /> Sugestão de Suplementos (IA Nutricionista)
                     </h3>
@@ -660,7 +680,7 @@ export default function ConsultationFlow({
                       <div role="alert" style={{ display: 'flex', gap: '10px', alignItems: 'flex-start', padding: '12px 14px', backgroundColor: 'var(--crm-warn-soft)', border: '1px solid var(--crm-warn-soft-border)', borderRadius: '8px', marginBottom: '16px' }}>
                         <AlertTriangle size={18} color="var(--crm-warn-text)" style={{ flexShrink: 0, marginTop: '1px' }} />
                         <p style={{ color: 'var(--crm-warn-text)', fontSize: '0.9rem', margin: 0, fontWeight: 500 }}>
-                          Nenhuma refeição no cardápio ainda — isso não é um erro, é só que a IA precisa das refeições pra saber em qual delas sugerir cada suplemento. Vá na aba "Refeições do Cardápio" e crie o cardápio primeiro (manualmente ou com "Sugerir com IA"), depois volte aqui.
+                          Nenhuma refeição no cardápio ainda — isso não é um erro, é só que a IA precisa das refeições pra saber em qual delas sugerir cada suplemento. Crie o cardápio acima primeiro (manualmente ou com "Sugerir com IA"), depois volte aqui.
                         </p>
                       </div>
                     ) : (
@@ -823,103 +843,6 @@ export default function ConsultationFlow({
                 </div>
               )}
 
-              {prescriptionTab === 'cardapio' && (
-                <div className="animate-pop-in" style={{ marginBottom: '32px' }}>
-                  <div style={{ marginBottom: '24px' }}>
-                    <label className="crm-label">Título do Plano Alimentar</label>
-                    <input type="text" className="crm-input" placeholder="Ex: Dieta de Transição (Verão)" value={dietTitle} onChange={e => setDietTitle(e.target.value)} style={{ fontWeight: '600', fontSize: '1.1rem', marginBottom: '16px' }} />
-                    
-                    <label className="crm-label">Orientações Gerais do Plano (Opcional)</label>
-                    <textarea className="crm-input" placeholder="Orientações, metas ou visão geral da dieta..." value={dietDescription} onChange={e => setDietDescription(e.target.value)} style={{ minHeight: '80px', resize: 'vertical' }} />
-                  </div>
-                  
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-                    <h3 style={{ fontSize: '1.1rem', color: 'var(--crm-text-main)' }}>Refeições do Cardápio</h3>
-                    
-                    {(() => {
-                      let totalKcal = 0, totalCarb = 0, totalPtn = 0, totalFat = 0;
-                      dietMeals.forEach(m => {
-                        if (m.foods) {
-                          m.foods.forEach(f => {
-                            totalKcal += f.kcal;
-                            totalCarb += f.carb;
-                            totalPtn += f.protein;
-                            totalFat += f.fat;
-                          });
-                        }
-                      });
-                      
-                      return (totalKcal > 0) ? (
-                        <div style={{ display: 'flex', gap: '12px', fontSize: '0.85rem', backgroundColor: 'var(--crm-surface-2, var(--crm-bg))', padding: '8px 12px', borderRadius: '8px', border: '1px solid var(--crm-border)' }}>
-                          <div><strong>Kcal Total:</strong> <span style={{color: 'var(--crm-accent)'}}>{totalKcal.toFixed(0)}</span></div>
-                          <div><strong>Carb:</strong> {totalCarb.toFixed(0)}g</div>
-                          <div><strong>Ptn:</strong> {totalPtn.toFixed(0)}g</div>
-                          <div><strong>Gord:</strong> {totalFat.toFixed(0)}g</div>
-                        </div>
-                      ) : null;
-                    })()}
-                  </div>
-
-                  {dietMeals.length === 0 ? (
-                    <div style={{ padding: '40px', textAlign: 'center', backgroundColor: 'var(--crm-surface)', border: '2px dashed var(--crm-border)', borderRadius: '8px' }}>
-                      <p style={{ color: 'var(--crm-text-muted)' }}>Nenhuma refeição cadastrada. Adicione manualmente ou use a aba de Ferramentas.</p>
-                    </div>
-                  ) : (
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-                      {dietMeals.map((meal, idx) => (
-                        <MealBuilder
-                          key={idx}
-                          meal={meal}
-                          aversions={activePatient?.aversions}
-                          recipeLibrary={recipeLibrary}
-                          onChange={(updatedMeal) => {
-                            const newMeals = [...dietMeals];
-                            newMeals[idx] = updatedMeal;
-                            setDietMeals(newMeals);
-                          }}
-                          onDelete={() => setDietMeals(dietMeals.filter((_, i) => i !== idx))}
-                          onDrop={e => handleDropToMeal(e, idx)}
-                        />
-                      ))}
-                    </div>
-                  )}
-                  
-                  <div style={{ marginTop: '16px', display: 'flex', gap: '8px' }}>
-                    <select 
-                      className="crm-input" 
-                      style={{ flex: 1, textAlign: 'center', borderStyle: 'dashed', cursor: 'pointer' }}
-                      value=""
-                      onChange={(e) => {
-                        if (e.target.value) {
-                          setDietMeals([...dietMeals, { name: e.target.value === 'Nova Refeição' ? '' : e.target.value, desc: '', foods: [] }]);
-                          e.target.value = '';
-                        }
-                      }}
-                    >
-                      <option value="" disabled>+ Adicionar Refeição Manualmente</option>
-                      <option value="Café da Manhã">Café da Manhã</option>
-                      <option value="Lanche da Manhã">Lanche da Manhã</option>
-                      <option value="Almoço">Almoço</option>
-                      <option value="Lanche da Tarde">Lanche da Tarde</option>
-                      <option value="Pré-Treino">Pré-Treino</option>
-                      <option value="Pós-Treino">Pós-Treino</option>
-                      <option value="Jantar">Jantar</option>
-                      <option value="Ceia">Ceia</option>
-                      <option value="Nova Refeição">Outra / Personalizada</option>
-                    </select>
-                  </div>
-
-                  <div style={{ display: 'flex', gap: '16px', marginTop: '32px', flexWrap: 'wrap', justifyContent: 'flex-end', alignItems: 'center' }}>
-                    {dietMeals.length > 0 && (
-                      <button className="crm-btn-secondary" onClick={() => setDietMeals([])} style={{ color: 'var(--crm-danger)', borderColor: 'var(--crm-danger)', marginRight: 'auto' }}>
-                        <Trash2 size={16} /> Limpar Tudo
-                      </button>
-                    )}
-                    
-                  </div>
-                </div>
-              )}
-              
               {dietError && (
                 <div role="alert" style={{ marginBottom: '24px', padding: '14px 16px', backgroundColor: 'var(--crm-danger-soft, #FEE2E2)', border: '1px solid #FCA5A5', borderRadius: '8px', color: '#991B1B', fontSize: '0.9rem' }}>
                   {dietError}

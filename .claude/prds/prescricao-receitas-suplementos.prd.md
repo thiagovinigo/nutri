@@ -42,7 +42,7 @@ We'll know we're right when **o nutricionista consegue anexar uma receita a uma 
 
 | # | Milestone | Outcome | Status | Plan |
 |---|---|---|---|---|
-| 1 | Anexar receita salva à refeição específica no MealBuilder | Nutricionista escolhe uma receita salva dentro do card de uma refeição e ela preenche nome/descrição daquela refeição, sem criar uma refeição solta vazia | complete | `.claude/plans/prescricao-receitas-suplementos.plan.md` |
+| 1 | Anexar receita salva à refeição específica no MealBuilder | Nutricionista escolhe uma receita salva dentro do card de uma refeição e ela preenche nome/descrição daquela refeição, sem criar uma refeição solta vazia | reverted — ver backlog.md | `.claude/plans/prescricao-receitas-suplementos.plan.md` |
 | 2 | Catálogo estruturado de suplementos/vitaminas + sugestão por IA | Seletor de catálogo e botão de IA complementam (não substituem) o texto livre atual | complete | `.claude/plans/prescricao-receitas-suplementos.plan.md` |
 | 3 | Check-in do paciente + Síntese Clínica considera suplementos | Paciente confirma cada suplemento tomado; adesão entra na Síntese Clínica por IA | complete | `.claude/plans/prescricao-receitas-suplementos.plan.md` |
 

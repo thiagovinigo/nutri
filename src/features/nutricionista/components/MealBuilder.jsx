@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Trash2, Plus, Search } from 'lucide-react';
 import tacoData from '../../../data/taco.json';
 
-export default function MealBuilder({ meal, onChange, onDelete, onDrop, aversions, recipeLibrary }) {
+export default function MealBuilder({ meal, onChange, onDelete, aversions }) {
   const [searchTerm, setSearchTerm] = useState('');
   const [searchResults, setSearchResults] = useState([]);
   const [selectedFood, setSelectedFood] = useState(null);
@@ -70,16 +70,6 @@ export default function MealBuilder({ meal, onChange, onDelete, onDrop, aversion
     setAmount('');
   };
 
-  const handleAttachRecipe = (recipeId) => {
-    const recipe = (recipeLibrary || []).find(r => r.id === recipeId);
-    if (!recipe) return;
-    onChange({
-      ...meal,
-      name: meal.name || recipe.title,
-      desc: `${recipe.title}\nIngredientes: ${recipe.ingredients}\nPreparo: ${recipe.instructions}`
-    });
-  };
-
   const handleRemoveFood = (idx) => {
     const newFoods = [...(meal.foods || [])];
     newFoods.splice(idx, 1);
@@ -95,12 +85,7 @@ export default function MealBuilder({ meal, onChange, onDelete, onDrop, aversion
   const totalFat = (meal.foods || []).reduce((acc, curr) => acc + curr.fat, 0);
 
   return (
-    <div 
-      className="meal-dropzone"
-      onDragOver={e => {
-        if(e) e.preventDefault();
-      }}
-      onDrop={onDrop}
+    <div
       style={{ padding: '16px', backgroundColor: 'var(--crm-surface)', border: '2px dashed var(--crm-border)', borderRadius: '8px', position: 'relative', display: 'flex', flexDirection: 'column', gap: '12px' }}
     >
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -159,27 +144,6 @@ export default function MealBuilder({ meal, onChange, onDelete, onDrop, aversion
           <Plus size={16} /> Add
         </button>
       </div>
-
-      {recipeLibrary && recipeLibrary.length > 0 && (
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <select
-            className="crm-input"
-            style={{ flex: 1, fontSize: '0.85rem' }}
-            value=""
-            onChange={(e) => {
-              if (e.target.value) {
-                handleAttachRecipe(e.target.value);
-                e.target.value = '';
-              }
-            }}
-          >
-            <option value="" disabled>Anexar receita salva (substitui o modo de preparo)...</option>
-            {recipeLibrary.map(r => (
-              <option key={r.id} value={r.id}>{r.title}</option>
-            ))}
-          </select>
-        </div>
-      )}
 
       {(meal.foods && meal.foods.length > 0) && (
         <div style={{ marginTop: '8px' }}>
