@@ -17,6 +17,7 @@ Este documento detalha o mapa de funcionalidades do Nutrivvo, dividindo o que j�
 - **Shareable Milestone (Gamificação Viral):** Quando o paciente atinge 100% da dieta do dia, um cartão holográfico de conquista é gerado na tela, projetado para o paciente tirar Print e compartilhar no Instagram marcando a clínica.
 - **Notificações:** Sino de notificação no topo com contador de alertas enviados pelo nutricionista.
 - **Tracking de Peso:** Modal customizado para registro de peso diretamente pela interface do aplicativo.
+- **Diário Alimentar Livre:** O paciente consegue fotografar e registrar refeições fora da prescrição oficial, úteis para a fase de anamnese antes do primeiro cardápio ou para monitoramento contínuo.
 
 ### CRM do Nutricionista e Personal
 - **Gestão de Pacientes:** Lista, prontuário detalhado, e histórico de evolução do paciente.
@@ -51,7 +52,6 @@ Este documento detalha o mapa de funcionalidades do Nutrivvo, dividindo o que j�
 - **Chat Direto Nutricionista ↔ Paciente:** Abertura de um canal de mensagens humanas além do Nutrivvo Bot.
 - **Biblioteca de Templates Reutilizáveis:** Permitir que o nutricionista salve protocolos completos de dieta (30 dias, marmitas, suplementos) e aplique em pacientes diferentes sem redigitar tudo.
 - **Receitas Bônus (Biblioteca de Fáceis):** Uma aba apenas com receitas anexadas avulsas para o paciente, sem estarem necessariamente alocadas no planejamento do dia.
-- **Diário Alimentar Livre:** O paciente poder fotografar refeições que estão fora da prescrição (úteis para a fase de anamnese antes do primeiro cardápio oficial).
 
 ### Saúde, Biometria e Contexto
 - **Integração com Wearables:** Conectar o Nutrivvo Bot ao Apple Health / Google Fit para ajustar recomendações baseadas no gasto calórico em tempo real (dados de sono, treino).
