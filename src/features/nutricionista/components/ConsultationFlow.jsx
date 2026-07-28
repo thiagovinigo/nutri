@@ -778,10 +778,11 @@ export default function ConsultationFlow({
                   ) : (
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
                       {dietMeals.map((meal, idx) => (
-                        <MealBuilder 
+                        <MealBuilder
                           key={idx}
                           meal={meal}
                           aversions={activePatient?.aversions}
+                          recipeLibrary={recipeLibrary}
                           onChange={(updatedMeal) => {
                             const newMeals = [...dietMeals];
                             newMeals[idx] = updatedMeal;
