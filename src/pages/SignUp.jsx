@@ -36,6 +36,31 @@ const darkLabelStyle = {
   color: '#cbd5e1',
 };
 
+// Exibição parcial no resumo de confirmação do cadastro por convite — os
+// dados já pertencem ao paciente, mas mascarar evita expor tudo em texto
+// puro numa tela que ele pode compartilhar (print, deixar aberta, etc.).
+const maskEmail = (value) => {
+  if (!value || !value.includes('@')) return value;
+  const [localPart, domain] = value.split('@');
+  const visibleCount = Math.min(2, localPart.length);
+  const visible = localPart.slice(0, visibleCount);
+  return `${visible}${'*'.repeat(Math.max(localPart.length - visibleCount, 3))}@${domain}`;
+};
+
+const maskPhone = (value) => {
+  const digits = (value || '').replace(/\D/g, '');
+  if (digits.length < 10) return value;
+  const ddd = digits.slice(0, 2);
+  const last2 = digits.slice(-2);
+  return `(${ddd}) *****-**${last2}`;
+};
+
+const maskCpf = (value) => {
+  const digits = (value || '').replace(/\D/g, '');
+  if (digits.length !== 11) return value;
+  return `${digits.slice(0, 3)}.***.***-${digits.slice(9, 11)}`;
+};
+
 export default function SignUp() {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
@@ -259,11 +284,8 @@ export default function SignUp() {
               ) : (
                 <>
                   <div style={{ color: '#f8fafc', fontWeight: 'bold', fontSize: '1.05rem' }}>{name || '—'}</div>
-                  <div style={{ color: '#cbd5e1', fontSize: '0.9rem', marginTop: '4px' }}>{email || '—'}</div>
-                  <div style={{ color: '#cbd5e1', fontSize: '0.9rem' }}>{cpf || '—'}{phone ? ` · ${phone}` : ''}</div>
-                  {birthDate && (
-                    <div style={{ color: '#cbd5e1', fontSize: '0.9rem' }}>{new Date(birthDate + 'T00:00:00').toLocaleDateString('pt-BR')}</div>
-                  )}
+                  <div style={{ color: '#cbd5e1', fontSize: '0.9rem', marginTop: '4px' }}>{email ? maskEmail(email) : '—'}</div>
+                  <div style={{ color: '#cbd5e1', fontSize: '0.9rem' }}>{cpf ? maskCpf(cpf) : '—'}{phone ? ` · ${maskPhone(phone)}` : ''}</div>
                 </>
               )}
             </div>
