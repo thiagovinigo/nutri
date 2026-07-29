@@ -94,6 +94,7 @@ export default function DashboardNutri() {
   const [dietMeals, setDietMeals] = useState([]);
   const [workoutPlan, setWorkoutPlan] = useState(null);
   const [isGeneratingDiet, setIsGeneratingDiet] = useState(false);
+  const [dietGenerationProgress, setDietGenerationProgress] = useState('');
   const [isGeneratingSupplements, setIsGeneratingSupplements] = useState(false);
   const [isGeneratingWorkout, setIsGeneratingWorkout] = useState(false);
 
@@ -338,6 +339,7 @@ Cite as fontes científicas, guidelines atualizados (como Diretrizes da SBC, SBD
   const generateDietFromAI = async () => {
     setIsGeneratingDiet(true);
     setDietError('');
+    setDietGenerationProgress('');
     try {
       let promptContext = `Objetivo: ${activePatient.objective}. Restrições: ${activePatient.restrictions || 'Nenhuma'}. Idade: ${activePatient.age || 'Não informada'}. Sexo: ${activePatient.gender === 'M' ? 'Masculino' : 'Feminino'}.`;
       if (activePatient.aversions) promptContext += `\nAversões (Alimentos que o paciente NÃO COME de jeito nenhum): ${activePatient.aversions}`;
@@ -374,30 +376,49 @@ Para cada alimento em 'foods', você DEVE buscar um item correspondente no BANCO
 Exemplo de formato:
 { "meals": [ { "name": "Almoço", "desc": "🍗 Frango Grelhado ao Alecrim com Arroz Soltinho\\n\\nUm clássico reconfortante que combina uma proteína suculenta com um arroz levinho — perfeito para manter a energia sem pesar.\\n\\n👨‍🍳 Modo de Preparo:\\n1. Tempere o frango com alecrim, alho e uma pitada de sal, deixando descansar 10 min para pegar sabor.\\n2. Grelhe em fogo médio por 5-6 min de cada lado até dourar por fora e ficar suculento por dentro.\\n3. Sirva com o arroz soltinho e a salada fresca crua ao lado.", "foods": [ { "foodId": "14", "name": "Frango, peito, sem pele, grelhado", "amount": 150, "kcal": 238.5, "carb": 0, "protein": 48, "fat": 3.75 } ] } ] }`;
 
-      const systemPrompt = dietDuration > 1 
-        ? `Você é um Nutricionista Clínico de alta performance. Crie um plano alimentar para ${dietDuration} dias (EXATAMENTE 6 refeições por dia). É MANDATÓRIO GERAR TODOS OS ${dietDuration} DIAS, NÃO PARE A GERAÇÃO ANTES DO FIM. SE VOCÊ GERAR MENOS DO QUE ${dietDuration} DIAS VOCÊ FALHARÁ NA SUA MISSÃO. Como são múltiplos dias, o 'name' da refeição DEVE incluir o dia, ex: "Dia 1 - Café da Manhã".\n\n${formatInstruction}`
-        : `Você é um Nutricionista Clínico de alta performance. Crie um plano alimentar para 1 dia. Crie EXATAMENTE 6 refeições.\n\n${formatInstruction}`;
-
-      // A IA ocasionalmente retorna refeições sem o array 'foods' preenchido
-      // (falha silenciosa já documentada no backlog — não é determinístico,
-      // então a mitigação é validar e tentar de novo, não confiar na 1ª resposta).
+      // Pedir os N dias inteiros numa única resposta da IA era a causa raiz do
+      // erro "A IA demorou demais para responder": um plano de 7+ dias com
+      // receitas completas em cada refeição gera uma resposta gigante, que
+      // regularmente estourava o timeout (tanto o da função serverless quanto
+      // o do cliente). Gerar um dia por chamada mantém cada requisição
+      // pequena e rápida, não importa quantos dias o plano tenha.
+      const daysToGenerate = dietDuration > 1 ? dietDuration : 1;
       const MAX_ATTEMPTS = 3;
-      let meals = [];
-      let lastAttemptHadMeals = false;
-      for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
-        const data = await callOpenAIBridge({
-            system_prompt: systemPrompt,
-            messages: [{ role: "user", content: `Crie um cardápio considerando este contexto clínico:\n\n${promptContext}` }],
-            format_json: true
-        });
-        const parsed = JSON.parse(data.choices[0].message.content);
-        meals = parsed.meals || [];
-        lastAttemptHadMeals = meals.length > 0;
-        const allMealsHaveFoods = meals.length > 0 && meals.every(m => Array.isArray(m.foods) && m.foods.length > 0);
-        if (allMealsHaveFoods) break;
-        if (attempt < MAX_ATTEMPTS) {
-          console.warn(`generateDietFromAI: tentativa ${attempt} veio sem alimentos preenchidos em alguma refeição, tentando de novo...`);
+      let allMeals = [];
+      let anyDayFailedEntirely = false;
+      let anyDayMissingFoods = false;
+
+      for (let day = 1; day <= daysToGenerate; day++) {
+        if (dietDuration > 1) {
+          setDietGenerationProgress(`Gerando dia ${day} de ${daysToGenerate}...`);
         }
+
+        const systemPrompt = dietDuration > 1
+          ? `Você é um Nutricionista Clínico de alta performance. Crie o cardápio APENAS do Dia ${day} de um plano de ${daysToGenerate} dias (EXATAMENTE 6 refeições deste dia). O 'name' de cada refeição DEVE incluir o dia, ex: "Dia ${day} - Café da Manhã".\n\n${formatInstruction}`
+          : `Você é um Nutricionista Clínico de alta performance. Crie um plano alimentar para 1 dia. Crie EXATAMENTE 6 refeições.\n\n${formatInstruction}`;
+
+        // A IA ocasionalmente retorna refeições sem o array 'foods' preenchido
+        // (falha silenciosa já documentada no backlog — não é determinístico,
+        // então a mitigação é validar e tentar de novo, não confiar na 1ª resposta).
+        let dayMeals = [];
+        for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
+          const data = await callOpenAIBridge({
+              system_prompt: systemPrompt,
+              messages: [{ role: "user", content: `Crie um cardápio considerando este contexto clínico:\n\n${promptContext}` }],
+              format_json: true
+          });
+          const parsed = JSON.parse(data.choices[0].message.content);
+          dayMeals = parsed.meals || [];
+          const allMealsHaveFoods = dayMeals.length > 0 && dayMeals.every(m => Array.isArray(m.foods) && m.foods.length > 0);
+          if (allMealsHaveFoods) break;
+          if (attempt < MAX_ATTEMPTS) {
+            console.warn(`generateDietFromAI: dia ${day}, tentativa ${attempt} veio sem alimentos preenchidos em alguma refeição, tentando de novo...`);
+          }
+        }
+
+        if (dayMeals.length === 0) anyDayFailedEntirely = true;
+        if (dayMeals.some(m => !Array.isArray(m.foods) || m.foods.length === 0)) anyDayMissingFoods = true;
+        allMeals = [...allMeals, ...dayMeals];
       }
 
       if (!dietTitle) {
@@ -406,18 +427,18 @@ Exemplo de formato:
 
       // Substitui o plano atual pelo recém-gerado (a duração escolhida já define
       // o plano completo — gerar de novo não deve empilhar dias em cima do anterior)
-      setDietMeals(meals);
+      setDietMeals(allMeals);
 
-      const stillMissingFoods = meals.some(m => !Array.isArray(m.foods) || m.foods.length === 0);
-      if (stillMissingFoods) {
-        setDietError(lastAttemptHadMeals
-          ? 'A IA gerou o cardápio, mas algumas refeições vieram sem os alimentos detalhados mesmo após tentar de novo. Revise manualmente ou gere novamente.'
-          : 'A IA não conseguiu gerar o cardápio após várias tentativas. Tente novamente em instantes.');
+      if (anyDayFailedEntirely) {
+        setDietError('A IA não conseguiu gerar um ou mais dias do cardápio após várias tentativas. Tente novamente em instantes.');
+      } else if (anyDayMissingFoods) {
+        setDietError('A IA gerou o cardápio, mas algumas refeições vieram sem os alimentos detalhados mesmo após tentar de novo. Revise manualmente ou gere novamente.');
       }
     } catch (error) {
       setDietError(error.message || 'Erro ao gerar dieta com IA.');
     } finally {
       setIsGeneratingDiet(false);
+      setDietGenerationProgress('');
     }
   };
 
@@ -686,7 +707,7 @@ Não inclua textos fora do JSON. Apenas o JSON puro.`;
         dietDuration={dietDuration} setDietDuration={setDietDuration}
         dietMeals={dietMeals} setDietMeals={setDietMeals}
         workoutPlan={workoutPlan} setWorkoutPlan={setWorkoutPlan}
-        isGeneratingDiet={isGeneratingDiet}
+        isGeneratingDiet={isGeneratingDiet} dietGenerationProgress={dietGenerationProgress}
         generateSupplementsFromAI={generateSupplementsFromAI}
         isGeneratingSupplements={isGeneratingSupplements}
         isGeneratingWorkout={isGeneratingWorkout}

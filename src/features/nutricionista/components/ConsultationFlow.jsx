@@ -89,6 +89,7 @@ export default function ConsultationFlow({
   dietMeals, setDietMeals,
   workoutPlan, setWorkoutPlan,
   isGeneratingDiet,
+  dietGenerationProgress,
   isGeneratingWorkout,
   analyzeExamWithAI,
   generateDietFromAI,
@@ -578,7 +579,7 @@ export default function ConsultationFlow({
                         <option value={30}>30 Dias</option>
                       </select>
                       <button className="crm-btn-primary" onClick={generateDietFromAI} disabled={isGeneratingDiet} style={{ flex: 1, display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '8px', padding: '12px' }}>
-                        <Sparkles size={16} color='var(--crm-surface)' /> {isGeneratingDiet ? 'Analisando...' : 'Sugerir com IA'}
+                        <Sparkles size={16} color='var(--crm-surface)' /> {isGeneratingDiet ? (dietGenerationProgress || 'Analisando...') : 'Sugerir com IA'}
                       </button>
                     </div>
                   </div>
