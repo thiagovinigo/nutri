@@ -550,7 +550,8 @@ export default function ConsultationFlow({
               <h2 style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '24px' }}><Edit3 color="var(--crm-accent)" /> Prescrição Dietética Estruturada</h2>
               
               <div className="results-tabs">
-                <button className={prescriptionTab === 'cardapio' ? 'results-tab-btn active' : 'results-tab-btn'} onClick={() => setPrescriptionTab('cardapio')}>Dieta e Suplementos</button>
+                <button className={prescriptionTab === 'cardapio' ? 'results-tab-btn active' : 'results-tab-btn'} onClick={() => setPrescriptionTab('cardapio')}>Refeições do Cardápio</button>
+                <button className={prescriptionTab === 'suplementos' ? 'results-tab-btn active' : 'results-tab-btn'} onClick={() => setPrescriptionTab('suplementos')}>Vitaminas e Suplementos</button>
                 <button className={prescriptionTab === 'treino' ? 'results-tab-btn active' : 'results-tab-btn'} onClick={() => setPrescriptionTab('treino')}>Ficha de Treino</button>
               </div>
 
@@ -671,8 +672,12 @@ export default function ConsultationFlow({
                       </button>
                     </div>
                   )}
+                </div>
+              )}
 
-                  <div style={{ padding: '24px', backgroundColor: 'var(--crm-surface-2, var(--crm-bg))', border: '1px solid var(--crm-border)', borderRadius: '12px', margin: '32px 0 24px' }}>
+              {prescriptionTab === 'suplementos' && (
+                <div className="animate-pop-in" style={{ marginBottom: '32px' }}>
+                  <div style={{ padding: '24px', backgroundColor: 'var(--crm-surface-2, var(--crm-bg))', border: '1px solid var(--crm-border)', borderRadius: '12px', marginBottom: '24px' }}>
                     <h3 style={{ fontSize: '1.1rem', color: 'var(--crm-text-main)', marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '8px' }}>
                       <Sparkles size={18} color="var(--crm-primary)" /> Sugestão de Suplementos (IA Nutricionista)
                     </h3>
