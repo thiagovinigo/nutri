@@ -2,6 +2,7 @@ import React, { useState, useMemo } from 'react';
 import { Users, Calendar, PlayCircle, Trash2, Plus, Eye, Edit3, TrendingUp, Utensils, FileText, BrainCircuit, Play, Sparkles, Activity, Settings, CreditCard, Palette, AlertTriangle, Trophy, Star, Zap, LayoutDashboard, Search, ChevronUp, ChevronDown, ArrowRight, UserCog, BookOpen, ChefHat, Link as LinkIcon, Camera, Upload, Moon, Dumbbell, DollarSign, Send, CheckCircle2 } from 'lucide-react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, Legend, ResponsiveContainer } from 'recharts';
 import { useNavigate } from 'react-router-dom';
+import { auth } from '../../../services/firebase';
 import { useAppContext } from '../../../context/AppContext';
 import { callOpenAIBridge } from '../../../utils/openaiBridge';
 import WeeklyCalendar from './WeeklyCalendar';
@@ -323,7 +324,7 @@ export default function PatientList({
         <div style={{ marginBottom: '40px' }}>
           <h2 className="crm-sidebar-brand">{clinicConfig?.name || 'Nutrivvo'}</h2>
           <span className="crm-sidebar-tag">CRM Clínico</span>
-          <button onClick={() => navigate('/')} className="crm-sidebar-exit">Sair (Trocar Papel)</button>
+          <button onClick={async () => { if (auth) await auth.signOut(); navigate('/'); }} className="crm-sidebar-exit">Sair</button>
         </div>
 
         <nav style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
