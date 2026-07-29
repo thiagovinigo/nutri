@@ -361,6 +361,16 @@ export default function DietPlan({ activePatient }) {
                               </div>
                             )}
 
+                            {(r.supplementsList || []).filter(s => s.mealName === m.name).length > 0 && (
+                              <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', marginBottom: '12px' }}>
+                                {(r.supplementsList || []).filter(s => s.mealName === m.name).map(s => (
+                                  <div key={s.id} style={{ display: 'flex', alignItems: 'center', gap: '8px', backgroundColor: 'rgba(139, 92, 246, 0.1)', padding: '10px 12px', borderRadius: '10px', border: '1px solid rgba(139, 92, 246, 0.3)' }}>
+                                    <strong style={{ color: 'var(--patient-text)', fontSize: '0.88rem' }}>💊 {s.dosage} — {s.name}</strong>
+                                  </div>
+                                ))}
+                              </div>
+                            )}
+
                             {m.desc && (
                               <button
                                 onClick={() => toggleFlip(mIdx)}

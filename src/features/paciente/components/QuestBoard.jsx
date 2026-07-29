@@ -482,6 +482,15 @@ export default function QuestBoard({ activePatient }) {
                         ))}
                       </div>
                     )}
+                    {(currentRecipe?.supplementsList || []).filter(s => s.mealName === meal.name).length > 0 && (
+                      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginTop: '6px' }}>
+                        {(currentRecipe.supplementsList || []).filter(s => s.mealName === meal.name).map(s => (
+                          <span key={s.id} style={{ backgroundColor: 'rgba(139, 92, 246, 0.15)', border: '1px solid rgba(139, 92, 246, 0.35)', color: 'var(--patient-text)', padding: '4px 8px', borderRadius: '6px', fontSize: '0.8rem', fontWeight: 500 }}>
+                            💊 {s.dosage} - {s.name}
+                          </span>
+                        ))}
+                      </div>
+                    )}
                   </div>
                   {!isDone ? (
                     <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
@@ -515,11 +524,6 @@ export default function QuestBoard({ activePatient }) {
                           <label style={{display: 'block', fontSize: '0.95rem', color: 'var(--patient-text)', marginBottom: '8px', fontWeight: 600}}>
                             💊 Tomou os suplementos desta refeição?
                           </label>
-                          <div style={{ marginBottom: '8px', padding: '10px 12px', backgroundColor: 'var(--patient-surface)', borderRadius: '8px', border: '1px solid var(--glass-border)' }}>
-                            <ul style={{ margin: 0, paddingLeft: '20px', color: 'var(--patient-text-muted)', fontSize: '0.85rem' }}>
-                              {mealSupplements.map(s => <li key={s.id}>{s.name} — {s.dosage}</li>)}
-                            </ul>
-                          </div>
                           <div style={{ display: 'flex', gap: '8px' }}>
                             <button className={`btn-3d ${tookSupplements === true ? 'btn-primary' : 'btn-secondary'}`} style={{flex: 1, padding: '8px', fontSize: '0.9rem'}} onClick={() => setTookSupplements(true)}>Sim</button>
                             <button className={`btn-3d ${tookSupplements === false ? 'btn-primary' : 'btn-secondary'}`} style={{flex: 1, padding: '8px', fontSize: '0.9rem'}} onClick={() => setTookSupplements(false)}>Não</button>
