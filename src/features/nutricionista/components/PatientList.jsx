@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { Users, Calendar, PlayCircle, Trash2, Plus, Eye, Edit3, TrendingUp, Utensils, FileText, BrainCircuit, Play, Sparkles, Activity, Settings, CreditCard, Palette, AlertTriangle, Trophy, Star, Zap, LayoutDashboard, Search, ChevronUp, ChevronDown, ArrowRight, UserCog, BookOpen, ChefHat, Link as LinkIcon, Camera, Upload, Moon, Dumbbell, DollarSign, Send } from 'lucide-react';
+import { Users, Calendar, PlayCircle, Trash2, Plus, Eye, Edit3, TrendingUp, Utensils, FileText, BrainCircuit, Play, Sparkles, Activity, Settings, CreditCard, Palette, AlertTriangle, Trophy, Star, Zap, LayoutDashboard, Search, ChevronUp, ChevronDown, ArrowRight, UserCog, BookOpen, ChefHat, Link as LinkIcon, Camera, Upload, Moon, Dumbbell, DollarSign, Send, CheckCircle2 } from 'lucide-react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, Legend, ResponsiveContainer } from 'recharts';
 import { useNavigate } from 'react-router-dom';
 import { useAppContext } from '../../../context/AppContext';
@@ -262,10 +262,24 @@ export default function PatientList({
     : 0;
   const topEngagedPatients = [...activePatients].sort((a, b) => (b.xp || 0) - (a.xp || 0)).slice(0, 5);
   const atRiskPatients = patients.filter(p => p.status === 'em_risco');
-  const todayAppointments = appointments.filter(a => a.status === 'agendado').sort((a, b) => {
-    const dA = a.date || ''; const dB = b.date || '';
-    return dA === dB ? (a.time || '').localeCompare(b.time || '') : dA.localeCompare(dB);
-  });
+  // "todayAppointments" antes não filtrava por data nenhuma — só por status
+  // 'agendado' — então uma consulta antiga nunca marcada como concluída
+  // (ex: paciente faltou e ninguém atualizou o status) ficava aparecendo pra
+  // sempre como "Próxima Consulta" e inflava o card "Consultas Hoje".
+  const todayISO = new Date().toISOString().split('T')[0];
+  const todayAppointments = appointments.filter(a => a.date === todayISO && a.status !== 'cancelado');
+  const upcomingAppointments = appointments
+    .filter(a => a.status === 'agendado' && a.date >= todayISO)
+    .sort((a, b) => {
+      const dA = a.date || ''; const dB = b.date || '';
+      return dA === dB ? (a.time || '').localeCompare(b.time || '') : dA.localeCompare(dB);
+    });
+  const completedAppointments = appointments
+    .filter(a => a.status === 'concluido')
+    .sort((a, b) => {
+      const dA = a.date || ''; const dB = b.date || '';
+      return dA === dB ? (b.time || '').localeCompare(a.time || '') : dB.localeCompare(dA);
+    });
 
   const sortedFilteredPatients = useMemo(() => {
     let list = patients.filter(p => {
@@ -409,11 +423,11 @@ export default function PatientList({
                     <h3 style={{ display: 'flex', alignItems: 'center', gap: '8px' }}><Calendar size={18} color="var(--crm-accent)" /> Próximas Consultas</h3>
                     <button className="crm-nav-btn" style={{ fontSize: '0.82rem', padding: '4px 8px' }} onClick={() => setView('agenda')}>Ver agenda <ArrowRight size={14} /></button>
                   </div>
-                  {todayAppointments.length === 0 ? (
+                  {upcomingAppointments.length === 0 ? (
                     <p style={{ color: 'var(--crm-text-muted)', fontSize: '0.9rem' }}>Nenhuma consulta agendada.</p>
                   ) : (
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                      {todayAppointments.slice(0, 4).map(appt => {
+                      {upcomingAppointments.slice(0, 4).map(appt => {
                         const pat = patients.find(p => p.id === appt.patientId);
                         if (!pat) return null;
                         return (
@@ -421,7 +435,35 @@ export default function PatientList({
                             <div>
                               <div style={{ fontWeight: '600', fontSize: '0.92rem' }}>{pat.name}</div>
                               <div style={{ fontSize: '0.8rem', color: 'var(--crm-text-muted)' }}>
-                                {appt.date ? `${appt.date.split('-').reverse().slice(0, 2).join('/')} - ` : ''}{appt.type}
+                                {appt.date === todayISO ? 'Hoje' : (appt.date ? appt.date.split('-').reverse().slice(0, 2).join('/') : '')} - {appt.type}
+                              </div>
+                            </div>
+                            <span style={{ fontWeight: '700', fontVariantNumeric: 'tabular-nums' }}>{appt.time}</span>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
+                </div>
+
+                <div className="crm-card" style={{ flex: '1 1 340px' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+                    <h3 style={{ display: 'flex', alignItems: 'center', gap: '8px' }}><CheckCircle2 size={18} color="var(--crm-good-text)" /> Consultas Realizadas</h3>
+                    <button className="crm-nav-btn" style={{ fontSize: '0.82rem', padding: '4px 8px' }} onClick={() => setView('agenda')}>Ver agenda <ArrowRight size={14} /></button>
+                  </div>
+                  {completedAppointments.length === 0 ? (
+                    <p style={{ color: 'var(--crm-text-muted)', fontSize: '0.9rem' }}>Nenhuma consulta realizada ainda.</p>
+                  ) : (
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                      {completedAppointments.slice(0, 4).map(appt => {
+                        const pat = patients.find(p => p.id === appt.patientId);
+                        if (!pat) return null;
+                        return (
+                          <div key={appt.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 0', borderBottom: '1px solid var(--crm-border)' }}>
+                            <div>
+                              <div style={{ fontWeight: '600', fontSize: '0.92rem' }}>{pat.name}</div>
+                              <div style={{ fontSize: '0.8rem', color: 'var(--crm-text-muted)' }}>
+                                {appt.date ? appt.date.split('-').reverse().slice(0, 2).join('/') : ''} - {appt.type}
                               </div>
                             </div>
                             <span style={{ fontWeight: '700', fontVariantNumeric: 'tabular-nums' }}>{appt.time}</span>
