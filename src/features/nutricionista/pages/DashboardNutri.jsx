@@ -108,6 +108,22 @@ export default function DashboardNutri() {
   const handleCreateAppointment = (e) => {
     e.preventDefault();
     if (apptPatientId && apptDate && apptTime) {
+      const schedule = clinicConfig.scheduleConfig || {};
+      const workingDays = schedule.workingDays || [1, 2, 3, 4, 5];
+      const blockedDates = schedule.blockedDates || [];
+      // "YYYY-MM-DD" do <input type="date"> precisa virar Date em horário local
+      // (não new Date(string), que a engine interpreta como UTC meia-noite e
+      // pode voltar um dia no getDay() dependendo do fuso do navegador).
+      const [dYear, dMonth, dDay] = apptDate.split('-').map(Number);
+      const selectedWeekday = new Date(dYear, dMonth - 1, dDay).getDay();
+      if (!workingDays.includes(selectedWeekday)) {
+        alert('Este dia da semana não está configurado como dia de atendimento (veja Configurações > Horários de Atendimento). Escolha outra data.');
+        return;
+      }
+      if (blockedDates.includes(apptDate)) {
+        alert('Esta data está bloqueada na agenda. Escolha outra data.');
+        return;
+      }
       const conflict = appointments.some(a => a.date === apptDate && a.time === apptTime && a.status === 'agendado');
       if (conflict) {
         alert('Já existe um agendamento para esta mesma data e horário. Por favor, escolha outro horário.');
@@ -190,6 +206,7 @@ export default function DashboardNutri() {
           console.error('Serviço de e-mail não configurado.', error);
         }
         // Abre o perfil do paciente recém-criado onde o link de cópia rápida está disponível no topo
+        setView('pacientes');
         setViewingPatientId(newId);
         setToastMessage('Paciente cadastrado com sucesso!');
         setTimeout(() => setToastMessage(''), 3000);

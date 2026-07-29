@@ -36,8 +36,10 @@ export default function DietPlan({ activePatient }) {
     if (baseDbFood.category === 'Proteínas') mainMacro = 'protein';
     if (baseDbFood.category === 'Gorduras') mainMacro = 'fat';
     const targetValue = food[mainMacro] || 0;
+    const aversionList = (activePatient?.aversions || '').split(/[,;\n]+/).map(a => a.trim().toLowerCase()).filter(a => a);
     const alts = tacoData
       .filter(t => t.category === baseDbFood.category && String(t.id) !== String(food.foodId))
+      .filter(t => !aversionList.some(av => t.name.toLowerCase().includes(av)))
       .map(alt => {
         const altValuePer100g = alt[mainMacro] || 1;
         return { ...alt, suggestedAmount: Math.round((targetValue * 100) / altValuePer100g) };
