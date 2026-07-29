@@ -389,6 +389,7 @@ export default function PatientList({
                 <div className="crm-card" style={{ flex: '1 1 200px' }}>
                   <div style={{ fontSize: '0.85rem', color: 'var(--crm-text-muted)', fontWeight: '600', textTransform: 'uppercase', letterSpacing: '0.04em' }}>Engajamento Médio</div>
                   <div style={{ fontSize: '2rem', fontWeight: '700', color: 'var(--crm-text-main)', marginTop: '4px' }}>{engagedPercentage}%</div>
+                  <div style={{ fontSize: '0.78rem', color: 'var(--crm-text-muted)', marginTop: '2px' }}>🔥 Sequência média: {avgStreak}d</div>
                 </div>
                 <div className="crm-card" style={{ flex: '1 1 200px', borderLeft: atRiskPatients.length > 0 ? '3px solid var(--crm-warn)' : undefined }}>
                   <div style={{ fontSize: '0.85rem', color: 'var(--crm-text-muted)', fontWeight: '600', textTransform: 'uppercase', letterSpacing: '0.04em' }}>Em Risco</div>
@@ -431,7 +432,12 @@ export default function PatientList({
                         const pat = patients.find(p => p.id === appt.patientId);
                         if (!pat) return null;
                         return (
-                          <div key={appt.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 0', borderBottom: '1px solid var(--crm-border)' }}>
+                          <div
+                            key={appt.id}
+                            onClick={() => { setView('pacientes'); setViewingPatientId(pat.id); }}
+                            className="crm-clickable-row"
+                            style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 0', borderBottom: '1px solid var(--crm-border)', cursor: 'pointer', borderRadius: '6px' }}
+                          >
                             <div>
                               <div style={{ fontWeight: '600', fontSize: '0.92rem' }}>{pat.name}</div>
                               <div style={{ fontSize: '0.8rem', color: 'var(--crm-text-muted)' }}>
@@ -459,7 +465,12 @@ export default function PatientList({
                         const pat = patients.find(p => p.id === appt.patientId);
                         if (!pat) return null;
                         return (
-                          <div key={appt.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 0', borderBottom: '1px solid var(--crm-border)' }}>
+                          <div
+                            key={appt.id}
+                            onClick={() => { setView('pacientes'); setViewingPatientId(pat.id); }}
+                            className="crm-clickable-row"
+                            style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 0', borderBottom: '1px solid var(--crm-border)', cursor: 'pointer', borderRadius: '6px' }}
+                          >
                             <div>
                               <div style={{ fontWeight: '600', fontSize: '0.92rem' }}>{pat.name}</div>
                               <div style={{ fontSize: '0.8rem', color: 'var(--crm-text-muted)' }}>
@@ -484,9 +495,38 @@ export default function PatientList({
                   ) : (
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
                       {atRiskPatients.slice(0, 4).map(p => (
-                        <div key={p.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 0', borderBottom: '1px solid var(--crm-border)' }}>
+                        <div
+                          key={p.id}
+                          onClick={() => { setView('pacientes'); setViewingPatientId(p.id); }}
+                          className="crm-clickable-row"
+                          style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 0', borderBottom: '1px solid var(--crm-border)', cursor: 'pointer', borderRadius: '6px' }}
+                        >
                           <span style={{ fontWeight: '600', fontSize: '0.92rem' }}>{p.name}</span>
                           <span className="crm-badge-orange">Perdendo Foco</span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+
+                <div className="crm-card" style={{ flex: '1 1 340px' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+                    <h3 style={{ display: 'flex', alignItems: 'center', gap: '8px' }}><Trophy size={18} color="var(--crm-good-text)" /> Mais Engajados</h3>
+                    <button className="crm-nav-btn" style={{ fontSize: '0.82rem', padding: '4px 8px' }} onClick={() => setView('cohorts')}>Ver cohorts <ArrowRight size={14} /></button>
+                  </div>
+                  {topEngagedPatients.length === 0 ? (
+                    <p style={{ color: 'var(--crm-text-muted)', fontSize: '0.9rem' }}>Nenhum paciente ativo no momento.</p>
+                  ) : (
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                      {topEngagedPatients.slice(0, 4).map(p => (
+                        <div
+                          key={p.id}
+                          onClick={() => { setView('pacientes'); setViewingPatientId(p.id); }}
+                          className="crm-clickable-row"
+                          style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 0', borderBottom: '1px solid var(--crm-border)', cursor: 'pointer', borderRadius: '6px' }}
+                        >
+                          <span style={{ fontWeight: '600', fontSize: '0.92rem' }}>{p.name}</span>
+                          <span style={{ fontSize: '0.82rem', color: 'var(--crm-text-muted)' }}>🔥 {p.streak || 0}d · {p.xp || 0}xp</span>
                         </div>
                       ))}
                     </div>

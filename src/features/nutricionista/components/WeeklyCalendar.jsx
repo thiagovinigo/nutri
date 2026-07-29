@@ -28,6 +28,7 @@ export default function WeeklyCalendar({
   };
 
   const startOfWeek = getStartOfWeek(currentDate);
+  const todayISO = new Date().toISOString().split('T')[0];
 
   const prevWeek = () => {
     const newDate = new Date(currentDate);
@@ -92,12 +93,18 @@ export default function WeeklyCalendar({
       <div style={{ display: 'grid', gridTemplateColumns: `80px repeat(${weekDays.length}, minmax(180px, 1fr))` }}>
         {/* Header Row */}
         <div style={{ borderBottom: '2px solid var(--crm-border)', padding: '12px' }}></div>
-        {weekDays.map(wd => (
-          <div key={wd.isoDate} style={{ borderBottom: '2px solid var(--crm-border)', padding: '12px', textAlign: 'center' }}>
-            <div style={{ fontWeight: '700', color: 'var(--crm-text-main)' }}>{wd.name}</div>
-            <div style={{ fontSize: '0.85rem', color: 'var(--crm-text-muted)' }}>{wd.dateObj.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' })}</div>
-          </div>
-        ))}
+        {weekDays.map(wd => {
+          const isToday = wd.isoDate === todayISO;
+          return (
+            <div key={wd.isoDate} style={{ borderBottom: isToday ? '2px solid var(--crm-accent)' : '2px solid var(--crm-border)', borderLeft: isToday ? '2px solid var(--crm-accent)' : 'none', borderRight: isToday ? '2px solid var(--crm-accent)' : 'none', backgroundColor: isToday ? 'var(--crm-accent-soft)' : 'transparent', borderRadius: isToday ? '8px 8px 0 0' : 0, padding: '12px', textAlign: 'center' }}>
+              <div style={{ fontWeight: '700', color: isToday ? 'var(--crm-accent)' : 'var(--crm-text-main)' }}>{wd.name}</div>
+              <div style={{ fontSize: '0.85rem', color: isToday ? 'var(--crm-accent)' : 'var(--crm-text-muted)', fontWeight: isToday ? 700 : 400 }}>{wd.dateObj.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' })}</div>
+              {isToday && (
+                <div style={{ fontSize: '0.7rem', fontWeight: 700, color: 'var(--crm-accent)', marginTop: '2px', letterSpacing: '0.05em' }}>HOJE</div>
+              )}
+            </div>
+          );
+        })}
 
         {/* Time Rows */}
         {timeSlots.map(time => (
@@ -107,10 +114,12 @@ export default function WeeklyCalendar({
             </div>
             {weekDays.map(wd => {
               const appt = apptsMap[wd.isoDate]?.[time];
-              
+              const isToday = wd.isoDate === todayISO;
+              const todayBandStyle = isToday ? { borderLeft: '2px solid var(--crm-accent)', borderRight: '2px solid var(--crm-accent)' } : {};
+
               if (wd.isBlocked) {
                 return (
-                  <div key={`${wd.isoDate}-${time}`} style={{ backgroundColor: 'var(--crm-surface-2)', borderBottom: '1px solid var(--crm-border)', borderRight: '1px solid var(--crm-border)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <div key={`${wd.isoDate}-${time}`} style={{ backgroundColor: 'var(--crm-surface-2)', borderBottom: '1px solid var(--crm-border)', borderRight: '1px solid var(--crm-border)', display: 'flex', alignItems: 'center', justifyContent: 'center', ...todayBandStyle }}>
                     <span style={{ color: 'var(--crm-text-muted)', fontSize: '0.8rem', transform: 'rotate(-45deg)' }}>Bloqueado</span>
                   </div>
                 );
@@ -123,10 +132,10 @@ export default function WeeklyCalendar({
               const tMins = timeToMinutes(time);
               const lsMins = timeToMinutes(lunchStart);
               const leMins = timeToMinutes(lunchEnd);
-              
+
               if (tMins >= lsMins && tMins < leMins) {
                 return (
-                  <div key={`${wd.isoDate}-${time}`} style={{ backgroundColor: '#fff7ed', borderBottom: '1px solid var(--crm-border)', borderRight: '1px solid var(--crm-border)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <div key={`${wd.isoDate}-${time}`} style={{ backgroundColor: '#fff7ed', borderBottom: '1px solid var(--crm-border)', borderRight: '1px solid var(--crm-border)', display: 'flex', alignItems: 'center', justifyContent: 'center', ...todayBandStyle }}>
                     <span style={{ color: '#fb923c', fontSize: '0.8rem', fontWeight: 600 }}>Almoço</span>
                   </div>
                 );
@@ -136,7 +145,7 @@ export default function WeeklyCalendar({
                 const pat = patients.find(p => p.id === appt.patientId);
                 const isConcluido = appt.status === 'concluido';
                 return (
-                  <div key={`${wd.isoDate}-${time}`} style={{ borderBottom: '1px solid var(--crm-border)', borderRight: '1px solid var(--crm-border)', padding: '4px' }}>
+                  <div key={`${wd.isoDate}-${time}`} style={{ borderBottom: '1px solid var(--crm-border)', borderRight: '1px solid var(--crm-border)', padding: '4px', ...todayBandStyle }}>
                     <div style={{ backgroundColor: isConcluido ? '#dcfce7' : '#eff6ff', borderLeft: `4px solid ${isConcluido ? '#22c55e' : '#3b82f6'}`, borderRadius: '4px', padding: '8px', height: '100%', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
                       <div>
                         <div style={{ fontWeight: '600', fontSize: '0.85rem', color: '#1e293b', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{pat?.name || 'Desconhecido'}</div>
@@ -157,9 +166,9 @@ export default function WeeklyCalendar({
               }
 
               return (
-                <div 
-                  key={`${wd.isoDate}-${time}`} 
-                  style={{ borderBottom: '1px solid var(--crm-border)', borderRight: '1px solid var(--crm-border)', cursor: 'pointer' }}
+                <div
+                  key={`${wd.isoDate}-${time}`}
+                  style={{ borderBottom: '1px solid var(--crm-border)', borderRight: '1px solid var(--crm-border)', cursor: 'pointer', backgroundColor: isToday ? 'var(--crm-accent-soft)' : 'transparent', ...todayBandStyle }}
                   className="agenda-slot"
                   onClick={() => onSlotClick(wd.isoDate, time)}
                 />
