@@ -1,12 +1,47 @@
 import React, { useState } from 'react';
-import { Trash2, Plus, Search } from 'lucide-react';
+import { Trash2, Plus, Search, RefreshCw } from 'lucide-react';
 import tacoData from '../../../data/taco.json';
 
-export default function MealBuilder({ meal, onChange, onDelete, onDrop, aversions }) {
+export default function MealBuilder({ meal, onChange, onDelete, aversions }) {
   const [searchTerm, setSearchTerm] = useState('');
   const [searchResults, setSearchResults] = useState([]);
   const [selectedFood, setSelectedFood] = useState(null);
   const [amount, setAmount] = useState('');
+  const [subFoodIdx, setSubFoodIdx] = useState(null);
+
+  const aversionList = (aversions || '').split(/[,;\n]+/).map(a => a.trim().toLowerCase()).filter(a => a);
+
+  const getSubstitutes = (food) => {
+    const baseDbFood = tacoData.find(db => String(db.id) === String(food.foodId) || db.name === food.name);
+    if (!baseDbFood) return { alternatives: [], mainMacro: 'kcal' };
+    let mainMacro = 'kcal';
+    if (baseDbFood.category === 'Carboidratos' || baseDbFood.category === 'Frutas') mainMacro = 'carb';
+    if (baseDbFood.category === 'Proteínas') mainMacro = 'protein';
+    if (baseDbFood.category === 'Gorduras') mainMacro = 'fat';
+    const targetValue = food[mainMacro] || 0;
+    const alternatives = tacoData
+      .filter(t => t.category === baseDbFood.category && String(t.id) !== String(food.foodId))
+      .filter(t => !aversionList.some(av => t.name.toLowerCase().includes(av)))
+      .map(alt => ({ ...alt, suggestedAmount: Math.round((targetValue * 100) / (alt[mainMacro] || 1)) }))
+      .sort((a, b) => a.name.localeCompare(b.name));
+    return { alternatives, mainMacro };
+  };
+
+  const handleApplySub = (idx, alt) => {
+    const factor = alt.suggestedAmount / 100;
+    const newFoods = [...(meal.foods || [])];
+    newFoods[idx] = {
+      foodId: alt.id,
+      name: alt.name,
+      amount: alt.suggestedAmount,
+      kcal: Number((alt.kcal * factor).toFixed(1)),
+      carb: Number((alt.carb * factor).toFixed(1)),
+      protein: Number((alt.protein * factor).toFixed(1)),
+      fat: Number((alt.fat * factor).toFixed(1)),
+    };
+    onChange({ ...meal, foods: newFoods });
+    setSubFoodIdx(null);
+  };
 
   const handleSearch = (e) => {
     const term = e.target.value;
@@ -85,12 +120,7 @@ export default function MealBuilder({ meal, onChange, onDelete, onDrop, aversion
   const totalFat = (meal.foods || []).reduce((acc, curr) => acc + curr.fat, 0);
 
   return (
-    <div 
-      className="meal-dropzone"
-      onDragOver={e => {
-        if(e) e.preventDefault();
-      }}
-      onDrop={onDrop}
+    <div
       style={{ padding: '16px', backgroundColor: 'var(--crm-surface)', border: '2px dashed var(--crm-border)', borderRadius: '8px', position: 'relative', display: 'flex', flexDirection: 'column', gap: '12px' }}
     >
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -166,19 +196,48 @@ export default function MealBuilder({ meal, onChange, onDelete, onDrop, aversion
             </thead>
             <tbody>
               {meal.foods.map((food, idx) => (
-                <tr key={idx} style={{ borderBottom: '1px solid #f1f5f9' }}>
-                  <td style={{ padding: '8px 4px' }}>{food.name}</td>
-                  <td style={{ padding: '8px 4px' }}>{food.amount}g</td>
-                  <td style={{ padding: '8px 4px' }}>{food.kcal}</td>
-                  <td style={{ padding: '8px 4px' }}>{food.carb}</td>
-                  <td style={{ padding: '8px 4px' }}>{food.protein}</td>
-                  <td style={{ padding: '8px 4px' }}>{food.fat}</td>
-                  <td style={{ padding: '8px 4px', textAlign: 'right' }}>
-                    <button onClick={() => handleRemoveFood(idx)} style={{ background: 'none', border: 'none', color: 'var(--crm-danger)', cursor: 'pointer' }}>
-                      <Trash2 size={14} />
-                    </button>
-                  </td>
-                </tr>
+                <React.Fragment key={idx}>
+                  <tr style={{ borderBottom: subFoodIdx === idx ? 'none' : '1px solid #f1f5f9' }}>
+                    <td style={{ padding: '8px 4px' }}>{food.name}</td>
+                    <td style={{ padding: '8px 4px' }}>{food.amount}g</td>
+                    <td style={{ padding: '8px 4px' }}>{food.kcal}</td>
+                    <td style={{ padding: '8px 4px' }}>{food.carb}</td>
+                    <td style={{ padding: '8px 4px' }}>{food.protein}</td>
+                    <td style={{ padding: '8px 4px' }}>{food.fat}</td>
+                    <td style={{ padding: '8px 4px', textAlign: 'right', whiteSpace: 'nowrap' }}>
+                      <button onClick={() => setSubFoodIdx(subFoodIdx === idx ? null : idx)} title="Substituir" style={{ background: 'none', border: 'none', color: 'var(--crm-accent)', cursor: 'pointer', marginRight: '8px' }}>
+                        <RefreshCw size={14} />
+                      </button>
+                      <button onClick={() => handleRemoveFood(idx)} style={{ background: 'none', border: 'none', color: 'var(--crm-danger)', cursor: 'pointer' }}>
+                        <Trash2 size={14} />
+                      </button>
+                    </td>
+                  </tr>
+                  {subFoodIdx === idx && (() => {
+                    const { alternatives } = getSubstitutes(food);
+                    return (
+                      <tr style={{ borderBottom: '1px solid #f1f5f9' }}>
+                        <td colSpan="7" style={{ padding: '8px 4px 12px' }}>
+                          {alternatives.length === 0 ? (
+                            <p style={{ margin: 0, fontSize: '0.8rem', color: 'var(--crm-text-muted)' }}>Nenhum substituto equivalente encontrado (ou todos batem com alguma aversão/alergia do paciente).</p>
+                          ) : (
+                            <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+                              {alternatives.slice(0, 6).map(alt => (
+                                <button
+                                  key={alt.id}
+                                  onClick={() => handleApplySub(idx, alt)}
+                                  style={{ padding: '6px 10px', fontSize: '0.8rem', backgroundColor: 'var(--crm-surface-2, var(--crm-bg))', border: '1px solid var(--crm-border)', borderRadius: '6px', cursor: 'pointer', color: 'var(--crm-text-main)' }}
+                                >
+                                  {alt.name} <span style={{ color: 'var(--crm-text-muted)' }}>({alt.suggestedAmount}g)</span>
+                                </button>
+                              ))}
+                            </div>
+                          )}
+                        </td>
+                      </tr>
+                    );
+                  })()}
+                </React.Fragment>
               ))}
             </tbody>
             <tfoot>

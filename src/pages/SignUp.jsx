@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { auth, db } from '../services/firebase';
 import { createUserWithEmailAndPassword } from 'firebase/auth';
-import { doc, setDoc, getDoc, deleteDoc } from 'firebase/firestore';
+import { doc, setDoc, getDoc, deleteDoc, collection, query, where, getDocs, updateDoc } from 'firebase/firestore';
 import { getFirebaseErrorMessage } from '../utils/firebaseErrors';
 import { useAppContext } from '../context/AppContext';
 
@@ -36,6 +36,31 @@ const darkLabelStyle = {
   color: '#cbd5e1',
 };
 
+// Exibição parcial no resumo de confirmação do cadastro por convite — os
+// dados já pertencem ao paciente, mas mascarar evita expor tudo em texto
+// puro numa tela que ele pode compartilhar (print, deixar aberta, etc.).
+const maskEmail = (value) => {
+  if (!value || !value.includes('@')) return value;
+  const [localPart, domain] = value.split('@');
+  const visibleCount = Math.min(2, localPart.length);
+  const visible = localPart.slice(0, visibleCount);
+  return `${visible}${'*'.repeat(Math.max(localPart.length - visibleCount, 3))}@${domain}`;
+};
+
+const maskPhone = (value) => {
+  const digits = (value || '').replace(/\D/g, '');
+  if (digits.length < 10) return value;
+  const ddd = digits.slice(0, 2);
+  const last2 = digits.slice(-2);
+  return `(${ddd}) *****-**${last2}`;
+};
+
+const maskCpf = (value) => {
+  const digits = (value || '').replace(/\D/g, '');
+  if (digits.length !== 11) return value;
+  return `${digits.slice(0, 3)}.***.***-${digits.slice(9, 11)}`;
+};
+
 export default function SignUp() {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
@@ -46,6 +71,7 @@ export default function SignUp() {
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [isLinked, setIsLinked] = useState(false);
+  const [loadingInvite, setLoadingInvite] = useState(false);
   const [role, setRole] = useState('paciente'); // Padrão
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
@@ -62,6 +88,7 @@ export default function SignUp() {
     if (vincularId) {
       setRole('paciente');
       setIsLinked(true);
+      setLoadingInvite(true);
       const tempDocRef = doc(db, 'patients', vincularId);
       getDoc(tempDocRef).then(snap => {
         if (snap.exists()) {
@@ -72,7 +99,8 @@ export default function SignUp() {
           if (data.phone) setPhone(data.phone);
           if (data.birthDate) setBirthDate(data.birthDate);
         }
-      }).catch(e => console.warn('Erro ao carregar dados do link direto', e));
+      }).catch(e => console.warn('Erro ao carregar dados do link direto', e))
+        .finally(() => setLoadingInvite(false));
     } else if (nutriIdParam) {
       setRole('paciente');
     } else if (roleParam === 'nutricionista') {
@@ -156,6 +184,21 @@ export default function SignUp() {
             if (tempDocSnap.exists()) {
               // Mescla os dados do cadastro temporário com o default (sobrescrevendo o default)
               initialData = { ...initialData, ...tempDocSnap.data(), name: name, email: email, cpf: cpf, phone: phone || tempDocSnap.data().phone || '11999999999', birthDate: birthDate, age: calculatedAge, status: 'ativo' };
+
+              // O paciente pode já ter consultas agendadas pelo nutricionista
+              // antes de terminar o cadastro (fluxo comum: cadastra -> já
+              // agenda -> manda o link). Essas consultas referenciam o ID
+              // temporário (vincularId) — sem essa migração, elas ficam órfãs
+              // assim que o doc temporário é deletado abaixo, porque o
+              // paciente passa a existir só sob o UID do Firebase Auth.
+              try {
+                const apptsQuery = query(collection(db, 'appointments'), where('patientId', '==', vincularId));
+                const apptsSnap = await getDocs(apptsQuery);
+                await Promise.all(apptsSnap.docs.map(d => updateDoc(doc(db, 'appointments', d.id), { patientId: user.uid })));
+              } catch (apptError) {
+                console.warn('Falha ao migrar agendamentos do convite para o novo ID do paciente.', apptError);
+              }
+
               // Deleta o temporário
               await deleteDoc(tempDocRef);
             }
@@ -233,71 +276,88 @@ export default function SignUp() {
         )}
 
         <form onSubmit={handleSignUp}>
-          <div style={{ marginBottom: '16px' }}>
-            <label style={darkLabelStyle}>Nome Completo</label>
-            <input 
-              type="text" 
-              required
-              style={darkInputStyle}
-              value={name}
-              onChange={e => setName(e.target.value)}
-              placeholder="João da Silva"
-            />
-          </div>
-
-          <div style={{ display: 'flex', gap: '16px', marginBottom: '16px' }}>
-            <div style={{ flex: 1 }}>
-              <label style={darkLabelStyle}>{role === 'nutricionista' ? 'CPF / CNPJ' : 'CPF'}</label>
-              <input 
-                type="text" 
-                required
-                style={darkInputStyle}
-                value={cpf}
-                onChange={handleDocumentChange}
-                placeholder={role === 'nutricionista' ? 'CPF ou CNPJ' : '111.111.111-11'}
-              />
+          {isLinked ? (
+            <div style={{ marginBottom: '24px', padding: '16px', borderRadius: '12px', backgroundColor: 'rgba(168,85,247,0.08)', border: '1px solid rgba(168,85,247,0.25)' }}>
+              <p style={{ margin: '0 0 10px 0', color: '#94a3b8', fontSize: '0.82rem' }}>Dados enviados pelo seu nutricionista — confirme e crie sua senha:</p>
+              {loadingInvite ? (
+                <p style={{ margin: 0, color: '#cbd5e1', fontSize: '0.9rem' }}>Carregando seus dados...</p>
+              ) : (
+                <>
+                  <div style={{ color: '#f8fafc', fontWeight: 'bold', fontSize: '1.05rem' }}>{name || '—'}</div>
+                  <div style={{ color: '#cbd5e1', fontSize: '0.9rem', marginTop: '4px' }}>{email ? maskEmail(email) : '—'}</div>
+                  <div style={{ color: '#cbd5e1', fontSize: '0.9rem' }}>{cpf ? maskCpf(cpf) : '—'}{phone ? ` · ${maskPhone(phone)}` : ''}</div>
+                </>
+              )}
             </div>
-            <div style={{ flex: 1 }}>
-              <label style={darkLabelStyle}>Data Nasc.</label>
-              <input 
-                type="date" 
-                required
-                style={darkInputStyle}
-                value={birthDate}
-                onChange={e => setBirthDate(e.target.value)}
-              />
-            </div>
-          </div>
+          ) : (
+            <>
+              <div style={{ marginBottom: '16px' }}>
+                <label style={darkLabelStyle}>Nome Completo</label>
+                <input
+                  type="text"
+                  required
+                  style={darkInputStyle}
+                  value={name}
+                  onChange={e => setName(e.target.value)}
+                  placeholder="João da Silva"
+                />
+              </div>
 
-          <div style={{ marginBottom: '16px' }}>
-            <label style={darkLabelStyle}>E-mail</label>
-            <input 
-              type="email" 
-              required
-              style={darkInputStyle}
-              value={email}
-              onChange={e => setEmail(e.target.value)}
-              placeholder="joao@email.com"
-            />
-          </div>
+              <div style={{ display: 'flex', gap: '16px', marginBottom: '16px' }}>
+                <div style={{ flex: 1 }}>
+                  <label style={darkLabelStyle}>{role === 'nutricionista' ? 'CPF / CNPJ' : 'CPF'}</label>
+                  <input
+                    type="text"
+                    required
+                    style={darkInputStyle}
+                    value={cpf}
+                    onChange={handleDocumentChange}
+                    placeholder={role === 'nutricionista' ? 'CPF ou CNPJ' : '111.111.111-11'}
+                  />
+                </div>
+                <div style={{ flex: 1 }}>
+                  <label style={darkLabelStyle}>Data Nasc.</label>
+                  <input
+                    type="date"
+                    required
+                    style={darkInputStyle}
+                    value={birthDate}
+                    onChange={e => setBirthDate(e.target.value)}
+                  />
+                </div>
+              </div>
 
-          <div style={{ marginBottom: '16px' }}>
-            <label style={darkLabelStyle}>Telefone (WhatsApp)</label>
-            <input
-              type="tel"
-              required
-              style={darkInputStyle}
-              value={phone}
-              onChange={e => {
-                let v = e.target.value.replace(/\D/g, '');
-                if (v.length > 11) v = v.slice(0, 11);
-                v = v.replace(/^(\d{2})(\d)/, '($1) $2');
-                v = v.replace(/(\d{5})(\d{4})$/, '$1-$2');
-                setPhone(v);
-              }}
-              placeholder="(11) 99999-9999"
-            />
-          </div>
+              <div style={{ marginBottom: '16px' }}>
+                <label style={darkLabelStyle}>E-mail</label>
+                <input
+                  type="email"
+                  required
+                  style={darkInputStyle}
+                  value={email}
+                  onChange={e => setEmail(e.target.value)}
+                  placeholder="joao@email.com"
+                />
+              </div>
+
+              <div style={{ marginBottom: '16px' }}>
+                <label style={darkLabelStyle}>Telefone (WhatsApp)</label>
+                <input
+                  type="tel"
+                  required
+                  style={darkInputStyle}
+                  value={phone}
+                  onChange={e => {
+                    let v = e.target.value.replace(/\D/g, '');
+                    if (v.length > 11) v = v.slice(0, 11);
+                    v = v.replace(/^(\d{2})(\d)/, '($1) $2');
+                    v = v.replace(/(\d{5})(\d{4})$/, '$1-$2');
+                    setPhone(v);
+                  }}
+                  placeholder="(11) 99999-9999"
+                />
+              </div>
+            </>
+          )}
 
           {role === 'nutricionista' && (
             <div style={{ marginBottom: '16px' }}>
@@ -376,13 +436,13 @@ export default function SignUp() {
 
           <button
             type="submit"
-            disabled={loading}
+            disabled={loading || loadingInvite}
             style={{
               width: '100%', padding: '14px', color: 'white', borderRadius: '10px', border: 'none',
-              fontWeight: 'bold', cursor: loading ? 'not-allowed' : 'pointer', fontSize: '1rem',
+              fontWeight: 'bold', cursor: (loading || loadingInvite) ? 'not-allowed' : 'pointer', fontSize: '1rem',
               background: 'linear-gradient(135deg, #a855f7 0%, #6366f1 100%)',
               boxShadow: '0 8px 20px -6px rgba(168,85,247,0.5)',
-              opacity: loading ? 0.7 : 1,
+              opacity: (loading || loadingInvite) ? 0.7 : 1,
             }}
           >
             {loading ? 'Criando Conta...' : (role === 'paciente' ? 'Criar e Ganhar 1 Consulta Grátis' : 'Criar Conta de Especialista')}

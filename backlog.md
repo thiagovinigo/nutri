@@ -1,7 +1,7 @@
 # Backlog — Nutrivvo
 
-> Consolidado a partir de `todo.md`, `todo2.md` e das sessões de rebranding/correções de 27-28/07/2026.
-> Fonte de verdade única — os arquivos antigos continuam existindo como histórico detalhado, mas use este pra visão geral.
+> **Backlog unificado (28/07/2026).** Este é o único documento de backlog do projeto — `todo.md`, `todo2.md` e `backlog-user-stories.md` foram aposentados nesta data (conteúdo relevante consolidado aqui; os arquivos continuam no repo só como histórico bruto, não use como referência ativa).
+> Consolidado a partir desses 3 arquivos, das sessões de rebranding/correções de 27-28/07/2026, do benchmark competitivo (`market-scout`), do cruzamento de documentos (`doc-innovator`) e do discovery de produto de 28/07/2026.
 
 ---
 
@@ -59,11 +59,11 @@
 
 ## 🎨 Visual — pendente de polimento
 
-- [ ] Cores hardcoded fora do roxo da marca em pontos pontuais — ver item 6 de "Próximas Missões"
-- [ ] Contraste de cor nunca auditado formalmente (WCAG AA) — várias combinações estão na faixa duvidosa
-- [ ] Sidebar do CRM fixa em 260px, sem breakpoint pra tablet/janela estreita
-- [ ] Nenhum loading state visível ao trocar de aba no CRM (só em "Gerar Síntese"/dieta)
-- [ ] Modais de "Novo Agendamento"/"Novo Paciente" sem validação inline nem foco automático
+- [x] ~~Cores hardcoded fora do roxo da marca~~ — corrigido em 28/07/2026: `BonusRecipes.jsx` (abas "Da Nutri"/"Minhas Receitas", botão "Salvar Nova Receita Livre") trocado de azul/violeta hardcoded pra `var(--primary-color)`/`var(--primary-shadow)`. O botão "Nova Receita" já usava `.crm-btn-primary` (variável de marca) — item já estava resolvido ali.
+- [x] ~~Contraste de cor nunca auditado formalmente (WCAG AA)~~ — auditado em 28/07/2026. Achados reais: texto verde `#10B981` (2.54:1) e âmbar `#F59E0B` (2.15:1) reprovavam AA como cor de texto — criadas variantes `--crm-good-text`/`--crm-warn-text` (mais escuras, ≥4.9:1) pra uso como texto, mantendo as cores originais só pra fundo/ícone/dot. Texto branco sobre `.crm-btn-primary` também reprovava (3.96:1) — botão passou a usar `--crm-primary-hover` como cor de repouso (5.38:1).
+- [x] ~~Sidebar do CRM fixa em 260px, sem breakpoint pra tablet/janela estreita~~ — corrigido em 28/07/2026: novo `@media (max-width: 1024px) and (min-width: 769px)` estreita a sidebar pra 200px entre o desktop cheio e o empilhamento mobile (que já existia em 768px).
+- [x] ~~Nenhum loading state visível ao trocar de aba no CRM~~ — corrigido em 28/07/2026: novo `isLoadingPatients` no `AppContext.jsx`, mostra "Carregando pacientes…" em vez de "Nenhum paciente encontrado" enquanto o fetch inicial do Firestore não resolve.
+- [x] ~~Modais de "Novo Agendamento"/"Novo Paciente" sem validação inline nem foco automático~~ — `autoFocus` adicionado ao primeiro campo dos dois modais em 28/07/2026. Validação já existia via `required` nativo do HTML (confirmado em teste manual nesta sessão).
 
 ---
 
@@ -79,8 +79,19 @@
 
 ## 💬 Comunicação nutricionista ↔ paciente
 
-- [ ] Canal de mensagens diretas (hoje só existe o bot de IA)
-- [ ] Notificações push/e-mail quando dieta é prescrita ou consulta confirmada
+> Detalhe de stories consolidado de `backlog-user-stories.md` (aposentado 28/07/2026). Story 1 (telefone no cadastro) já está feita — pré-requisito de tudo abaixo.
+
+| # | Story | Prioridade | Status |
+|---|-------|-----------|--------|
+| 2 | Publicar `firestore.rules` em produção | P0 | Pendente — só você tem acesso ao Firebase CLI (~1h) |
+| 3 | Validar cobrança/recibo por WhatsApp ponta-a-ponta | P0 | Pendente (~2h) — considerar badge "telefone não confirmado" quando `phone === '11999999999'` |
+| 4 | Canal de mensagens diretas Nutri ↔ Paciente | P1 | Pendente (~3-4 dias) — nova coleção `directMessages` (já referenciada vazia em `AppContext.jsx`), depende da Story 2 (regra de segurança dedicada) |
+| 5 | Notificações de dieta prescrita / consulta confirmada | P1 | Pendente (~1 dia) — reusar `addNotification`, disparar em `finishConsultation` e na confirmação de agendamento |
+| 6 | Lembretes proativos de refeição via WhatsApp | P2 | Bloqueada — decidir provider (Meta Official API vs Evolution/Baileys) antes de estimar |
+| 7 | Check-in de refeição por foto no WhatsApp | P2 | Bloqueada — depende da Story 6 (mesma infra de bot) |
+
+- [ ] Canal de mensagens diretas (hoje só existe o bot de IA) — Story 4 acima
+- [ ] Notificações push/e-mail quando dieta é prescrita ou consulta confirmada — Story 5 acima
 
 ## 📊 Analytics e instrumentação
 
@@ -94,7 +105,7 @@
 
 ---
 
-## 🚀 V2 — Grandes iniciativas (ver `todo2.md` para detalhe completo)
+## 🚀 V2 — Grandes iniciativas
 
 ### Módulo: Agente Ativo de Saúde via WhatsApp
 - PRD e escolha de provider (Meta Official API vs Evolution/Baileys)
@@ -139,7 +150,8 @@
 > Cruzado contra backlog.md, features.md, context.md e o código real (DietPlan.jsx, QuestBoard.jsx, ConsultationFlow.jsx, PatientList.jsx) pra eliminar falsos positivos — "lista de compras" e "diário alimentar livre" foram descartados por já estarem implementados (ver débito de documentação abaixo).
 
 **Clínico**
-- [ ] **Formulário de anamnese estruturado e pré-consulta** — hoje a anamnese é um `<textarea>` livre preenchido pelo nutricionista durante a consulta (`ConsultationFlow.jsx`); o paciente nunca preenche nada antes. Concorrentes (Practice Better) mandam "intake packets" customizáveis antes da sessão. Dá pra reaproveitar o fluxo de convite já existente: `formSchema` dinâmico por nutricionista, preenchido pelo paciente via link de convite.
+- [x] ~~Formulário de anamnese estruturado~~ — feito em 28/07/2026: nutricionista configura os campos (texto curto/longo/escolha única) em Configurações e preenche estruturado durante a consulta, substituindo o `<textarea>` livre. PRD e plano em `.claude/prds/anamnese-pre-consulta.prd.md` / `.claude/plans/anamnese-pre-consulta.plan.md`. **Decisão de escopo:** paciente preencher sozinho antes da consulta foi tirado do roadmap (ver item abaixo, que é uma versão mais leve dessa ideia).
+- [ ] **Paciente sugere atualização da própria anamnese entre consultas** (Discovery 28/07/2026, H3) — não é o paciente preenchendo o formulário inteiro (isso já foi descartado), é um mini check-in leve ("mudou algo desde a última vez? novo medicamento, nova restrição?") que só *sugere* uma atualização pro nutricionista confirmar na próxima consulta — autoridade clínica continua 100% do nutricionista, mas o dado não fica parado até a próxima visita presencial.
 - [ ] **Rastreamento nutricional estruturado (micronutrientes)** — `foodLogs` hoje não tem calorias/macros/micronutrientes estruturados, só estimativa da IA Vision por foto (bom pra engajamento, insuficiente clinicamente pra casos como anemia/hipertensão/deficiência de B12). Construir via proxy serverless pra base TACO (tabela brasileira) ou Open Food Facts, novo `type: 'structured'` em `foodLogs`.
 - [ ] **Scanner de código de barras** — depende do item acima (banco nutricional estruturado). `BarcodeDetector` API nativa (PWA Android/Chrome) + fallback `zxing-js` pra iOS, casando EAN com Open Food Facts.
 
@@ -180,10 +192,11 @@
 - [ ] Comunidade/prova social entre pacientes (leaderboard hoje é só dentro da clínica)
 - [ ] Multi-profissional (hoje é 1 nutricionista = 1 clínica; clínicas maiores têm equipe)
 
-## 🛠️ Ferramentas da Consulta (aba "Ferramentas" do card 4 - Prescrição)
+## 🛠️ Ferramentas da Consulta (etapa 4 - Prescrição)
 
-- [ ] **Repensar "Meus Templates de Dieta"** — removido da aba Ferramentas em 28/07/2026 (junto com "Salvar como Template") por decisão do usuário: a IA e a biblioteca de receitas são muito mais usadas, e o template ficava esquecido/confuso ali. Reavaliar mais pra frente com uma UX melhor (talvez integrado à Biblioteca de Receitas em vez de isolado na consulta) antes de trazer de volta. `addDietTemplate`/`dietTemplates` continuam existindo no `AppContext.jsx`, só não são mais consumidos por `ConsultationFlow.jsx`.
-- [x] ~~Botão "Anexar ao Paciente" (Receitas Salvas) ficava desconectado do que estava sendo montado~~ — corrigido em 28/07/2026: agora adiciona a receita direto como refeição no cardápio (`dietMeals`) sendo montado na consulta, em vez de anexar a uma lista separada (`bonusRecipes`) sem retorno visual na tela.
+- [ ] **Repensar "Meus Templates de Dieta"** — removido da consulta em 28/07/2026 (junto com "Salvar como Template") por decisão do usuário: a IA e a biblioteca de receitas são muito mais usadas, e o template ficava esquecido/confuso ali. Reavaliar mais pra frente com uma UX melhor (talvez integrado à Biblioteca de Receitas em vez de isolado na consulta) antes de trazer de volta. `addDietTemplate`/`dietTemplates` continuam existindo no `AppContext.jsx`, só não são mais consumidos por `ConsultationFlow.jsx`.
+- [x] ~~Botão "Anexar ao Paciente" (Receitas Salvas) ficava desconectado do que estava sendo montado~~ — corrigido em 28/07/2026, depois **revertido no mesmo dia**: a versão corrigida (seletor "Anexar receita salva" dentro de cada refeição + seção "Receitas Salvas" na aba Ferramentas, criando refeição a partir da receita) foi removida por decisão do usuário — "deixes a receita em backlog ela esta mais atrapalhando que ajudando da forma que esta hoje". Removido de `MealBuilder.jsx` e `ConsultationFlow.jsx` (junto com o mecanismo de drag-and-drop `handleDropToMeal`/`draggedRecipe`, que já estava morto — nunca tinha um `onDragStart` real ligado a ele). **Repensar do zero** antes de reintroduzir: o problema de fundo continua sendo o do PRD original (`.claude/prds/prescricao-receitas-suplementos.prd.md`) — receita anexada não casa com a base TACO, então `foods[]` fica vazio e a refeição parece "sem padrão" mesmo com o texto da receita preenchido.
+- [x] ~~4 abas na etapa 4 (Refeições do Cardápio / Vitaminas e Suplementos / Ficha de Treino / Ferramentas e Assistentes)~~ — consolidadas em 28/07/2026 em 2 abas: "Dieta e Suplementos" (gerador de cardápio IA + refeições + suplementos, nessa ordem) e "Ficha de Treino". Reflete o fluxo real do nutricionista — dieta, depois vitaminas, depois treino — em vez de abas soltas. O botão "Sugerir com IA" de suplementos continua desabilitado até existir ao menos 1 refeição no cardápio.
 
 ## 🧹 Qualidade
 

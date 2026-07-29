@@ -1,3 +1,5 @@
+> ⚠️ **APOSENTADO em 28/07/2026** — este arquivo não é mais a referência ativa. Use `backlog.md` (backlog unificado, seção "Comunicação nutricionista ↔ paciente" — tabela de prioridade + status condensado). Critérios de aceite em Gherkin completos ficam preservados aqui como histórico detalhado, mas não atualize mais este arquivo.
+
 # User Stories: Nutrivvo — Comunicação via WhatsApp e Fundação de Segurança
 
 > Gerado a partir de `backlog.md`, com o formato da skill `user-stories` (Mike Cohn + INVEST + critérios Gherkin).

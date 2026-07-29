@@ -1,3 +1,5 @@
+> ⚠️ **APOSENTADO em 28/07/2026** — este arquivo não é mais a referência ativa. Use `backlog.md` (backlog unificado). Conteúdo relevante já foi consolidado lá; mantido aqui só como histórico bruto. Encoding deste arquivo está corrompido (mojibake) desde antes desta consolidação.
+
 # Roadmap do Produto Ã¢â‚¬â€� Nutrivvo (VisÃƒÂ£o de PM)
 
 Este documento traduz os aprendizados das trilhas de Product Management (0Ã¢â€ â€™1 e 1Ã¢â€ â€™100) em um backlog acionÃƒÂ¡vel para o Nutrivvo. NÃƒÂ³s jÃƒÂ¡ concluÃƒÂ­mos as Fases de Discovery e o protÃƒÂ³tipo inicial. Agora, focaremos nas prÃƒÂ³ximas fases dos frameworks de PM.

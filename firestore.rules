@@ -32,6 +32,18 @@ service cloud.firestore {
         && resource.data.nutricionista_id == request.auth.uid;
       allow create: if request.auth != null
         && request.resource.data.nutricionista_id == request.auth.uid;
+
+      // Paciente terminando o cadastro via link de convite (?vincular=ID)
+      // precisa migrar patientId do placeholder temporário pro seu próprio
+      // uid, senão a consulta fica órfã quando o placeholder é deletado.
+      // Só permite trocar o campo patientId (nada mais), só pra apontar pro
+      // próprio uid do requisitante, e só quando o patientId atual ainda é
+      // um placeholder não reivindicado (status 'inativo') — assim não dá
+      // pra sequestrar o agendamento de um paciente já ativo.
+      allow update: if request.auth != null
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['patientId'])
+        && request.resource.data.patientId == request.auth.uid
+        && get(/databases/$(database)/documents/patients/$(resource.data.patientId)).data.status == 'inativo';
     }
 
     match /dietTemplates/{templateId} {

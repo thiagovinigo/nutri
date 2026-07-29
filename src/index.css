@@ -32,6 +32,19 @@
   --crm-danger: #EF4444; /* Red 500 */
   --crm-good: #10B981;
   --crm-warn: #F59E0B;
+  /* Variantes escurecidas pra uso como TEXTO (não fundo/ícone/dot) — as cores
+     acima (#10B981, #F59E0B) reprovam contraste WCAG AA como texto em fundo
+     claro (auditoria 28/07/2026: 2.54:1 e 2.15:1, mínimo exigido é 4.5:1). */
+  --crm-good-text: #047857;
+  --crm-warn-text: #92400E;
+  --crm-good-soft: #E9F6F0;
+  --crm-good-soft-border: #A7D8C2;
+  --crm-warn-soft: #FBF0E1;
+  --crm-warn-soft-border: #F3D9A8;
+  /* Fundo de botão desabilitado — precisa manter contraste AA com o
+     texto/ícone branco de .crm-btn-primary; --crm-border (#E2E8F0) é
+     claro demais pra isso (1.23:1), então usa um slate mais escuro. */
+  --crm-disabled-bg: #64748B;
   --crm-font-family: 'Inter', sans-serif;
   --crm-font-heading: 'Outfit', 'Inter', sans-serif;
   --crm-shadow-sm: 0 1px 2px 0 rgba(15, 23, 42, 0.05);
@@ -66,6 +79,13 @@
   --crm-text-muted: #94A3B8;
   --crm-accent-soft: #2e1065; /* Roxo escuro (tint dark) */
   --crm-calendar-filter: invert(1) brightness(0.8);
+  --crm-good-text: #6EE7B7;
+  --crm-warn-text: #FCD34D;
+  --crm-good-soft: rgba(16, 185, 129, 0.12);
+  --crm-good-soft-border: rgba(110, 231, 183, 0.35);
+  --crm-warn-soft: rgba(245, 158, 11, 0.12);
+  --crm-warn-soft-border: rgba(252, 211, 77, 0.35);
+  --crm-disabled-bg: #334155;
 }
 
 * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -192,7 +212,11 @@ body { overflow-x: hidden; -webkit-font-smoothing: antialiased; font-family: var
 }
 .crm-sidebar-exit:hover { color: var(--crm-text-main); }
 .crm-btn-primary {
-  background-color: var(--crm-primary);
+  /* Usa --crm-primary-hover (não --crm-primary) como cor de repouso:
+     texto branco sobre --crm-primary reprova WCAG AA (3.96:1, auditoria
+     28/07/2026); --crm-primary-hover já passava (5.38:1) e é a mesma
+     família de roxo da marca. */
+  background-color: var(--crm-primary-hover);
   color: white;
   border: none;
   padding: 10px 16px;
@@ -208,8 +232,17 @@ body { overflow-x: hidden; -webkit-font-smoothing: antialiased; font-family: var
   box-shadow: var(--crm-shadow-sm);
 }
 .crm-btn-primary:hover {
-  background-color: var(--crm-primary-hover);
+  background-color: #7e22ce;
   box-shadow: var(--crm-shadow-md);
+}
+.crm-btn-primary:disabled {
+  background-color: var(--crm-disabled-bg);
+  cursor: not-allowed;
+  box-shadow: none;
+}
+.crm-btn-primary:disabled:hover {
+  background-color: var(--crm-disabled-bg);
+  box-shadow: none;
 }
 .crm-btn-secondary {
   background-color: transparent;
@@ -362,13 +395,24 @@ input[type="date"].crm-input::-webkit-calendar-picker-indicator {
 }
 .crm-badge-blue::before { background-color: var(--crm-accent); }
 .crm-badge-green {
-  background-color: #E9F6F0; color: var(--crm-good);
+  background-color: var(--crm-good-soft); color: var(--crm-good-text);
 }
 .crm-badge-green::before { background-color: var(--crm-good); }
 .crm-badge-orange {
-  background-color: #FBF0E1; color: var(--crm-warn);
+  background-color: #FBF0E1; color: var(--crm-warn-text);
 }
 .crm-badge-orange::before { background-color: var(--crm-warn); }
+
+.crm-clickable-row {
+  transition: background-color 0.15s ease;
+  padding-left: 8px;
+  padding-right: 8px;
+  margin-left: -8px;
+  margin-right: -8px;
+}
+.crm-clickable-row:hover {
+  background-color: var(--crm-surface-2, var(--crm-bg));
+}
 
 /* --- SETTINGS LAYOUT --- */
 .settings-container {
@@ -576,32 +620,24 @@ input[type="date"].crm-input::-webkit-calendar-picker-indicator {
 }
 
 /* ----------------------------------------------------
-   PRESCRIPTION DRAG & DROP
+   RESPONSIVIDADE (TABLET / JANELA ESTREITA)
 ------------------------------------------------------- */
-.meal-dropzone {
-  border: 2px dashed var(--crm-border);
-  border-radius: 8px;
-  padding: 16px;
-  min-height: 80px;
-  background-color: #F8FAFC;
-  transition: all 0.2s ease;
-}
-.meal-dropzone.drag-over {
-  border-color: var(--crm-accent);
-  background-color: var(--crm-accent-soft);
-}
-.recipe-draggable {
-  cursor: grab;
-  padding: 12px;
-  border: 1px solid var(--crm-border);
-  border-radius: 8px;
-  background-color: white;
-  margin-bottom: 8px;
-  box-shadow: 0 1px 2px rgba(0,0,0,0.05);
-  font-size: 0.9rem;
-}
-.recipe-draggable:active {
-  cursor: grabbing;
+@media (max-width: 1024px) and (min-width: 769px) {
+  /* Entre o desktop cheio (260px) e o empilhamento mobile, a sidebar
+     só estreita — evita sobrar pouco espaço pro conteúdo em tablets
+     e janelas de navegador redimensionadas. */
+  .crm-sidebar {
+    width: 200px;
+    padding: 20px 12px;
+  }
+  .crm-sidebar-brand {
+    font-size: 1.15rem;
+  }
+  .crm-nav-btn {
+    padding: 10px 10px;
+    font-size: 0.85rem;
+    gap: 8px;
+  }
 }
 
 /* ----------------------------------------------------
@@ -658,34 +694,3 @@ input[type="date"].crm-input::-webkit-calendar-picker-indicator {
 
 @keyframes spin { 100% { transform: rotate(360deg); } }
 .spin { animation: spin 1s linear infinite; }
-
-
-/* 3D Flip Card for Recipes */
-.flip-card {
-  background-color: transparent;
-  perspective: 1000px;
-  width: 100%;
-}
-.flip-card-inner {
-  position: relative;
-  width: 100%;
-  min-height: 120px;
-  text-align: left;
-  transition: transform 0.6s;
-  transform-style: preserve-3d;
-}
-.flip-card.flipped .flip-card-inner {
-  transform: rotateY(180deg);
-}
-.flip-card-front, .flip-card-back {
-  width: 100%;
-  -webkit-backface-visibility: hidden;
-  backface-visibility: hidden;
-}
-.flip-card-back {
-  position: absolute;
-  top: 0;
-  left: 0;
-  height: 100%;
-  transform: rotateY(180deg);
-}

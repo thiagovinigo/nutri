@@ -4,6 +4,7 @@ import ConsultationFlow from '../components/ConsultationFlow';
 import PatientList from '../components/PatientList';
 import { extractTextFromPDF } from '../../../services/pdfService';
 import tacoData from '../../../data/taco.json';
+import supplementsData from '../../../data/supplements.json';
 import { callOpenAIBridge } from '../../../utils/openaiBridge';
 import { formatAnamnesisAnswers } from '../../../utils/anamnesis';
 import { DEFAULT_TEMPLATE as DEFAULT_ANAMNESIS_TEMPLATE } from '../components/AnamnesisTemplateSettings';
@@ -88,10 +89,13 @@ export default function DashboardNutri() {
   const [dietTitle, setDietTitle] = useState('');
   const [dietDescription, setDietDescription] = useState('');
   const [dietSupplements, setDietSupplements] = useState('');
+  const [dietSupplementsList, setDietSupplementsList] = useState([]);
   const [dietDuration, setDietDuration] = useState(1);
   const [dietMeals, setDietMeals] = useState([]);
   const [workoutPlan, setWorkoutPlan] = useState(null);
   const [isGeneratingDiet, setIsGeneratingDiet] = useState(false);
+  const [dietGenerationProgress, setDietGenerationProgress] = useState('');
+  const [isGeneratingSupplements, setIsGeneratingSupplements] = useState(false);
   const [isGeneratingWorkout, setIsGeneratingWorkout] = useState(false);
 
   const [examError, setExamError] = useState('');
@@ -105,6 +109,22 @@ export default function DashboardNutri() {
   const handleCreateAppointment = (e) => {
     e.preventDefault();
     if (apptPatientId && apptDate && apptTime) {
+      const schedule = clinicConfig.scheduleConfig || {};
+      const workingDays = schedule.workingDays || [1, 2, 3, 4, 5];
+      const blockedDates = schedule.blockedDates || [];
+      // "YYYY-MM-DD" do <input type="date"> precisa virar Date em horário local
+      // (não new Date(string), que a engine interpreta como UTC meia-noite e
+      // pode voltar um dia no getDay() dependendo do fuso do navegador).
+      const [dYear, dMonth, dDay] = apptDate.split('-').map(Number);
+      const selectedWeekday = new Date(dYear, dMonth - 1, dDay).getDay();
+      if (!workingDays.includes(selectedWeekday)) {
+        alert('Este dia da semana não está configurado como dia de atendimento (veja Configurações > Horários de Atendimento). Escolha outra data.');
+        return;
+      }
+      if (blockedDates.includes(apptDate)) {
+        alert('Esta data está bloqueada na agenda. Escolha outra data.');
+        return;
+      }
       const conflict = appointments.some(a => a.date === apptDate && a.time === apptTime && a.status === 'agendado');
       if (conflict) {
         alert('Já existe um agendamento para esta mesma data e horário. Por favor, escolha outro horário.');
@@ -187,6 +207,7 @@ export default function DashboardNutri() {
           console.error('Serviço de e-mail não configurado.', error);
         }
         // Abre o perfil do paciente recém-criado onde o link de cópia rápida está disponível no topo
+        setView('pacientes');
         setViewingPatientId(newId);
         setToastMessage('Paciente cadastrado com sucesso!');
         setTimeout(() => setToastMessage(''), 3000);
@@ -215,6 +236,7 @@ export default function DashboardNutri() {
     setDietTitle('');
     setDietDescription('');
     setDietSupplements('');
+    setDietSupplementsList([]);
     setDietDuration(1);
     setDietMeals([]);
     setWorkoutPlan(null);
@@ -231,6 +253,7 @@ export default function DashboardNutri() {
     setDietTitle('');
     setDietDescription('');
     setDietSupplements('');
+    setDietSupplementsList([]);
     setDietDuration(1);
     setDietMeals([]);
     setWorkoutPlan(null);
@@ -316,6 +339,7 @@ Cite as fontes científicas, guidelines atualizados (como Diretrizes da SBC, SBD
   const generateDietFromAI = async () => {
     setIsGeneratingDiet(true);
     setDietError('');
+    setDietGenerationProgress('');
     try {
       let promptContext = `Objetivo: ${activePatient.objective}. Restrições: ${activePatient.restrictions || 'Nenhuma'}. Idade: ${activePatient.age || 'Não informada'}. Sexo: ${activePatient.gender === 'M' ? 'Masculino' : 'Feminino'}.`;
       if (activePatient.aversions) promptContext += `\nAversões (Alimentos que o paciente NÃO COME de jeito nenhum): ${activePatient.aversions}`;
@@ -352,28 +376,108 @@ Para cada alimento em 'foods', você DEVE buscar um item correspondente no BANCO
 Exemplo de formato:
 { "meals": [ { "name": "Almoço", "desc": "🍗 Frango Grelhado ao Alecrim com Arroz Soltinho\\n\\nUm clássico reconfortante que combina uma proteína suculenta com um arroz levinho — perfeito para manter a energia sem pesar.\\n\\n👨‍🍳 Modo de Preparo:\\n1. Tempere o frango com alecrim, alho e uma pitada de sal, deixando descansar 10 min para pegar sabor.\\n2. Grelhe em fogo médio por 5-6 min de cada lado até dourar por fora e ficar suculento por dentro.\\n3. Sirva com o arroz soltinho e a salada fresca crua ao lado.", "foods": [ { "foodId": "14", "name": "Frango, peito, sem pele, grelhado", "amount": 150, "kcal": 238.5, "carb": 0, "protein": 48, "fat": 3.75 } ] } ] }`;
 
-      const systemPrompt = dietDuration > 1 
-        ? `Você é um Nutricionista Clínico de alta performance. Crie um plano alimentar para ${dietDuration} dias (EXATAMENTE 6 refeições por dia). É MANDATÓRIO GERAR TODOS OS ${dietDuration} DIAS, NÃO PARE A GERAÇÃO ANTES DO FIM. SE VOCÊ GERAR MENOS DO QUE ${dietDuration} DIAS VOCÊ FALHARÁ NA SUA MISSÃO. Como são múltiplos dias, o 'name' da refeição DEVE incluir o dia, ex: "Dia 1 - Café da Manhã".\n\n${formatInstruction}`
-        : `Você é um Nutricionista Clínico de alta performance. Crie um plano alimentar para 1 dia. Crie EXATAMENTE 6 refeições.\n\n${formatInstruction}`;
+      // Pedir os N dias inteiros numa única resposta da IA era a causa raiz do
+      // erro "A IA demorou demais para responder": um plano de 7+ dias com
+      // receitas completas em cada refeição gera uma resposta gigante, que
+      // regularmente estourava o timeout (tanto o da função serverless quanto
+      // o do cliente). Gerar um dia por chamada mantém cada requisição
+      // pequena e rápida, não importa quantos dias o plano tenha.
+      const daysToGenerate = dietDuration > 1 ? dietDuration : 1;
+      const MAX_ATTEMPTS = 3;
+      let allMeals = [];
+      let anyDayFailedEntirely = false;
+      let anyDayMissingFoods = false;
 
-      const data = await callOpenAIBridge({
-          system_prompt: systemPrompt,
-          messages: [{ role: "user", content: `Crie um cardápio considerando este contexto clínico:\n\n${promptContext}` }],
-          format_json: true
-      });
-      const parsed = JSON.parse(data.choices[0].message.content);
-      
+      for (let day = 1; day <= daysToGenerate; day++) {
+        if (dietDuration > 1) {
+          setDietGenerationProgress(`Gerando dia ${day} de ${daysToGenerate}...`);
+        }
+
+        const systemPrompt = dietDuration > 1
+          ? `Você é um Nutricionista Clínico de alta performance. Crie o cardápio APENAS do Dia ${day} de um plano de ${daysToGenerate} dias (EXATAMENTE 6 refeições deste dia). O 'name' de cada refeição DEVE incluir o dia, ex: "Dia ${day} - Café da Manhã".\n\n${formatInstruction}`
+          : `Você é um Nutricionista Clínico de alta performance. Crie um plano alimentar para 1 dia. Crie EXATAMENTE 6 refeições.\n\n${formatInstruction}`;
+
+        // A IA ocasionalmente retorna refeições sem o array 'foods' preenchido
+        // (falha silenciosa já documentada no backlog — não é determinístico,
+        // então a mitigação é validar e tentar de novo, não confiar na 1ª resposta).
+        let dayMeals = [];
+        for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
+          const data = await callOpenAIBridge({
+              system_prompt: systemPrompt,
+              messages: [{ role: "user", content: `Crie um cardápio considerando este contexto clínico:\n\n${promptContext}` }],
+              format_json: true
+          });
+          const parsed = JSON.parse(data.choices[0].message.content);
+          dayMeals = parsed.meals || [];
+          const allMealsHaveFoods = dayMeals.length > 0 && dayMeals.every(m => Array.isArray(m.foods) && m.foods.length > 0);
+          if (allMealsHaveFoods) break;
+          if (attempt < MAX_ATTEMPTS) {
+            console.warn(`generateDietFromAI: dia ${day}, tentativa ${attempt} veio sem alimentos preenchidos em alguma refeição, tentando de novo...`);
+          }
+        }
+
+        if (dayMeals.length === 0) anyDayFailedEntirely = true;
+        if (dayMeals.some(m => !Array.isArray(m.foods) || m.foods.length === 0)) anyDayMissingFoods = true;
+        allMeals = [...allMeals, ...dayMeals];
+      }
+
       if (!dietTitle) {
         setDietTitle(`Plano Personalizado - ${new Date().toLocaleDateString('pt-BR')}`);
       }
-      
+
       // Substitui o plano atual pelo recém-gerado (a duração escolhida já define
       // o plano completo — gerar de novo não deve empilhar dias em cima do anterior)
-      setDietMeals(parsed.meals || []);
+      setDietMeals(allMeals);
+
+      if (anyDayFailedEntirely) {
+        setDietError('A IA não conseguiu gerar um ou mais dias do cardápio após várias tentativas. Tente novamente em instantes.');
+      } else if (anyDayMissingFoods) {
+        setDietError('A IA gerou o cardápio, mas algumas refeições vieram sem os alimentos detalhados mesmo após tentar de novo. Revise manualmente ou gere novamente.');
+      }
     } catch (error) {
       setDietError(error.message || 'Erro ao gerar dieta com IA.');
     } finally {
       setIsGeneratingDiet(false);
+      setDietGenerationProgress('');
+    }
+  };
+
+  const generateSupplementsFromAI = async () => {
+    setIsGeneratingSupplements(true);
+    setDietError('');
+    try {
+      let promptContext = `Objetivo: ${activePatient.objective}. Idade: ${activePatient.age || 'Não informada'}. Sexo: ${activePatient.gender === 'M' ? 'Masculino' : 'Feminino'}.`;
+      if (activePatient.restrictions) promptContext += `\nRestrições/Contraindicações: ${activePatient.restrictions}`;
+      if (activePatient.medications) promptContext += `\nMedicamentos em uso: ${activePatient.medications}`;
+      if (anamnesisText) promptContext += `\nAnamnese: ${anamnesisText}`;
+      if (examResult) promptContext += `\nAnálise de Exames: ${examResult}`;
+
+      const catalogList = supplementsData.map(s => `${s.name} (dose usual: ${s.defaultDosage})`).join(', ');
+      promptContext += `\n\nCATÁLOGO DISPONÍVEL: ${catalogList}`;
+
+      const mealNames = dietMeals.map(m => m.name).filter(Boolean);
+      promptContext += `\n\nREFEIÇÕES JÁ CRIADAS NESTE CARDÁPIO: ${mealNames.length > 0 ? mealNames.join(', ') : 'nenhuma'}. Para cada suplemento sugerido, indique em qual dessas refeições o paciente deve tomá-lo (campo 'mealName', usando exatamente um dos nomes acima) — use o que fizer mais sentido clinicamente (ex: suplemento com gordura junto de uma refeição principal, estimulante longe do jantar). Se nenhuma refeição servir, deixe 'mealName' como string vazia.`;
+
+      const hasExisting = dietSupplementsList.length > 0 || dietSupplements.trim().length > 0;
+      if (hasExisting) {
+        const existingList = dietSupplementsList.map(s => `${s.name} (${s.dosage}${s.mealName ? `, em ${s.mealName}` : ''})`).join(', ') || 'nenhum';
+        promptContext += `\n\nO NUTRICIONISTA JÁ PRESCREVEU: ${existingList}. Observações adicionais já escritas: "${dietSupplements || 'nenhuma'}". Sugira APENAS suplementos complementares que ainda não estão nessa lista — não repita os que já existem.`;
+      } else {
+        promptContext += `\n\nNenhum suplemento foi prescrito ainda. Sugira uma lista completa e adequada ao caso clínico acima.`;
+      }
+
+      const data = await callOpenAIBridge({
+        system_prompt: `Você é um Nutricionista Clínico especialista em suplementação. Retorne EXATAMENTE UM JSON com um array 'supplements', cada item com 'name' (nome do suplemento, preferencialmente do catálogo fornecido), 'dosage' (dose recomendada, ex: "1000mg" ou "1 cápsula") e 'mealName' (nome exato de uma das refeições já criadas, ou string vazia se for de uso geral). Não inclua explicações fora do JSON.`,
+        messages: [{ role: "user", content: `Sugira suplementos considerando este contexto clínico:\n\n${promptContext}` }],
+        format_json: true
+      });
+      const parsed = JSON.parse(data.choices[0].message.content);
+      const suggested = (parsed.supplements || []).map(s => ({ id: Date.now().toString() + Math.random().toString(36).slice(2), name: s.name, dosage: s.dosage, mealName: mealNames.includes(s.mealName) ? s.mealName : '' }));
+      setDietSupplementsList([...dietSupplementsList, ...suggested]);
+    } catch (error) {
+      setDietError(error.message || 'Erro ao sugerir suplementos com IA.');
+    } finally {
+      setIsGeneratingSupplements(false);
     }
   };
 
@@ -482,6 +586,7 @@ Não inclua textos fora do JSON. Apenas o JSON puro.`;
       const hasHistory = patient.consultations && patient.consultations.length > 0;
       
       const recentFoodLogs = (patient.foodLogs || []).slice(-15).map(f => `[${f.date} ${f.time}] ${f.mealName}: ${f.log}`).join(' | ') || 'Nenhum registro de refeição recente';
+      const recentSupplementLogs = (patient.supplementLogs || []).slice(-15).map(s => `[${s.date} ${s.time}] ${s.name}`).join(' | ') || 'Nenhum registro de suplemento tomado';
       const recentWaterLogs = patient.waterLogs ? Object.entries(patient.waterLogs).slice(-7).map(([date, ml]) => `${date}: ${ml}ml`).join(' | ') : 'Nenhum registro de água';
       const recentSleepLogs = (patient.sleepLogs || []).slice(-7).map(s => `${s.date}: ${s.hours}h (${s.quality})`).join(' | ') || 'Nenhum registro de sono';
       const statusCohort = patient.status === 'em_risco' ? '⚠️ EM RISCO DE ABANDONO (PERDENDO FOCO)' : (patient.status || 'Ativo');
@@ -501,6 +606,7 @@ Não inclua textos fora do JSON. Apenas o JSON puro.`;
       Consumo de Água Recente: ${recentWaterLogs}
       Qualidade do Sono Recente: ${recentSleepLogs}
       Diário Alimentar Recente: ${recentFoodLogs}
+      Adesão a Suplementos/Vitaminas Recente: ${recentSupplementLogs}
       `;
 
       const sysPrompt = hasHistory 
@@ -538,6 +644,7 @@ Não inclua textos fora do JSON. Apenas o JSON puro.`;
       dietTitle: dietTitle,
       dietMeals: formattedMeals,
       dietSupplements: dietSupplements,
+      dietSupplementsList: dietSupplementsList,
       dietDescription: dietDescription,
       workoutPlan: workoutPlan
     };
@@ -554,6 +661,7 @@ Não inclua textos fora do JSON. Apenas o JSON puro.`;
         title: dietTitle || 'Plano Alimentar Padrão',
         description: dietDescription,
         supplements: dietSupplements,
+        supplementsList: dietSupplementsList,
         meals: formattedMeals
       }];
     }
@@ -595,10 +703,13 @@ Não inclua textos fora do JSON. Apenas o JSON puro.`;
         dietTitle={dietTitle} setDietTitle={setDietTitle}
         dietDescription={dietDescription} setDietDescription={setDietDescription}
         dietSupplements={dietSupplements} setDietSupplements={setDietSupplements}
+        dietSupplementsList={dietSupplementsList} setDietSupplementsList={setDietSupplementsList}
         dietDuration={dietDuration} setDietDuration={setDietDuration}
         dietMeals={dietMeals} setDietMeals={setDietMeals}
         workoutPlan={workoutPlan} setWorkoutPlan={setWorkoutPlan}
-        isGeneratingDiet={isGeneratingDiet}
+        isGeneratingDiet={isGeneratingDiet} dietGenerationProgress={dietGenerationProgress}
+        generateSupplementsFromAI={generateSupplementsFromAI}
+        isGeneratingSupplements={isGeneratingSupplements}
         isGeneratingWorkout={isGeneratingWorkout}
         analyzeExamWithAI={analyzeExamWithAI}
         generateDietFromAI={generateDietFromAI}
@@ -606,7 +717,6 @@ Não inclua textos fora do JSON. Apenas o JSON puro.`;
         finishConsultation={finishConsultation}
         examError={examError} dietError={dietError} finishedMessage={finishedMessage}
         onSuspend={() => setView(activeApptId ? 'agenda' : 'pacientes')}
-        recipeLibrary={recipeLibrary}
       />
     );
   }

@@ -1,10 +1,11 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { createPortal } from 'react-dom';
-import { Target, Check, Camera, Sparkles, Flame, Droplets, AlertCircle, X, ChevronLeft, ChevronRight, Moon } from 'lucide-react';
+import { Target, Check, Camera, Sparkles, Flame, Droplets, AlertCircle, X, ChevronLeft, ChevronRight, Moon, Loader2, RefreshCw } from 'lucide-react';
 import { useAppContext } from '../../../context/AppContext';
 import ShareableMilestone from './ShareableMilestone';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
+import { useAiRecipe } from '../hooks/useAiRecipe';
 
 // Fotos de câmera podem chegar com vários MB; a Vercel rejeita (413) requisições
 // acima de ~4.5MB antes mesmo de chegar na função serverless. Reduzimos a imagem
@@ -40,17 +41,19 @@ function compressImageFile(file, maxDimension = MAX_PHOTO_DIMENSION, quality = P
 }
 
 export default function QuestBoard({ activePatient }) {
-  const { completeQuest, markMealDone, addExtraMealLog, updateWater, addSleepLog, updatePatient } = useAppContext();
+  const { completeQuest, markMealDone, markSupplementDone, addExtraMealLog, updateWater, addSleepLog, updatePatient } = useAppContext();
   
   const [selectedDateObj, setSelectedDateObj] = useState(new Date());
   
   const [analyzing, setAnalyzing] = useState(false);
   const [previewImage, setPreviewImage] = useState(null);
   const [activeMealIndex, setActiveMealIndex] = useState(null);
+  const [expandedDescIdx, setExpandedDescIdx] = useState(null);
   const [analysisError, setAnalysisError] = useState(null);
   const [checkInMealIndex, setCheckInMealIndex] = useState(null);
   const [ateOnTime, setAteOnTime] = useState(null);
   const [followedDiet, setFollowedDiet] = useState(null);
+  const [tookSupplements, setTookSupplements] = useState(null);
   const [divergenceText, setDivergenceText] = useState('');
   const [showMilestone, setShowMilestone] = useState(false);
   const [showExtraMealSelector, setShowExtraMealSelector] = useState(false);
@@ -74,6 +77,8 @@ export default function QuestBoard({ activePatient }) {
       document.body.style.overflow = previousOverflow;
     };
   }, [showSleepModal]);
+
+  const { expandedRecipes, toggleRecipe, isRecipeLoading, loadingMealIdx, handleGenerateRecipe, getSavedRecipe } = useAiRecipe(activePatient);
 
   const currentRecipe = activePatient?.recipes?.length > 0 ? activePatient.recipes[activePatient.recipes.length - 1] : null;
 
@@ -170,6 +175,7 @@ export default function QuestBoard({ activePatient }) {
     setCheckInMealIndex(idx);
     setAteOnTime(null);
     setFollowedDiet(null);
+    setTookSupplements(null);
     setDivergenceText('');
   };
 
@@ -186,15 +192,22 @@ export default function QuestBoard({ activePatient }) {
 
     const mealName = currentRecipe.meals[idx]?.name || 'Refeição';
     markMealDone(activePatient.id, activePatient.recipes.length - 1, idx, logStr, mealName, selectedDateFormatted);
-    
+
+    const mealSupplements = (currentRecipe.supplementsList || []).filter(s => s.mealName === mealName);
+    if (tookSupplements === true) {
+      mealSupplements.forEach(s => markSupplementDone(activePatient.id, s.id, s.name, selectedDateFormatted));
+    }
+
     // XP Rewards
     let xp = 10;
     if (ateOnTime && followedDiet) xp = 20;
+    if (mealSupplements.length > 0 && tookSupplements === true) xp += 5;
     completeQuest(activePatient.id, xp);
 
     setCheckInMealIndex(null);
     setAteOnTime(null);
     setFollowedDiet(null);
+    setTookSupplements(null);
     setDivergenceText('');
   };
 
@@ -443,6 +456,9 @@ export default function QuestBoard({ activePatient }) {
             const log = getMealLog(meal.name);
             const isDone = !!log;
             const isAnalyzingThis = analyzing && activeMealIndex === idx;
+            const savedRecipe = getSavedRecipe(currentRecipe?.title, meal.name);
+            const isRecipeExpanded = !!expandedRecipes[idx];
+            const isGeneratingThisRecipe = isRecipeLoading && loadingMealIdx === idx;
             return (
               <div key={idx} className="patient-card patient-glass" style={{display: 'flex', flexDirection: 'column', marginBottom: '16px', borderColor: isDone ? 'var(--primary-color)' : 'var(--glass-border)'}}>
                 <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: isDone && log?.log ? '12px' : '0'}}>
@@ -450,12 +466,33 @@ export default function QuestBoard({ activePatient }) {
                     <h4 style={{margin: 0, fontSize: '1.1rem', color: isDone ? 'var(--primary-color)' : 'var(--patient-text)', display: 'flex', alignItems: 'center', gap: '8px'}}>
                       {isDone && <Check size={18} color="var(--primary-color)" />} {meal.name}
                     </h4>
-                    {meal.desc && <p style={{margin: '6px 0 10px 0', fontSize: '0.85rem', color: 'var(--patient-text-muted)', whiteSpace: 'pre-wrap', lineHeight: '1.4'}}>{meal.desc}</p>}
+                    {meal.desc && (
+                      <>
+                        <button
+                          onClick={() => setExpandedDescIdx(expandedDescIdx === idx ? null : idx)}
+                          style={{ background: 'none', border: 'none', color: 'var(--primary-color)', fontSize: '0.8rem', fontWeight: 600, cursor: 'pointer', padding: '4px 0', display: 'flex', alignItems: 'center', gap: '4px' }}
+                        >
+                          {expandedDescIdx === idx ? '▾ Ocultar modo de preparo' : '▸ Ver modo de preparo'}
+                        </button>
+                        {expandedDescIdx === idx && (
+                          <p style={{margin: '6px 0 10px 0', fontSize: '0.85rem', color: 'var(--patient-text-muted)', whiteSpace: 'pre-wrap', lineHeight: '1.4'}}>{meal.desc}</p>
+                        )}
+                      </>
+                    )}
                     {meal.foods && meal.foods.length > 0 && (
                       <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginTop: '6px' }}>
                         {meal.foods.map((f, fi) => (
                           <span key={fi} style={{ backgroundColor: 'var(--patient-surface-2)', border: '1px solid var(--glass-border)', color: 'var(--patient-text)', padding: '4px 8px', borderRadius: '6px', fontSize: '0.8rem', fontWeight: 500 }}>
                             {f.amount}g - {f.name}
+                          </span>
+                        ))}
+                      </div>
+                    )}
+                    {(currentRecipe?.supplementsList || []).filter(s => s.mealName === meal.name).length > 0 && (
+                      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginTop: '6px' }}>
+                        {(currentRecipe.supplementsList || []).filter(s => s.mealName === meal.name).map(s => (
+                          <span key={s.id} style={{ backgroundColor: 'rgba(139, 92, 246, 0.15)', border: '1px solid rgba(139, 92, 246, 0.35)', color: 'var(--patient-text)', padding: '4px 8px', borderRadius: '6px', fontSize: '0.8rem', fontWeight: 500 }}>
+                            💊 {s.dosage} - {s.name}
                           </span>
                         ))}
                       </div>
@@ -471,7 +508,34 @@ export default function QuestBoard({ activePatient }) {
                     <span style={{backgroundColor: 'rgba(16, 185, 129, 0.2)', color: 'var(--primary-color)', padding: '6px 12px', borderRadius: '12px', fontWeight: 'bold', fontSize: '0.8rem', whiteSpace: 'nowrap', flexShrink: 0}}>CONCLUÍDO</span>
                   )}
                 </div>
-                
+
+                <button
+                  onClick={() => savedRecipe ? toggleRecipe(idx) : handleGenerateRecipe(meal, idx, currentRecipe?.title)}
+                  disabled={isGeneratingThisRecipe}
+                  style={{ background: 'none', border: 'none', color: '#8b5cf6', fontSize: '0.8rem', fontWeight: 600, cursor: 'pointer', padding: '4px 0', marginTop: '6px', display: 'flex', alignItems: 'center', gap: '4px' }}
+                >
+                  {isGeneratingThisRecipe
+                    ? <><Loader2 size={14} className="spin" /> Gerando receita...</>
+                    : savedRecipe
+                      ? <>{isRecipeExpanded ? '✨ Ocultar Receita da IA' : '✨ Ver Receita da IA'}</>
+                      : <>✨ Gerar Receita com IA</>
+                  }
+                </button>
+                {isRecipeExpanded && savedRecipe && !isGeneratingThisRecipe && (
+                  <div style={{ marginTop: '8px', padding: '12px', backgroundColor: 'var(--patient-surface-2)', borderRadius: '10px', border: '1px solid rgba(139,92,246,0.25)' }}>
+                    <div className="markdown-content" style={{ fontSize: '0.88rem', color: 'var(--patient-text)' }}>
+                      <ReactMarkdown remarkPlugins={[remarkGfm]}>{savedRecipe}</ReactMarkdown>
+                    </div>
+                    <button
+                      onClick={() => handleGenerateRecipe(meal, idx, currentRecipe?.title)}
+                      disabled={isRecipeLoading}
+                      style={{ marginTop: '8px', background: 'none', border: 'none', color: 'var(--primary-color)', fontSize: '0.78rem', fontWeight: 600, cursor: 'pointer', padding: 0, display: 'flex', alignItems: 'center', gap: '4px' }}
+                    >
+                      <RefreshCw size={12} /> Gerar outra opção
+                    </button>
+                  </div>
+                )}
+
                 {checkInMealIndex === idx && !isDone && (
                   <div className="animate-pop-in" style={{marginTop: '12px', backgroundColor: 'var(--patient-surface-2)', padding: '16px', borderRadius: '12px', border: '1px solid var(--glass-border)'}}>
                     
@@ -485,6 +549,21 @@ export default function QuestBoard({ activePatient }) {
                         </ul>
                       </div>
                     )}
+                    {(() => {
+                      const mealSupplements = (currentRecipe.supplementsList || []).filter(s => s.mealName === meal.name);
+                      if (mealSupplements.length === 0) return null;
+                      return (
+                        <div style={{ marginBottom: '16px' }}>
+                          <label style={{display: 'block', fontSize: '0.95rem', color: 'var(--patient-text)', marginBottom: '8px', fontWeight: 600}}>
+                            💊 Tomou os suplementos desta refeição?
+                          </label>
+                          <div style={{ display: 'flex', gap: '8px' }}>
+                            <button className={`btn-3d ${tookSupplements === true ? 'btn-primary' : 'btn-secondary'}`} style={{flex: 1, padding: '8px', fontSize: '0.9rem'}} onClick={() => setTookSupplements(true)}>Sim</button>
+                            <button className={`btn-3d ${tookSupplements === false ? 'btn-primary' : 'btn-secondary'}`} style={{flex: 1, padding: '8px', fontSize: '0.9rem'}} onClick={() => setTookSupplements(false)}>Não</button>
+                          </div>
+                        </div>
+                      );
+                    })()}
                     <label style={{display: 'block', fontSize: '0.95rem', color: 'var(--patient-text)', marginBottom: '8px', fontWeight: 600}}>Comeu no horário planejado?</label>
                       <div style={{ display: 'flex', gap: '8px' }}>
                         <button className={`btn-3d ${ateOnTime === true ? 'btn-primary' : 'btn-secondary'}`} style={{flex: 1, padding: '8px', fontSize: '0.9rem'}} onClick={() => setAteOnTime(true)}>Sim</button>

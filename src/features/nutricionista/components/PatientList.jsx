@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { Users, Calendar, PlayCircle, Trash2, Plus, Eye, Edit3, TrendingUp, Utensils, FileText, BrainCircuit, Play, Sparkles, Activity, Settings, CreditCard, Palette, AlertTriangle, Trophy, Star, Zap, LayoutDashboard, Search, ChevronUp, ChevronDown, ArrowRight, UserCog, BookOpen, ChefHat, Link as LinkIcon, Camera, Upload, Moon, Dumbbell, DollarSign, Send } from 'lucide-react';
+import { Users, Calendar, PlayCircle, Trash2, Plus, Eye, Edit3, TrendingUp, Utensils, FileText, BrainCircuit, Play, Sparkles, Activity, Settings, CreditCard, Palette, AlertTriangle, Trophy, Star, Zap, LayoutDashboard, Search, ChevronUp, ChevronDown, ArrowRight, UserCog, BookOpen, ChefHat, Link as LinkIcon, Camera, Upload, Moon, Dumbbell, DollarSign, Send, CheckCircle2 } from 'lucide-react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, Legend, ResponsiveContainer } from 'recharts';
 import { useNavigate } from 'react-router-dom';
 import { useAppContext } from '../../../context/AppContext';
@@ -34,7 +34,7 @@ export default function PatientList({
   clinicConfig, updateClinicConfig
 }) {
   const navigate = useNavigate();
-  const { profile, updateProfile, updatePatient, theme, toggleTheme } = useAppContext();
+  const { profile, updateProfile, updatePatient, theme, toggleTheme, isLoadingPatients } = useAppContext();
   const viewedPatient = patients.find(p => p.id === viewingPatientId);
 
   const [copiedGeneralLink, setCopiedGeneralLink] = useState(false);
@@ -262,10 +262,24 @@ export default function PatientList({
     : 0;
   const topEngagedPatients = [...activePatients].sort((a, b) => (b.xp || 0) - (a.xp || 0)).slice(0, 5);
   const atRiskPatients = patients.filter(p => p.status === 'em_risco');
-  const todayAppointments = appointments.filter(a => a.status === 'agendado').sort((a, b) => {
-    const dA = a.date || ''; const dB = b.date || '';
-    return dA === dB ? (a.time || '').localeCompare(b.time || '') : dA.localeCompare(dB);
-  });
+  // "todayAppointments" antes não filtrava por data nenhuma — só por status
+  // 'agendado' — então uma consulta antiga nunca marcada como concluída
+  // (ex: paciente faltou e ninguém atualizou o status) ficava aparecendo pra
+  // sempre como "Próxima Consulta" e inflava o card "Consultas Hoje".
+  const todayISO = new Date().toISOString().split('T')[0];
+  const todayAppointments = appointments.filter(a => a.date === todayISO && a.status !== 'cancelado');
+  const upcomingAppointments = appointments
+    .filter(a => a.status === 'agendado' && a.date >= todayISO)
+    .sort((a, b) => {
+      const dA = a.date || ''; const dB = b.date || '';
+      return dA === dB ? (a.time || '').localeCompare(b.time || '') : dA.localeCompare(dB);
+    });
+  const completedAppointments = appointments
+    .filter(a => a.status === 'concluido')
+    .sort((a, b) => {
+      const dA = a.date || ''; const dB = b.date || '';
+      return dA === dB ? (b.time || '').localeCompare(a.time || '') : dB.localeCompare(dA);
+    });
 
   const sortedFilteredPatients = useMemo(() => {
     let list = patients.filter(p => {
@@ -375,6 +389,7 @@ export default function PatientList({
                 <div className="crm-card" style={{ flex: '1 1 200px' }}>
                   <div style={{ fontSize: '0.85rem', color: 'var(--crm-text-muted)', fontWeight: '600', textTransform: 'uppercase', letterSpacing: '0.04em' }}>Engajamento Médio</div>
                   <div style={{ fontSize: '2rem', fontWeight: '700', color: 'var(--crm-text-main)', marginTop: '4px' }}>{engagedPercentage}%</div>
+                  <div style={{ fontSize: '0.78rem', color: 'var(--crm-text-muted)', marginTop: '2px' }}>🔥 Sequência média: {avgStreak}d</div>
                 </div>
                 <div className="crm-card" style={{ flex: '1 1 200px', borderLeft: atRiskPatients.length > 0 ? '3px solid var(--crm-warn)' : undefined }}>
                   <div style={{ fontSize: '0.85rem', color: 'var(--crm-text-muted)', fontWeight: '600', textTransform: 'uppercase', letterSpacing: '0.04em' }}>Em Risco</div>
@@ -382,7 +397,7 @@ export default function PatientList({
                 </div>
                 <div className="crm-card" style={{ flex: '1 1 200px', cursor: 'pointer', borderLeft: '3px solid #10B981' }} onClick={() => setView('financeiro')} title="Clique para gerenciar honorários e planos">
                   <div style={{ fontSize: '0.85rem', color: 'var(--crm-text-muted)', fontWeight: '600', textTransform: 'uppercase', letterSpacing: '0.04em' }}>Receita Prevista</div>
-                  <div style={{ fontSize: '1.8rem', fontWeight: '800', color: '#10B981', marginTop: '4px', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                  <div style={{ fontSize: '1.8rem', fontWeight: '800', color: 'var(--crm-good-text)', marginTop: '4px', display: 'flex', alignItems: 'center', gap: '4px' }}>
                     <DollarSign size={20} />
                     {(() => {
                       const defaultPlans = [{ id: 'plano_avulso', price: 250 }, { id: 'plano_mensal', price: 350 }, { id: 'plano_trimestral', price: 900 }];
@@ -409,19 +424,57 @@ export default function PatientList({
                     <h3 style={{ display: 'flex', alignItems: 'center', gap: '8px' }}><Calendar size={18} color="var(--crm-accent)" /> Próximas Consultas</h3>
                     <button className="crm-nav-btn" style={{ fontSize: '0.82rem', padding: '4px 8px' }} onClick={() => setView('agenda')}>Ver agenda <ArrowRight size={14} /></button>
                   </div>
-                  {todayAppointments.length === 0 ? (
+                  {upcomingAppointments.length === 0 ? (
                     <p style={{ color: 'var(--crm-text-muted)', fontSize: '0.9rem' }}>Nenhuma consulta agendada.</p>
                   ) : (
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                      {todayAppointments.slice(0, 4).map(appt => {
+                      {upcomingAppointments.slice(0, 4).map(appt => {
                         const pat = patients.find(p => p.id === appt.patientId);
                         if (!pat) return null;
                         return (
-                          <div key={appt.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 0', borderBottom: '1px solid var(--crm-border)' }}>
+                          <div
+                            key={appt.id}
+                            onClick={() => { setView('pacientes'); setViewingPatientId(pat.id); }}
+                            className="crm-clickable-row"
+                            style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 0', borderBottom: '1px solid var(--crm-border)', cursor: 'pointer', borderRadius: '6px' }}
+                          >
                             <div>
                               <div style={{ fontWeight: '600', fontSize: '0.92rem' }}>{pat.name}</div>
                               <div style={{ fontSize: '0.8rem', color: 'var(--crm-text-muted)' }}>
-                                {appt.date ? `${appt.date.split('-').reverse().slice(0, 2).join('/')} - ` : ''}{appt.type}
+                                {appt.date === todayISO ? 'Hoje' : (appt.date ? appt.date.split('-').reverse().slice(0, 2).join('/') : '')} - {appt.type}
+                              </div>
+                            </div>
+                            <span style={{ fontWeight: '700', fontVariantNumeric: 'tabular-nums' }}>{appt.time}</span>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
+                </div>
+
+                <div className="crm-card" style={{ flex: '1 1 340px' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+                    <h3 style={{ display: 'flex', alignItems: 'center', gap: '8px' }}><CheckCircle2 size={18} color="var(--crm-good-text)" /> Consultas Realizadas</h3>
+                    <button className="crm-nav-btn" style={{ fontSize: '0.82rem', padding: '4px 8px' }} onClick={() => setView('agenda')}>Ver agenda <ArrowRight size={14} /></button>
+                  </div>
+                  {completedAppointments.length === 0 ? (
+                    <p style={{ color: 'var(--crm-text-muted)', fontSize: '0.9rem' }}>Nenhuma consulta realizada ainda.</p>
+                  ) : (
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                      {completedAppointments.slice(0, 4).map(appt => {
+                        const pat = patients.find(p => p.id === appt.patientId);
+                        if (!pat) return null;
+                        return (
+                          <div
+                            key={appt.id}
+                            onClick={() => { setView('pacientes'); setViewingPatientId(pat.id); }}
+                            className="crm-clickable-row"
+                            style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 0', borderBottom: '1px solid var(--crm-border)', cursor: 'pointer', borderRadius: '6px' }}
+                          >
+                            <div>
+                              <div style={{ fontWeight: '600', fontSize: '0.92rem' }}>{pat.name}</div>
+                              <div style={{ fontSize: '0.8rem', color: 'var(--crm-text-muted)' }}>
+                                {appt.date ? appt.date.split('-').reverse().slice(0, 2).join('/') : ''} - {appt.type}
                               </div>
                             </div>
                             <span style={{ fontWeight: '700', fontVariantNumeric: 'tabular-nums' }}>{appt.time}</span>
@@ -442,9 +495,38 @@ export default function PatientList({
                   ) : (
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
                       {atRiskPatients.slice(0, 4).map(p => (
-                        <div key={p.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 0', borderBottom: '1px solid var(--crm-border)' }}>
+                        <div
+                          key={p.id}
+                          onClick={() => { setView('pacientes'); setViewingPatientId(p.id); }}
+                          className="crm-clickable-row"
+                          style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 0', borderBottom: '1px solid var(--crm-border)', cursor: 'pointer', borderRadius: '6px' }}
+                        >
                           <span style={{ fontWeight: '600', fontSize: '0.92rem' }}>{p.name}</span>
                           <span className="crm-badge-orange">Perdendo Foco</span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+
+                <div className="crm-card" style={{ flex: '1 1 340px' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+                    <h3 style={{ display: 'flex', alignItems: 'center', gap: '8px' }}><Trophy size={18} color="var(--crm-good-text)" /> Mais Engajados</h3>
+                    <button className="crm-nav-btn" style={{ fontSize: '0.82rem', padding: '4px 8px' }} onClick={() => setView('cohorts')}>Ver cohorts <ArrowRight size={14} /></button>
+                  </div>
+                  {topEngagedPatients.length === 0 ? (
+                    <p style={{ color: 'var(--crm-text-muted)', fontSize: '0.9rem' }}>Nenhum paciente ativo no momento.</p>
+                  ) : (
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                      {topEngagedPatients.slice(0, 4).map(p => (
+                        <div
+                          key={p.id}
+                          onClick={() => { setView('pacientes'); setViewingPatientId(p.id); }}
+                          className="crm-clickable-row"
+                          style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 0', borderBottom: '1px solid var(--crm-border)', cursor: 'pointer', borderRadius: '6px' }}
+                        >
+                          <span style={{ fontWeight: '600', fontSize: '0.92rem' }}>{p.name}</span>
+                          <span style={{ fontSize: '0.82rem', color: 'var(--crm-text-muted)' }}>🔥 {p.streak || 0}d · {p.xp || 0}xp</span>
                         </div>
                       ))}
                     </div>
@@ -560,7 +642,9 @@ export default function PatientList({
                     </tr>
                   </thead>
                   <tbody>
-                    {sortedFilteredPatients.length === 0 && (
+                    {isLoadingPatients ? (
+                      <tr><td colSpan="6" style={{ textAlign: 'center', color: 'var(--crm-text-muted)', padding: '32px 0' }}>Carregando pacientes…</td></tr>
+                    ) : sortedFilteredPatients.length === 0 && (
                       <tr><td colSpan="6" style={{ textAlign: 'center', color: 'var(--crm-text-muted)', padding: '32px 0' }}>Nenhum paciente encontrado.</td></tr>
                     )}
                     {sortedFilteredPatients.map(p => (
@@ -1598,7 +1682,7 @@ export default function PatientList({
                 </div>
                 
                 <div className="crm-card" style={{ flex: '1 1 200px', display: 'flex', alignItems: 'center', gap: '16px' }}>
-                  <div style={{ padding: '16px', backgroundColor: '#ECFDF5', borderRadius: '50%', color: '#10B981' }}>
+                  <div style={{ padding: '16px', backgroundColor: '#ECFDF5', borderRadius: '50%', color: 'var(--crm-good-text)' }}>
                     <Activity size={32} />
                   </div>
                   <div>
@@ -1755,7 +1839,7 @@ export default function PatientList({
                           </div>
                         </div>
                         <button type="submit" className="crm-btn-primary">Salvar Perfil</button>
-                        {profSaved && <p style={{ color: 'var(--crm-good)', fontSize: '0.85rem', fontWeight: 600, marginTop: '16px' }}>Perfil salvo com sucesso!</p>}
+                        {profSaved && <p style={{ color: 'var(--crm-good-text)', fontSize: '0.85rem', fontWeight: 600, marginTop: '16px' }}>Perfil salvo com sucesso!</p>}
                       </form>
                     </div>
                   )}
@@ -1935,7 +2019,7 @@ export default function PatientList({
             <form onSubmit={handleCreateAppointment}>
               <div style={{ marginBottom: '16px' }}>
                 <label className="crm-label">Paciente</label>
-                <select className="crm-input" value={apptPatientId} onChange={e => setApptPatientId(e.target.value)} required>
+                <select autoFocus className="crm-input" value={apptPatientId} onChange={e => setApptPatientId(e.target.value)} required>
                   <option value="" disabled>Selecione...</option>
                   {patients.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
                 </select>
@@ -2009,7 +2093,7 @@ export default function PatientList({
             <form onSubmit={handleSavePatient}>
               <div style={{ marginBottom: '16px' }}>
                 <label className="crm-label">Nome Completo</label>
-                <input type="text" className="crm-input" value={patName} onChange={e => setPatName(e.target.value)} required />
+                <input autoFocus type="text" className="crm-input" value={patName} onChange={e => setPatName(e.target.value)} required />
               </div>
               <div style={{ display: 'flex', gap: '16px', marginBottom: '16px' }}>
                 <div style={{ flex: 1 }}>

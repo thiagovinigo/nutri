@@ -1,3 +1,5 @@
+> ⚠️ **APOSENTADO em 28/07/2026** — este arquivo não é mais a referência ativa. Use `backlog.md` (backlog unificado, seção "V2 — Grandes iniciativas"). Conteúdo relevante já foi consolidado lá; mantido aqui só como histórico bruto.
+
 # Nutrivvo - Todo & Workflow da Versão 2.0 (V2)
 **Status:** Em Planejamento / Execução da V2  
 **Base Estável Preservada:** Branch `backup-stable-v1` (tag v1.0.0 estável em produção no Vercel)  
