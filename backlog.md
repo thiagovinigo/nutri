@@ -7,12 +7,13 @@
 
 ## 🎯 Próximas Missões (ordem de prioridade pro lançamento)
 
-1. **[BLOQUEIA LANÇAMENTO] Publicar `firestore.rules` de verdade** — `firebase deploy --only firestore:rules` no projeto `nutribase-fea35`. As regras de segurança escritas no repo não valem nada até isso rodar. Só você tem acesso ao Firebase CLI pra fazer isso.
-2. **[BLOQUEIA LANÇAMENTO] Autorizar domínio no Firebase Auth** — `nutrivvo.com.br` e `www.nutrivvo.com.br` em Authentication → Authorized domains. Sem isso o login quebra no domínio novo.
-3. **Testar manualmente o upload de exame por IA** (`Consulta → 3. Exames (IA OpenAI)`) — não deu pra automatizar via navegador nesta sessão (limitação da ferramenta), é a única funcionalidade de IA que ficou sem teste ponta-a-ponta. Suba uma foto/PDF de exame real e confirme se a análise volta certa.
-4. **Investigar timeout de geração de dieta de 7 dias** — medido em ~50-60s numa geração real. Funções serverless da Vercel têm limite de execução; se passar, o paciente vê erro sem entender por quê. Precisa reduzir `max_tokens`/trocar modelo ou mover pra job assíncrono.
-5. **Reproduzir a falha silenciosa de geração de dieta** — na 1ª tentativa de um teste não apareceu nenhum erro nem gerou refeições; na 2ª tentativa idêntica funcionou. Não foi possível capturar log/rede na hora. Se acontecer de novo, a descrição exata do que foi clicado + prints ajudam a rastrear.
-6. **Cores hardcoded fora do roxo da marca** — botão "Nova Receita" (Biblioteca de Receitas) e abas "Da Nutri"/"Minhas Receitas" (app paciente) ainda usam azul, não a variável de marca. Cosmético, baixa prioridade.
+1. **[BLOQUEIA LANÇAMENTO] Vercel não está fazendo deploy automático do `main`** — PR #5 (24 commits desta sessão) foi mergeado em `main` em 29/07/2026, mas nenhum novo deployment apareceu no dashboard da Vercel. Git do lado (push/merge) confirmado correto. Precisa checar Project Settings → Git na Vercel: se o repo/branch conectado é o certo, se o webhook do GitHub pra esse projeto está ativo, e se não há alguma trava manual (deploy pausado, branch protection etc.). Enquanto isso não resolver, produção continua rodando o código de antes desta sessão inteira.
+2. ~~Publicar `firestore.rules` de verdade~~ — feito em 29/07/2026, você publicou manualmente via Firebase Console (Firestore Database → Rules). Isso já destravou o cadastro por convite (`?vincular=ID`), que estava retornando "Missing or insufficient permissions" antes disso.
+3. **[BLOQUEIA LANÇAMENTO] Autorizar domínio no Firebase Auth** — `nutrivvo.com.br` e `www.nutrivvo.com.br` em Authentication → Authorized domains. Sem isso o login quebra no domínio novo.
+4. **Testar manualmente o upload de exame por IA** (`Consulta → 3. Exames (IA OpenAI)`) — não deu pra automatizar via navegador nesta sessão (limitação da ferramenta), é a única funcionalidade de IA que ficou sem teste ponta-a-ponta. Suba uma foto/PDF de exame real e confirme se a análise volta certa.
+5. ~~Investigar timeout de geração de dieta de 7 dias~~ — corrigido em 29/07/2026: `generateDietFromAI` gera um dia por chamada em vez de todos de uma vez (era a causa raiz do erro "A IA demorou demais para responder", reportado como urgente). Testado localmente contra a API real: ~26s por dia isolado, bem dentro de qualquer timeout. Timeouts client-side (130s) e server-side (110s, `maxDuration: 120` na função) também foram adicionados como rede de segurança, pra nunca mais travar "Analisando..." sem erro visível.
+6. ~~Reproduzir a falha silenciosa de geração de dieta~~ — endereçado (não 100% "reproduzido e explicado", mas mitigado na raiz): retry automático com validação de `foods[]` preenchido (até 3 tentativas) já existia; a geração dia-a-dia (item 5) reduz ainda mais a chance de acontecer, já que cada chamada pede muito menos da IA de uma vez.
+7. **Cores hardcoded fora do roxo da marca** — botão "Nova Receita" (Biblioteca de Receitas) e abas "Da Nutri"/"Minhas Receitas" (app paciente) ainda usam azul, não a variável de marca. Cosmético, baixa prioridade.
 
 ---
 
@@ -46,13 +47,49 @@
 - **Bug (reportado por você):** modal de "Registrar Sono" ficava travada/fora do lugar no celular. Causa raiz: a animação CSS do wrapper do QuestBoard (`animate-pop-in`) termina com `transform: scale(1)` fixo, o que vira "containing block" pra qualquer `position: fixed` filho — o modal não ficava realmente preso à tela, ficava preso aos limites daquele wrapper. Corrigido renderizando via `createPortal` direto no `document.body`.
 - **Bug (reportado por você):** botão "Nutricionista" no cadastro quebrava linha (emoji em cima, texto embaixo) ao ser selecionado, porque o texto em negrito não cabia na coluna. Corrigido.
 
+## ✅ Feito — Sessão de 29/07/2026 (suplementos, receitas, dashboard, cadastro por convite)
+
+> 24 commits, PR #5 aberto e mergeado em `main`. Detalhe completo nos commits da branch `feature/consulta-receitas-suplementos` (histórico preservado mesmo pós-merge).
+
+**Clínico / Consulta**
+- Catálogo de suplementos com sugestão por IA (por refeição), check-in do paciente por suplemento, síntese clínica passa a considerar adesão
+- Anexar receita salva à refeição foi implementado e **revertido** por decisão do usuário ("está mais atrapalhando que ajudando") — ver detalhe em "Ferramentas da Consulta" abaixo
+- Abas da etapa 4 passaram por 2 reorganizações no mesmo dia: consolidadas em 2 (Dieta+Suplementos / Treino) e depois **voltaram a ser 3** (Refeições / Vitaminas e Suplementos / Treino) porque suplementos ficava "muito lá embaixo" só pro nutricionista — o app do paciente não foi mexido nessa parte
+- "Substituir" alimento (equivalente por macro) agora existe também pro nutricionista (`MealBuilder.jsx`), considerando aversões/alergias — e o lado do paciente (`DietPlan.jsx`), que já tinha essa função, ganhou o mesmo filtro de aversões que nunca tinha tido
+- Novo agendamento valida dia da semana (`workingDays`) e datas bloqueadas antes de criar — antes deixava marcar em qualquer dia, inclusive dias que o nutricionista não configurou como de atendimento
+- Cadastro de novo paciente agora abre direto o perfil em "Meus Pacientes" — antes voltava pra "Início" sem mostrar nada
+
+**App do Paciente**
+- Suplementos aparecem como chip junto com os alimentos no card da refeição (antes só apareciam dentro do check-in)
+- "Receita da IA" (regenerável) disponível direto no check-in diário, não só no plano completo — extraído pro hook compartilhado `useAiRecipe.js`
+- Mecanismo de flip-card (virar o cartão) trocado por expand/collapse inline, mesmo padrão do "Ver modo de preparo" — usuário pediu explicitamente essa consistência
+
+**IA / Performance**
+- Geração de cardápio agora é dia-a-dia (uma chamada por dia) em vez de uma chamada gigante pra todos os dias — corrige o erro "A IA demorou demais para responder" reportado como urgente, com feedback de progresso visível ("Gerando dia 3 de 7...")
+- Timeout client-side (130s) e server-side (110s + `maxDuration: 120`) na bridge da OpenAI
+
+**Dashboard "Visão Geral"**
+- Corrigido bug onde consultas antigas nunca marcadas como concluídas apareciam pra sempre como "Próxima Consulta" (faltava filtro de data, só filtrava por status)
+- Novo card "Consultas Realizadas" e "Mais Engajados" (usa dado `topEngagedPatients`/`avgStreak` que já existia calculado no código mas nunca era exibido)
+- Linhas das 3 listas (Próximas Consultas, Consultas Realizadas, Atenção Necessária) ficaram clicáveis, levando direto ao perfil do paciente
+- Revisão de discovery + PM rodada sobre essa tela (ver seção própria abaixo) — só os itens de baixo risco foram implementados agora, o resto ainda precisa de validação
+
+**Agenda**
+- Destaque visual (borda + fundo + badge "HOJE") na coluna do dia atual na visão semanal
+
+**Cadastro por convite (`?vincular=ID`)**
+- Corrigido bug de integridade: agendamentos feitos antes do paciente terminar o cadastro ficavam órfãos, porque o ID do paciente mudava (placeholder deletado, novo doc criado sob o UID do Firebase Auth) sem migrar `appointments.patientId`. Precisou de uma regra nova no `firestore.rules` (escopo mínimo — só o próprio paciente, só o campo `patientId`, só de placeholder ainda não reivindicado)
+- Causa raiz encontrada de um bug antigo (nunca reportado antes, mas provavelmente sempre presente): a regra que permite ler o placeholder sem estar autenticado (`allow read: if resource.data.status == 'inativo'`) nunca tinha sido publicada de verdade — por isso os campos vinham sempre em branco no cadastro por convite. Resolvido junto com o deploy acima.
+- Campos pré-preenchidos (nome, e-mail, CPF, telefone) viram um resumo somente-leitura em vez de formulário editável duplicado, com e-mail/CPF/telefone mascarados parcialmente (pedido do usuário); data de nascimento removida do resumo (continua sendo salva, só não aparece)
+
 ---
 
 ## 🔧 Precisa de ação sua (pendente de infraestrutura, não de código)
 
-> Itens 1 e 2 também estão em destaque em "Próximas Missões" acima por bloquearem o lançamento.
+> Item 1 também está em destaque em "Próximas Missões" acima por bloquear o lançamento.
 
-- [ ] `firestore.rules` está no repo mas **nunca foi publicado de verdade** (`firebase deploy --only firestore:rules` no projeto `nutribase-fea35`)
+- [ ] **Vercel não deployou automaticamente o merge do PR #5 em `main`** (29/07/2026) — nenhum novo deployment aparece no dashboard. Checar Project Settings → Git (repo/branch conectado, webhook do GitHub ativo).
+- [x] ~~`firestore.rules` nunca tinha sido publicado de verdade~~ — publicado em 29/07/2026 via Firebase Console (Firestore Database → Rules), pelo usuário.
 - [ ] Autorizar `nutrivvo.com.br`/`www.nutrivvo.com.br` no Firebase Console (Authentication → Authorized domains)
 - [ ] **Causa raiz encontrada do "domínio não acompanha deploy":** no dashboard da Vercel (Settings → Domains do projeto `nutri`), `nutrivvo.com.br` e `www.nutrivvo.com.br` estão marcados como ambiente **Preview**, não **Production** — só domínio de Production segue automaticamente o `vercel --prod`. Não tem comando de CLI pra isso, precisa mudar pelo dashboard (clicar no domínio → trocar ambiente pra Production). Depois disso o `vercel alias set` manual deixa de ser necessário.
 - [ ] Escolher domínio principal — recomendação: `nutrivvo.com.br` (apex, sem www) como canônico, com `www.nutrivvo.com.br` redirecionando pra ele (opção de redirect na própria tela de Domains da Vercel). `nutri-umber-kappa.vercel.app` fica só como fallback técnico, não divulgar.
@@ -196,12 +233,25 @@
 
 - [ ] **Repensar "Meus Templates de Dieta"** — removido da consulta em 28/07/2026 (junto com "Salvar como Template") por decisão do usuário: a IA e a biblioteca de receitas são muito mais usadas, e o template ficava esquecido/confuso ali. Reavaliar mais pra frente com uma UX melhor (talvez integrado à Biblioteca de Receitas em vez de isolado na consulta) antes de trazer de volta. `addDietTemplate`/`dietTemplates` continuam existindo no `AppContext.jsx`, só não são mais consumidos por `ConsultationFlow.jsx`.
 - [x] ~~Botão "Anexar ao Paciente" (Receitas Salvas) ficava desconectado do que estava sendo montado~~ — corrigido em 28/07/2026, depois **revertido no mesmo dia**: a versão corrigida (seletor "Anexar receita salva" dentro de cada refeição + seção "Receitas Salvas" na aba Ferramentas, criando refeição a partir da receita) foi removida por decisão do usuário — "deixes a receita em backlog ela esta mais atrapalhando que ajudando da forma que esta hoje". Removido de `MealBuilder.jsx` e `ConsultationFlow.jsx` (junto com o mecanismo de drag-and-drop `handleDropToMeal`/`draggedRecipe`, que já estava morto — nunca tinha um `onDragStart` real ligado a ele). **Repensar do zero** antes de reintroduzir: o problema de fundo continua sendo o do PRD original (`.claude/prds/prescricao-receitas-suplementos.prd.md`) — receita anexada não casa com a base TACO, então `foods[]` fica vazio e a refeição parece "sem padrão" mesmo com o texto da receita preenchido.
-- [x] ~~4 abas na etapa 4 (Refeições do Cardápio / Vitaminas e Suplementos / Ficha de Treino / Ferramentas e Assistentes)~~ — consolidadas em 28/07/2026 em 2 abas: "Dieta e Suplementos" (gerador de cardápio IA + refeições + suplementos, nessa ordem) e "Ficha de Treino". Reflete o fluxo real do nutricionista — dieta, depois vitaminas, depois treino — em vez de abas soltas. O botão "Sugerir com IA" de suplementos continua desabilitado até existir ao menos 1 refeição no cardápio.
+- [x] ~~4 abas na etapa 4 (Refeições do Cardápio / Vitaminas e Suplementos / Ficha de Treino / Ferramentas e Assistentes)~~ — primeiro consolidadas em 28/07/2026 em 2 abas ("Dieta e Suplementos" + "Ficha de Treino"), depois **revertido parcialmente em 29/07/2026**: suplementos voltou a ser aba própria porque ficava "muito lá embaixo" numa página só de scroll longo pro nutricionista (pro paciente o resultado final já estava perfeito, não foi mexido). Estado final: 3 abas — "Refeições do Cardápio", "Vitaminas e Suplementos", "Ficha de Treino". A antiga aba "Ferramentas e Assistentes" continua absorvida dentro de "Refeições do Cardápio" (gerador de IA + receitas). O botão "Sugerir com IA" de suplementos continua desabilitado até existir ao menos 1 refeição no cardápio.
+
+## 📊 Dashboard "Visão Geral" — discovery + PM (29/07/2026)
+
+> Usuário pediu revisão via agentes `feature-discovery` + `refinement-qa` porque "não vejo muita info relevante". Os dois convergiram no mesmo diagnóstico de fundo: a tela é quase 100% passiva/histórica, e o único sinal que parece "inteligente" (Em Risco) na verdade só ecoa um campo manual (`status`) que o próprio nutricionista seta em outro lugar — o dashboard não descobre nada sozinho.
+
+- [x] ~~Listas não eram clicáveis~~ — feito em 29/07/2026: as 3 listas (Próximas Consultas, Consultas Realizadas, Atenção Necessária) agora levam direto ao perfil do paciente.
+- [x] ~~`avgStreak`/`topEngagedPatients` calculados mas nunca exibidos~~ — feito em 29/07/2026: novo card "Mais Engajados" + linha de "Sequência média" no card de Engajamento.
+- [ ] **H1 — Substituir "Em Risco" manual por sinal derivado de comportamento real** (streak zerado / dias sem check-in, dado que já existe por paciente) — maior impacto, esforço baixo-médio, mas precisa validar antes: o nutricionista quer perder o controle manual desse campo, ou prefere os dois (manual + sugestão automática)?
+- [ ] **H3 — "Receita Prevista" é contratada, não recebida** — não existe hoje nenhum campo de status de pagamento/inadimplência (`paymentStatus`, confirmado 0 ocorrências no código). Maior gap financeiro identificado, mas é feature nova (não só exibição), esforço maior.
+- [ ] **H4 — Sinalizar consultas de hoje que precisam de preparo prévio** (paciente sem anamnese completa, sem dieta ativa) antes da consulta acontecer.
+- [ ] **H5 — Reconsiderar se "Engajamento Médio" (%) merece o card do topo** — é a métrica mais "vaidosa"/menos acionável das 5 atuais; candidata a sair ou virar link direto pra Cohorts.
+- [ ] Pergunta bloqueadora de ambos os agentes, ainda sem resposta: **o que o nutricionista realmente faz nos primeiros 30 segundos ao abrir o sistema de manhã?** Sem isso, qualquer redesenho maior da Visão Geral é palpite.
 
 ## 🧹 Qualidade
 
 - [ ] **Zero testes automatizados no projeto** — priorizar: login, criar/editar paciente, agendar consulta, prescrever dieta
 - [ ] `DietPlan.jsx` e `QuestBoard.jsx` mostram a mesma dieta de formas inconsistentes (um é lista estática, outro tem estado feito/pendente)
+- [ ] **Considerar upgrade pontual `gpt-4o-mini` → `gpt-4o` só na análise de foto de refeição** (`QuestBoard.jsx`, check-in por câmera) — hoje todo o app usa `gpt-4o-mini` (inclusive vision) via `api/openai-bridge.js`. Só vale a troca (custo maior por chamada) se acurácia de porção/quantidade virar reclamação recorrente de paciente; não trocar o resto do app, só as chamadas com `image_url`.
 
 ---
 
