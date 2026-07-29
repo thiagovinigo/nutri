@@ -19,6 +19,7 @@ export default function DietPlan({ activePatient }) {
   const [loadingMealIdx, setLoadingMealIdx] = useState(null);
   const [selectedPlanDay, setSelectedPlanDay] = useState(1);
   const [flippedCards, setFlippedCards] = useState({});
+  const [expandedDescIdx, setExpandedDescIdx] = useState(null);
 
   const toggleFlip = (mIdx) => {
     setFlippedCards(prev => ({ ...prev, [mIdx]: !prev[mIdx] }));
@@ -72,8 +73,17 @@ export default function DietPlan({ activePatient }) {
       // Salva no banco de dados do paciente para não perder ao trocar de aba
       const newAiRecipes = { ...(activePatient.aiRecipes || {}) };
       newAiRecipes[recipeKey] = content;
-      updatePatient(activePatient.id, { aiRecipes: newAiRecipes });
-      
+
+      // Histórico completo (aiRecipes só guarda a última por refeição -- toda
+      // vez que o paciente "Regerar", a anterior some. Guardamos cada geração
+      // aqui pra ele poder buscar receitas antigas depois.)
+      const newAiRecipeHistory = [
+        ...(activePatient.aiRecipeHistory || []),
+        { id: Date.now().toString(), mealName: meal.name, recipeTitle, content, date: new Date().toISOString() }
+      ];
+
+      updatePatient(activePatient.id, { aiRecipes: newAiRecipes, aiRecipeHistory: newAiRecipeHistory });
+
     } catch (err) {
       console.error('Erro ao gerar receita com IA:', err);
       alert(err.message || 'Infelizmente não foi possível gerar a receita no momento. Verifique sua conexão e tente novamente.');
@@ -372,12 +382,17 @@ export default function DietPlan({ activePatient }) {
                             )}
 
                             {m.desc && (
-                              <button
-                                onClick={() => toggleFlip(mIdx)}
-                                style={{ background: 'none', border: 'none', color: 'var(--primary-color)', fontSize: '0.82rem', fontWeight: 600, cursor: 'pointer', padding: '4px 0', marginBottom: '8px', display: 'flex', alignItems: 'center', gap: '4px' }}
-                              >
-                                📖 Ver modo de preparo
-                              </button>
+                              <>
+                                <button
+                                  onClick={() => setExpandedDescIdx(expandedDescIdx === mIdx ? null : mIdx)}
+                                  style={{ background: 'none', border: 'none', color: 'var(--primary-color)', fontSize: '0.82rem', fontWeight: 600, cursor: 'pointer', padding: '4px 0', marginBottom: '8px', display: 'flex', alignItems: 'center', gap: '4px' }}
+                                >
+                                  {expandedDescIdx === mIdx ? '📖 Ocultar modo de preparo' : '📖 Ver modo de preparo'}
+                                </button>
+                                {expandedDescIdx === mIdx && (
+                                  <p style={{ margin: '0 0 12px 0', fontSize: '0.85rem', color: 'var(--patient-text-muted)', whiteSpace: 'pre-wrap', lineHeight: '1.5' }}>{m.desc}</p>
+                                )}
+                              </>
                             )}
 
                             {/* IA Recipe button */}
@@ -405,13 +420,6 @@ export default function DietPlan({ activePatient }) {
                                 <X size={18} />
                               </button>
                             </div>
-
-                            {m.desc && (
-                              <div style={{ marginBottom: '12px', paddingBottom: '12px', borderBottom: '1px solid rgba(139,92,246,0.2)' }}>
-                                <strong style={{ display: 'block', color: 'var(--patient-text)', fontSize: '0.85rem', marginBottom: '6px' }}>📖 Modo de Preparo</strong>
-                                <p style={{ margin: 0, fontSize: '0.88rem', color: 'var(--patient-text-muted)', whiteSpace: 'pre-wrap', lineHeight: '1.5' }}>{m.desc}</p>
-                              </div>
-                            )}
 
                             <strong style={{ display: 'flex', alignItems: 'center', gap: '6px', color: '#8b5cf6', fontSize: '0.85rem', marginBottom: '6px' }}>
                               <Sparkles size={14} /> Receita da IA
