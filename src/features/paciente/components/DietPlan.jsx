@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { createPortal } from 'react-dom';
-import { Utensils, RefreshCw, X, ShoppingCart, Printer, Sparkles, Loader2, History, ChevronLeft, ChevronRight, CheckCircle2 } from 'lucide-react';
+import { Utensils, RefreshCw, X, ShoppingCart, Printer, Loader2, History, ChevronLeft, ChevronRight, CheckCircle2 } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import tacoData from '../../../data/taco.json';
@@ -17,7 +17,7 @@ export default function DietPlan({ activePatient }) {
   const [recipeModal, setRecipeModal] = useState(null);
   const [selectedPlanDay, setSelectedPlanDay] = useState(1);
   const [expandedDescIdx, setExpandedDescIdx] = useState(null);
-  const { flippedCards, toggleFlip, isRecipeLoading, loadingMealIdx, handleGenerateRecipe, getSavedRecipe } = useAiRecipe(activePatient);
+  const { expandedRecipes, toggleRecipe, isRecipeLoading, loadingMealIdx, handleGenerateRecipe, getSavedRecipe } = useAiRecipe(activePatient);
 
   const isMealDone = (mealName) => {
     return (activePatient.foodLogs || []).some(
@@ -256,129 +256,97 @@ export default function DietPlan({ activePatient }) {
                 {(r.meals || []).map((m, mIdx) => {
                   const hasDayPrefix = /Dia \d+/i.test(m.name || '');
                   if (hasDayPrefix && !new RegExp(`Dia ${selectedPlanDay}\\b`, 'i').test(m.name || '')) return null;
-                  const isFlipped = !!flippedCards[mIdx];
                   const savedRecipe = getSavedRecipe(r.title, m.name);
+                  const isRecipeExpanded = !!expandedRecipes[mIdx];
+                  const isGeneratingThisRecipe = isRecipeLoading && loadingMealIdx === mIdx;
                   const done = isMealDone(m.name);
 
                   return (
-                    <div key={mIdx} style={{ marginBottom: '12px' }}>
-                      <div className={`flip-card${isFlipped ? ' flipped' : ''}`}>
-                        <div className="flip-card-inner">
-
-                          {/* ── FRONT ── */}
-                          <div className="flip-card-front patient-card patient-glass" style={{ borderRadius: '16px', padding: '16px', borderColor: done ? 'var(--primary-color)' : 'var(--glass-border)' }}>
-                            {/* Meal header */}
-                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
-                              <h4 style={{ margin: 0, color: done ? 'var(--primary-color)' : 'var(--patient-text)', fontSize: '1rem', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                                {done && <span>✅</span>} {m.name}
-                              </h4>
-                              {done && (
-                                <span style={{ backgroundColor: 'rgba(16,185,129,0.15)', color: 'var(--primary-color)', padding: '3px 10px', borderRadius: '12px', fontSize: '0.75rem', fontWeight: 'bold' }}>
-                                  CONCLUÍDA
-                                </span>
-                              )}
-                            </div>
-
-                            {/* Food items */}
-                            {m.foods && m.foods.length > 0 && (
-                              <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', marginBottom: '12px' }}>
-                                {m.foods.map((f, fIdx) => (
-                                  <div key={fIdx} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', backgroundColor: 'var(--patient-surface-2)', padding: '10px 12px', borderRadius: '10px', border: '1px solid var(--glass-border)' }}>
-                                    <div style={{ flex: 1 }}>
-                                      <strong style={{ color: 'var(--patient-text)', display: 'block', fontSize: '0.88rem' }}>{f.amount}g — {f.name}</strong>
-                                      <span style={{ fontSize: '0.75rem', color: 'var(--patient-text-muted)' }}>
-                                        {f.kcal} kcal&nbsp;|&nbsp;C: {f.carb}g&nbsp;|&nbsp;P: {f.protein}g&nbsp;|&nbsp;G: {f.fat}g
-                                      </span>
-                                    </div>
-                                    {!done && (
-                                      <button onClick={() => handleOpenSub({ ...f, _rIdx: idx, _mIdx: mIdx, _fIdx: fIdx })}
-                                        style={{ background: 'transparent', border: '1px solid var(--primary-color)', color: 'var(--primary-color)', padding: '4px 10px', borderRadius: '20px', fontSize: '0.75rem', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '3px', cursor: 'pointer', whiteSpace: 'nowrap', flexShrink: 0, marginLeft: '8px' }}>
-                                        <RefreshCw size={11} /> Sub.
-                                      </button>
-                                    )}
-                                  </div>
-                                ))}
-                              </div>
-                            )}
-
-                            {(r.supplementsList || []).filter(s => s.mealName === m.name).length > 0 && (
-                              <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', marginBottom: '12px' }}>
-                                {(r.supplementsList || []).filter(s => s.mealName === m.name).map(s => (
-                                  <div key={s.id} style={{ display: 'flex', alignItems: 'center', gap: '8px', backgroundColor: 'rgba(139, 92, 246, 0.1)', padding: '10px 12px', borderRadius: '10px', border: '1px solid rgba(139, 92, 246, 0.3)' }}>
-                                    <strong style={{ color: 'var(--patient-text)', fontSize: '0.88rem' }}>💊 {s.dosage} — {s.name}</strong>
-                                  </div>
-                                ))}
-                              </div>
-                            )}
-
-                            {m.desc && (
-                              <>
-                                <button
-                                  onClick={() => setExpandedDescIdx(expandedDescIdx === mIdx ? null : mIdx)}
-                                  style={{ background: 'none', border: 'none', color: 'var(--primary-color)', fontSize: '0.82rem', fontWeight: 600, cursor: 'pointer', padding: '4px 0', marginBottom: '8px', display: 'flex', alignItems: 'center', gap: '4px' }}
-                                >
-                                  {expandedDescIdx === mIdx ? '📖 Ocultar modo de preparo' : '📖 Ver modo de preparo'}
-                                </button>
-                                {expandedDescIdx === mIdx && (
-                                  <p style={{ margin: '0 0 12px 0', fontSize: '0.85rem', color: 'var(--patient-text-muted)', whiteSpace: 'pre-wrap', lineHeight: '1.5' }}>{m.desc}</p>
-                                )}
-                              </>
-                            )}
-
-                            {/* IA Recipe button */}
-                            <button
-                              onClick={() => savedRecipe ? toggleFlip(mIdx) : handleGenerateRecipe(m, mIdx, r.title)}
-                              disabled={isRecipeLoading && loadingMealIdx === mIdx}
-                              style={{ backgroundColor: '#8b5cf6', color: '#FFF', border: 'none', padding: '8px 16px', borderRadius: '12px', fontWeight: 'bold', display: 'inline-flex', alignItems: 'center', gap: '6px', cursor: 'pointer', boxShadow: '0 3px 0 #7c3aed', fontSize: '0.82rem', transition: 'all 0.2s' }}
-                            >
-                              {isRecipeLoading && loadingMealIdx === mIdx
-                                ? <><Loader2 size={14} className="spin" /> Gerando...</>
-                                : savedRecipe
-                                  ? <><Sparkles size={14} /> Ver Receita IA</>
-                                  : <><Sparkles size={14} /> Gerar Receita com IA</>
-                              }
-                            </button>
-                          </div>
-
-                          {/* ── BACK (Recipe) ── */}
-                          <div className="flip-card-back patient-card patient-glass" style={{ borderRadius: '16px', padding: '16px', display: 'flex', flexDirection: 'column' }}>
-                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px', borderBottom: '1px solid rgba(139,92,246,0.3)', paddingBottom: '10px' }}>
-                              <h4 style={{ margin: 0, display: 'flex', alignItems: 'center', gap: '6px', color: '#8b5cf6', fontSize: '0.95rem' }}>
-                                <Sparkles size={16} /> {m.name}
-                              </h4>
-                              <button onClick={() => toggleFlip(mIdx)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--patient-text-muted)', padding: '4px' }}>
-                                <X size={18} />
-                              </button>
-                            </div>
-
-                            <strong style={{ display: 'flex', alignItems: 'center', gap: '6px', color: '#8b5cf6', fontSize: '0.85rem', marginBottom: '6px' }}>
-                              <Sparkles size={14} /> Receita da IA
-                            </strong>
-                            <div className="markdown-content" style={{ flex: 1, overflowY: 'auto', color: 'var(--patient-text)', fontSize: '0.9rem' }}>
-                              {isRecipeLoading && loadingMealIdx === mIdx ? (
-                                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '32px 0', color: '#8b5cf6' }}>
-                                  <Loader2 size={28} className="spin" style={{ marginBottom: '12px' }} />
-                                  <strong>Chef IA preparando algo delicioso...</strong>
-                                </div>
-                              ) : savedRecipe ? (
-                                <ReactMarkdown remarkPlugins={[remarkGfm]}>{savedRecipe}</ReactMarkdown>
-                              ) : (
-                                <p style={{ color: 'var(--patient-text-muted)' }}>Nenhuma receita gerada ainda.</p>
-                              )}
-                            </div>
-
-                            <div style={{ marginTop: '12px', display: 'flex', gap: '8px', justifyContent: 'flex-end', borderTop: '1px solid rgba(139,92,246,0.3)', paddingTop: '12px' }}>
-                              <button onClick={() => handleGenerateRecipe(m, mIdx, r.title)} disabled={isRecipeLoading} className="btn-3d btn-secondary" style={{ padding: '7px 14px', fontSize: '0.8rem', display: 'flex', alignItems: 'center', gap: '4px' }}>
-                                <RefreshCw size={13} /> Regerar
-                              </button>
-                              <button onClick={() => toggleFlip(mIdx)} className="btn-3d btn-primary" style={{ padding: '7px 14px', fontSize: '0.8rem' }}>
-                                Fechar
-                              </button>
-                            </div>
-                          </div>
-
-                        </div>
+                    <div key={mIdx} className="patient-card patient-glass" style={{ marginBottom: '12px', borderRadius: '16px', padding: '16px', borderColor: done ? 'var(--primary-color)' : 'var(--glass-border)' }}>
+                      {/* Meal header */}
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
+                        <h4 style={{ margin: 0, color: done ? 'var(--primary-color)' : 'var(--patient-text)', fontSize: '1rem', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                          {done && <span>✅</span>} {m.name}
+                        </h4>
+                        {done && (
+                          <span style={{ backgroundColor: 'rgba(16,185,129,0.15)', color: 'var(--primary-color)', padding: '3px 10px', borderRadius: '12px', fontSize: '0.75rem', fontWeight: 'bold' }}>
+                            CONCLUÍDA
+                          </span>
+                        )}
                       </div>
+
+                      {/* Food items */}
+                      {m.foods && m.foods.length > 0 && (
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', marginBottom: '12px' }}>
+                          {m.foods.map((f, fIdx) => (
+                            <div key={fIdx} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', backgroundColor: 'var(--patient-surface-2)', padding: '10px 12px', borderRadius: '10px', border: '1px solid var(--glass-border)' }}>
+                              <div style={{ flex: 1 }}>
+                                <strong style={{ color: 'var(--patient-text)', display: 'block', fontSize: '0.88rem' }}>{f.amount}g — {f.name}</strong>
+                                <span style={{ fontSize: '0.75rem', color: 'var(--patient-text-muted)' }}>
+                                  {f.kcal} kcal&nbsp;|&nbsp;C: {f.carb}g&nbsp;|&nbsp;P: {f.protein}g&nbsp;|&nbsp;G: {f.fat}g
+                                </span>
+                              </div>
+                              {!done && (
+                                <button onClick={() => handleOpenSub({ ...f, _rIdx: idx, _mIdx: mIdx, _fIdx: fIdx })}
+                                  style={{ background: 'transparent', border: '1px solid var(--primary-color)', color: 'var(--primary-color)', padding: '4px 10px', borderRadius: '20px', fontSize: '0.75rem', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '3px', cursor: 'pointer', whiteSpace: 'nowrap', flexShrink: 0, marginLeft: '8px' }}>
+                                  <RefreshCw size={11} /> Sub.
+                                </button>
+                              )}
+                            </div>
+                          ))}
+                        </div>
+                      )}
+
+                      {(r.supplementsList || []).filter(s => s.mealName === m.name).length > 0 && (
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', marginBottom: '12px' }}>
+                          {(r.supplementsList || []).filter(s => s.mealName === m.name).map(s => (
+                            <div key={s.id} style={{ display: 'flex', alignItems: 'center', gap: '8px', backgroundColor: 'rgba(139, 92, 246, 0.1)', padding: '10px 12px', borderRadius: '10px', border: '1px solid rgba(139, 92, 246, 0.3)' }}>
+                              <strong style={{ color: 'var(--patient-text)', fontSize: '0.88rem' }}>💊 {s.dosage} — {s.name}</strong>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+
+                      {m.desc && (
+                        <>
+                          <button
+                            onClick={() => setExpandedDescIdx(expandedDescIdx === mIdx ? null : mIdx)}
+                            style={{ background: 'none', border: 'none', color: 'var(--primary-color)', fontSize: '0.82rem', fontWeight: 600, cursor: 'pointer', padding: '4px 0', marginBottom: '8px', display: 'flex', alignItems: 'center', gap: '4px' }}
+                          >
+                            {expandedDescIdx === mIdx ? '📖 Ocultar modo de preparo' : '📖 Ver modo de preparo'}
+                          </button>
+                          {expandedDescIdx === mIdx && (
+                            <p style={{ margin: '0 0 12px 0', fontSize: '0.85rem', color: 'var(--patient-text-muted)', whiteSpace: 'pre-wrap', lineHeight: '1.5' }}>{m.desc}</p>
+                          )}
+                        </>
+                      )}
+
+                      <button
+                        onClick={() => savedRecipe ? toggleRecipe(mIdx) : handleGenerateRecipe(m, mIdx, r.title)}
+                        disabled={isGeneratingThisRecipe}
+                        style={{ background: 'none', border: 'none', color: '#8b5cf6', fontSize: '0.82rem', fontWeight: 600, cursor: 'pointer', padding: '4px 0', display: 'flex', alignItems: 'center', gap: '4px' }}
+                      >
+                        {isGeneratingThisRecipe
+                          ? <><Loader2 size={14} className="spin" /> Gerando receita...</>
+                          : savedRecipe
+                            ? <>{isRecipeExpanded ? '✨ Ocultar Receita da IA' : '✨ Ver Receita da IA'}</>
+                            : <>✨ Gerar Receita com IA</>
+                        }
+                      </button>
+                      {isRecipeExpanded && savedRecipe && !isGeneratingThisRecipe && (
+                        <div style={{ marginTop: '8px', padding: '12px', backgroundColor: 'var(--patient-surface-2)', borderRadius: '10px', border: '1px solid rgba(139,92,246,0.25)' }}>
+                          <div className="markdown-content" style={{ fontSize: '0.88rem', color: 'var(--patient-text)' }}>
+                            <ReactMarkdown remarkPlugins={[remarkGfm]}>{savedRecipe}</ReactMarkdown>
+                          </div>
+                          <button
+                            onClick={() => handleGenerateRecipe(m, mIdx, r.title)}
+                            disabled={isRecipeLoading}
+                            style={{ marginTop: '8px', background: 'none', border: 'none', color: 'var(--primary-color)', fontSize: '0.78rem', fontWeight: 600, cursor: 'pointer', padding: 0, display: 'flex', alignItems: 'center', gap: '4px' }}
+                          >
+                            <RefreshCw size={12} /> Gerar outra opção
+                          </button>
+                        </div>
+                      )}
                     </div>
                   );
                 })}

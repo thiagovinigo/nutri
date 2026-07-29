@@ -10,12 +10,12 @@ const RECIPE_STYLES = ['grelhado(a)', 'refogado(a)', 'assado(a) no forno', 'na a
 // perfil do paciente.
 export function useAiRecipe(activePatient) {
   const { updatePatient } = useAppContext();
-  const [flippedCards, setFlippedCards] = useState({});
+  const [expandedRecipes, setExpandedRecipes] = useState({});
   const [isRecipeLoading, setIsRecipeLoading] = useState(false);
   const [loadingMealIdx, setLoadingMealIdx] = useState(null);
 
-  const toggleFlip = (mIdx) => {
-    setFlippedCards(prev => ({ ...prev, [mIdx]: !prev[mIdx] }));
+  const toggleRecipe = (mIdx) => {
+    setExpandedRecipes(prev => ({ ...prev, [mIdx]: !prev[mIdx] }));
   };
 
   const getSavedRecipe = (recipeTitle, mealName) => activePatient.aiRecipes?.[`${recipeTitle}-${mealName}`];
@@ -23,7 +23,7 @@ export function useAiRecipe(activePatient) {
   const handleGenerateRecipe = async (meal, mIdx, recipeTitle) => {
     setLoadingMealIdx(mIdx);
     setIsRecipeLoading(true);
-    setFlippedCards(prev => ({ ...prev, [mIdx]: true }));
+    setExpandedRecipes(prev => ({ ...prev, [mIdx]: true }));
 
     try {
       const foodsList = meal.foods
@@ -74,12 +74,12 @@ export function useAiRecipe(activePatient) {
     } catch (err) {
       console.error('Erro ao gerar receita com IA:', err);
       alert(err.message || 'Infelizmente não foi possível gerar a receita no momento. Verifique sua conexão e tente novamente.');
-      setFlippedCards(prev => ({ ...prev, [mIdx]: false }));
+      setExpandedRecipes(prev => ({ ...prev, [mIdx]: false }));
     } finally {
       setIsRecipeLoading(false);
       setLoadingMealIdx(null);
     }
   };
 
-  return { flippedCards, toggleFlip, isRecipeLoading, loadingMealIdx, handleGenerateRecipe, getSavedRecipe };
+  return { expandedRecipes, toggleRecipe, isRecipeLoading, loadingMealIdx, handleGenerateRecipe, getSavedRecipe };
 }

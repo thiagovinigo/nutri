@@ -78,7 +78,7 @@ export default function QuestBoard({ activePatient }) {
     };
   }, [showSleepModal]);
 
-  const { flippedCards, toggleFlip, isRecipeLoading, loadingMealIdx, handleGenerateRecipe, getSavedRecipe } = useAiRecipe(activePatient);
+  const { expandedRecipes, toggleRecipe, isRecipeLoading, loadingMealIdx, handleGenerateRecipe, getSavedRecipe } = useAiRecipe(activePatient);
 
   const currentRecipe = activePatient?.recipes?.length > 0 ? activePatient.recipes[activePatient.recipes.length - 1] : null;
 
@@ -456,12 +456,11 @@ export default function QuestBoard({ activePatient }) {
             const log = getMealLog(meal.name);
             const isDone = !!log;
             const isAnalyzingThis = analyzing && activeMealIndex === idx;
-            const isFlipped = !!flippedCards[idx];
             const savedRecipe = getSavedRecipe(currentRecipe?.title, meal.name);
+            const isRecipeExpanded = !!expandedRecipes[idx];
+            const isGeneratingThisRecipe = isRecipeLoading && loadingMealIdx === idx;
             return (
-              <div key={idx} className={`flip-card${isFlipped ? ' flipped' : ''}`} style={{marginBottom: '16px'}}>
-              <div className="flip-card-inner">
-              <div className="flip-card-front patient-card patient-glass" style={{display: 'flex', flexDirection: 'column', borderColor: isDone ? 'var(--primary-color)' : 'var(--glass-border)'}}>
+              <div key={idx} className="patient-card patient-glass" style={{display: 'flex', flexDirection: 'column', marginBottom: '16px', borderColor: isDone ? 'var(--primary-color)' : 'var(--glass-border)'}}>
                 <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: isDone && log?.log ? '12px' : '0'}}>
                   <div>
                     <h4 style={{margin: 0, fontSize: '1.1rem', color: isDone ? 'var(--primary-color)' : 'var(--patient-text)', display: 'flex', alignItems: 'center', gap: '8px'}}>
@@ -511,17 +510,31 @@ export default function QuestBoard({ activePatient }) {
                 </div>
 
                 <button
-                  onClick={() => savedRecipe ? toggleFlip(idx) : handleGenerateRecipe(meal, idx, currentRecipe?.title)}
-                  disabled={isRecipeLoading && loadingMealIdx === idx}
-                  style={{ alignSelf: 'flex-start', marginTop: '10px', backgroundColor: '#8b5cf6', color: '#FFF', border: 'none', padding: '7px 14px', borderRadius: '12px', fontWeight: 'bold', display: 'inline-flex', alignItems: 'center', gap: '6px', cursor: 'pointer', boxShadow: '0 3px 0 #7c3aed', fontSize: '0.78rem' }}
+                  onClick={() => savedRecipe ? toggleRecipe(idx) : handleGenerateRecipe(meal, idx, currentRecipe?.title)}
+                  disabled={isGeneratingThisRecipe}
+                  style={{ background: 'none', border: 'none', color: '#8b5cf6', fontSize: '0.8rem', fontWeight: 600, cursor: 'pointer', padding: '4px 0', marginTop: '6px', display: 'flex', alignItems: 'center', gap: '4px' }}
                 >
-                  {isRecipeLoading && loadingMealIdx === idx
-                    ? <><Loader2 size={13} className="spin" /> Gerando...</>
+                  {isGeneratingThisRecipe
+                    ? <><Loader2 size={14} className="spin" /> Gerando receita...</>
                     : savedRecipe
-                      ? <><Sparkles size={13} /> Ver Receita IA</>
-                      : <><Sparkles size={13} /> Gerar Receita com IA</>
+                      ? <>{isRecipeExpanded ? '✨ Ocultar Receita da IA' : '✨ Ver Receita da IA'}</>
+                      : <>✨ Gerar Receita com IA</>
                   }
                 </button>
+                {isRecipeExpanded && savedRecipe && !isGeneratingThisRecipe && (
+                  <div style={{ marginTop: '8px', padding: '12px', backgroundColor: 'var(--patient-surface-2)', borderRadius: '10px', border: '1px solid rgba(139,92,246,0.25)' }}>
+                    <div className="markdown-content" style={{ fontSize: '0.88rem', color: 'var(--patient-text)' }}>
+                      <ReactMarkdown remarkPlugins={[remarkGfm]}>{savedRecipe}</ReactMarkdown>
+                    </div>
+                    <button
+                      onClick={() => handleGenerateRecipe(meal, idx, currentRecipe?.title)}
+                      disabled={isRecipeLoading}
+                      style={{ marginTop: '8px', background: 'none', border: 'none', color: 'var(--primary-color)', fontSize: '0.78rem', fontWeight: 600, cursor: 'pointer', padding: 0, display: 'flex', alignItems: 'center', gap: '4px' }}
+                    >
+                      <RefreshCw size={12} /> Gerar outra opção
+                    </button>
+                  </div>
+                )}
 
                 {checkInMealIndex === idx && !isDone && (
                   <div className="animate-pop-in" style={{marginTop: '12px', backgroundColor: 'var(--patient-surface-2)', padding: '16px', borderRadius: '12px', border: '1px solid var(--glass-border)'}}>
@@ -607,42 +620,6 @@ export default function QuestBoard({ activePatient }) {
                     </div>
                   </div>
                 )}
-              </div>
-
-              <div className="flip-card-back patient-card patient-glass" style={{ padding: '16px', display: 'flex', flexDirection: 'column' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px', borderBottom: '1px solid rgba(139,92,246,0.3)', paddingBottom: '10px' }}>
-                  <h4 style={{ margin: 0, display: 'flex', alignItems: 'center', gap: '6px', color: '#8b5cf6', fontSize: '0.95rem' }}>
-                    <Sparkles size={16} /> {meal.name}
-                  </h4>
-                  <button onClick={() => toggleFlip(idx)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--patient-text-muted)', padding: '4px' }}>
-                    <X size={18} />
-                  </button>
-                </div>
-
-                <div className="markdown-content" style={{ flex: 1, overflowY: 'auto', color: 'var(--patient-text)', fontSize: '0.9rem' }}>
-                  {isRecipeLoading && loadingMealIdx === idx ? (
-                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '32px 0', color: '#8b5cf6' }}>
-                      <Loader2 size={28} className="spin" style={{ marginBottom: '12px' }} />
-                      <strong>Chef IA preparando algo delicioso...</strong>
-                    </div>
-                  ) : savedRecipe ? (
-                    <ReactMarkdown remarkPlugins={[remarkGfm]}>{savedRecipe}</ReactMarkdown>
-                  ) : (
-                    <p style={{ color: 'var(--patient-text-muted)' }}>Nenhuma receita gerada ainda.</p>
-                  )}
-                </div>
-
-                <div style={{ marginTop: '12px', display: 'flex', gap: '8px', justifyContent: 'flex-end', borderTop: '1px solid rgba(139,92,246,0.3)', paddingTop: '12px' }}>
-                  <button onClick={() => handleGenerateRecipe(meal, idx, currentRecipe?.title)} disabled={isRecipeLoading} className="btn-3d btn-secondary" style={{ padding: '7px 14px', fontSize: '0.8rem', display: 'flex', alignItems: 'center', gap: '4px' }}>
-                    <RefreshCw size={13} /> Regerar
-                  </button>
-                  <button onClick={() => toggleFlip(idx)} className="btn-3d btn-primary" style={{ padding: '7px 14px', fontSize: '0.8rem' }}>
-                    Fechar
-                  </button>
-                </div>
-              </div>
-
-              </div>
               </div>
             );
           })}
