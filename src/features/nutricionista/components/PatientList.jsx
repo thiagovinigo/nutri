@@ -1109,7 +1109,7 @@ export default function PatientList({
                 );
               })()}
 
-              {prontuarioTab === 'chat_ia' && (
+              {prontuarioTab === 'chat_ia' && viewedPatient && (
                 <div className="tab-pane active" style={{ padding: '0 20px 20px 20px' }}>
                   <ChatIA patient={viewedPatient} clinicConfig={clinicConfig} />
                 </div>
