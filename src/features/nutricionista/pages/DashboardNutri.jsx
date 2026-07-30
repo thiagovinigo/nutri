@@ -164,6 +164,7 @@ export default function DashboardNutri() {
     let conflictReason = "";
     const isDuplicate = patients.some(p => {
       if (editingPatient && p.id === editingPatient) return false;
+      if (p.status === 'inativo' || p.status === 'arquivado') return false;
       
       const cleanPatCpf = normalizeCpf(patCpf);
       const cleanPatEmail = normalizeEmail(patEmail);
