@@ -10,6 +10,7 @@ import FinancialCRM from './FinancialCRM';
 import AnamnesisTemplateSettings from './AnamnesisTemplateSettings';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
+import ChatIA from './ChatIA';
 
 export default function PatientList({
   view, setView,
@@ -765,6 +766,7 @@ export default function PatientList({
                 <button className={prontuarioTab === 'resumo' ? 'results-tab-btn active' : 'results-tab-btn'} onClick={() => setProntuarioTab('resumo')}>Visão Geral</button>
                 <button className={prontuarioTab === 'consultas' ? 'results-tab-btn active' : 'results-tab-btn'} onClick={() => { setProntuarioTab('consultas'); setSelectedHistoryIdx(null); }}>Protocolo Vigente</button>
                 <button className={prontuarioTab === 'exames' ? 'results-tab-btn active' : 'results-tab-btn'} onClick={() => setProntuarioTab('exames')}>Exames & Biomarcadores</button>
+                <button className={prontuarioTab === 'chat_ia' ? 'results-tab-btn active' : 'results-tab-btn'} onClick={() => setProntuarioTab('chat_ia')}>🤖 Chat IA</button>
                 <button className={prontuarioTab === 'financeiro' ? 'results-tab-btn active' : 'results-tab-btn'} onClick={() => setProntuarioTab('financeiro')}>💰 Plano & Contrato</button>
               </div>
 
@@ -1107,6 +1109,11 @@ export default function PatientList({
                 );
               })()}
 
+              {prontuarioTab === 'chat_ia' && (
+                <div className="tab-pane active" style={{ padding: '0 20px 20px 20px' }}>
+                  <ChatIA patient={viewedPatient} clinicConfig={clinicConfig} />
+                </div>
+              )}
               {prontuarioTab === 'consultas' && (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
                   <div className="results-tabs" style={{ marginBottom: '0', borderBottom: '1px solid var(--crm-border)' }}>

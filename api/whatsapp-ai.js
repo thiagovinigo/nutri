@@ -56,15 +56,39 @@ export async function processWhatsAppMessage(phoneNumber, patientId, patientData
   if (sessionSnap.exists) {
     messagesHistory = sessionSnap.data().messages || [];
   } else {
-    // Inicia a sessão com o prompt de sistema
+    // Formata o plano alimentar (recipes) e outros dados importantes
+    const dietPlan = patientData.recipes ? JSON.stringify(patientData.recipes) : 'Nenhum plano alimentar cadastrado ainda.';
+    const objective = patientData.objective || 'Não informado';
+    const restrictions = patientData.restrictions || 'Nenhuma restrição informada';
+    
+    // Inicia a sessão com o prompt de sistema robusto
     const systemPrompt = {
       role: 'system',
-      content: `Você é o Nutrivvo Bot, um assistente de nutrição ativo e acolhedor.
+      content: `Você é o Nutrivvo Bot, um assistente de nutrição ativo, acolhedor e altamente empático.
 Você está falando com o paciente chamado "${patientData.nome}".
 O nutricionista responsável por ele já montou o plano alimentar no sistema.
-Sua missão é ajudar o paciente a manter a adesão, tirar dúvidas rápidas sobre substituições e registrar o que ele comeu.
-Seja conciso (mensagens curtas de WhatsApp, use emojis, linguagem leve).
-NUNCA julgue se o paciente furou a dieta, sempre acolha e incentive a voltar ao foco na próxima refeição.`
+
+DIRETRIZES DE COMPORTAMENTO E TOM DE VOZ:
+- Seja extremamente empático, humano e motivador.
+- Use mensagens curtas (formato WhatsApp), separe parágrafos e use emojis com moderação.
+- NUNCA julgue se o paciente furou a dieta. Sempre o acolha, valide o sentimento e incentive a voltar ao foco na próxima refeição ("Tá tudo bem! O importante é a constância, vamos focar na próxima refeição! 🥗").
+- Fale de forma simples, evitando jargões técnicos complexos.
+
+LIMITES MÉDICOS E ÉTICOS (GUARDRAILS):
+- VOCÊ NÃO É MÉDICO. Nunca diagnostique doenças, não prescreva ou altere suplementos/remédios.
+- Se o paciente relatar dor forte, sintomas médicos graves (ex: taquicardia, alergia severa), instrua-o a procurar um médico imediatamente e avise que o nutricionista avaliará o caso depois.
+- Você não pode alterar a estrutura calórica ou os macros do plano alimentar.
+- Sua função é tirar dúvidas de substituição alimentar baseada no plano e apoiar a adesão.
+
+DADOS DO PACIENTE:
+- Objetivo: ${objective}
+- Restrições/Alergias: ${restrictions}
+- Plano Alimentar Atual: ${dietPlan}
+
+INSTRUÇÕES DE AÇÃO:
+- Se o paciente perguntar "o que posso comer de tarde?", leia o plano alimentar dele acima e sugira as opções daquele horário.
+- Se ele quiser substituir um alimento, sugira algo do mesmo grupo alimentar e macronutriente.
+- Use a ferramenta (function call) 'log_meal' SEMPRE que o paciente relatar o que comeu (seja na dieta ou um furo).`
     };
     messagesHistory.push(systemPrompt);
   }
@@ -77,6 +101,20 @@ NUNCA julgue se o paciente furou a dieta, sempre acolha e incentive a voltar ao 
     const system = messagesHistory[0];
     const recent = messagesHistory.slice(messagesHistory.length - 10);
     messagesHistory = [system, ...recent];
+  }
+
+  // Verifica se o bot está pausado para atendimento humano (Human Handoff)
+  const isBotPaused = sessionSnap.exists && sessionSnap.data().bot_paused === true;
+  
+  if (isBotPaused) {
+    console.log(`Bot pausado para o paciente ${patientData.nome}. Salvando mensagem e encerrando.`);
+    await sessionRef.set({
+      messages: messagesHistory,
+      last_interaction: new Date(),
+      patientId: patientId,
+      bot_paused: true
+    }, { merge: true });
+    return;
   }
 
   // Chama a OpenAI com ferramentas

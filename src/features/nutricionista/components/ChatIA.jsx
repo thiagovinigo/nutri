@@ -1,0 +1,202 @@
+import React, { useState, useEffect, useRef } from 'react';
+import { doc, onSnapshot, setDoc, updateDoc } from 'firebase/firestore';
+import { db } from '../../../services/firebase';
+import { Send, Bot, User, PauseCircle, PlayCircle } from 'lucide-react';
+
+export default function ChatIA({ patient, clinicConfig }) {
+  const [messages, setMessages] = useState([]);
+  const [botPaused, setBotPaused] = useState(false);
+  const [inputText, setInputText] = useState('');
+  const [loading, setLoading] = useState(true);
+  const messagesEndRef = useRef(null);
+  
+  const phone = patient.phone ? String(patient.phone).replace(/\D/g, '') : null;
+  const phoneNumber = phone && phone.length >= 10 ? `55${phone}` : null; // Assume 55 se não tiver, o ideal é o formato exato
+
+  useEffect(() => {
+    if (!phoneNumber) {
+      setLoading(false);
+      return;
+    }
+    
+    // Ouve o documento no Firestore em tempo real
+    const docRef = doc(db, 'whatsapp_sessions', phoneNumber);
+    const unsubscribe = onSnapshot(docRef, (docSnap) => {
+      if (docSnap.exists()) {
+        const data = docSnap.data();
+        setMessages(data.messages || []);
+        setBotPaused(data.bot_paused || false);
+      }
+      setLoading(false);
+    });
+
+    return () => unsubscribe();
+  }, [phoneNumber]);
+
+  useEffect(() => {
+    // Rola para o final quando novas mensagens chegam
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [messages]);
+
+  const toggleBotPause = async () => {
+    if (!phoneNumber) return;
+    const docRef = doc(db, 'whatsapp_sessions', phoneNumber);
+    try {
+      await updateDoc(docRef, { bot_paused: !botPaused });
+      setBotPaused(!botPaused);
+    } catch (err) {
+      // Se não existir, cria o doc
+      await setDoc(docRef, { bot_paused: !botPaused, messages: [], patientId: patient.id });
+      setBotPaused(!botPaused);
+    }
+  };
+
+  const handleSendMessage = async (e) => {
+    e.preventDefault();
+    if (!inputText.trim() || !phoneNumber) return;
+    
+    const newMsg = {
+      role: 'assistant', // O Nutri assumindo o papel do bot (ou 'nutri' se quisermos diferenciar visualmente)
+      content: inputText.trim(),
+      isManual: true, // Flag para saber que foi o nutricionista que mandou
+      timestamp: new Date().toISOString()
+    };
+    
+    // Atualiza otimista
+    const updatedMessages = [...messages, newMsg];
+    setInputText('');
+    
+    const docRef = doc(db, 'whatsapp_sessions', phoneNumber);
+    try {
+      await updateDoc(docRef, { messages: updatedMessages });
+      
+      // NOTA: Para a mensagem chegar no celular do paciente de verdade, 
+      // precisaríamos chamar a Evolution API aqui.
+      const evolutionUrl = import.meta.env.VITE_EVOLUTION_URL || 'https://evolution-api-latest-oy03.onrender.com';
+      const instance = import.meta.env.VITE_EVOLUTION_INSTANCE || 'nutrivvo_bot';
+      const apikey = import.meta.env.VITE_EVOLUTION_APIKEY || '!Nutrivv0@2016';
+      
+      if (evolutionUrl && instance && apikey) {
+          await fetch(`${evolutionUrl}/message/sendText/${instance}`, {
+              method: 'POST',
+              headers: {
+                  'Content-Type': 'application/json',
+                  'apikey': apikey
+              },
+              body: JSON.stringify({
+                  number: `${phoneNumber}@s.whatsapp.net`,
+                  options: { delay: 1000 },
+                  textMessage: { text: newMsg.content }
+              })
+          });
+      }
+      
+    } catch (err) {
+      console.error("Erro ao enviar mensagem:", err);
+    }
+  };
+
+  if (!patient.phone) {
+    return (
+      <div style={{ padding: '2rem', textAlign: 'center', color: 'var(--crm-text-light)' }}>
+        Este paciente não possui um número de telefone válido cadastrado para usar o WhatsApp.
+      </div>
+    );
+  }
+
+  // Filtra as mensagens de 'system' e 'tool' que não interessam visualmente ao chat
+  const chatMessages = messages.filter(m => m.role === 'user' || m.role === 'assistant');
+
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', height: '600px', background: 'var(--crm-card)', borderRadius: '12px', border: '1px solid var(--crm-border)', overflow: 'hidden' }}>
+      
+      {/* Header do Chat */}
+      <div style={{ padding: '16px', background: 'var(--crm-bg)', borderBottom: '1px solid var(--crm-border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+          <div style={{ width: '40px', height: '40px', borderRadius: '50%', background: 'var(--crm-primary)', color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 'bold' }}>
+            {patient.name.charAt(0)}
+          </div>
+          <div>
+            <h4 style={{ margin: 0, color: 'var(--crm-text)' }}>Chat: {patient.name}</h4>
+            <span style={{ fontSize: '12px', color: 'var(--crm-text-light)' }}>
+              +{phoneNumber} • {botPaused ? '🤖 IA Pausada' : '🟢 IA Ativa'}
+            </span>
+          </div>
+        </div>
+        <button 
+          onClick={toggleBotPause}
+          style={{ 
+            display: 'flex', alignItems: 'center', gap: '8px', 
+            padding: '8px 16px', borderRadius: '20px', border: 'none', cursor: 'pointer',
+            fontWeight: '600', transition: 'all 0.2s',
+            background: botPaused ? '#FEF2F2' : '#F0FDF4',
+            color: botPaused ? '#DC2626' : '#16A34A',
+            border: `1px solid ${botPaused ? '#FCA5A5' : '#86EFAC'}`
+          }}
+        >
+          {botPaused ? <PlayCircle size={18} /> : <PauseCircle size={18} />}
+          {botPaused ? 'Reativar Bot' : 'Pausar Bot'}
+        </button>
+      </div>
+
+      {/* Área de Mensagens */}
+      <div style={{ flex: 1, padding: '20px', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '16px', background: 'var(--crm-bg-soft)' }}>
+        {loading ? (
+          <div style={{ textAlign: 'center', color: 'var(--crm-text-light)' }}>Carregando histórico...</div>
+        ) : chatMessages.length === 0 ? (
+          <div style={{ textAlign: 'center', color: 'var(--crm-text-light)', marginTop: 'auto', marginBottom: 'auto' }}>
+            Nenhuma mensagem trocada ainda.
+          </div>
+        ) : (
+          chatMessages.map((msg, i) => {
+            const isUser = msg.role === 'user';
+            return (
+              <div key={i} style={{ display: 'flex', flexDirection: 'column', alignItems: isUser ? 'flex-start' : 'flex-end' }}>
+                <div style={{ display: 'flex', alignItems: 'flex-end', gap: '8px', flexDirection: isUser ? 'row' : 'row-reverse' }}>
+                  <div style={{ width: '28px', height: '28px', borderRadius: '50%', background: isUser ? '#E2E8F0' : (msg.isManual ? 'var(--crm-primary)' : '#10B981'), color: isUser ? '#475569' : 'white', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    {isUser ? <User size={14} /> : (msg.isManual ? 'N' : <Bot size={14} />)}
+                  </div>
+                  <div style={{ 
+                    maxWidth: '300px', padding: '12px 16px', borderRadius: '16px',
+                    borderBottomLeftRadius: isUser ? '4px' : '16px',
+                    borderBottomRightRadius: isUser ? '16px' : '4px',
+                    background: isUser ? 'white' : (msg.isManual ? 'var(--crm-primary)' : '#D1FAE5'),
+                    color: isUser ? '#1E293B' : (msg.isManual ? 'white' : '#065F46'),
+                    boxShadow: '0 1px 2px rgba(0,0,0,0.05)',
+                    fontSize: '14px', lineHeight: '1.4'
+                  }}>
+                    {msg.content}
+                  </div>
+                </div>
+                {msg.isManual && <span style={{ fontSize: '10px', color: 'var(--crm-text-light)', marginTop: '4px', marginRight: '36px' }}>Enviado por você</span>}
+              </div>
+            );
+          })
+        )}
+        <div ref={messagesEndRef} />
+      </div>
+
+      {/* Input de Mensagem */}
+      <div style={{ padding: '16px', background: 'var(--crm-bg)', borderTop: '1px solid var(--crm-border)' }}>
+        {botPaused ? (
+           <form onSubmit={handleSendMessage} style={{ display: 'flex', gap: '12px' }}>
+            <input 
+              type="text" 
+              value={inputText}
+              onChange={(e) => setInputText(e.target.value)}
+              placeholder="Digite uma mensagem manual para o paciente..." 
+              style={{ flex: 1, padding: '12px 16px', borderRadius: '24px', border: '1px solid var(--crm-border)', outline: 'none', background: 'var(--crm-bg-soft)', color: 'var(--crm-text)' }}
+            />
+            <button type="submit" disabled={!inputText.trim()} style={{ width: '48px', height: '48px', borderRadius: '50%', background: inputText.trim() ? 'var(--crm-primary)' : '#CBD5E1', color: 'white', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: inputText.trim() ? 'pointer' : 'not-allowed', transition: 'background 0.2s' }}>
+              <Send size={20} style={{ marginLeft: '4px' }} />
+            </button>
+          </form>
+        ) : (
+          <div style={{ textAlign: 'center', color: 'var(--crm-text-light)', padding: '12px', background: '#F1F5F9', borderRadius: '8px', fontSize: '14px' }}>
+            A IA está ativa controlando este chat. Para enviar mensagens manuais, pause o bot primeiro.
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
