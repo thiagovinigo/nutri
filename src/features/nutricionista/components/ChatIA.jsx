@@ -68,6 +68,7 @@ export default function ChatIA({ patient, clinicConfig }) {
     
     const updatedMessages = [...messages, newMsg];
     setInputText('');
+    setMessages(updatedMessages);
     
     const docRef = doc(db, 'patients', patient.id);
     try {
