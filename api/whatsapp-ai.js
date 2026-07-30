@@ -48,13 +48,13 @@ async function sendMessageToWhatsApp(remoteJid, text) {
  * Processa a mensagem usando OpenAI e mantém contexto no Firestore
  */
 export async function processWhatsAppMessage(phoneNumber, patientId, patientData, textContent, remoteJid) {
-  const sessionRef = db.collection('whatsapp_sessions').doc(phoneNumber);
+  const sessionRef = db.collection('patients').doc(patientId);
   const sessionSnap = await sessionRef.get();
   
   let messagesHistory = [];
   
-  if (sessionSnap.exists) {
-    messagesHistory = sessionSnap.data().messages || [];
+  if (sessionSnap.exists && sessionSnap.data().whatsapp_messages) {
+    messagesHistory = sessionSnap.data().whatsapp_messages || [];
   } else {
     // Formata o plano alimentar (recipes) e outros dados importantes
     const dietPlan = patientData.recipes ? JSON.stringify(patientData.recipes) : 'Nenhum plano alimentar cadastrado ainda.';
@@ -109,9 +109,8 @@ INSTRUÇÕES DE AÇÃO:
   if (isBotPaused) {
     console.log(`Bot pausado para o paciente ${patientData.nome}. Salvando mensagem e encerrando.`);
     await sessionRef.set({
-      messages: messagesHistory,
+      whatsapp_messages: messagesHistory,
       last_interaction: new Date(),
-      patientId: patientId,
       bot_paused: true
     }, { merge: true });
     return;
@@ -221,9 +220,8 @@ INSTRUÇÕES DE AÇÃO:
 
     // Atualiza o estado no Firebase
     await sessionRef.set({
-      messages: messagesHistory,
-      last_interaction: new Date(),
-      patientId: patientId
+      whatsapp_messages: messagesHistory,
+      last_interaction: new Date()
     }, { merge: true });
 
   } catch (error) {

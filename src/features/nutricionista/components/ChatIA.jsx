@@ -19,12 +19,12 @@ export default function ChatIA({ patient, clinicConfig }) {
       return;
     }
     
-    // Ouve o documento no Firestore em tempo real
-    const docRef = doc(db, 'whatsapp_sessions', phoneNumber);
+    // Ouve o documento do paciente no Firestore em tempo real
+    const docRef = doc(db, 'patients', patient.id);
     const unsubscribe = onSnapshot(docRef, (docSnap) => {
       if (docSnap.exists()) {
         const data = docSnap.data();
-        setMessages(data.messages || []);
+        setMessages(data.whatsapp_messages || []);
         setBotPaused(data.bot_paused || false);
       } else {
         setMessages([]);
@@ -32,26 +32,25 @@ export default function ChatIA({ patient, clinicConfig }) {
       setLoading(false);
     }, (error) => {
       console.error("Erro ao carregar histórico do WhatsApp:", error);
-      setLoading(false); // Evita tela infinita de carregamento
+      setLoading(false);
     });
 
     return () => unsubscribe();
-  }, [phoneNumber]);
+  }, [phoneNumber, patient.id]);
 
   useEffect(() => {
-    // Rola para o final quando novas mensagens chegam
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
   const toggleBotPause = async () => {
     if (!phoneNumber) return;
-    const docRef = doc(db, 'whatsapp_sessions', phoneNumber);
+    const docRef = doc(db, 'patients', patient.id);
     try {
       await updateDoc(docRef, { bot_paused: !botPaused });
       setBotPaused(!botPaused);
     } catch (err) {
-      // Se não existir, cria o doc
-      await setDoc(docRef, { bot_paused: !botPaused, messages: [], patientId: patient.id });
+      console.error("Erro ao pausar bot:", err);
+      // Fallback local se falhar
       setBotPaused(!botPaused);
     }
   };
@@ -61,19 +60,18 @@ export default function ChatIA({ patient, clinicConfig }) {
     if (!inputText.trim() || !phoneNumber) return;
     
     const newMsg = {
-      role: 'assistant', // O Nutri assumindo o papel do bot (ou 'nutri' se quisermos diferenciar visualmente)
+      role: 'assistant',
       content: inputText.trim(),
-      isManual: true, // Flag para saber que foi o nutricionista que mandou
+      isManual: true,
       timestamp: new Date().toISOString()
     };
     
-    // Atualiza otimista
     const updatedMessages = [...messages, newMsg];
     setInputText('');
     
-    const docRef = doc(db, 'whatsapp_sessions', phoneNumber);
+    const docRef = doc(db, 'patients', patient.id);
     try {
-      await updateDoc(docRef, { messages: updatedMessages });
+      await updateDoc(docRef, { whatsapp_messages: updatedMessages });
       
       // NOTA: Para a mensagem chegar no celular do paciente de verdade, 
       // precisaríamos chamar a Evolution API aqui.
