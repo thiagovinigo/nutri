@@ -11,7 +11,7 @@ export default function ChatIA({ patient, clinicConfig }) {
   const messagesEndRef = useRef(null);
   
   const phone = patient.phone ? String(patient.phone).replace(/\D/g, '') : null;
-  const phoneNumber = phone && phone.length >= 10 ? `55${phone}` : null; // Assume 55 se não tiver, o ideal é o formato exato
+  const phoneNumber = phone ? (phone.startsWith('55') ? phone : `55${phone}`) : null;
 
   useEffect(() => {
     if (!phoneNumber) {
@@ -26,8 +26,13 @@ export default function ChatIA({ patient, clinicConfig }) {
         const data = docSnap.data();
         setMessages(data.messages || []);
         setBotPaused(data.bot_paused || false);
+      } else {
+        setMessages([]);
       }
       setLoading(false);
+    }, (error) => {
+      console.error("Erro ao carregar histórico do WhatsApp:", error);
+      setLoading(false); // Evita tela infinita de carregamento
     });
 
     return () => unsubscribe();
@@ -192,7 +197,7 @@ export default function ChatIA({ patient, clinicConfig }) {
             </button>
           </form>
         ) : (
-          <div style={{ textAlign: 'center', color: 'var(--crm-text-light)', padding: '12px', background: '#F1F5F9', borderRadius: '8px', fontSize: '14px' }}>
+          <div style={{ textAlign: 'center', color: 'var(--crm-text-light)', padding: '12px', background: 'var(--crm-bg-soft)', borderRadius: '8px', fontSize: '14px', border: '1px dashed var(--crm-border)' }}>
             A IA está ativa controlando este chat. Para enviar mensagens manuais, pause o bot primeiro.
           </div>
         )}
