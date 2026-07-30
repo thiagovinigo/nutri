@@ -161,9 +161,10 @@ export default function DashboardNutri() {
     const normalizeEmail = (email) => String(email || '').toLowerCase().trim();
 
     // Validação de duplicidade aprimorada e super robusta
-    let duplicateName = "";
+    let conflictReason = "";
     const isDuplicate = patients.some(p => {
       if (editingPatient && p.id === editingPatient) return false;
+      
       const cleanPatCpf = normalizeCpf(patCpf);
       const cleanPatEmail = normalizeEmail(patEmail);
       
@@ -171,13 +172,15 @@ export default function DashboardNutri() {
       const sameEmail = cleanPatEmail !== '' && normalizeEmail(p.email) === cleanPatEmail;
       
       if (sameCpf || sameEmail) {
-         duplicateName = p.name;
+         if (sameCpf && sameEmail) conflictReason = `CPF e E-mail iguais aos do paciente "${p.name}"`;
+         else if (sameCpf) conflictReason = `CPF igual ao do paciente "${p.name}"`;
+         else conflictReason = `E-mail igual ao do paciente "${p.name}"`;
       }
       return sameCpf || sameEmail;
     });
 
     if (isDuplicate) {
-      alert(`Já existe um paciente cadastrado com este E-mail ou CPF! (Conflito com: ${duplicateName}). Altere para um valor único.`);
+      alert(`Não é possível salvar: ${conflictReason}. Altere o dado duplicado para um valor único.`);
       return;
     }
 
