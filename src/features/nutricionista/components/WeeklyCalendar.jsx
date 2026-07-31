@@ -96,7 +96,7 @@ export default function WeeklyCalendar({
         {weekDays.map(wd => {
           const isToday = wd.isoDate === todayISO;
           return (
-            <div key={wd.isoDate} style={{ borderBottom: '1px solid var(--crm-border)', borderTop: isToday ? '3px solid var(--crm-accent)' : '3px solid transparent', backgroundColor: isToday ? 'rgba(255,255,255,0.04)' : 'transparent', backgroundImage: isToday ? 'linear-gradient(180deg, rgba(255,255,255,0.08) 0%, transparent 100%)' : 'none', boxShadow: isToday ? 'inset 0 15px 30px -15px var(--crm-accent)' : 'none', borderRadius: '8px 8px 0 0', padding: '12px', textAlign: 'center', transition: 'all 0.3s ease' }}>
+            <div key={wd.isoDate} style={{ borderBottom: '1px solid var(--crm-border)', borderTop: isToday ? '3px solid var(--crm-accent)' : '3px solid transparent', backgroundColor: isToday ? 'var(--crm-today-bg)' : 'transparent', backgroundImage: isToday ? 'var(--crm-today-stripe)' : 'none', boxShadow: isToday ? 'inset 0 15px 30px -15px var(--crm-accent)' : 'none', borderRadius: '8px 8px 0 0', padding: '12px', textAlign: 'center', transition: 'all 0.3s ease' }}>
               <div style={{ fontWeight: '700', color: isToday ? 'var(--crm-accent)' : 'var(--crm-text-main)' }}>{wd.name}</div>
               <div style={{ fontSize: '0.85rem', color: isToday ? 'var(--crm-accent)' : 'var(--crm-text-muted)', fontWeight: isToday ? 700 : 400 }}>{wd.dateObj.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' })}</div>
               {isToday && (
@@ -115,7 +115,7 @@ export default function WeeklyCalendar({
             {weekDays.map(wd => {
               const appt = apptsMap[wd.isoDate]?.[time];
               const isToday = wd.isoDate === todayISO;
-              const todayBandStyle = isToday ? { backgroundColor: 'rgba(255,255,255,0.03)' } : {};
+              const todayBandStyle = isToday ? { backgroundColor: 'var(--crm-today-bg)' } : {};
 
               if (wd.isBlocked) {
                 return (
@@ -135,7 +135,7 @@ export default function WeeklyCalendar({
 
               if (tMins >= lsMins && tMins < leMins) {
                 return (
-                  <div key={`${wd.isoDate}-${time}`} style={{ ...todayBandStyle, backgroundColor: 'rgba(0, 0, 0, 0.25)', backgroundImage: 'repeating-linear-gradient(45deg, transparent, transparent 10px, rgba(0,0,0,0.2) 10px, rgba(0,0,0,0.2) 20px)', boxShadow: 'inset 0 4px 12px rgba(0,0,0,0.4)', borderBottom: '1px solid var(--crm-border)', borderRight: '1px solid var(--crm-border)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <div key={`${wd.isoDate}-${time}`} style={{ ...todayBandStyle, backgroundColor: 'var(--crm-lunch-bg)', backgroundImage: 'var(--crm-lunch-stripe)', boxShadow: 'var(--crm-lunch-shadow)', borderBottom: '1px solid var(--crm-border)', borderRight: '1px solid var(--crm-border)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                     <span style={{ color: 'var(--crm-text-muted)', fontSize: '0.75rem', fontWeight: 600, letterSpacing: '0.05em', opacity: 0.6, textTransform: 'uppercase' }}>Almoço</span>
                   </div>
                 );
@@ -168,7 +168,7 @@ export default function WeeklyCalendar({
               return (
                 <div
                   key={`${wd.isoDate}-${time}`}
-                  style={{ borderBottom: '1px solid var(--crm-border)', borderRight: '1px solid var(--crm-border)', cursor: 'pointer', backgroundColor: isToday ? 'rgba(255,255,255,0.03)' : 'transparent' }}
+                  style={{ borderBottom: '1px solid var(--crm-border)', borderRight: '1px solid var(--crm-border)', cursor: 'pointer', backgroundColor: isToday ? 'var(--crm-today-bg)' : 'transparent' }}
                   className="agenda-slot"
                   onClick={() => onSlotClick(wd.isoDate, time)}
                 />
