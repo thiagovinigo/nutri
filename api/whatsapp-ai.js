@@ -64,7 +64,7 @@ export async function processWhatsAppMessage(phoneNumber, patientId, patientData
     // Inicia a sessão com o prompt de sistema robusto
     const systemPrompt = {
       role: 'system',
-      content: `Você é o Nutrivvo Bot, um assistente de nutrição ativo, acolhedor e altamente empático.
+      content: `Você é o Nutrivvo Bot, um assistente de nutrição ativo, acolhedor e altamente empático (Secretária Virtual e Detetive Comportamental).
 Você está falando com o paciente chamado "${patientData.nome}".
 O nutricionista responsável por ele já montou o plano alimentar no sistema.
 
@@ -76,19 +76,20 @@ DIRETRIZES DE COMPORTAMENTO E TOM DE VOZ:
 
 LIMITES MÉDICOS E ÉTICOS (GUARDRAILS):
 - VOCÊ NÃO É MÉDICO. Nunca diagnostique doenças, não prescreva ou altere suplementos/remédios.
-- Se o paciente relatar dor forte, sintomas médicos graves (ex: taquicardia, alergia severa), instrua-o a procurar um médico imediatamente e avise que o nutricionista avaliará o caso depois.
-- Você não pode alterar a estrutura calórica ou os macros do plano alimentar.
-- Sua função é tirar dúvidas de substituição alimentar baseada no plano e apoiar a adesão.
+- Se o paciente relatar dor forte, sintomas médicos graves, instrua-o a procurar um médico imediatamente e avise que o nutricionista avaliará o caso.
+- Você não pode alterar a estrutura calórica ou macros do plano alimentar.
+- Sua função é tirar dúvidas de substituição alimentar, apoiar a adesão e agendar consultas.
 
 DADOS DO PACIENTE:
 - Objetivo: ${objective}
 - Restrições/Alergias: ${restrictions}
 - Plano Alimentar Atual: ${dietPlan}
 
-INSTRUÇÕES DE AÇÃO:
-- Se o paciente perguntar "o que posso comer de tarde?", leia o plano alimentar dele acima e sugira as opções daquele horário.
-- Se ele quiser substituir um alimento, sugira algo do mesmo grupo alimentar e macronutriente.
-- Use a ferramenta (function call) 'log_meal' SEMPRE que o paciente relatar o que comeu (seja na dieta ou um furo).`
+INSTRUÇÕES DE AÇÃO (FERRAMENTAS):
+1. 'log_meal': SEMPRE que o paciente relatar o que comeu (seja na dieta ou um furo).
+2. 'alertar_nutricionista': Se o paciente demonstrar desânimo extremo, intenção de desistir, compulsão alimentar repetitiva, ou não estiver se hidratando/dormindo, USE esta ferramenta para alertar o nutricionista (Isso marca o paciente como 'Em Risco'). Não avise o paciente que acionou o alerta, apenas seja acolhedor.
+3. 'verificar_disponibilidade': Se o paciente quiser marcar consulta, use isso para checar os dias/horários livres do nutricionista.
+4. 'agendar_consulta': Após confirmar o dia e hora com o paciente e verificar que está livre, use esta ferramenta para agendar no sistema. Lembre-se: se falhar por conflito, avise o paciente e peça outro horário.`
     };
     messagesHistory.push(systemPrompt);
   }
@@ -139,6 +140,50 @@ INSTRUÇÕES DE AÇÃO:
             required: ["descricao", "furo_dieta"]
           }
         }
+      },
+      {
+        type: "function",
+        function: {
+          name: "alertar_nutricionista",
+          description: "Alerta o nutricionista que o paciente está com problemas (risco de abandono, compulsão, estresse grave). Marca o paciente como 'Em Risco' no CRM.",
+          parameters: {
+            type: "object",
+            properties: {
+              motivo: { type: "string", description: "O motivo detalhado do alerta (ex: paciente relata que comeu 3 pizzas, está muito ansioso)" }
+            },
+            required: ["motivo"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "verificar_disponibilidade",
+          description: "Verifica os horários de atendimento do nutricionista para um dia específico.",
+          parameters: {
+            type: "object",
+            properties: {
+              data: { type: "string", description: "Data no formato YYYY-MM-DD" }
+            },
+            required: ["data"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "agendar_consulta",
+          description: "Agenda uma consulta para o paciente no sistema.",
+          parameters: {
+            type: "object",
+            properties: {
+              data: { type: "string", description: "Data no formato YYYY-MM-DD" },
+              hora: { type: "string", description: "Horário no formato HH:MM" },
+              tipo: { type: "string", description: "Tipo de consulta (ex: Retorno, Primeira Consulta)" }
+            },
+            required: ["data", "hora", "tipo"]
+          }
+        }
       }
     ];
 
@@ -167,12 +212,13 @@ INSTRUÇÕES DE AÇÃO:
 
     // Processa Function Calling, se houver
     if (responseMessage.tool_calls) {
+      messagesHistory.push(responseMessage);
+      
       for (const toolCall of responseMessage.tool_calls) {
         if (toolCall.function.name === 'log_meal') {
           const args = JSON.parse(toolCall.function.arguments);
           console.log(`[FUNCTION CALL] log_meal chamado para paciente ${patientId}:`, args);
           
-          // O bot pode salvar isso no Firestore em uma subcoleção 'diario' do paciente
           await db.collection('patients').doc(patientId).collection('diario').add({
             timestamp: new Date(),
             descricao: args.descricao,
@@ -180,37 +226,103 @@ INSTRUÇÕES DE AÇÃO:
             origem: 'whatsapp'
           });
 
-          // Adiciona a chamada e o resultado ao histórico para a IA continuar
-          messagesHistory.push(responseMessage);
           messagesHistory.push({
             role: "tool",
             tool_call_id: toolCall.id,
             name: toolCall.function.name,
             content: "Refeição salva com sucesso no diário do paciente."
           });
-
-          // Chama a IA de novo para ela dar a resposta final ao usuário
-          const secondResponse = await fetch('https://api.openai.com/v1/chat/completions', {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-              'Authorization': `Bearer ${OPENAI_API_KEY}`
-            },
-            body: JSON.stringify({
-              model: 'gpt-4o-mini',
-              messages: messagesHistory,
-              max_tokens: 500
-            })
+        } else if (toolCall.function.name === 'alertar_nutricionista') {
+          const args = JSON.parse(toolCall.function.arguments);
+          console.log(`[FUNCTION CALL] alertar_nutricionista chamado para paciente ${patientId}:`, args);
+          
+          await db.collection('patients').doc(patientId).update({
+            status: 'Em Risco',
+            riskReason: `Alerta da IA (${new Date().toLocaleDateString()}): ${args.motivo}`
           });
 
-          const secondData = await secondResponse.json();
-          const finalMessage = secondData.choices?.[0]?.message;
+          messagesHistory.push({
+            role: "tool",
+            tool_call_id: toolCall.id,
+            name: toolCall.function.name,
+            content: "Nutricionista alertado com sucesso. O paciente foi marcado como 'Em Risco'."
+          });
+        } else if (toolCall.function.name === 'verificar_disponibilidade') {
+          const args = JSON.parse(toolCall.function.arguments);
+          console.log(`[FUNCTION CALL] verificar_disponibilidade chamado para data ${args.data}`);
           
-          if (finalMessage) {
-            messagesHistory.push(finalMessage);
-            await sendMessageToWhatsApp(remoteJid, finalMessage.content);
+          const appointmentsSnap = await db.collection('appointments')
+            .where('date', '==', args.data)
+            .where('status', 'in', ['Agendado', 'Confirmado'])
+            .get();
+            
+          const horariosOcupados = appointmentsSnap.docs.map(d => d.data().time);
+          
+          messagesHistory.push({
+            role: "tool",
+            tool_call_id: toolCall.id,
+            name: toolCall.function.name,
+            content: `Horários ocupados neste dia: ${horariosOcupados.length > 0 ? horariosOcupados.join(', ') : 'Nenhum horário ocupado'}. Os horários de atendimento padrão são de 08:00 às 18:00. Use o bom senso para sugerir horários disponíveis nessa faixa.`
+          });
+        } else if (toolCall.function.name === 'agendar_consulta') {
+          const args = JSON.parse(toolCall.function.arguments);
+          console.log(`[FUNCTION CALL] agendar_consulta chamado para paciente ${patientId}:`, args);
+          
+          const checkSnap = await db.collection('appointments')
+            .where('date', '==', args.data)
+            .where('time', '==', args.hora)
+            .where('status', 'in', ['Agendado', 'Confirmado'])
+            .get();
+            
+          if (!checkSnap.empty) {
+            messagesHistory.push({
+              role: "tool",
+              tool_call_id: toolCall.id,
+              name: toolCall.function.name,
+              content: "Erro: Esse horário já está ocupado por outro agendamento. Peça para o paciente escolher outro horário livre."
+            });
+          } else {
+            await db.collection('appointments').add({
+              patientId: patientId,
+              patientName: patientData.nome,
+              date: args.data,
+              time: args.hora,
+              type: args.tipo || 'Retorno',
+              status: 'Agendado',
+              notes: 'Agendado automaticamente pela Secretária Virtual (IA)',
+              createdAt: new Date().toISOString()
+            });
+
+            messagesHistory.push({
+              role: "tool",
+              tool_call_id: toolCall.id,
+              name: toolCall.function.name,
+              content: "Consulta agendada com sucesso no sistema. Avise o paciente."
+            });
           }
         }
+      }
+
+      // Chama a IA de novo para ela dar a resposta final ao usuário baseada no resultado das tools
+      const secondResponse = await fetch('https://api.openai.com/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${OPENAI_API_KEY}`
+        },
+        body: JSON.stringify({
+          model: 'gpt-4o-mini',
+          messages: messagesHistory,
+          max_tokens: 500
+        })
+      });
+
+      const secondData = await secondResponse.json();
+      const finalMessage = secondData.choices?.[0]?.message;
+      
+      if (finalMessage) {
+        messagesHistory.push(finalMessage);
+        await sendMessageToWhatsApp(remoteJid, finalMessage.content);
       }
     } else if (responseMessage.content) {
       // Resposta normal de texto
