@@ -2113,16 +2113,11 @@ export default function PatientList({
                     v = v.replace(/(\d{3})(\d)/, '$1.$2');
                     v = v.replace(/(\d{3})(\d{1,2})$/, '$1-$2');
                     setPatCpf(v);
-                  }} required />
+                  }} disabled={!!editingPatient} required />
                 </div>
                 <div style={{ flex: 1 }}>
                   <label className="crm-label">E-mail</label>
-                  <input type="email" className="crm-input" placeholder="email@paciente.com" value={patEmail} onChange={e => setPatEmail(e.target.value)} required />
-                  {editingPatient && (
-                    <span style={{ fontSize: '11px', color: '#EF4444', display: 'block', marginTop: '4px', lineHeight: '1.2' }}>
-                      Aviso: Se o paciente já possui uma senha criada, alterar o E-mail aqui não mudará o e-mail de login dele.
-                    </span>
-                  )}
+                  <input type="email" className="crm-input" placeholder="email@paciente.com" value={patEmail} onChange={e => setPatEmail(e.target.value)} disabled={!!editingPatient} required />
                 </div>
               </div>
               <div style={{ marginBottom: '16px' }}>
