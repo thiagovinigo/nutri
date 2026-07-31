@@ -2138,7 +2138,12 @@ export default function PatientList({
                 <div style={{ flex: 1.2 }}>
                   <label className="crm-label">Data de Nascimento</label>
                   <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-                    <input type="date" className="crm-input" value={patBirthDate} onChange={e => setPatBirthDate(e.target.value)} required style={{ flex: 2, padding: '10px 8px' }} />
+                    <input type="date" className="crm-input" value={patBirthDate} max="9999-12-31" onChange={e => {
+                      // Impede que anos gigantes (mais de 4 dígitos) quebrem o layout ou cálculos
+                      let val = e.target.value;
+                      if (val && val.split('-')[0].length > 4) return;
+                      setPatBirthDate(val);
+                    }} required style={{ flex: 2, padding: '10px 8px' }} />
                     <div style={{ flex: 1, padding: '8px 4px', backgroundColor: 'var(--crm-surface)', border: '1px solid var(--crm-border)', borderRadius: '8px', color: 'var(--crm-text-light)', textAlign: 'center', height: '42px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.85rem' }}>
                       {(() => {
                         if (!patBirthDate) return 'Idade';
