@@ -408,8 +408,8 @@ export default function ConsultationFlow({
 
               {(physicalEval?.tmb || physicalEval?.massaMagra) && (
                 <div style={{ backgroundColor: 'var(--crm-surface-2, var(--crm-bg))', border: '1px solid #BFDBFE', borderRadius: '12px', padding: '20px', marginBottom: '24px', display: 'flex', gap: '24px', alignItems: 'center' }}>
-                  <div style={{ padding: '12px', backgroundColor: '#DBEAFE', borderRadius: '50%' }}>
-                    <Sparkles size={24} color="#1D4ED8" />
+                  <div style={{ padding: '12px', backgroundColor: 'var(--crm-primary-light, #DBEAFE)', borderRadius: '50%' }}>
+                    <Sparkles size={24} color="var(--crm-primary)" />
                   </div>
                   <div style={{ flex: 1 }}>
                     <h3 style={{ color: 'var(--crm-text-main)', marginBottom: '16px', fontSize: '1.1rem' }}>Estimativas Biométricas Automáticas</h3>
@@ -417,11 +417,11 @@ export default function ConsultationFlow({
                       {physicalEval?.tmb && (
                         <>
                           <div>
-                            <span style={{ fontSize: '0.85rem', color: '#3B82F6', textTransform: 'uppercase', fontWeight: 600 }}>TMB (Basal)</span>
+                            <span style={{ fontSize: '0.85rem', color: 'var(--crm-primary)', textTransform: 'uppercase', fontWeight: 600 }}>TMB (Basal)</span>
                             <div style={{ fontSize: '1.5rem', fontWeight: 700, color: 'var(--crm-text-main)' }}>{physicalEval.tmb} kcal</div>
                           </div>
                           <div>
-                            <span style={{ fontSize: '0.85rem', color: '#3B82F6', textTransform: 'uppercase', fontWeight: 600 }}>GET (Total)</span>
+                            <span style={{ fontSize: '0.85rem', color: 'var(--crm-primary)', textTransform: 'uppercase', fontWeight: 600 }}>GET (Total)</span>
                             <div style={{ fontSize: '1.5rem', fontWeight: 700, color: 'var(--crm-text-main)' }}>{physicalEval.get} kcal</div>
                           </div>
                         </>
@@ -429,15 +429,15 @@ export default function ConsultationFlow({
                       {physicalEval?.protocoloDobras !== 'nenhum' && physicalEval?.bodyFat && (
                         <>
                           <div>
-                            <span style={{ fontSize: '0.85rem', color: '#3B82F6', textTransform: 'uppercase', fontWeight: 600 }}>% Gordura Calculado</span>
+                            <span style={{ fontSize: '0.85rem', color: 'var(--crm-primary)', textTransform: 'uppercase', fontWeight: 600 }}>% Gordura Calculado</span>
                             <div style={{ fontSize: '1.5rem', fontWeight: 700, color: 'var(--crm-text-main)' }}>{physicalEval.bodyFat}%</div>
                           </div>
                           <div>
-                            <span style={{ fontSize: '0.85rem', color: '#3B82F6', textTransform: 'uppercase', fontWeight: 600 }}>Massa Magra</span>
+                            <span style={{ fontSize: '0.85rem', color: 'var(--crm-primary)', textTransform: 'uppercase', fontWeight: 600 }}>Massa Magra</span>
                             <div style={{ fontSize: '1.5rem', fontWeight: 700, color: 'var(--crm-text-main)' }}>{physicalEval.massaMagra} kg</div>
                           </div>
                           <div>
-                            <span style={{ fontSize: '0.85rem', color: '#3B82F6', textTransform: 'uppercase', fontWeight: 600 }}>Massa Gorda</span>
+                            <span style={{ fontSize: '0.85rem', color: 'var(--crm-primary)', textTransform: 'uppercase', fontWeight: 600 }}>Massa Gorda</span>
                             <div style={{ fontSize: '1.5rem', fontWeight: 700, color: 'var(--crm-text-main)' }}>{physicalEval.massaGorda} kg</div>
                           </div>
                         </>

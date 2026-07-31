@@ -12,7 +12,7 @@ export default function ChatBot({ activePatient, currentRecipe, chatHistory, set
 
   return (
     <div className="animate-pop-in">
-      <h2 style={styles.sectionTitle}><MessageCircle color="#3b82f6" /> Nutrivvo Bot (Clínica)</h2>
+      <h2 style={styles.sectionTitle}><MessageCircle color="var(--primary-color)" /> Nutrivvo Bot (Clínica)</h2>
       <p style={{ margin: '-10px 0 16px 0', fontSize: '0.85rem', color: 'var(--crm-text-muted)' }}>IA Médica conectada ao seu prontuário</p>
       
       <div style={styles.chatContainer}>
@@ -24,7 +24,7 @@ export default function ChatBot({ activePatient, currentRecipe, chatHistory, set
               </div>
             )}
             {chatHistory.map((msg, idx) => (
-              <div key={idx} style={{ alignSelf: msg.role === 'user' ? 'flex-end' : 'flex-start', backgroundColor: msg.role === 'user' ? '#3b82f6' : 'var(--crm-surface-2)', color: msg.role === 'user' ? 'white' : 'var(--crm-text-main)', padding: '12px 16px', borderRadius: msg.role === 'user' ? '16px 16px 0 16px' : '16px 16px 16px 0', maxWidth: '85%', fontSize: '0.95rem', lineHeight: '1.5' }}>
+              <div key={idx} style={{ alignSelf: msg.role === 'user' ? 'flex-end' : 'flex-start', backgroundColor: msg.role === 'user' ? 'var(--primary-color)' : 'var(--crm-surface-2)', color: msg.role === 'user' ? 'white' : 'var(--crm-text-main)', padding: '12px 16px', borderRadius: msg.role === 'user' ? '16px 16px 0 16px' : '16px 16px 16px 0', maxWidth: '85%', fontSize: '0.95rem', lineHeight: '1.5' }}>
                 {msg.content}
               </div>
             ))}
@@ -47,7 +47,7 @@ export default function ChatBot({ activePatient, currentRecipe, chatHistory, set
               <button 
                 type="submit" 
                 disabled={isChatLoading || !chatInput.trim()} 
-                style={{ backgroundColor: chatInput.trim() ? '#3b82f6' : 'var(--crm-border)', color: 'white', border: 'none', borderRadius: '50%', width: '45px', height: '45px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: chatInput.trim() ? 'pointer' : 'default', transition: 'background-color 0.2s', flexShrink: 0 }}
+                style={{ backgroundColor: chatInput.trim() ? 'var(--primary-color)' : 'var(--crm-border)', color: 'white', border: 'none', borderRadius: '50%', width: '45px', height: '45px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: chatInput.trim() ? 'pointer' : 'default', transition: 'background-color 0.2s', flexShrink: 0 }}
               >
                 <Send size={18} />
               </button>

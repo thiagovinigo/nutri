@@ -13,7 +13,8 @@
 4. ~~**Testar manualmente o upload de exame por IA** (`Consulta → 3. Exames (IA OpenAI)`)~~ — não deu pra automatizar via navegador nesta sessão (limitação da ferramenta), é a única funcionalidade de IA que ficou sem teste ponta-a-ponta. Suba uma foto/PDF de exame real e confirme se a análise volta certa.
 5. ~~Investigar timeout de geração de dieta de 7 dias~~ — corrigido em 29/07/2026: `generateDietFromAI` gera um dia por chamada em vez de todos de uma vez (era a causa raiz do erro "A IA demorou demais para responder", reportado como urgente). Testado localmente contra a API real: ~26s por dia isolado, bem dentro de qualquer timeout. Timeouts client-side (130s) e server-side (110s, `maxDuration: 120` na função) também foram adicionados como rede de segurança, pra nunca mais travar "Analisando..." sem erro visível.
 6. ~~Reproduzir a falha silenciosa de geração de dieta~~ — endereçado (não 100% "reproduzido e explicado", mas mitigado na raiz): retry automático com validação de `foods[]` preenchido (até 3 tentativas) já existia; a geração dia-a-dia (item 5) reduz ainda mais a chance de acontecer, já que cada chamada pede muito menos da IA de uma vez.
-7. **Cores hardcoded fora do roxo da marca** — botão "Nova Receita" (Biblioteca de Receitas) e abas "Da Nutri"/"Minhas Receitas" (app paciente) ainda usam azul, não a variável de marca. Cosmético, baixa prioridade.
+7. ~~**Cores hardcoded fora do roxo da marca**~~ — corrigido (botões, IA e calendários atualizados para `var(--primary-color)`).
+8. **Mudar lógica financeira (MRR vs Agenda)** — Usuário relatou que o cálculo atual da "Receita Prevista" por MRR (Planos fixos) não reflete a realidade do consultório, que ainda opera no modelo de Consulta paga + Retorno gratuito. Precisamos mudar o cálculo para ler os Agendamentos do mês e aplicar regras de valor (Primeira Consulta = X, Retorno = 0) em vez de somar o valor de planos.
 
 ---
 

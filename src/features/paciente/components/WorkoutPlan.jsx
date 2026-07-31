@@ -120,7 +120,7 @@ export default function WorkoutPlan({ activePatient }) {
       <div className="animate-pop-in" style={{ paddingBottom: '30px' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
           <h2 style={{ fontSize: '1.4rem', color: 'var(--crm-text-main)', display: 'flex', alignItems: 'center', gap: '8px', margin: 0 }}>
-            <Dumbbell color="#3b82f6" /> Meu Treino
+            <Dumbbell color="var(--primary-color)" /> Meu Treino
           </h2>
         </div>
         <div style={{ padding: '32px 24px', backgroundColor: 'var(--crm-surface)', borderRadius: '16px', textAlign: 'center', border: '1px dashed #CBD5E1' }}>
@@ -137,12 +137,12 @@ export default function WorkoutPlan({ activePatient }) {
       {/* Header */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
         <h2 style={{ fontSize: '1.4rem', color: 'var(--crm-text-main)', display: 'flex', alignItems: 'center', gap: '8px', margin: 0 }}>
-          <Dumbbell color="#3b82f6" /> Meu Treino
+          <Dumbbell color="var(--primary-color)" /> Meu Treino
         </h2>
         <span style={{
           display: 'flex', alignItems: 'center', gap: '6px',
           backgroundColor: weeklyDoneCount === weeklyTrainingCount && weeklyTrainingCount > 0 ? '#D1FAE5' : 'rgba(59,130,246,0.1)',
-          color: weeklyDoneCount === weeklyTrainingCount && weeklyTrainingCount > 0 ? '#059669' : '#3B82F6',
+          color: weeklyDoneCount === weeklyTrainingCount && weeklyTrainingCount > 0 ? '#059669' : 'var(--primary-color)',
           padding: '6px 12px', borderRadius: '20px', fontSize: '0.85rem', fontWeight: '600'
         }}>
           <Flame size={14} />
@@ -153,10 +153,10 @@ export default function WorkoutPlan({ activePatient }) {
       {/* Card da periodização */}
       <div style={{ padding: '14px 16px', backgroundColor: 'rgba(59, 130, 246, 0.08)', borderRadius: '12px', border: '1px solid #BFDBFE', marginBottom: '20px' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <Zap size={16} color="#3B82F6" />
-          <h3 style={{ margin: 0, color: '#1D4ED8', fontSize: '1rem', fontWeight: '700' }}>{workoutPlan.title}</h3>
+          <Zap size={16} color="var(--primary-color)" />
+          <h3 style={{ margin: 0, color: 'var(--primary-shadow, #4338CA)', fontSize: '1rem', fontWeight: '700' }}>{workoutPlan.title}</h3>
         </div>
-        <p style={{ margin: '4px 0 0 24px', color: '#3B82F6', fontSize: '0.82rem' }}>Ficha personalizada — IA Personal Trainer</p>
+        <p style={{ margin: '4px 0 0 24px', color: 'var(--primary-color)', fontSize: '0.82rem' }}>Ficha personalizada — IA Personal Trainer</p>
       </div>
 
       {/* Calendário semanal */}
@@ -191,8 +191,8 @@ export default function WorkoutPlan({ activePatient }) {
               textColor = '#F87171';
             } else if (isTodaySlot && !slot.isRest) {
               bg = 'rgba(59,130,246,0.12)';
-              border = '2px solid #3B82F6';
-              textColor = '#1D4ED8';
+              border = '2px solid var(--primary-color)';
+              textColor = 'var(--primary-shadow, #4338CA)';
             }
 
             return (
@@ -221,7 +221,7 @@ export default function WorkoutPlan({ activePatient }) {
                   ) : missed ? (
                     <Minus size={16} color="#F87171" />
                   ) : isTodaySlot ? (
-                    <Flame size={16} color="#3B82F6" />
+                    <Flame size={16} color="var(--primary-color)" />
                   ) : (
                     <Circle size={13} color="#94A3B8" />
                   )}
@@ -235,7 +235,7 @@ export default function WorkoutPlan({ activePatient }) {
                   <div style={{
                     position: 'absolute', top: '-4px', right: '-4px',
                     width: '10px', height: '10px', borderRadius: '50%',
-                    backgroundColor: '#3B82F6', border: '2px solid var(--crm-bg)'
+                    backgroundColor: 'var(--primary-color)', border: '2px solid var(--crm-bg)'
                   }} />
                 )}
               </div>
@@ -265,7 +265,7 @@ export default function WorkoutPlan({ activePatient }) {
                 border: done
                   ? '1.5px solid #34D399'
                   : isTodaySlot
-                  ? '2px solid #3B82F6'
+                  ? '2px solid var(--primary-color)'
                   : missed
                   ? '1px solid rgba(239,68,68,0.25)'
                   : '1px solid var(--crm-border)',
@@ -295,7 +295,7 @@ export default function WorkoutPlan({ activePatient }) {
                   }}>
                     {done
                       ? <Award size={18} color="#059669" />
-                      : <Dumbbell size={18} color={isTodaySlot ? '#3B82F6' : 'var(--crm-text-muted)'} />
+                      : <Dumbbell size={18} color={isTodaySlot ? 'var(--primary-color)' : 'var(--crm-text-muted)'} />
                     }
                   </div>
                   <div>
@@ -305,7 +305,7 @@ export default function WorkoutPlan({ activePatient }) {
                       </span>
                       {isTodaySlot && !done && (
                         <span style={{
-                          fontSize: '0.7rem', fontWeight: '600', color: '#3B82F6',
+                          fontSize: '0.7rem', fontWeight: '600', color: 'var(--primary-color)',
                           backgroundColor: 'rgba(59,130,246,0.1)', padding: '2px 8px', borderRadius: '10px'
                         }}>
                           HOJE
@@ -351,7 +351,7 @@ export default function WorkoutPlan({ activePatient }) {
                             display: 'flex', gap: '12px', alignItems: 'center', padding: '12px 14px',
                             backgroundColor: isExChecked ? '#F0FDF4' : 'var(--crm-surface-2, var(--crm-bg))',
                             borderRadius: '10px',
-                            borderLeft: `3px solid ${isExChecked ? '#22C55E' : isTodaySlot ? '#3B82F6' : '#94A3B8'}`,
+                            borderLeft: `3px solid ${isExChecked ? '#22C55E' : isTodaySlot ? 'var(--primary-color)' : '#94A3B8'}`,
                             cursor: done ? 'default' : 'pointer',
                             transition: 'all 0.2s'
                           }}
