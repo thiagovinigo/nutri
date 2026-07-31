@@ -2125,14 +2125,16 @@ export default function PatientList({
                 </div>
               </div>
               <div style={{ marginBottom: '16px' }}>
-                <label className="crm-label">Telefone (WhatsApp)</label>
+                <label className="crm-label">
+                  Telefone (WhatsApp) {!!editingPatient && <span style={{ fontSize: '12px', marginLeft: '4px' }}>🔒</span>}
+                </label>
                 <input type="tel" className="crm-input" placeholder="(11) 99999-9999" value={patPhone} onChange={e => {
                   let v = e.target.value.replace(/\D/g, '');
                   if (v.length > 11) v = v.slice(0, 11);
                   v = v.replace(/^(\d{2})(\d)/, '($1) $2');
                   v = v.replace(/(\d{5})(\d{4})$/, '$1-$2');
                   setPatPhone(v);
-                }} required />
+                }} disabled={!!editingPatient} style={!!editingPatient ? { backgroundColor: 'var(--crm-surface-2)', cursor: 'not-allowed', opacity: 0.6 } : {}} required />
               </div>
               <div style={{ display: 'flex', gap: '12px', marginBottom: '16px' }}>
                 <div style={{ flex: 1.2 }}>
