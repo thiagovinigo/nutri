@@ -2105,7 +2105,9 @@ export default function PatientList({
               </div>
               <div style={{ display: 'flex', gap: '16px', marginBottom: '16px' }}>
                 <div style={{ flex: 1 }}>
-                  <label className="crm-label">CPF</label>
+                  <label className="crm-label">
+                    CPF {!!editingPatient && <span style={{ fontSize: '12px', marginLeft: '4px' }}>🔒</span>}
+                  </label>
                   <input type="text" className="crm-input" placeholder="000.000.000-00" value={patCpf} onChange={e => {
                     let v = e.target.value.replace(/\D/g, '');
                     if (v.length > 11) v = v.slice(0, 11);
@@ -2113,11 +2115,13 @@ export default function PatientList({
                     v = v.replace(/(\d{3})(\d)/, '$1.$2');
                     v = v.replace(/(\d{3})(\d{1,2})$/, '$1-$2');
                     setPatCpf(v);
-                  }} disabled={!!editingPatient} required />
+                  }} disabled={!!editingPatient} style={!!editingPatient ? { backgroundColor: 'var(--crm-surface-2)', cursor: 'not-allowed', opacity: 0.6 } : {}} required />
                 </div>
                 <div style={{ flex: 1 }}>
-                  <label className="crm-label">E-mail</label>
-                  <input type="email" className="crm-input" placeholder="email@paciente.com" value={patEmail} onChange={e => setPatEmail(e.target.value)} disabled={!!editingPatient} required />
+                  <label className="crm-label">
+                    E-mail {!!editingPatient && <span style={{ fontSize: '12px', marginLeft: '4px' }}>🔒</span>}
+                  </label>
+                  <input type="email" className="crm-input" placeholder="email@paciente.com" value={patEmail} onChange={e => setPatEmail(e.target.value)} disabled={!!editingPatient} style={!!editingPatient ? { backgroundColor: 'var(--crm-surface-2)', cursor: 'not-allowed', opacity: 0.6 } : {}} required />
                 </div>
               </div>
               <div style={{ marginBottom: '16px' }}>
