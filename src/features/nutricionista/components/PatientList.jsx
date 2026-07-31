@@ -342,9 +342,7 @@ export default function PatientList({
           <button className={`crm-nav-btn ${view === 'receitas' ? 'active' : ''}`} onClick={() => {setView('receitas'); setViewingPatientId(null); setSynthesisResult('');}}>
             <ChefHat size={18} /> Biblioteca de Receitas
           </button>
-          <button className={`crm-nav-btn ${view === 'cohorts' ? 'active' : ''}`} onClick={() => {setView('cohorts'); setViewingPatientId(null); setSynthesisResult('');}}>
-            <Activity size={18} /> Inteligência de Cohorts
-          </button>
+
           <button className={`crm-nav-btn ${view === 'financeiro' ? 'active' : ''}`} onClick={() => {setView('financeiro'); setViewingPatientId(null); setSynthesisResult('');}}>
             <DollarSign size={18} /> Financeiro & Planos
           </button>
@@ -490,7 +488,6 @@ export default function PatientList({
                 <div className="crm-card" style={{ flex: '1 1 340px' }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
                     <h3 style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#B45A09' }}><AlertTriangle size={18} /> Atenção Necessária</h3>
-                    <button className="crm-nav-btn" style={{ fontSize: '0.82rem', padding: '4px 8px' }} onClick={() => setView('cohorts')}>Ver cohorts <ArrowRight size={14} /></button>
                   </div>
                   {atRiskPatients.length === 0 ? (
                     <p style={{ color: 'var(--crm-text-muted)', fontSize: '0.9rem' }}>Nenhum paciente em risco no momento.</p>
@@ -514,7 +511,6 @@ export default function PatientList({
                 <div className="crm-card" style={{ flex: '1 1 340px' }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
                     <h3 style={{ display: 'flex', alignItems: 'center', gap: '8px' }}><Trophy size={18} color="var(--crm-good-text)" /> Mais Engajados</h3>
-                    <button className="crm-nav-btn" style={{ fontSize: '0.82rem', padding: '4px 8px' }} onClick={() => setView('cohorts')}>Ver cohorts <ArrowRight size={14} /></button>
                   </div>
                   {topEngagedPatients.length === 0 ? (
                     <p style={{ color: 'var(--crm-text-muted)', fontSize: '0.9rem' }}>Nenhum paciente ativo no momento.</p>
@@ -728,10 +724,6 @@ export default function PatientList({
                       <LinkIcon size={16} /> {copiedPatientLink ? 'Link Copiado!' : 'Copiar Link (Pendente)'}
                     </button>
                   )}
-                  <button className="crm-btn-secondary" onClick={() => generatePatientSynthesis(viewedPatient)} disabled={isSynthesizing} style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                    <BrainCircuit size={16} color="var(--crm-accent)" /> 
-                    {isSynthesizing ? 'Analisando Histórico...' : 'Gerar Síntese Clínica (IA)'}
-                  </button>
                   {(() => {
                     const todayStr = new Date().toISOString().split('T')[0];
                     const apptHoje = appointments?.find(a => a.patientId === viewedPatient.id && a.date === todayStr && a.status === 'agendado');
@@ -744,22 +736,97 @@ export default function PatientList({
                 </div>
               </div>
 
+              {/* CARD CENTRAL DE COMANDO (COHORT E IA) */}
+              <div className="crm-card" style={{ marginBottom: '24px', backgroundColor: 'var(--crm-surface-2, var(--crm-bg))', border: '1px solid var(--crm-border)' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '24px' }}>
+                  <div style={{ flex: '1 1 300px' }}>
+                    <h3 style={{ fontSize: '1.2rem', display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '16px', color: 'var(--crm-text-main)' }}>
+                      <Activity size={20} color="#3B82F6" /> Status de Engajamento (Cohort)
+                    </h3>
+                    
+                    <div style={{ display: 'flex', gap: '16px', flexWrap: 'wrap' }}>
+                      <div>
+                        <div style={{ fontSize: '0.85rem', color: 'var(--crm-text-muted)' }}>Status</div>
+                        <div style={{ fontWeight: 'bold' }}>
+                          {viewedPatient.status === 'engajado' && <span style={{ color: '#16A34A' }}>Alto Engajamento</span>}
+                          {viewedPatient.status === 'ativo' && <span style={{ color: '#2563EB' }}>Ativo</span>}
+                          {viewedPatient.status === 'em_risco' && <span style={{ color: '#D97706' }}>Perdendo Foco</span>}
+                          {viewedPatient.status === 'inativo' && <span style={{ color: '#EF4444' }}>Inativo</span>}
+                        </div>
+                      </div>
+                      
+                      <div>
+                        <div style={{ fontSize: '0.85rem', color: 'var(--crm-text-muted)' }}>Ofensiva App</div>
+                        <div style={{ fontWeight: 'bold' }}>🔥 {viewedPatient.streak || 0} dias</div>
+                      </div>
+                      
+                      {viewedPatient.behavioral_risk && (
+                        <div>
+                          <div style={{ fontSize: '0.85rem', color: '#7C3AED' }}>Alerta da IA</div>
+                          <div style={{ fontWeight: 'bold', color: '#7C3AED' }}>Risco Comportamental</div>
+                        </div>
+                      )}
+                    </div>
+
+                    {viewedPatient.status === 'em_risco' && (
+                      <div style={{ marginTop: '16px' }}>
+                        <button 
+                          className="crm-btn-primary animate-pulse" 
+                          style={{ backgroundColor: '#DC2626', borderColor: '#DC2626', display: 'flex', alignItems: 'center', gap: '8px' }}
+                          onClick={() => {
+                            const msg = prompt('Digite a mensagem de resgate para enviar ao WhatsApp deste paciente:', 'Oi, senti sua falta nos últimos dias. Está tudo bem com a dieta?');
+                            if (msg && viewedPatient.telefone) {
+                              fetch('/api/send-whatsapp', {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({ phone: viewedPatient.telefone, message: msg })
+                              }).then(r => r.json()).then(res => {
+                                if(res.success) alert('Mensagem de resgate enviada com sucesso!');
+                                else alert('Falha ao enviar mensagem de resgate.');
+                              }).catch(err => alert('Erro na comunicação com a Evolution API.'));
+                            } else if (!viewedPatient.telefone) {
+                              alert('Este paciente não tem telefone cadastrado para WhatsApp.');
+                            }
+                          }}
+                        >
+                          <AlertTriangle size={16} /> Resgate via WhatsApp (Evolution API)
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                  
+                  <div style={{ flex: '1 1 300px', backgroundColor: 'var(--crm-surface)', padding: '16px', borderRadius: '8px', border: '1px dashed var(--crm-border)' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
+                      <h4 style={{ display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--crm-text-main)', margin: 0 }}>
+                        <BrainCircuit size={18} color="var(--crm-accent)" /> Síntese Clínica
+                      </h4>
+                      {!synthesisResult && (
+                        <button className="crm-btn-secondary" onClick={() => generatePatientSynthesis(viewedPatient)} disabled={isSynthesizing} style={{ padding: '4px 10px', fontSize: '0.85rem' }}>
+                          {isSynthesizing ? 'Analisando...' : 'Gerar Análise'}
+                        </button>
+                      )}
+                    </div>
+                    
+                    {synthesisResult ? (
+                      <div style={{ whiteSpace: 'pre-wrap', lineHeight: '1.5', fontSize: '0.9rem', color: 'var(--crm-text-main)' }}>
+                        {synthesisResult}
+                      </div>
+                    ) : (
+                      <div style={{ color: 'var(--crm-text-muted)', fontSize: '0.9rem', fontStyle: 'italic' }}>
+                        Clique em "Gerar Análise" para a IA cruzar o histórico deste paciente com os parâmetros de Cohort e sugerir a conduta ideal.
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+
               {synthesisError && (
                 <div role="alert" className="crm-card animate-pop-in" style={{ marginBottom: '24px', borderLeft: '4px solid var(--crm-danger)', backgroundColor: 'var(--crm-danger-soft, #FEE2E2)', color: '#991B1B' }}>
                   {synthesisError}
                 </div>
               )}
 
-              {synthesisResult && (
-                <div className="crm-card animate-pop-in" style={{ marginBottom: '24px', borderLeft: '4px solid var(--crm-accent)', backgroundColor: 'var(--crm-surface-2, var(--crm-bg))' }}>
-                  <h3 style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px', color: 'var(--crm-text-main)' }}>
-                    <Sparkles size={20} /> Resumo Analítico da IA
-                  </h3>
-                  <div style={{ whiteSpace: 'pre-wrap', lineHeight: '1.6', fontSize: '0.95rem', color: 'var(--crm-text-main)' }}>
-                    {synthesisResult}
-                  </div>
-                </div>
-              )}
+
 
               {/* TABS DO PRONTUÁRIO */}
               <div className="results-tabs" style={{ marginBottom: '24px' }}>
@@ -1669,120 +1736,7 @@ export default function PatientList({
             </div>
           )}
 
-          {/* TELA DE COHORTS / INTELIGÊNCIA */}
-          {view === 'cohorts' && (
-            <div className="animate-pop-in">
-              <div style={{ marginBottom: '32px' }}>
-                <h1 style={{ fontSize: '1.8rem', fontWeight: '700', color: 'var(--crm-text-main)', marginBottom: '8px' }}>Dashboard de Retenção</h1>
-                <p style={{ color: 'var(--crm-text-muted)' }}>Métricas em tempo real de gamificação e risco de abandono.</p>
-              </div>
 
-              {/* KPIs de Gamificação */}
-              <div style={{ display: 'flex', gap: '24px', marginBottom: '32px', flexWrap: 'wrap' }}>
-                <div className="crm-card" style={{ flex: '1 1 200px', display: 'flex', alignItems: 'center', gap: '16px' }}>
-                  <div style={{ padding: '16px', backgroundColor: 'var(--crm-surface-2, var(--crm-bg))', borderRadius: '50%', color: '#3B82F6' }}>
-                    <Zap size={32} />
-                  </div>
-                  <div>
-                    <div style={{ fontSize: '0.9rem', color: 'var(--crm-text-muted)', fontWeight: '600' }}>Ofensiva Média</div>
-                    <div style={{ fontSize: '1.8rem', fontWeight: 'bold', color: 'var(--crm-text-main)' }}>🔥 {avgStreak} dias</div>
-                  </div>
-                </div>
-                
-                <div className="crm-card" style={{ flex: '1 1 200px', display: 'flex', alignItems: 'center', gap: '16px' }}>
-                  <div style={{ padding: '16px', backgroundColor: '#ECFDF5', borderRadius: '50%', color: 'var(--crm-good-text)' }}>
-                    <Activity size={32} />
-                  </div>
-                  <div>
-                    <div style={{ fontSize: '0.9rem', color: 'var(--crm-text-muted)', fontWeight: '600' }}>Engajamento Alto</div>
-                    <div style={{ fontSize: '1.8rem', fontWeight: 'bold', color: 'var(--crm-text-main)' }}>{engagedPercentage}%</div>
-                  </div>
-                </div>
-
-                <div className="crm-card" style={{ flex: '1 1 200px', display: 'flex', alignItems: 'center', gap: '16px' }}>
-                  <div style={{ padding: '16px', backgroundColor: '#FEFCE8', borderRadius: '50%', color: '#EAB308' }}>
-                    <Star size={32} />
-                  </div>
-                  <div>
-                    <div style={{ fontSize: '0.9rem', color: 'var(--crm-text-muted)', fontWeight: '600' }}>XP Total da Clínica</div>
-                    <div style={{ fontSize: '1.8rem', fontWeight: 'bold', color: 'var(--crm-text-main)' }}>💎 {totalXP}</div>
-                  </div>
-                </div>
-              </div>
-
-              <div style={{ display: 'flex', gap: '24px', flexWrap: 'wrap', marginBottom: '32px' }}>
-                
-                {/* LEADERBOARD */}
-                <div className="crm-card" style={{ flex: '1 1 300px' }}>
-                  <h3 style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '24px', color: 'var(--crm-text-main)' }}>
-                    <Trophy size={20} color="#EAB308" /> Leaderboard de Pacientes
-                  </h3>
-                  
-                  {topEngagedPatients.length === 0 ? (
-                    <p style={{ color: 'var(--crm-text-muted)' }}>Nenhum paciente ativo com XP.</p>
-                  ) : (
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-                      {topEngagedPatients.map((p, idx) => (
-                        <div key={p.id} style={{ display: 'flex', alignItems: 'center', gap: '16px', padding: '12px', backgroundColor: idx === 0 ? '#FEFCE8' : 'var(--crm-surface-2, var(--crm-bg))', borderRadius: '8px', border: idx === 0 ? '1px solid #FEF08A' : '1px solid var(--crm-border)' }}>
-                          <div style={{ width: '32px', height: '32px', borderRadius: '50%', backgroundColor: idx === 0 ? '#EAB308' : 'var(--crm-border)', color: idx === 0 ? 'white' : 'var(--crm-text-main)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 'bold', fontSize: '1.1rem' }}>
-                            {idx + 1}
-                          </div>
-                          <div style={{ flex: 1 }}>
-                            <div style={{ fontWeight: '600', color: idx === 0 ? '#854D0E' : 'var(--crm-text-main)' }}>{p.name}</div>
-                            <div style={{ fontSize: '0.8rem', color: idx === 0 ? '#A16207' : 'var(--crm-text-muted)' }}>🔥 {p.streak} dias de foco</div>
-                          </div>
-                          <div style={{ fontWeight: 'bold', color: '#EAB308', fontSize: '1.2rem' }}>
-                            {p.xp} XP
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </div>
-
-                {/* PACIENTES EM RISCO DE CHURN */}
-                <div className="crm-card" style={{ flex: '2 1 400px', backgroundColor: 'var(--crm-danger-soft, #FEE2E2)', border: '1px solid #FCA5A5' }}>
-                  <h3 style={{ color: '#DC2626', display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '16px' }}>
-                    <AlertTriangle size={20} /> Pacientes em Risco de Abandono (Churn)
-                  </h3>
-                  <p style={{ color: '#991B1B', marginBottom: '16px', fontSize: '0.95rem' }}>O Nutrivvo identificou pacientes com queda abrupta de engajamento na última semana.</p>
-                  {churnAlertMessage && (
-                    <div role="status" style={{ marginBottom: '16px', padding: '10px 14px', backgroundColor: 'var(--crm-surface)', border: '1px solid #FCA5A5', borderRadius: '8px', color: '#991B1B', fontSize: '0.85rem' }}>
-                      {churnAlertMessage}
-                    </div>
-                  )}
-                  <table className="crm-table">
-                    <thead>
-                      <tr>
-                        <th>Paciente</th>
-                        <th>Último Peso</th>
-                        <th>Dias sem logar</th>
-                        <th>Ação Recomendada</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {patients.filter(p => p.status === 'em_risco').map(p => (
-                        <tr key={p.id}>
-                          <td style={{ fontWeight: '500' }}>{p.name}</td>
-                          <td>{p.weights && p.weights.length > 0 ? p.weights[p.weights.length - 1].value + ' kg' : 'N/A'}</td>
-                          <td style={{ color: '#DC2626', fontWeight: 'bold' }}>{p.streak === 0 ? '7+ dias' : `${3 - p.streak} dias`}</td>
-                          <td>
-                            <button className="crm-btn-primary" style={{ backgroundColor: '#DC2626', fontSize: '0.85rem', padding: '6px 12px' }} onClick={() => handleSendChurnAlert(p)}>
-                              Enviar Alerta
-                            </button>
-                          </td>
-                        </tr>
-                      ))}
-                      {patients.filter(p => p.status === 'em_risco').length === 0 && (
-                        <tr><td colSpan="4" style={{ textAlign: 'center', color: '#991B1B' }}>Nenhum paciente em risco no momento.</td></tr>
-                      )}
-                    </tbody>
-                  </table>
-                </div>
-
-              </div>
-            </div>
-          )}
 
           {/* TELA DE GESTÃO FINANCEIRA E PLANOS */}
           {view === 'financeiro' && (
