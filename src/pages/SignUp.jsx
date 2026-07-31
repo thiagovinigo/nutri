@@ -221,7 +221,11 @@ export default function SignUp() {
       }
       
     } catch (error) {
-      setErrorMsg(getFirebaseErrorMessage(error));
+      if (error.code === 'auth/email-already-in-use') {
+        setErrorMsg('Este e-mail já possui uma conta! Role a página e clique em "Faça login aqui" para acessar sua conta e aceitar o convite.');
+      } else {
+        setErrorMsg(getFirebaseErrorMessage(error));
+      }
     } finally {
       setLoading(false);
     }
@@ -450,7 +454,7 @@ export default function SignUp() {
 
           <div style={{ marginTop: '24px', textAlign: 'center' }}>
             <span style={{ color: '#94a3b8' }}>Já tem uma conta? </span>
-            <Link to={nutriIdParam ? `/login?nutri=${nutriIdParam}` : "/login"} style={{ color: '#c084fc', textDecoration: 'none', fontWeight: 'bold' }}>Faça login aqui</Link>
+            <Link to={`/login?${searchParams.toString()}`} style={{ color: '#c084fc', textDecoration: 'none', fontWeight: 'bold' }}>Faça login aqui</Link>
           </div>
         </form>
       </div>

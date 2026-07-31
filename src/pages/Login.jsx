@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { auth, db } from '../services/firebase';
 import { signInWithEmailAndPassword } from 'firebase/auth';
-import { doc, getDoc, setDoc } from 'firebase/firestore';
+import { doc, getDoc, setDoc, deleteDoc, collection, query, where, getDocs, updateDoc } from 'firebase/firestore';
 import { getFirebaseErrorMessage } from '../utils/firebaseErrors';
 import { useAppContext } from '../context/AppContext';
 
@@ -71,8 +71,37 @@ export default function Login() {
       if (docSnap.exists()) {
         const profile = docSnap.data();
 
-        // Se houver um link de convite e ele for paciente (ou não ter role salva), atualiza o vínculo
-        if (nutriIdParam && profile.role !== 'nutricionista') {
+        const vincularId = searchParams.get('vincular');
+
+        if (vincularId && profile.role !== 'nutricionista') {
+          try {
+            const tempDocRef = doc(db, 'patients', vincularId);
+            const tempDocSnap = await getDoc(tempDocRef);
+            if (tempDocSnap.exists()) {
+              const tempData = tempDocSnap.data();
+              // Mescla o nutricionista_id e atualiza o records
+              await setDoc(doc(db, 'patients', user.uid), {
+                nutricionista_id: tempData.nutricionista_id || nutriIdParam,
+                records: 'Vinculado ao nutricionista após login.',
+                status: 'ativo'
+              }, { merge: true });
+
+              // Migrar agendamentos do ID temporário para o UID real do paciente
+              try {
+                const apptsQuery = query(collection(db, 'appointments'), where('patientId', '==', vincularId));
+                const apptsSnap = await getDocs(apptsQuery);
+                await Promise.all(apptsSnap.docs.map(d => updateDoc(doc(db, 'appointments', d.id), { patientId: user.uid })));
+              } catch (apptError) {
+                console.warn('Falha ao migrar agendamentos no login.', apptError);
+              }
+
+              // Deletar o registro temporário criado pelo nutri
+              await deleteDoc(tempDocRef);
+            }
+          } catch(e) {
+            console.warn("Falha ao mesclar dados do convite no login.", e);
+          }
+        } else if (nutriIdParam && profile.role !== 'nutricionista') {
           await setDoc(doc(db, 'patients', user.uid), {
             nutricionista_id: nutriIdParam,
             records: 'Vinculado ao nutricionista via convite de login.'
@@ -164,7 +193,7 @@ export default function Login() {
 
           <div style={{ marginTop: '24px', textAlign: 'center' }}>
             <span style={{ color: '#94a3b8' }}>Ainda não tem conta? </span>
-            <Link to={nutriIdParam ? `/cadastro?nutri=${nutriIdParam}` : "/cadastro"} style={{ color: '#c084fc', textDecoration: 'none', fontWeight: 'bold' }}>Cadastre-se grátis</Link>
+            <Link to={`/cadastro?${searchParams.toString()}`} style={{ color: '#c084fc', textDecoration: 'none', fontWeight: 'bold' }}>Cadastre-se grátis</Link>
           </div>
 
           {import.meta.env.DEV && (
