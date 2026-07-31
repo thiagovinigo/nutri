@@ -2,6 +2,7 @@ import React, { createContext, useState, useContext, useEffect, useCallback } fr
 import { auth, db } from '../services/firebase';
 import { onAuthStateChanged } from 'firebase/auth';
 import { collection, doc, getDoc, getDocs, addDoc, updateDoc, deleteDoc, query, where } from 'firebase/firestore';
+import toast from 'react-hot-toast';
 
 const AppContext = createContext();
 
@@ -210,7 +211,7 @@ export function AppProvider({ children }) {
       return docRef.id;
     } catch (e) {
       console.error('Falha ao sincronizar novo paciente:', e);
-      alert('Erro ao salvar paciente no banco de dados: ' + e.message);
+      toast.error('Erro ao salvar paciente no banco de dados: ' + e.message);
       return localId;
     }
   };
@@ -246,7 +247,7 @@ export function AppProvider({ children }) {
       await updateDoc(doc(db, 'patients', patientId), { recipes: newRecipes });
     } catch(e) {
       console.error('Falha ao sincronizar dieta:', e);
-      alert('Erro ao salvar dieta no banco de dados: ' + e.message);
+      toast.error('Erro ao salvar dieta no banco de dados: ' + e.message);
     }
   };
 
@@ -436,7 +437,7 @@ export function AppProvider({ children }) {
       setAppointments(prev => prev.map(a => a.id === localId ? { id: docRef.id, ...newAppt } : a));
     } catch(e) {
       console.error('Falha ao sincronizar agendamento:', e);
-      alert('Erro ao salvar agendamento no banco de dados: ' + e.message);
+      toast.error('Erro ao salvar agendamento no banco de dados: ' + e.message);
     }
   };
 
@@ -457,7 +458,7 @@ export function AppProvider({ children }) {
       await updateDoc(doc(db, 'appointments', id), { status: 'concluido' });
     } catch(e) {
       console.error('Falha ao sincronizar conclusão de agendamento:', e);
-      alert('Erro ao atualizar status do agendamento no banco: ' + e.message);
+      toast.error('Erro ao atualizar status do agendamento no banco: ' + e.message);
     }
   };
 

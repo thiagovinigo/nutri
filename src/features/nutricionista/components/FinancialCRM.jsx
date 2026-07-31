@@ -3,6 +3,7 @@ import {
   DollarSign, TrendingUp, AlertCircle, CheckCircle, Clock, 
   Plus, Trash2, Edit, Send, Calendar, Users, Award, ArrowUpRight 
 } from 'lucide-react';
+import toast from 'react-hot-toast';
 
 export default function FinancialCRM({ 
   patients = [], 
@@ -140,7 +141,7 @@ export default function FinancialCRM({
     const phone = patient.phone ? patient.phone.replace(/\D/g, '') : '';
     
     if (!phone) {
-      alert('O paciente não possui telefone cadastrado no perfil.');
+      toast.error('O paciente não possui telefone cadastrado no perfil.');
       return;
     }
 

@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { createPortal } from 'react-dom';
+import toast from 'react-hot-toast';
 import { Target, Check, Camera, Sparkles, Flame, Droplets, AlertCircle, X, ChevronLeft, ChevronRight, Moon, Loader2, RefreshCw } from 'lucide-react';
 import { useAppContext } from '../../../context/AppContext';
 import ShareableMilestone from './ShareableMilestone';
@@ -285,7 +286,7 @@ export default function QuestBoard({ activePatient }) {
     } catch (apiError) {
       const errMsg = apiError.message || 'Não consegui analisar essa foto agora. Tente novamente em instantes.';
       setAnalysisError(errMsg);
-      alert("ERRO NA IA: " + errMsg);
+      toast.error("ERRO NA IA: " + errMsg);
       setPreviewImage(null);
     } finally {
       setAnalyzing(false);

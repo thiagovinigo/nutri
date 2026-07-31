@@ -6,6 +6,7 @@ import remarkGfm from 'remark-gfm';
 import tacoData from '../../../data/taco.json';
 import { useAppContext } from '../../../context/AppContext';
 import { useAiRecipe } from '../hooks/useAiRecipe';
+import toast from 'react-hot-toast';
 
 export default function DietPlan({ activePatient }) {
   const { updatePatient } = useAppContext();
@@ -28,7 +29,7 @@ export default function DietPlan({ activePatient }) {
   const handleOpenSub = (food) => {
     const baseDbFood = tacoData.find(db => String(db.id) === String(food.foodId) || db.name === food.name);
     if (!baseDbFood) {
-      alert('Não foi possível encontrar opções de substituição automática para este item. Por favor, consulte sua Nutricionista.');
+      toast.error('Não foi possível encontrar opções de substituição automática para este item. Por favor, consulte sua Nutricionista.');
       return;
     }
     let mainMacro = 'kcal';
@@ -57,7 +58,7 @@ export default function DietPlan({ activePatient }) {
     const reversed = [...activePatient.recipes].reverse();
     const realRIdx = activePatient.recipes.length - 1 - rIdx; // reverse() offset
     const target = newRecipes[realRIdx]?.meals?.[mIdx]?.foods?.[fIdx];
-    if (!target) { alert('Não foi possível aplicar a substituição.'); return; }
+    if (!target) { toast.error('Não foi possível aplicar a substituição.'); return; }
     target.name = alt.name;
     target.amount = alt.suggestedAmount;
     target.foodId = alt.id;

@@ -1,4 +1,4 @@
-﻿import React from 'react';
+import React from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import DashboardNutri from './features/nutricionista/pages/DashboardNutri';
 import PatientApp from './features/paciente/pages/PatientApp';
@@ -6,6 +6,7 @@ import LandingPage from './pages/LandingPage';
 import Login from './pages/Login';
 import SignUp from './pages/SignUp';
 import { AppProvider, useAppContext } from './context/AppContext';
+import { Toaster } from 'react-hot-toast';
 
 // Em produção, exige sessão real. Em dev (ite dev), deixa passar sem login
 // para permitir os atalhos "Modo Nutricionista/Paciente" usados em testes.
@@ -20,6 +21,7 @@ function RequireAuth({ children }) {
 function App() {
   return (
     <AppProvider>
+      <Toaster position="top-right" />
       <BrowserRouter>
         <Routes>
           <Route path="/" element={<LandingPage />} />

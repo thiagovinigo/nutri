@@ -8,6 +8,7 @@ import supplementsData from '../../../data/supplements.json';
 import { callOpenAIBridge } from '../../../utils/openaiBridge';
 import { formatAnamnesisAnswers } from '../../../utils/anamnesis';
 import { DEFAULT_TEMPLATE as DEFAULT_ANAMNESIS_TEMPLATE } from '../components/AnamnesisTemplateSettings';
+import toast from 'react-hot-toast';
 
 export default function DashboardNutri() {
   const { 
@@ -102,7 +103,6 @@ export default function DashboardNutri() {
   const [dietError, setDietError] = useState('');
   const [synthesisError, setSynthesisError] = useState('');
   const [finishedMessage, setFinishedMessage] = useState('');
-  const [toastMessage, setToastMessage] = useState('');
 
   const activePatient = patients.find(p => p.id === activePatientId) || patients[0];
 
@@ -118,16 +118,16 @@ export default function DashboardNutri() {
       const [dYear, dMonth, dDay] = apptDate.split('-').map(Number);
       const selectedWeekday = new Date(dYear, dMonth - 1, dDay).getDay();
       if (!workingDays.includes(selectedWeekday)) {
-        alert('Este dia da semana não está configurado como dia de atendimento (veja Configurações > Horários de Atendimento). Escolha outra data.');
+        toast.error('Este dia da semana não está configurado como dia de atendimento (veja Configurações > Horários de Atendimento). Escolha outra data.');
         return;
       }
       if (blockedDates.includes(apptDate)) {
-        alert('Esta data está bloqueada na agenda. Escolha outra data.');
+        toast.error('Esta data está bloqueada na agenda. Escolha outra data.');
         return;
       }
       const conflict = appointments.some(a => a.date === apptDate && a.time === apptTime && a.status === 'agendado');
       if (conflict) {
-        alert('Já existe um agendamento para esta mesma data e horário. Por favor, escolha outro horário.');
+        toast.error('Já existe um agendamento para esta mesma data e horário. Por favor, escolha outro horário.');
         return;
       }
       addAppointment(apptPatientId, apptDate, apptTime, apptType, apptLocationType, apptMeetingLink);
@@ -181,12 +181,12 @@ export default function DashboardNutri() {
     });
 
     if (isDuplicate) {
-      alert(`Não é possível salvar: ${conflictReason}. Altere o dado duplicado para um valor único.`);
+      toast.error(`Não é possível salvar: ${conflictReason}. Altere o dado duplicado para um valor único.`);
       return;
     }
 
     if (!patCpf || !patEmail || !patPhone) {
-      alert("CPF, E-mail e Telefone são obrigatórios!");
+      toast.error("CPF, E-mail e Telefone são obrigatórios!");
       return;
     }
     
@@ -217,8 +217,7 @@ export default function DashboardNutri() {
         // Abre o perfil do paciente recém-criado onde o link de cópia rápida está disponível no topo
         setView('pacientes');
         setViewingPatientId(newId);
-        setToastMessage('Paciente cadastrado com sucesso!');
-        setTimeout(() => setToastMessage(''), 3000);
+        toast.success('Paciente cadastrado com sucesso!');
       }
     }
     setShowPatientModal(false);
@@ -731,11 +730,6 @@ Não inclua textos fora do JSON. Apenas o JSON puro.`;
 
   return (
     <div style={{ '--crm-primary': clinicConfig.primaryColor }}>
-      {toastMessage && (
-        <div style={{ position: 'fixed', top: '20px', right: '20px', background: 'var(--crm-good)', color: 'white', padding: '16px 24px', borderRadius: '8px', zIndex: 9999, boxShadow: '0 4px 12px rgba(0,0,0,0.15)', fontWeight: '600', animation: 'fadeIn 0.3s ease' }}>
-          {toastMessage}
-        </div>
-      )}
       <PatientList
         view={view} setView={setView}
         patients={patients} appointments={appointments}

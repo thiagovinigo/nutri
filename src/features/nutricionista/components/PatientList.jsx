@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { Users, Calendar, PlayCircle, Trash2, Plus, Eye, Edit3, TrendingUp, Utensils, FileText, BrainCircuit, Play, Sparkles, Activity, Settings, CreditCard, Palette, AlertTriangle, Trophy, Star, Zap, LayoutDashboard, Search, ChevronUp, ChevronDown, ArrowRight, UserCog, BookOpen, ChefHat, Link as LinkIcon, Camera, Upload, Moon, Dumbbell, DollarSign, Send, CheckCircle2 } from 'lucide-react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, Legend, ResponsiveContainer } from 'recharts';
 import { useNavigate } from 'react-router-dom';
@@ -11,6 +11,7 @@ import AnamnesisTemplateSettings from './AnamnesisTemplateSettings';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import ChatIA from './ChatIA';
+import toast from 'react-hot-toast';
 
 export default function PatientList({
   view, setView,
@@ -54,6 +55,22 @@ export default function PatientList({
   const [editingExerciseData, setEditingExerciseData] = useState({name: '', sets: '', reps: ''});
   
   const [chatInput, setChatInput] = useState('');
+
+  const [apptPatientSearch, setApptPatientSearch] = useState('');
+  const [showPatientDropdown, setShowPatientDropdown] = useState(false);
+
+  useEffect(() => {
+    if (showApptModal) {
+      if (apptPatientId) {
+        const p = patients.find(pat => pat.id === apptPatientId);
+        if (p) setApptPatientSearch(p.name);
+      } else {
+        setApptPatientSearch('');
+      }
+    } else {
+      setShowPatientDropdown(false);
+    }
+  }, [showApptModal, apptPatientId, patients]);
 
   const handleDeleteActiveRecipe = (rIdx) => {
     if(window.confirm('Tem certeza que deseja excluir toda essa prescrição?')) {
@@ -205,8 +222,8 @@ export default function PatientList({
   };
 
   const handleSaveDietBuilder = () => {
-    if (!dietBuilderTitle) {
-      alert('Dê um nome para a dieta.');
+    if (!dietBuilderTitle.trim()) {
+      toast.error('Dê um nome para a dieta.');
       return;
     }
     // Salvando template com o novo formato Day-by-Day (usando addDietTemplate injetada no AppContext)
@@ -589,7 +606,7 @@ export default function PatientList({
                 </div>
                 <div style={{ display: 'flex', gap: '12px' }}>
                   <button className={copiedGeneralLink ? "crm-btn-primary" : "crm-btn-secondary"} style={{ display: 'flex', alignItems: 'center', gap: '8px', transition: 'all 0.3s ease' }} onClick={() => {
-                    if (!profile?.id) return alert('Perfil não carregado!');
+                    if (!profile?.id) return toast.error('Perfil não carregado!');
                     const link = `${window.location.origin}/cadastro?nutri=${profile.id}`;
                     navigator.clipboard.writeText(link);
                     setCopiedGeneralLink(true);
@@ -781,11 +798,11 @@ export default function PatientList({
                                 headers: { 'Content-Type': 'application/json' },
                                 body: JSON.stringify({ phone: viewedPatient.telefone, message: msg })
                               }).then(r => r.json()).then(res => {
-                                if(res.success) alert('Mensagem de resgate enviada com sucesso!');
-                                else alert('Falha ao enviar mensagem de resgate.');
-                              }).catch(err => alert('Erro na comunicação com a Evolution API.'));
-                            } else if (!viewedPatient.telefone) {
-                              alert('Este paciente não tem telefone cadastrado para WhatsApp.');
+                                if(res.success) toast.success('Mensagem de resgate enviada com sucesso!');
+                                else toast.error('Falha ao enviar mensagem de resgate.');
+                              }).catch(err => toast.error('Erro na comunicação com a Evolution API.'));
+                            } else {
+                              toast.error('Este paciente não tem telefone cadastrado para WhatsApp.');
                             }
                           }}
                         >
@@ -1088,13 +1105,13 @@ export default function PatientList({
                 const phone = viewedPatient.phone ? viewedPatient.phone.replace(/\D/g, '') : '';
 
                 const handleSendCobrança = () => {
-                  if (!phone) { alert('Paciente sem telefone cadastrado no perfil.'); return; }
+                  if (!phone) { toast.error('Paciente sem telefone cadastrado no perfil.'); return; }
                   const msg = `Olá, ${viewedPatient.name}! 🌟 Passando para lembrar sobre o pagamento/renovação do seu plano (${activePlan.name} - R$ ${activePlan.price}) no Nutrivvo. Qualquer dúvida estou à disposição!`;
                   window.open(`https://wa.me/55${phone}?text=${encodeURIComponent(msg)}`, '_blank');
                 };
 
                 const handleSendRecibo = () => {
-                  if (!phone) { alert('Paciente sem telefone cadastrado no perfil.'); return; }
+                  if (!phone) { toast.error('Paciente sem telefone cadastrado no perfil.'); return; }
                   const msg = `🧾 *RECIBO DE PAGAMENTO - NUTRIVVO*\n\nConfirmamos o recebimento do valor de *R$ ${activePlan.price}* referente ao plano *${activePlan.name}* do(a) paciente *${viewedPatient.name}*.\n\nStatus: Confirmado e Quitado 🟢\nData: ${new Date().toLocaleDateString('pt-BR')}\n\nMuito obrigado pela confiança em nosso acompanhamento nutricional! 🍎✨`;
                   window.open(`https://wa.me/55${phone}?text=${encodeURIComponent(msg)}`, '_blank');
                 };
@@ -1918,7 +1935,7 @@ export default function PatientList({
                           </div>
                         </div>
                       </div>
-                      <button className="crm-btn-primary" onClick={() => alert('Configurações salvas e aplicadas!')}>
+                      <button className="crm-btn-primary" onClick={() => toast.success('Configurações salvas e aplicadas!')}>
                         Aplicar Identidade Visual
                       </button>
                     </div>
@@ -1959,7 +1976,7 @@ export default function PatientList({
                           <div>
                             <div style={{ fontSize: '1.8rem', fontWeight: 800 }}>R$ 149<span style={{ fontSize: '1rem', color: 'var(--crm-text-muted)', fontWeight: 500 }}>/mês</span></div>
                           </div>
-                          <button className="crm-btn-primary" style={{ padding: '12px 24px', fontSize: '1rem' }} onClick={() => alert('Em breve — o checkout de pagamento via Stripe será aberto aqui.')}>
+                          <button className="crm-btn-primary" style={{ padding: '12px 24px', fontSize: '1rem' }} onClick={() => toast.success('Em breve — o checkout de pagamento via Stripe será aberto aqui.')}>
                             Assinar Agora
                           </button>
                         </div>
@@ -1978,13 +1995,51 @@ export default function PatientList({
         <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 9999 }}>
           <div className="crm-card" style={{ width: '400px', animation: 'popIn 0.2s ease-out' }}>
             <h3 style={{ marginBottom: '24px' }}>Novo Agendamento</h3>
-            <form onSubmit={handleCreateAppointment}>
-              <div style={{ marginBottom: '16px' }}>
+            <form onSubmit={(e) => {
+              if (!apptPatientId) {
+                e.preventDefault();
+                toast.error('Por favor, selecione um paciente válido na lista.');
+                return;
+              }
+              handleCreateAppointment(e);
+            }}>
+              <div style={{ marginBottom: '16px', position: 'relative' }}>
                 <label className="crm-label">Paciente</label>
-                <select autoFocus className="crm-input" value={apptPatientId} onChange={e => setApptPatientId(e.target.value)} required>
-                  <option value="" disabled>Selecione...</option>
-                  {patients.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
-                </select>
+                <input 
+                  type="text" 
+                  className="crm-input" 
+                  placeholder="Buscar paciente pelo nome..." 
+                  value={apptPatientSearch}
+                  onChange={(e) => {
+                    setApptPatientSearch(e.target.value);
+                    setApptPatientId('');
+                    setShowPatientDropdown(true);
+                  }}
+                  onFocus={() => setShowPatientDropdown(true)}
+                  onBlur={() => setTimeout(() => setShowPatientDropdown(false), 200)}
+                  autoFocus
+                />
+                {showPatientDropdown && (
+                  <div style={{ position: 'absolute', top: '100%', left: 0, right: 0, backgroundColor: 'var(--crm-surface)', border: '1px solid var(--crm-border)', borderRadius: '8px', maxHeight: '200px', overflowY: 'auto', zIndex: 100, boxShadow: '0 10px 25px -5px rgba(0,0,0,0.2)' }}>
+                    {patients.filter(p => p.name.toLowerCase().includes(apptPatientSearch.toLowerCase())).map(p => (
+                      <div
+                        key={p.id}
+                        style={{ padding: '12px', cursor: 'pointer', borderBottom: '1px solid var(--crm-border)' }}
+                        onMouseDown={(e) => {
+                          e.preventDefault();
+                          setApptPatientId(p.id);
+                          setApptPatientSearch(p.name);
+                          setShowPatientDropdown(false);
+                        }}
+                      >
+                        {p.name}
+                      </div>
+                    ))}
+                    {patients.filter(p => p.name.toLowerCase().includes(apptPatientSearch.toLowerCase())).length === 0 && (
+                      <div style={{ padding: '12px', color: 'var(--crm-text-muted)' }}>Nenhum paciente encontrado.</div>
+                    )}
+                  </div>
+                )}
               </div>
               <div style={{ display: 'flex', gap: '16px', marginBottom: '16px' }}>
                 <div style={{ flex: 1 }}>

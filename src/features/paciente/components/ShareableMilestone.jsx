@@ -1,5 +1,6 @@
 import React, { useRef } from 'react';
 import { Share2, X, Star } from 'lucide-react';
+import toast from 'react-hot-toast';
 
 export default function ShareableMilestone({ onClose }) {
   const cardRef = useRef(null);
@@ -16,7 +17,7 @@ export default function ShareableMilestone({ onClose }) {
         // Usuário cancelou o compartilhamento nativo — não é um erro
       }
     } else {
-      alert("Print a tela e poste no Instagram marcando seu Nutri! 📸");
+      toast.success("Print a tela e poste no Instagram marcando seu Nutri! 📸");
     }
   };
 

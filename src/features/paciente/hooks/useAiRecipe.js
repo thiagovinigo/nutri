@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useAppContext } from '../../../context/AppContext';
+import toast from 'react-hot-toast';
 import { callOpenAIBridge } from '../../../utils/openaiBridge';
 
 const RECIPE_STYLES = ['grelhado(a)', 'refogado(a)', 'assado(a) no forno', 'na air fryer', 'cru(a) em salada', 'cozido(a) no vapor', 'em formato de wrap/enrolado', 'em formato de omelete/frittata', 'em formato de bowl'];
@@ -73,7 +74,7 @@ export function useAiRecipe(activePatient) {
 
     } catch (err) {
       console.error('Erro ao gerar receita com IA:', err);
-      alert(err.message || 'Infelizmente não foi possível gerar a receita no momento. Verifique sua conexão e tente novamente.');
+      toast.error(err.message || 'Infelizmente não foi possível gerar a receita no momento. Verifique sua conexão e tente novamente.');
       setExpandedRecipes(prev => ({ ...prev, [mIdx]: false }));
     } finally {
       setIsRecipeLoading(false);

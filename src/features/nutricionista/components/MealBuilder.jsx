@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Trash2, Plus, Search, RefreshCw } from 'lucide-react';
 import tacoData from '../../../data/taco.json';
+import toast from 'react-hot-toast';
 
 export default function MealBuilder({ meal, onChange, onDelete, aversions }) {
   const [searchTerm, setSearchTerm] = useState('');
@@ -65,11 +66,11 @@ export default function MealBuilder({ meal, onChange, onDelete, aversions }) {
 
   const handleAddFood = () => {
     if (!selectedFood) {
-      alert("Por favor, selecione um alimento na lista que aparece ao digitar.");
+      toast.error("Por favor, selecione um alimento na lista que aparece ao digitar.");
       return;
     }
     if (!amount || Number(amount) <= 0) {
-      alert("Por favor, informe a quantidade em gramas.");
+      toast.error("Por favor, informe a quantidade em gramas.");
       return;
     }
     
@@ -80,7 +81,7 @@ export default function MealBuilder({ meal, onChange, onDelete, aversions }) {
       const foodNameLower = selectedFood.name.toLowerCase();
       const hasAversion = aversionList.some(av => foodNameLower.includes(av));
       if (hasAversion) {
-        alert(`⚠️ Atenção: "${selectedFood.name}" contém uma palavra que está na lista de aversões do paciente!`);
+        toast.error(`⚠️ Atenção: "${selectedFood.name}" contém uma palavra que está na lista de aversões do paciente!`);
       }
     }
 

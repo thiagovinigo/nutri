@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Search, Plus, Trash2 } from 'lucide-react';
+import toast from 'react-hot-toast';
 import exercisesDb from '../../../data/exercises.json';
 
 export default function WorkoutBuilder({ day, onChange, onDeleteDay }) {
@@ -48,7 +49,7 @@ export default function WorkoutBuilder({ day, onChange, onDeleteDay }) {
   const handleAddExercise = (e) => {
     e.preventDefault();
     if (!exerciseName.trim()) {
-      alert("Por favor, informe o nome do exercício.");
+      toast.error("Por favor, informe o nome do exercício.");
       return;
     }
 
