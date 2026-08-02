@@ -212,6 +212,7 @@
 - [ ] **Roteamento de alerta comportamental por categoria (nutricional vs. psicológico)** — dos 6 cenários do Detetive Comportamental, TPM e burnout são mais psicológicos que nutricionais. Ao especificar o Detetive, já modelar campo "categoria do alerta" pra não ter que remodelar o schema quando Multi-profissional (hoje só decisão pendente) existir.
 - [ ] **Template de recibo WhatsApp estendido pra reembolso** — o botão "Emitir Recibo" via WhatsApp já funciona ponta-a-ponta; estender o template com campos que planos de saúde exigem pra reembolso (CRN, CNPJ se PJ) em vez de tratar "documentação de reembolso" como feature nova do zero.
 - [ ] **Padrão local-first como requisito de arquitetura da Secretária Virtual** — a correção do bug raiz do Firestore 503 (atualizar estado local antes/sem bloquear sync) foi documentada como fix pontual, não como princípio a aplicar de saída em módulos que dependem de API externa (Google Calendar, WhatsApp) — aplicar via `AppContext.jsx` desde o design, não descobrir via bug em produção de novo.
+- [ ] **Análise de Geladeira por IA (Ideia do Usuário, 01/08/2026)** — O paciente tira uma foto do que tem na geladeira e a IA (GPT-4o Vision) sugere preparações saudáveis e alinhadas ao plano alimentar dele com base nos ingredientes disponíveis.
 
 ## 📄 Débito de documentação (achado durante benchmark/síntese, 28/07/2026)
 

@@ -168,7 +168,10 @@ export default function Login() {
             />
           </div>
           <div style={{ marginBottom: '24px' }}>
-            <label style={darkLabelStyle}>Senha</label>
+            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '6px' }}>
+              <label style={{ ...darkLabelStyle, marginBottom: 0 }}>Senha</label>
+              <Link to={`/recuperar-senha?${searchParams.toString()}`} style={{ color: '#c084fc', textDecoration: 'none', fontSize: '0.85rem' }}>Esqueceu a senha?</Link>
+            </div>
             <input
               type="password"
               required

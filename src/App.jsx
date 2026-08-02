@@ -4,6 +4,7 @@ import DashboardNutri from './features/nutricionista/pages/DashboardNutri';
 import PatientApp from './features/paciente/pages/PatientApp';
 import LandingPage from './pages/LandingPage';
 import Login from './pages/Login';
+import ForgotPassword from './pages/ForgotPassword';
 import SignUp from './pages/SignUp';
 import { AppProvider, useAppContext } from './context/AppContext';
 import { Toaster } from 'react-hot-toast';
@@ -26,6 +27,7 @@ function App() {
         <Routes>
           <Route path="/" element={<LandingPage />} />
           <Route path="/login" element={<Login />} />
+          <Route path="/recuperar-senha" element={<ForgotPassword />} />
           <Route path="/cadastro" element={<SignUp />} />
           <Route path="/nutri" element={<RequireAuth><DashboardNutri /></RequireAuth>} />
           <Route path="/paciente" element={<PatientApp />} />
