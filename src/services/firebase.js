@@ -24,6 +24,7 @@ let storage = null;
 try {
   app = initializeApp(firebaseConfig);
   auth = getAuth(app);
+  auth.languageCode = 'pt-BR'; // Força os e-mails (como recuperação de senha) a irem em português
   db = getFirestore(app);
   storage = getStorage(app);
   // Analytics só funciona em ambiente de browser, não em Node. 

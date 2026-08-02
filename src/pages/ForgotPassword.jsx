@@ -43,6 +43,7 @@ export default function ForgotPassword() {
   const [errorMsg, setErrorMsg] = useState('');
   const [successMsg, setSuccessMsg] = useState('');
   const navigate = useNavigate();
+  const searchParams = new URLSearchParams(window.location.search);
 
   const handleResetPassword = async (e) => {
     e.preventDefault();
@@ -132,7 +133,7 @@ export default function ForgotPassword() {
           </form>
         ) : (
           <button
-            onClick={() => navigate('/login')}
+            onClick={() => navigate(`/login?${searchParams.toString()}`)}
             style={{
               width: '100%', padding: '13px', color: 'white', borderRadius: '10px', border: 'none',
               fontWeight: 'bold', cursor: 'pointer', fontSize: '0.95rem',
@@ -145,7 +146,7 @@ export default function ForgotPassword() {
         )}
 
         <div style={{ marginTop: '24px', textAlign: 'center' }}>
-          <Link to="/login" style={{ color: '#94a3b8', textDecoration: 'none', fontSize: '0.9rem' }}>
+          <Link to={`/login?${searchParams.toString()}`} style={{ color: '#94a3b8', textDecoration: 'none', fontSize: '0.9rem' }}>
             ← Voltar
           </Link>
         </div>
