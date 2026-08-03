@@ -10,6 +10,7 @@ import BonusRecipes from '../components/BonusRecipes';
 import ChatBot from '../components/ChatBot';
 import Profile from '../components/Profile';
 import PwaInstallPrompt from '../components/PwaInstallPrompt';
+import OnboardingProfileForm from '../components/OnboardingProfileForm';
 import { getFirebaseErrorMessage } from '../../../utils/firebaseErrors';
 import { callOpenAIBridge } from '../../../utils/openaiBridge';
 
@@ -214,6 +215,11 @@ export default function PatientApp() {
         <p style={{color: 'var(--patient-text-muted)', fontSize: '1.2rem', fontWeight: '600'}}>Sincronizando perfil...</p>
       </div>
     );
+  }
+
+  // Se o paciente entrou via Self-Service e ainda não completou o onboarding da Degustação IA
+  if (!activePatient.nutricionista_id && !activePatient.has_completed_onboarding) {
+    return <OnboardingProfileForm patient={activePatient} />;
   }
 
   return (

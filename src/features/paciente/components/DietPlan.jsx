@@ -141,7 +141,13 @@ export default function DietPlan({ activePatient }) {
   if (!activePatient) return null;
 
   return (
-    <div className="animate-pop-in" style={{ position: 'relative' }}>
+    <div style={{ paddingBottom: '80px' }}>
+      {!activePatient.nutricionista_id && (
+        <div style={{ backgroundColor: 'rgba(168, 85, 247, 0.1)', border: '1px solid #a855f7', borderRadius: '12px', padding: '12px', marginBottom: '20px', textAlign: 'center', color: '#e9d5ff' }}>
+          <strong style={{ display: 'block', marginBottom: '4px', color: '#c084fc' }}>🎁 Amostra Grátis (IA)</strong>
+          Para planos completos de 7 dias, ajustes finos e acompanhamento humano, conecte-se a um Nutricionista Nutrivvo!
+        </div>
+      )}
 
       {/* ── Header ── */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px', gap: '8px', flexWrap: 'wrap' }}>

@@ -7,7 +7,7 @@
 
 ## 🎯 Próximas Missões (ordem de prioridade pro lançamento)
 
-1. **[BLOQUEIA LANÇAMENTO] Vercel não está fazendo deploy automático do `main`** — PR #5 (24 commits desta sessão) foi mergeado em `main` em 29/07/2026, mas nenhum novo deployment apareceu no dashboard da Vercel. Git do lado (push/merge) confirmado correto. Precisa checar Project Settings → Git na Vercel: se o repo/branch conectado é o certo, se o webhook do GitHub pra esse projeto está ativo, e se não há alguma trava manual (deploy pausado, branch protection etc.). Enquanto isso não resolver, produção continua rodando o código de antes desta sessão inteira.
+1. ~~**[BLOQUEIA LANÇAMENTO] Vercel não está fazendo deploy automático do `main`**~~ — Resolvido em 31/07/2026 removendo os `crons` do `vercel.json` (o plano Hobby da Vercel bloqueava o deploy por causa disso).
 2. ~~Publicar `firestore.rules` de verdade~~ — feito em 29/07/2026, você publicou manualmente via Firebase Console (Firestore Database → Rules). Isso já destravou o cadastro por convite (`?vincular=ID`), que estava retornando "Missing or insufficient permissions" antes disso.
 3. ~~**[BLOQUEIA LANÇAMENTO] Autorizar domínio no Firebase Auth**~~ — `nutrivvo.com.br` e `www.nutrivvo.com.br` em Authentication → Authorized domains. Sem isso o login quebra no domínio novo.
 4. ~~**Testar manualmente o upload de exame por IA** (`Consulta → 3. Exames (IA OpenAI)`)~~ — não deu pra automatizar via navegador nesta sessão (limitação da ferramenta), é a única funcionalidade de IA que ficou sem teste ponta-a-ponta. Suba uma foto/PDF de exame real e confirme se a análise volta certa.
@@ -15,6 +15,27 @@
 6. ~~Reproduzir a falha silenciosa de geração de dieta~~ — endereçado (não 100% "reproduzido e explicado", mas mitigado na raiz): retry automático com validação de `foods[]` preenchido (até 3 tentativas) já existia; a geração dia-a-dia (item 5) reduz ainda mais a chance de acontecer, já que cada chamada pede muito menos da IA de uma vez.
 7. ~~**Cores hardcoded fora do roxo da marca**~~ — corrigido (botões, IA e calendários atualizados para `var(--primary-color)`).
 8. **Mudar lógica financeira (MRR vs Agenda)** — Usuário relatou que o cálculo atual da "Receita Prevista" por MRR (Planos fixos) não reflete a realidade do consultório, que ainda opera no modelo de Consulta paga + Retorno gratuito. Precisamos mudar o cálculo para ler os Agendamentos do mês e aplicar regras de valor (Primeira Consulta = X, Retorno = 0) em vez de somar o valor de planos.
+
+---
+
+## ✅ Feito — Atualizações Recentes (31/07/2026 a 01/08/2026)
+
+**Infraestrutura & Deploy**
+- Remoção de crons do `vercel.json` para destravar deploy automático na Vercel (plano Hobby).
+- Bump de versão (1.2.2) para invalidar cache do PWA e forçar atualização.
+- Correção/ajuste nos ícones do PWA.
+
+**Autenticação & Acesso**
+- Forçado idioma `pt-BR` no Firebase Auth (e-mails de validação/reset agora em português).
+- Implementado fluxo de "Esqueci a Senha" na tela de login.
+- Migração automática de consultas no login se o paciente já tiver agendamentos associados ao e-mail.
+
+**Clínico & UX**
+- Integração do Agente IA (ChatBot) e melhorias gerais de UX (toasts de feedback).
+- Autocomplete no cadastro/seleção de paciente.
+- Ajustes de UI na Agenda (visibilidade da grid, cores no light mode).
+- Padronização de variáveis de branding (cores hardcoded azuis removidas).
+- Integração de inteligência de Cohort no perfil do paciente, com nova ação de resgate (recuperação) via WhatsApp.
 
 ---
 
@@ -89,11 +110,11 @@
 
 > Item 1 também está em destaque em "Próximas Missões" acima por bloquear o lançamento.
 
-- [ ] **Vercel não deployou automaticamente o merge do PR #5 em `main`** (29/07/2026) — nenhum novo deployment aparece no dashboard. Checar Project Settings → Git (repo/branch conectado, webhook do GitHub ativo).
+- [x] ~~**Vercel não deployou automaticamente o merge do PR #5 em `main`**~~ — Resolvido (era conflito do cron no `vercel.json` em plano Hobby).
 - [x] ~~`firestore.rules` nunca tinha sido publicado de verdade~~ — publicado em 29/07/2026 via Firebase Console (Firestore Database → Rules), pelo usuário.
 - [x] ~~Autorizar `nutrivvo.com.br`/`www.nutrivvo.com.br` no Firebase Console (Authentication → Authorized domains)~~
-- [ ] **Causa raiz encontrada do "domínio não acompanha deploy":** no dashboard da Vercel (Settings → Domains do projeto `nutri`), `nutrivvo.com.br` e `www.nutrivvo.com.br` estão marcados como ambiente **Preview**, não **Production** — só domínio de Production segue automaticamente o `vercel --prod`. Não tem comando de CLI pra isso, precisa mudar pelo dashboard (clicar no domínio → trocar ambiente pra Production). Depois disso o `vercel alias set` manual deixa de ser necessário.
-- [ ] Escolher domínio principal — recomendação: `nutrivvo.com.br` (apex, sem www) como canônico, com `www.nutrivvo.com.br` redirecionando pra ele (opção de redirect na própria tela de Domains da Vercel). `nutri-umber-kappa.vercel.app` fica só como fallback técnico, não divulgar.
+- [x] ~~**Causa raiz encontrada do "domínio não acompanha deploy":**~~ no dashboard da Vercel (Settings → Domains do projeto `nutri`), `nutrivvo.com.br` foi marcado como ambiente **Production**.
+- [x] ~~Escolher domínio principal~~ — `nutrivvo.com.br` configurado como canônico, com `www.nutrivvo.com.br` redirecionando para ele (307).
 
 ## 🎨 Visual — pendente de polimento
 
@@ -167,6 +188,7 @@
 
 ### Módulo: Growth/Monetização Self-Service
 - Onboarding self-service (paciente cria conta sem convite, escolhe nutricionista)
+- **Degustação IA (Self-Service)**: Paciente preenche ficha completa (aversões, rotina, suplementos) e desbloqueia um **cardápio de 1 dia + plano de treino** feito 100% por IA, resolvendo o "limbo" inicial de quem entra sozinho no app (Ideia do Usuário, 02/08/2026).
 - Painel de assinatura com 3 tiers + Stripe
 - Bloqueio de features premium por tier
 - Calibração de XP/gamificação pra pacientes de longo prazo (6+ meses)
