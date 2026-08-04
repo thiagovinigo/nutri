@@ -39,6 +39,16 @@
 
 ---
 
+## ✅ Feito — Atualizações Recentes (02/08/2026 a 04/08/2026)
+
+**Growth & Self-Service**
+- **Degustação IA (PLG):** Implementado o Onboarding Self-Service. Pacientes sem vínculo (limbo) respondem a um quiz de 3 passos e a IA gera 1 dia de Dieta + Plano de Treinos de amostra.
+
+**Documentação**
+- Atualização e sincronização dos arquivos `design.md` e `features.md` para remover falsos débitos e espelhar o status real de produção.
+
+---
+
 ## ✅ Feito — Sessão de hoje (27/07/2026)
 
 **Bugs críticos**
@@ -188,7 +198,7 @@
 
 ### Módulo: Growth/Monetização Self-Service
 - Onboarding self-service (paciente cria conta sem convite, escolhe nutricionista)
-- **Degustação IA (Self-Service)**: Paciente preenche ficha completa (aversões, rotina, suplementos) e desbloqueia um **cardápio de 1 dia + plano de treino** feito 100% por IA, resolvendo o "limbo" inicial de quem entra sozinho no app (Ideia do Usuário, 02/08/2026).
+- [x] ~~**Degustação IA (Self-Service)**: Paciente preenche ficha completa (aversões, rotina, suplementos) e desbloqueia um **cardápio de 1 dia + plano de treino** feito 100% por IA, resolvendo o "limbo" inicial de quem entra sozinho no app~~ (Ideia do Usuário, Entregue em 02/08/2026).
 - Painel de assinatura com 3 tiers + Stripe
 - Bloqueio de features premium por tier
 - Calibração de XP/gamificação pra pacientes de longo prazo (6+ meses)
@@ -238,8 +248,8 @@
 
 ## 📄 Débito de documentação (achado durante benchmark/síntese, 28/07/2026)
 
-- [ ] **`design.md` desatualizado**: ainda documenta `--crm-primary: #10B981` (Emerald) como cor oficial do CRM, mas o rebranding de 27/07 já trocou pra roxo/índigo em produção. Qualquer componente novo construído seguindo a "Regra de Ouro" do design.md vai puxar a cor errada por design, não por acidente — mesma causa-raiz do item "Cores hardcoded fora do roxo da marca" já listado acima.
-- [ ] **`features.md` lista como backlog features que já estão implementadas**: "lista de compras automática" (`DietPlan.jsx:163`) e "diário alimentar livre por foto" (`QuestBoard.jsx:287`) já existem no código mas ainda aparecem como pendência no doc — rodar `doc-updater` pra sincronizar.
+- [x] ~~**`design.md` desatualizado**~~: corrigido, já reflete a cor primária #a855f7 (Purple).
+- [x] ~~**`features.md` lista como backlog features que já estão implementadas**~~: corrigido, já lista o Diário Livre e Lista de Compras como concluídos.
 
 ---
 

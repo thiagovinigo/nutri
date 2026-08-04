@@ -18,6 +18,7 @@ Este documento detalha o mapa de funcionalidades do Nutrivvo, dividindo o que j�
 - **Notificações:** Sino de notificação no topo com contador de alertas enviados pelo nutricionista.
 - **Tracking de Peso:** Modal customizado para registro de peso diretamente pela interface do aplicativo.
 - **Diário Alimentar Livre:** O paciente consegue fotografar e registrar refeições fora da prescrição oficial, úteis para a fase de anamnese antes do primeiro cardápio ou para monitoramento contínuo.
+- **Onboarding Self-Service (Degustação IA):** Pacientes que se cadastram sem convite de um nutricionista preenchem um perfil e recebem uma amostra grátis gerada por IA: 1 dia de dieta e treino completo, engajando-os imediatamente (Product-Led Growth).
 
 ### CRM do Nutricionista e Personal
 - **Gestão de Pacientes:** Lista, prontuário detalhado, e histórico de evolução do paciente.
