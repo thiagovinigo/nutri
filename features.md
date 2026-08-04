@@ -33,6 +33,10 @@ Este documento detalha o mapa de funcionalidades do Nutrivvo, dividindo o que j�
 - **Geração de Dietas Automática:** O Nutrivvo Bot cria o cardápio baseando-se nos inputs e preferências coletados.
 - **ChatBot Clínico (Nutrivvo Bot):** Assistente virtual do lado do paciente que tem o contexto completo da dieta atual prescrita e tira dúvidas em tempo real.
 - **Análise de Exames Médicos:** Leitura e extração automática de arquivos PDF (exames de sangue, etc.) utilizando IA para alimentar a anamnese.
+- **Secretária Virtual e Detetive Comportamental (WhatsApp AI):** Um agente integrado via Evolution API que realiza check-ins de refeição por foto direto no WhatsApp, agenda/remarca consultas e envia lembretes proativos (`cron-reminders`). Além disso, alerta o nutricionista em caso de risco comportamental do paciente (desidratação, burnout, abandono).
+
+### Interação e Flexibilidade Nutricional
+- **Chat Direto Nutricionista ↔ Paciente:** Canal de mensagens diretas implementado no sistema, separando os recados humanos do ChatBot da IA.
 
 ### Infraestrutura, Backend & Segurança
 - **Banco de Dados Real:** Integração ponta-a-ponta com o Firebase (Firestore para DB, Authentication para login).
@@ -49,8 +53,7 @@ Este documento detalha o mapa de funcionalidades do Nutrivvo, dividindo o que j�
 - **Alertas Automatizados:** Envio de mensagem push, e-mail ou WhatsApp (via API) para o paciente quando o nutricionista decidir acionar um alerta do CRM.
 - **Patient 360 Dashboard:** Um painel único no CRM reunindo todas as métricas do paciente: food log visual, peso em gráfico de linha, plano e anotações.
 
-### Interação e Flexibilidade Nutricional
-- **Chat Direto Nutricionista ↔ Paciente:** Abertura de um canal de mensagens humanas além do Nutrivvo Bot.
+### Interação e Flexibilidade Nutricional (Backlog)
 - **Biblioteca de Templates Reutilizáveis:** Permitir que o nutricionista salve protocolos completos de dieta (30 dias, marmitas, suplementos) e aplique em pacientes diferentes sem redigitar tudo.
 - **Receitas Bônus (Biblioteca de Fáceis):** Uma aba apenas com receitas anexadas avulsas para o paciente, sem estarem necessariamente alocadas no planejamento do dia.
 

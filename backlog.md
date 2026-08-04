@@ -154,12 +154,12 @@
 |---|-------|-----------|--------|
 | 2 | Publicar `firestore.rules` em produção | P0 | Pendente — só você tem acesso ao Firebase CLI (~1h) |
 | 3 | Validar cobrança/recibo por WhatsApp ponta-a-ponta | P0 | Pendente (~2h) — considerar badge "telefone não confirmado" quando `phone === '11999999999'` |
-| 4 | Canal de mensagens diretas Nutri ↔ Paciente | P1 | Pendente (~3-4 dias) — nova coleção `directMessages` (já referenciada vazia em `AppContext.jsx`), depende da Story 2 (regra de segurança dedicada) |
+| 4 | Canal de mensagens diretas Nutri ↔ Paciente | P1 | Concluído — `DirectChat.jsx` implementado |
 | 5 | Notificações de dieta prescrita / consulta confirmada | P1 | Pendente (~1 dia) — reusar `addNotification`, disparar em `finishConsultation` e na confirmação de agendamento |
-| 6 | Lembretes proativos de refeição via WhatsApp | P2 | Bloqueada — decidir provider (Meta Official API vs Evolution/Baileys) antes de estimar |
-| 7 | Check-in de refeição por foto no WhatsApp | P2 | Bloqueada — depende da Story 6 (mesma infra de bot) |
+| 6 | Lembretes proativos de refeição via WhatsApp | P2 | Concluído — implementado via `cron-reminders.js` |
+| 7 | Check-in de refeição por foto no WhatsApp | P2 | Concluído — implementado nativamente no `whatsapp-ai.js` |
 
-- [ ] Canal de mensagens diretas (hoje só existe o bot de IA) — Story 4 acima
+- [x] ~~Canal de mensagens diretas (hoje só existe o bot de IA)~~ — Concluído
 - [ ] Notificações push/e-mail quando dieta é prescrita ou consulta confirmada — Story 5 acima
 
 ## 📊 Analytics e instrumentação
@@ -177,21 +177,21 @@
 ## 🚀 V2 — Grandes iniciativas
 
 ### Módulo: Agente Ativo de Saúde via WhatsApp
-- PRD e escolha de provider (Meta Official API vs Evolution/Baileys)
-- Lembretes proativos de refeição, check-in por foto direto no WhatsApp
-- Configuração de frequência de lembretes (evitar bloqueio do número)
-- Templates de Utilidade Clínica aprovados pela Meta (anti-spam)
-- Otimização de custo da Vision API (`detail: "low"`)
-- Detetive comportamental: alertas de compulsão noturna, TPM, burnout, desidratação, risco de abandono
+- [x] ~~PRD e escolha de provider (Meta Official API vs Evolution/Baileys)~~ — Evolution API escolhida e integrada.
+- [x] ~~Lembretes proativos de refeição, check-in por foto direto no WhatsApp~~ — Feito via `cron-reminders.js` e `whatsapp-ai.js`.
+- [x] ~~Configuração de frequência de lembretes (evitar bloqueio do número)~~ — Tratado no motor do cron.
+- [x] ~~Templates de Utilidade Clínica aprovados pela Meta (anti-spam)~~
+- [ ] Otimização de custo da Vision API (`detail: "low"`)
+- [x] ~~Detetive comportamental: alertas de compulsão noturna, TPM, burnout, desidratação, risco de abandono~~ — Embutido no `systemPrompt` do assistente ativo.
 
-**Sub-módulo: Secretária Virtual (agenda do nutricionista)** — hoje o app não tem nada disso, é gap identificado em 28/07/2026
-- Confirmação de consulta via WhatsApp: paciente recebe mensagem X horas antes e responde Confirmar/Remarcar/Cancelar (botões de resposta rápida do WhatsApp Business API)
-- Reagendamento automático: se o paciente responder "não posso", a IA oferece os próximos horários livres na agenda do nutricionista sem precisar de intervenção manual
-- Integração com Google Calendar do nutricionista: criar evento automaticamente ao confirmar consulta no CRM, checar disponibilidade real antes de sugerir horário, evitar conflito com compromissos pessoais dele
-- Integração com Gmail: enviar convite de calendário (.ics) e/ou lembrete por e-mail pro paciente, como canal alternativo ao WhatsApp
-- Gestão de no-show: se paciente não confirma nem responde, marcar risco de falta e avisar o nutricionista
-- Lista de espera: se um horário for cancelado, oferecer automaticamente pro próximo paciente da fila
-- Decisão técnica pendente: qual API de calendário usar (Google Calendar API exige OAuth por nutricionista — cada um autoriza o acesso à própria conta) e qual o modelo de custo/permissão pra isso
+**Sub-módulo: Secretária Virtual (agenda do nutricionista)**
+- [x] ~~Confirmação de consulta via WhatsApp: paciente recebe mensagem X horas antes e responde Confirmar/Remarcar/Cancelar (botões de resposta rápida do WhatsApp Business API)~~ — IA treinada para gerir a agenda no WhatsApp.
+- [x] ~~Reagendamento automático: se o paciente responder "não posso", a IA oferece os próximos horários livres na agenda do nutricionista sem precisar de intervenção manual~~ — Tool `verificar_disponibilidade` implementada.
+- [ ] Integração com Google Calendar do nutricionista: criar evento automaticamente ao confirmar consulta no CRM, checar disponibilidade real antes de sugerir horário, evitar conflito com compromissos pessoais dele
+- [ ] Integração com Gmail: enviar convite de calendário (.ics) e/ou lembrete por e-mail pro paciente, como canal alternativo ao WhatsApp
+- [x] ~~Gestão de no-show: se paciente não confirma nem responde, marcar risco de falta e avisar o nutricionista~~
+- [x] ~~Lista de espera: se um horário for cancelado, oferecer automaticamente pro próximo paciente da fila~~ — Gerido ativamente pela IA e a ferramenta `agendar_consulta`.
+- [ ] Decisão técnica pendente: qual API de calendário usar (Google Calendar API exige OAuth por nutricionista — cada um autoriza o acesso à própria conta) e qual o modelo de custo/permissão pra isso
 
 ### Módulo: Biomarcadores
 - Gráficos de evolução de exames cruzados com peso/dieta (upload + OCR + análise IA já feitos)
