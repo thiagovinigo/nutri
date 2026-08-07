@@ -10,6 +10,9 @@ import { callOpenAIBridge } from '../../../utils/openaiBridge';
 // não deve depender de QuestBoard.jsx nem alterá-lo.)
 const MAX_PHOTO_DIMENSION = 1280;
 const PHOTO_JPEG_QUALITY = 0.75;
+// Limite de fotos por geração: mantém o payload da requisição (base64 x N)
+// dentro do limite de ~4.5MB da Vercel com folga.
+export const MAX_PHOTOS = 4;
 
 function compressImageFile(file, maxDimension = MAX_PHOTO_DIMENSION, quality = PHOTO_JPEG_QUALITY) {
   return new Promise((resolve, reject) => {
@@ -49,6 +52,20 @@ export function extractRecipeTitle(content) {
   return match ? match[1].trim() : 'Receita por Foto';
 }
 
+function buildPrompt({ restrictions, aversions, previousContent }) {
+  const regenInstruction = previousContent
+    ? `\n5) Esta é uma REGERAÇÃO: o paciente não gostou da sugestão anterior e quer outra opção. Sugira uma receita DIFERENTE da anterior, sem repetir o mesmo prato. Receita anterior (para você não repetir):\n${previousContent}`
+    : '';
+
+  return `Você é um Chef Nutricional da Nutrivvo. O usuário fotografou os ingredientes que tem disponíveis agora (geladeira, despensa, bancada) -- pode ser mais de uma foto do mesmo ambiente, de ângulos ou prateleiras diferentes.
+INSTRUÇÕES:
+1) Liste em tópicos os ingredientes que você reconhece no conjunto de fotos.
+2) Sugira UMA receita prática e rápida usando o máximo possível desses ingredientes. Pode complementar com temperos básicos (sal, pimenta, azeite, ervas) e itens simples de despensa.
+3) O paciente NÃO PODE comer (restrições/aversões): ${restrictions} | ${aversions}. JAMAIS use esses ingredientes, mesmo que apareçam nas fotos.
+4) Se as fotos não tiverem ingredientes reconhecíveis o suficiente para montar uma receita, explique isso educadamente em vez de inventar.${regenInstruction}
+Retorne em formato Markdown (## Nome da Receita, ### Ingredientes Identificados, ### Modo de Preparo).`;
+}
+
 // Feature independente "Receita por Foto": o paciente fotografa os
 // ingredientes que tem disponíveis (geladeira, despensa, bancada) e a IA
 // sugere uma receita pronta com eles. Histórico fica em
@@ -58,14 +75,24 @@ export function extractRecipeTitle(content) {
 // fluxos existentes é lido ou alterado por este hook.
 export function usePhotoRecipe(activePatient) {
   const { updatePatient } = useAppContext();
+  const [stagedPhotos, setStagedPhotos] = useState([]); // [{ id, base64 }]
   const [analyzing, setAnalyzing] = useState(false);
-  const [previewImage, setPreviewImage] = useState(null);
   const [expandedId, setExpandedId] = useState(null);
+  const [editingId, setEditingId] = useState(null);
+  // Guarda as fotos já comprimidas da última geração desta sessão, pra permitir
+  // "Regerar" sem re-pedir foto nem persistir imagens no Firestore. Só vale
+  // pra receita mais recente gerada agora -- histórico antigo não tem mais as
+  // fotos em memória, então não oferece regeneração.
+  const [regenContext, setRegenContext] = useState(null); // { recipeId, photos: [base64,...] }
   const fileInputRef = useRef(null);
 
   const photoRecipes = activePatient?.photoRecipes || [];
 
   const triggerPhotoSelect = () => {
+    if (stagedPhotos.length >= MAX_PHOTOS) {
+      toast.error(`Você pode enviar no máximo ${MAX_PHOTOS} fotos por vez.`);
+      return;
+    }
     if (fileInputRef.current) fileInputRef.current.click();
   };
 
@@ -74,21 +101,24 @@ export function usePhotoRecipe(activePatient) {
     if (!file) return;
     if (fileInputRef.current) fileInputRef.current.value = '';
 
-    setAnalyzing(true);
-    setPreviewImage(URL.createObjectURL(file));
-
     try {
-      const base64Image = await compressImageFile(file);
-      const aversions = activePatient?.aversions || 'Nenhuma aversão registrada';
-      const restrictions = activePatient?.restrictions || 'Nenhuma restrição registrada';
+      const base64 = await compressImageFile(file);
+      setStagedPhotos(prev => [...prev, { id: `${Date.now()}-${prev.length}`, base64 }]);
+    } catch (err) {
+      toast.error(err.message || 'Não foi possível processar essa foto.');
+    }
+  };
 
-      const promptText = `Você é um Chef Nutricional da Nutrivvo. O usuário fotografou os ingredientes que tem disponíveis agora (geladeira, despensa, bancada).
-INSTRUÇÕES:
-1) Liste em tópicos os ingredientes que você reconhece na foto.
-2) Sugira UMA receita prática e rápida usando o máximo possível desses ingredientes. Pode complementar com temperos básicos (sal, pimenta, azeite, ervas) e itens simples de despensa.
-3) O paciente NÃO PODE comer (restrições/aversões): ${restrictions} | ${aversions}. JAMAIS use esses ingredientes, mesmo que apareçam na foto.
-4) Se a foto não tiver ingredientes reconhecíveis o suficiente para montar uma receita, explique isso educadamente em vez de inventar.
-Retorne em formato Markdown (## Nome da Receita, ### Ingredientes Identificados, ### Modo de Preparo).`;
+  const removeStagedPhoto = (photoId) => {
+    setStagedPhotos(prev => prev.filter(p => p.id !== photoId));
+  };
+
+  const runGeneration = async (photos, previousContent = null) => {
+    setAnalyzing(true);
+    try {
+      const restrictions = activePatient?.restrictions || 'Nenhuma restrição registrada';
+      const aversions = activePatient?.aversions || 'Nenhuma aversão registrada';
+      const promptText = buildPrompt({ restrictions, aversions, previousContent });
 
       const data = await callOpenAIBridge({
         system_prompt: 'Você é um assistente culinário da Nutrivvo, especialista em criar receitas práticas a partir de ingredientes disponíveis, sempre respeitando restrições alimentares do paciente.',
@@ -96,25 +126,82 @@ Retorne em formato Markdown (## Nome da Receita, ### Ingredientes Identificados,
           role: 'user',
           content: [
             { type: 'text', text: promptText },
-            { type: 'image_url', image_url: { url: base64Image } }
-          ]
-        }]
+            ...photos.map(base64 => ({ type: 'image_url', image_url: { url: base64 } })),
+          ],
+        }],
       });
 
-      const content = data.choices[0].message.content;
-      const newEntry = { id: Date.now().toString(), content, date: new Date().toLocaleDateString('pt-BR') };
-      const updatedList = [newEntry, ...photoRecipes];
-
-      updatePatient(activePatient.id, { photoRecipes: updatedList });
-      setExpandedId(newEntry.id);
-    } catch (err) {
-      console.error('Erro ao gerar receita por foto:', err);
-      toast.error(err.message || 'Não consegui analisar essa foto agora. Tente novamente em instantes.');
+      return data.choices[0].message.content;
     } finally {
       setAnalyzing(false);
-      setPreviewImage(null);
     }
   };
 
-  return { analyzing, previewImage, expandedId, setExpandedId, fileInputRef, photoRecipes, triggerPhotoSelect, handleFileChange };
+  const generateRecipe = async () => {
+    if (stagedPhotos.length === 0 || analyzing) return;
+    const photos = stagedPhotos.map(p => p.base64);
+
+    try {
+      const content = await runGeneration(photos);
+      const newEntry = { id: Date.now().toString(), content, date: new Date().toLocaleDateString('pt-BR') };
+      updatePatient(activePatient.id, { photoRecipes: [newEntry, ...photoRecipes] });
+      setExpandedId(newEntry.id);
+      setRegenContext({ recipeId: newEntry.id, photos });
+      setStagedPhotos([]);
+    } catch (err) {
+      console.error('Erro ao gerar receita por foto:', err);
+      toast.error(err.message || 'Não consegui analisar essas fotos agora. Tente novamente em instantes.');
+    }
+  };
+
+  const canRegenerate = (recipeId) => !analyzing && regenContext?.recipeId === recipeId;
+
+  const regenerateRecipe = async (recipeId) => {
+    if (!canRegenerate(recipeId)) return;
+    const current = photoRecipes.find(r => r.id === recipeId);
+
+    try {
+      const content = await runGeneration(regenContext.photos, current?.content);
+      const updatedList = photoRecipes.map(r => (
+        r.id === recipeId ? { ...r, content, date: new Date().toLocaleDateString('pt-BR') } : r
+      ));
+      updatePatient(activePatient.id, { photoRecipes: updatedList });
+      setExpandedId(recipeId);
+    } catch (err) {
+      console.error('Erro ao regerar receita por foto:', err);
+      toast.error(err.message || 'Não consegui gerar uma nova opção agora. Tente novamente em instantes.');
+    }
+  };
+
+  const deleteRecipe = (recipeId) => {
+    updatePatient(activePatient.id, { photoRecipes: photoRecipes.filter(r => r.id !== recipeId) });
+    if (regenContext?.recipeId === recipeId) setRegenContext(null);
+    if (expandedId === recipeId) setExpandedId(null);
+    if (editingId === recipeId) setEditingId(null);
+  };
+
+  const saveEditedRecipe = (recipeId, newContent) => {
+    const trimmed = newContent.trim();
+    if (!trimmed) return;
+    const updatedList = photoRecipes.map(r => (r.id === recipeId ? { ...r, content: trimmed } : r));
+    updatePatient(activePatient.id, { photoRecipes: updatedList });
+    setEditingId(null);
+  };
+
+  return {
+    analyzing,
+    stagedPhotos,
+    expandedId, setExpandedId,
+    editingId, setEditingId,
+    fileInputRef,
+    photoRecipes,
+    triggerPhotoSelect,
+    handleFileChange,
+    removeStagedPhoto,
+    generateRecipe,
+    regenerateRecipe,
+    deleteRecipe,
+    saveEditedRecipe,
+    canRegenerate,
+  };
 }

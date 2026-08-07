@@ -38,7 +38,7 @@ export default async function handler(req, res) {
     }
 
     const requestBody = {
-      model: 'gpt-4o-mini',
+      model: 'gpt-4o',
       messages: [
         { role: 'system', content: system_prompt || 'Você é um assistente.' },
         ...messages
