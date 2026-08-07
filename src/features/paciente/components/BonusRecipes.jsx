@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
-import { BookOpen, ChevronDown, ChevronUp, Plus, Save, ChefHat } from 'lucide-react';
+import { BookOpen, ChevronDown, ChevronUp, Plus, Save, ChefHat, Camera } from 'lucide-react';
 import { useAppContext } from '../../../context/AppContext';
+import PhotoRecipeGenerator from './PhotoRecipeGenerator';
 
 export default function BonusRecipes({ activePatient }) {
   const { updatePatient } = useAppContext();
@@ -113,17 +114,25 @@ export default function BonusRecipes({ activePatient }) {
           >
             Da Nutri
           </button>
-          <button 
+          <button
             onClick={() => setActiveTab('personal')}
             style={{ flex: 1, padding: '10px', borderRadius: '8px', border: 'none', fontWeight: 'bold', cursor: 'pointer', transition: 'all 0.2s', backgroundColor: activeTab === 'personal' ? 'var(--crm-surface)' : 'transparent', color: activeTab === 'personal' ? 'var(--primary-color)' : 'var(--crm-text-muted)', boxShadow: activeTab === 'personal' ? '0 2px 4px rgba(0,0,0,0.05)' : 'none' }}
           >
             Minhas Receitas
           </button>
+          <button
+            onClick={() => setActiveTab('photo')}
+            style={{ flex: 1, padding: '10px', borderRadius: '8px', border: 'none', fontWeight: 'bold', cursor: 'pointer', transition: 'all 0.2s', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '4px', backgroundColor: activeTab === 'photo' ? 'var(--crm-surface)' : 'transparent', color: activeTab === 'photo' ? 'var(--primary-color)' : 'var(--crm-text-muted)', boxShadow: activeTab === 'photo' ? '0 2px 4px rgba(0,0,0,0.05)' : 'none' }}
+          >
+            <Camera size={16} /> Por Foto
+          </button>
         </div>
       </div>
 
       {activeTab === 'nutri' && renderRecipeList(nutriRecipes)}
-      
+
+      {activeTab === 'photo' && <PhotoRecipeGenerator activePatient={activePatient} />}
+
       {activeTab === 'personal' && (
         <div>
           {!showAddForm ? (
