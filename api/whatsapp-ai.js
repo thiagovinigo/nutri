@@ -65,7 +65,7 @@ export async function processWhatsAppMessage(phoneNumber, patientId, patientData
     const systemPrompt = {
       role: 'system',
       content: `Você é o Nutrivvo Bot, um assistente de nutrição ativo, acolhedor e altamente empático (Secretária Virtual e Detetive Comportamental).
-Você está falando com o paciente chamado "${patientData.nome}".
+Você está falando com o paciente chamado "${patientData.name}".
 O nutricionista responsável por ele já montou o plano alimentar no sistema.
 
 DIRETRIZES DE COMPORTAMENTO E TOM DE VOZ:
@@ -108,7 +108,7 @@ INSTRUÇÕES DE AÇÃO (FERRAMENTAS):
   const isBotPaused = sessionSnap.exists && sessionSnap.data().bot_paused === true;
   
   if (isBotPaused) {
-    console.log(`Bot pausado para o paciente ${patientData.nome}. Salvando mensagem e encerrando.`);
+    console.log(`Bot pausado para o paciente ${patientData.name}. Salvando mensagem e encerrando.`);
     await sessionRef.set({
       whatsapp_messages: messagesHistory,
       last_interaction: new Date(),
@@ -284,7 +284,7 @@ INSTRUÇÕES DE AÇÃO (FERRAMENTAS):
           } else {
             await db.collection('appointments').add({
               patientId: patientId,
-              patientName: patientData.nome,
+              patientName: patientData.name,
               date: args.data,
               time: args.hora,
               type: args.tipo || 'Retorno',

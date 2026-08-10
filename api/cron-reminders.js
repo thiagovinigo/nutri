@@ -22,24 +22,27 @@ export default async function handler(req, res) {
 
     for (const doc of patientsSnap.docs) {
       const patient = doc.data();
-      const telefone = patient.telefone;
-      
+      // Telefone e salvo sem DDI (ex: 41988743347) - ver SignUp.jsx/Profile.jsx.
+      const telefoneDigits = patient.phone ? String(patient.phone).replace(/\D/g, '') : '';
+
       // Se não tem telefone ou receitas (dieta), ignora
-      if (!telefone || !patient.recipes || patient.recipes.length === 0) continue;
+      if (!telefoneDigits || !patient.recipes || patient.recipes.length === 0) continue;
+
+      const telefoneComDDI = telefoneDigits.startsWith('55') ? telefoneDigits : `55${telefoneDigits}`;
 
       // Procura alguma refeição marcada exatamente para esta hora
       for (const meal of patient.recipes) {
         if (!meal.time) continue;
-        
+
         // Exemplo: meal.time = "16:00" -> extraímos "16"
         const mealHour = parseInt(meal.time.split(':')[0], 10);
 
         if (mealHour === currentHour) {
-          console.log(`Enviando lembrete para ${patient.nome} sobre a refeição: ${meal.name}`);
-          
-          const text = `Oi ${patient.nome.split(' ')[0]}! 🍎\n\nPassando aqui para lembrar que está na hora do seu *${meal.name}*!\nNão esquece de registrar como foi para eu acompanhar seu progresso, tá bom?`;
-          
-          await sendMessageToWhatsApp(`${telefone}@s.whatsapp.net`, text);
+          console.log(`Enviando lembrete para ${patient.name} sobre a refeição: ${meal.name}`);
+
+          const text = `Oi ${patient.name.split(' ')[0]}! 🍎\n\nPassando aqui para lembrar que está na hora do seu *${meal.name}*!\nNão esquece de registrar como foi para eu acompanhar seu progresso, tá bom?`;
+
+          await sendMessageToWhatsApp(`${telefoneComDDI}@s.whatsapp.net`, text);
           lembretesEnviados++;
           
           // Se encontrou uma refeição para essa hora, quebra o loop desse paciente

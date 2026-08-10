@@ -792,11 +792,11 @@ export default function PatientList({
                           style={{ backgroundColor: '#DC2626', borderColor: '#DC2626', display: 'flex', alignItems: 'center', gap: '8px' }}
                           onClick={() => {
                             const msg = prompt('Digite a mensagem de resgate para enviar ao WhatsApp deste paciente:', 'Oi, senti sua falta nos últimos dias. Está tudo bem com a dieta?');
-                            if (msg && viewedPatient.telefone) {
+                            if (msg && viewedPatient.phone) {
                               fetch('/api/send-whatsapp', {
                                 method: 'POST',
                                 headers: { 'Content-Type': 'application/json' },
-                                body: JSON.stringify({ phone: viewedPatient.telefone, message: msg })
+                                body: JSON.stringify({ phone: viewedPatient.phone, message: msg })
                               }).then(r => r.json()).then(res => {
                                 if(res.success) toast.success('Mensagem de resgate enviada com sucesso!');
                                 else toast.error('Falha ao enviar mensagem de resgate.');

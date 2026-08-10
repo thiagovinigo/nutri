@@ -26,7 +26,11 @@ export default async function handler(req, res) {
     }
 
     const endpoint = `${evolutionUrl}/message/sendText/${instanceName}`;
-    const remoteJid = `${phone}@s.whatsapp.net`;
+    // O telefone e salvo sem DDI no perfil do paciente (ex: 41988743347).
+    // A Evolution API precisa do numero completo com DDI 55 pra rotear a mensagem.
+    const digitsOnly = String(phone).replace(/\D/g, '');
+    const fullNumber = digitsOnly.startsWith('55') ? digitsOnly : `55${digitsOnly}`;
+    const remoteJid = `${fullNumber}@s.whatsapp.net`;
 
     const response = await fetch(endpoint, {
       method: 'POST',

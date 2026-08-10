@@ -42,7 +42,13 @@ export default async function handler(req, res) {
       return res.status(200).send('Ignored group message');
     }
 
-    const phoneNumber = remoteJid.split('@')[0];
+    let phoneNumber = remoteJid.split('@')[0];
+    // Numeros brasileiros chegam com o DDI 55 (ex: 5541988743347), mas o app
+    // salva o telefone do paciente sem DDI (ex: 41988743347) - ver SignUp.jsx/Profile.jsx.
+    // Sem essa normalizacao a busca abaixo nunca encontra o paciente.
+    if (phoneNumber.startsWith('55') && (phoneNumber.length === 12 || phoneNumber.length === 13)) {
+      phoneNumber = phoneNumber.slice(2);
+    }
     
     // A mensagem pode vir em diferentes formatos no WhatsApp (texto simples, texto com imagem, etc)
     const textContent = 
@@ -69,7 +75,7 @@ export default async function handler(req, res) {
         console.log(`Buscando paciente com telefone: ${phoneNumber}`);
         // Normaliza a busca (se o formato salvo tiver + ou DDD diferente, pode precisar de regex)
         const patientsRef = db.collection('patients');
-        const snapshot = await patientsRef.where('telefone', '==', phoneNumber).limit(1).get();
+        const snapshot = await patientsRef.where('phone', '==', phoneNumber).limit(1).get();
         
         let patientId = null;
         let patientData = null;
@@ -78,7 +84,7 @@ export default async function handler(req, res) {
           const doc = snapshot.docs[0];
           patientId = doc.id;
           patientData = doc.data();
-          console.log(`Paciente encontrado: ${patientData.nome} (${patientId})`);
+          console.log(`Paciente encontrado: ${patientData.name} (${patientId})`);
         } else {
           console.log(`Telefone ${phoneNumber} não encontrado na base de pacientes.`);
           // Podemos decidir responder "Desculpe, seu número não está cadastrado"
