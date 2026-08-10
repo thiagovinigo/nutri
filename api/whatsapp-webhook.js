@@ -1,5 +1,6 @@
 import { db } from './utils/firebase-admin.js';
 import { processWhatsAppMessage } from './whatsapp-ai.js';
+import { sendWhatsAppText } from './utils/whatsapp.js';
 
 export const config = {
   api: {
@@ -89,6 +90,20 @@ export default async function handler(req, res) {
           console.log(`Telefone ${phoneNumber} não encontrado na base de pacientes.`);
           // Podemos decidir responder "Desculpe, seu número não está cadastrado"
           // Mas por segurança contra spam, é melhor ignorar.
+          return;
+        }
+
+        // 3.5 Exige telefone verificado antes de liberar dados de saúde pela IA
+        // (ver .claude/prds/verificacao-telefone-whatsapp.prd.md). Sem isso,
+        // qualquer número que bata com o campo `phone` receberia o plano
+        // alimentar e histórico do paciente sem confirmar posse do número.
+        if (patientData.phone_verified !== true) {
+          if (!patientData.phone_verify_reminder_sent) {
+            const text = `Oi ${patientData.name?.split(' ')[0] || ''}! 👋\n\nAntes de eu poder te ajudar por aqui, preciso que você confirme esse número no seu perfil do app Nutrivvo (Perfil → Verificar via WhatsApp). É rapidinho, leva 1 minuto! 🔐`;
+            await sendWhatsAppText(remoteJid, text);
+            await doc.ref.set({ phone_verify_reminder_sent: true }, { merge: true });
+          }
+          // Já avisado antes: ignora silenciosamente pra não spammar a cada mensagem.
           return;
         }
 

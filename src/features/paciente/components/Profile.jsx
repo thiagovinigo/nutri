@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { User, Save, Scale, X, Activity, Upload, Sparkles, TrendingUp, FileText, Moon, Sun } from 'lucide-react';
+import { User, Save, Scale, X, Activity, Upload, Sparkles, TrendingUp, FileText, Moon, Sun, ShieldCheck, ShieldAlert } from 'lucide-react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, Legend, ResponsiveContainer } from 'recharts';
 import { useAppContext } from '../../../context/AppContext';
+import { auth } from '../../../services/firebase';
 
 export default function Profile({ activePatient }) {
-  const { updatePatient, addWeight, completeQuest, addExam, theme, toggleTheme } = useAppContext();
+  const { updatePatient, patchPatientLocal, addWeight, completeQuest, addExam, theme, toggleTheme } = useAppContext();
       const [editName, setEditName] = useState('');
   const [editEmail, setEditEmail] = useState('');
   const [editCpf, setEditCpf] = useState('');
@@ -17,6 +18,13 @@ export default function Profile({ activePatient }) {
   const [showWeightModal, setShowWeightModal] = useState(false);
   const [weightInput, setWeightInput] = useState('');
   const [weightSaved, setWeightSaved] = useState(false);
+
+  // Verificação de telefone via WhatsApp (OTP)
+  const [verifyStep, setVerifyStep] = useState('idle'); // idle | code_sent
+  const [otpInput, setOtpInput] = useState('');
+  const [verifySending, setVerifySending] = useState(false);
+  const [verifyConfirming, setVerifyConfirming] = useState(false);
+  const [verifyError, setVerifyError] = useState('');
 
   useEffect(() => {
     if(activePatient) {
@@ -85,9 +93,73 @@ export default function Profile({ activePatient }) {
   const handleSaveProfile = (e) => {
     e.preventDefault();
     if(activePatient) {
-      updatePatient(activePatient.id, { ...activePatient, name: editName, email: editEmail, cpf: editCpf, age: editAge, gender: editGender, aversions: editAversions, medications: editMedications, phone: editPhone.replace(/\D/g, '') });
+      const newPhoneDigits = editPhone.replace(/\D/g, '');
+      const phoneChanged = newPhoneDigits !== (activePatient.phone || '');
+      const payload = { ...activePatient, name: editName, email: editEmail, cpf: editCpf, age: editAge, gender: editGender, aversions: editAversions, medications: editMedications, phone: newPhoneDigits };
+      // Trocar o número derruba a verificação anterior - firestore.rules exige
+      // isso no mesmo write (ver .claude/prds/verificacao-telefone-whatsapp.prd.md).
+      if (phoneChanged) {
+        payload.phone_verified = false;
+        setVerifyStep('idle');
+        setOtpInput('');
+        setVerifyError('');
+      }
+      updatePatient(activePatient.id, payload);
       setProfileSaved(true);
       setTimeout(() => setProfileSaved(false), 3000);
+    }
+  };
+
+  const handleSendVerifyCode = async () => {
+    if (!activePatient || !auth.currentUser) return;
+    setVerifySending(true);
+    setVerifyError('');
+    try {
+      const idToken = await auth.currentUser.getIdToken();
+      const res = await fetch('/api/whatsapp-verify-send', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${idToken}` },
+        body: JSON.stringify({ patientId: activePatient.id })
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setVerifyError(data.error || 'Falha ao enviar código.');
+        return;
+      }
+      setVerifyStep('code_sent');
+    } catch (err) {
+      console.error('Erro ao enviar código de verificação:', err);
+      setVerifyError('Erro de conexão ao enviar código.');
+    } finally {
+      setVerifySending(false);
+    }
+  };
+
+  const handleConfirmVerifyCode = async () => {
+    if (!activePatient || !auth.currentUser || !otpInput) return;
+    setVerifyConfirming(true);
+    setVerifyError('');
+    try {
+      const idToken = await auth.currentUser.getIdToken();
+      const res = await fetch('/api/whatsapp-verify-confirm', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${idToken}` },
+        body: JSON.stringify({ patientId: activePatient.id, code: otpInput })
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setVerifyError(data.error || 'Código incorreto.');
+        return;
+      }
+      // O write já foi feito pelo servidor (Admin SDK); só refletimos localmente.
+      patchPatientLocal(activePatient.id, { phone_verified: true });
+      setVerifyStep('idle');
+      setOtpInput('');
+    } catch (err) {
+      console.error('Erro ao confirmar código de verificação:', err);
+      setVerifyError('Erro de conexão ao confirmar código.');
+    } finally {
+      setVerifyConfirming(false);
     }
   };
 
@@ -133,6 +205,47 @@ export default function Profile({ activePatient }) {
         <div>
           <label style={{display: 'block', marginBottom: '6px', fontSize: '0.9rem', color: 'var(--crm-text-muted)'}}>Telefone (WhatsApp)</label>
           <input type="text" value={editPhone} onChange={e => setEditPhone(formatPhone(e.target.value))} placeholder="(99) 99999-9999" style={{width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid #cbd5e1', boxSizing: 'border-box'}} />
+
+          {activePatient?.phone && (
+            <div style={{ marginTop: '10px' }}>
+              {activePatient.phone_verified ? (
+                <span style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', fontSize: '0.85rem', color: '#10b981', fontWeight: 700 }}>
+                  <ShieldCheck size={16} /> Verificado
+                </span>
+              ) : (
+                <div>
+                  <span style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', fontSize: '0.85rem', color: '#f59e0b', fontWeight: 700, marginBottom: '8px' }}>
+                    <ShieldAlert size={16} /> Não verificado — a Secretária Virtual só responde a números confirmados
+                  </span>
+
+                  {verifyStep === 'idle' && (
+                    <button type="button" onClick={handleSendVerifyCode} disabled={verifySending}
+                      className="btn-3d" style={{...styles.actionBtn, backgroundColor: '#8b5cf6', boxShadow: '0 4px 0 #7c3aed', padding: '8px 14px', fontSize: '0.85rem'}}>
+                      {verifySending ? 'Enviando...' : 'Verificar via WhatsApp'}
+                    </button>
+                  )}
+
+                  {verifyStep === 'code_sent' && (
+                    <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', alignItems: 'center' }}>
+                      <input type="text" inputMode="numeric" maxLength={6} placeholder="Código de 6 dígitos"
+                        value={otpInput} onChange={e => setOtpInput(e.target.value.replace(/\D/g, ''))}
+                        style={{ padding: '8px 10px', borderRadius: '8px', border: '1px solid #cbd5e1', width: '160px' }} />
+                      <button type="button" onClick={handleConfirmVerifyCode} disabled={verifyConfirming || otpInput.length !== 6}
+                        className="btn-3d" style={{...styles.actionBtn, backgroundColor: '#10b981', boxShadow: '0 4px 0 #059669', padding: '8px 14px', fontSize: '0.85rem'}}>
+                        {verifyConfirming ? 'Confirmando...' : 'Confirmar'}
+                      </button>
+                      <button type="button" onClick={handleSendVerifyCode} disabled={verifySending}
+                        style={{ background: 'none', border: 'none', color: 'var(--crm-text-muted)', fontSize: '0.8rem', cursor: 'pointer', textDecoration: 'underline' }}>
+                        Reenviar código
+                      </button>
+                    </div>
+                  )}
+
+                  {verifyError && <p style={{ color: '#ef4444', fontSize: '0.8rem', marginTop: '6px' }}>{verifyError}</p>}
+                </div>
+              )}
+            </div>
+          )}
         </div>
         <div style={{ display: 'flex', gap: '16px' }}>
           <div style={{ flex: 1 }}>

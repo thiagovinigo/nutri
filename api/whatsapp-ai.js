@@ -1,46 +1,13 @@
 import { db } from './utils/firebase-admin.js';
+import { sendWhatsAppText } from './utils/whatsapp.js';
 
 /**
  * Envia uma mensagem de volta para o WhatsApp usando a Evolution API.
  */
 async function sendMessageToWhatsApp(remoteJid, text) {
-  const evolutionUrl = process.env.EVOLUTION_API_URL;
-  const instanceName = process.env.EVOLUTION_INSTANCE_NAME;
-  const apikey = process.env.EVOLUTION_API_KEY;
-
-  if (!evolutionUrl || !instanceName || !apikey) {
-    console.error("Configurações da Evolution API faltando no ambiente.");
-    return;
-  }
-
-  const endpoint = `${evolutionUrl}/message/sendText/${instanceName}`;
-  
-  try {
-    const response = await fetch(endpoint, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'apikey': apikey
-      },
-      body: JSON.stringify({
-        number: remoteJid,
-        options: {
-          delay: 2000, // delay de 2s para simular digitação e evitar ban
-          presence: 'composing' // Mostra "digitando..."
-        },
-        textMessage: {
-          text: text
-        }
-      })
-    });
-
-    if (!response.ok) {
-      console.error(`Erro Evolution API: ${response.status} - ${await response.text()}`);
-    } else {
-      console.log(`Mensagem enviada com sucesso para ${remoteJid}`);
-    }
-  } catch (error) {
-    console.error("Erro ao fazer requisição para Evolution API:", error);
+  const ok = await sendWhatsAppText(remoteJid, text);
+  if (ok) {
+    console.log(`Mensagem enviada com sucesso para ${remoteJid}`);
   }
 }
 

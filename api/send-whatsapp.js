@@ -1,3 +1,5 @@
+import { normalizePhoneWithDDI, sendWhatsAppText } from './utils/whatsapp.js';
+
 export const config = {
   api: {
     bodyParser: true,
@@ -16,43 +18,10 @@ export default async function handler(req, res) {
       return res.status(400).json({ error: 'Phone and message are required' });
     }
 
-    const evolutionUrl = process.env.EVOLUTION_API_URL;
-    const instanceName = process.env.EVOLUTION_INSTANCE_NAME;
-    const apikey = process.env.EVOLUTION_API_KEY;
+    const remoteJid = `${normalizePhoneWithDDI(phone)}@s.whatsapp.net`;
+    const ok = await sendWhatsAppText(remoteJid, message);
 
-    if (!evolutionUrl || !instanceName || !apikey) {
-      console.error("Configurações da Evolution API faltando.");
-      return res.status(500).json({ error: 'Evolution API config missing' });
-    }
-
-    const endpoint = `${evolutionUrl}/message/sendText/${instanceName}`;
-    // O telefone e salvo sem DDI no perfil do paciente (ex: 41988743347).
-    // A Evolution API precisa do numero completo com DDI 55 pra rotear a mensagem.
-    const digitsOnly = String(phone).replace(/\D/g, '');
-    const fullNumber = digitsOnly.startsWith('55') ? digitsOnly : `55${digitsOnly}`;
-    const remoteJid = `${fullNumber}@s.whatsapp.net`;
-
-    const response = await fetch(endpoint, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'apikey': apikey
-      },
-      body: JSON.stringify({
-        number: remoteJid,
-        options: {
-          delay: 1500,
-          presence: 'composing'
-        },
-        textMessage: {
-          text: message
-        }
-      })
-    });
-
-    if (!response.ok) {
-      const errorText = await response.text();
-      console.error(`Erro Evolution API: ${response.status} - ${errorText}`);
+    if (!ok) {
       return res.status(500).json({ error: 'Falha ao enviar mensagem' });
     }
 

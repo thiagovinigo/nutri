@@ -140,6 +140,8 @@
 
 - [ ] Investigar instabilidade do canal de escrita do Firestore (erro 503 recorrente) — parece ser infra/rede do ambiente, não código
 - [ ] Edge case: paciente atendido por mais de um nutricionista na plataforma (modelo hoje assume 1:N restrito)
+- [x] ~~Verificação de telefone WhatsApp por código (OTP), com `phone_verified` protegido por firestore.rules contra escrita direta do client~~ — feito em 10/08/2026 (`.claude/prds/verificacao-telefone-whatsapp.prd.md`). **Débito técnico registrado por esse trabalho:** `api/send-whatsapp.js` e `api/cron-reminders.js` continuam sem nenhuma verificação de auth no chamador (diferente dos 2 endpoints novos de verificação, que exigem Firebase ID token) — hoje são só "seguros" porque o frontend não expõe a URL publicamente, não porque o endpoint valida algo. Avaliar aplicar `requireAuthUid` (`api/utils/auth.js`, já existe) neles também.
+- [x] ~~Bug: `api/whatsapp-webhook.js`/`whatsapp-ai.js`/`cron-reminders.js` buscavam/liam campos `telefone`/`nome` que não existem em nenhum documento de paciente (o app usa `phone`/`name`) — Secretária Virtual e lembretes nunca funcionavam de fato~~ — corrigido em 10/08/2026, junto com normalização de DDI (telefone salvo sem 55, Evolution API precisa com 55)
 
 ## 💰 Monetização
 

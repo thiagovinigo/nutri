@@ -226,6 +226,15 @@ export function AppProvider({ children }) {
     }
   };
 
+  // Atualiza só o estado local (React), sem escrever no Firestore. Usado depois
+  // de endpoints server-side (Admin SDK) que já persistiram a mudança por fora
+  // do client SDK - ex: confirmação de verificação de telefone via WhatsApp,
+  // onde o client é propositalmente bloqueado por firestore.rules de escrever
+  // phone_verified: true diretamente.
+  const patchPatientLocal = (id, partial) => {
+    setPatients(prev => prev.map(p => p.id === id ? { ...p, ...partial } : p));
+  };
+
   const deletePatient = async (id) => {
     setPatients(prev => prev.filter(p => p.id !== id));
     if (activePatientId === id) setActivePatientId(null);
@@ -574,7 +583,7 @@ export function AppProvider({ children }) {
       fetchProfile, fetchPatients, fetchAppointments, updateProfile,
       isLoadingPatients,
       clinicConfig, updateClinicConfig,
-      addPatient, updatePatient, deletePatient,
+      addPatient, updatePatient, patchPatientLocal, deletePatient,
       addRecipe, updateMealAiRecipe, markMealDone, markSupplementDone, addExtraMealLog, markWorkoutDone, addWeight, addSleepLog, addExam, completeQuest, updateWater,
       addNotification, markNotificationsRead,
       appointments, addAppointment, cancelAppointment, markAppointmentDone,

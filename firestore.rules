@@ -10,7 +10,28 @@ service cloud.firestore {
 
     match /patients/{patientId} {
       // Paciente pode ler, criar e atualizar seu próprio doc
-      allow read, create, update: if request.auth != null && request.auth.uid == patientId;
+      allow read, create: if request.auth != null && request.auth.uid == patientId;
+
+      // Update do próprio paciente: liberado, EXCETO nos campos de verificação
+      // de telefone via WhatsApp (ver .claude/prds/verificacao-telefone-whatsapp.prd.md).
+      // Só o backend (Admin SDK, que ignora estas regras) pode gravar o código OTP
+      // e confirmar phone_verified = true - senão o paciente forjaria a verificação
+      // direto pelo client SDK, anulando o propósito da feature.
+      allow update: if request.auth != null && request.auth.uid == patientId
+        && !request.resource.data.diff(resource.data).affectedKeys()
+              .hasAny(['phone_otp_hash', 'phone_otp_expires', 'phone_otp_attempts', 'phone_otp_sent_at'])
+        // phone_verified só pode ser tocado pelo client para desligar (false),
+        // nunca para ligar (true) - isso é exclusivo do Admin SDK no backend.
+        && (
+          !request.resource.data.diff(resource.data).affectedKeys().hasAny(['phone_verified'])
+          || request.resource.data.phone_verified == false
+        )
+        // Trocar o número de telefone sem re-verificar deve sempre derrubar o
+        // status de verificado no mesmo write, nunca manter true "de graça".
+        && (
+          !request.resource.data.diff(resource.data).affectedKeys().hasAny(['phone'])
+          || request.resource.data.phone_verified == false
+        );
       
       // Nutricionista dono pode ler, atualizar, criar, deletar
       allow read, update, delete: if request.auth != null
