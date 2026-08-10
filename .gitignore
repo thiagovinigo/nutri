@@ -27,3 +27,6 @@ dist-ssr
 # Claude Code local-only settings (machine-specific permissions)
 .claude/settings.local.json
 .vercel
+
+# WhatsApp pairing QR (Evolution API) - sensitive, expira em segundos mas nao deve ser versionado
+qrcode.png
