@@ -1,5 +1,6 @@
 import crypto from 'crypto';
-import admin, { db } from './utils/firebase-admin.js';
+import { db } from './utils/firebase-admin.js';
+import { FieldValue } from 'firebase-admin/firestore';
 import { requireAuthUid } from './utils/auth.js';
 
 const MAX_ATTEMPTS = 5;
@@ -61,7 +62,6 @@ export default async function handler(req, res) {
     }
 
     // Sucesso: marca como verificado e limpa os campos de OTP (não ficam pra trás).
-    const { FieldValue } = admin.firestore;
     await patientRef.set({
       phone_verified: true,
       phone_verify_reminder_sent: false,

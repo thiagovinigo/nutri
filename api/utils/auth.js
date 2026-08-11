@@ -1,4 +1,4 @@
-import admin from './firebase-admin.js';
+import { auth } from './firebase-admin.js';
 
 /**
  * Extrai e verifica o Firebase ID token do header Authorization.
@@ -21,7 +21,7 @@ export async function requireAuthUid(req) {
   }
 
   try {
-    const decoded = await admin.auth().verifyIdToken(match[1]);
+    const decoded = await auth.verifyIdToken(match[1]);
     return decoded.uid;
   } catch (error) {
     console.error('Falha ao verificar ID token:', error);
