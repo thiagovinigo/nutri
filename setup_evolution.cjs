@@ -1,9 +1,14 @@
 const fs = require('fs');
 
 async function createInstance() {
-  const RENDER_URL = 'https://evolution-api-latest-oy03.onrender.com';
-  const API_KEY = '!Nutrivv0@2016';
-  const INSTANCE_NAME = 'nutrivvo_bot';
+  const RENDER_URL = process.env.EVOLUTION_API_URL || 'https://evolution-api-latest-oy03.onrender.com';
+  const API_KEY = process.env.EVOLUTION_API_KEY;
+  const INSTANCE_NAME = process.env.EVOLUTION_INSTANCE_NAME || 'nutrivvo_bot';
+
+  if (!API_KEY) {
+    console.error('❌ EVOLUTION_API_KEY não configurada. Rode com: EVOLUTION_API_KEY=xxx node setup_evolution.cjs');
+    return;
+  }
 
   console.log(`⏳ Criando instância '${INSTANCE_NAME}' no servidor ${RENDER_URL}...`);
 
