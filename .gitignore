@@ -22,7 +22,8 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
-.env
+.env*
+!.env.example
 
 # Claude Code local-only settings (machine-specific permissions)
 .claude/settings.local.json

@@ -83,11 +83,12 @@ export default async function handler(req, res) {
     
     (async () => {
       try {
-        console.log(`Buscando paciente com telefone: ${phoneNumber}`);
+        // Não loga o telefone completo (dado pessoal) - só confirma a busca.
+        console.log('Buscando paciente pelo telefone recebido no webhook.');
         // Normaliza a busca (se o formato salvo tiver + ou DDD diferente, pode precisar de regex)
         const patientsRef = db.collection('patients');
         const snapshot = await patientsRef.where('phone', '==', phoneNumber).limit(1).get();
-        
+
         let patientId = null;
         let patientData = null;
 
@@ -95,9 +96,9 @@ export default async function handler(req, res) {
           const doc = snapshot.docs[0];
           patientId = doc.id;
           patientData = doc.data();
-          console.log(`Paciente encontrado: ${patientData.name} (${patientId})`);
+          console.log(`Paciente encontrado: ${patientId}`);
         } else {
-          console.log(`Telefone ${phoneNumber} não encontrado na base de pacientes.`);
+          console.log('Telefone recebido não encontrado na base de pacientes.');
           // Podemos decidir responder "Desculpe, seu número não está cadastrado"
           // Mas por segurança contra spam, é melhor ignorar.
           return;

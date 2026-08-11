@@ -7,7 +7,8 @@ import { sendWhatsAppText } from './utils/whatsapp.js';
 async function sendMessageToWhatsApp(remoteJid, text) {
   const ok = await sendWhatsAppText(remoteJid, text);
   if (ok) {
-    console.log(`Mensagem enviada com sucesso para ${remoteJid}`);
+    // Nao loga o remoteJid completo (numero de telefone) - so confirma o envio.
+    console.log('Mensagem enviada com sucesso.');
   }
 }
 
@@ -75,7 +76,7 @@ INSTRUÇÕES DE AÇÃO (FERRAMENTAS):
   const isBotPaused = sessionSnap.exists && sessionSnap.data().bot_paused === true;
   
   if (isBotPaused) {
-    console.log(`Bot pausado para o paciente ${patientData.name}. Salvando mensagem e encerrando.`);
+    console.log(`Bot pausado para o paciente ${patientId}. Salvando mensagem e encerrando.`);
     await sessionRef.set({
       whatsapp_messages: messagesHistory,
       last_interaction: new Date(),
@@ -184,7 +185,8 @@ INSTRUÇÕES DE AÇÃO (FERRAMENTAS):
       for (const toolCall of responseMessage.tool_calls) {
         if (toolCall.function.name === 'log_meal') {
           const args = JSON.parse(toolCall.function.arguments);
-          console.log(`[FUNCTION CALL] log_meal chamado para paciente ${patientId}:`, args);
+          // Nao loga "args" cru - contem descricao da refeicao (dado de saude).
+          console.log(`[FUNCTION CALL] log_meal chamado para paciente ${patientId}`);
           
           await db.collection('patients').doc(patientId).collection('diario').add({
             timestamp: new Date(),
@@ -201,7 +203,8 @@ INSTRUÇÕES DE AÇÃO (FERRAMENTAS):
           });
         } else if (toolCall.function.name === 'alertar_nutricionista') {
           const args = JSON.parse(toolCall.function.arguments);
-          console.log(`[FUNCTION CALL] alertar_nutricionista chamado para paciente ${patientId}:`, args);
+          // Nao loga "args" cru - contem o motivo do alerta (dado de saude/comportamento).
+          console.log(`[FUNCTION CALL] alertar_nutricionista chamado para paciente ${patientId}`);
           
           await db.collection('patients').doc(patientId).update({
             status: 'Em Risco',
