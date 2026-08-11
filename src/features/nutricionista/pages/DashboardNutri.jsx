@@ -330,11 +330,41 @@ Você atua como um comitê clínico de alta performance onde o Nutricionista é 
 - **Parecer do Comitê Médico:** Não diga apenas "Recomendamos o acionamento de um médico". Você (IA) DEVE ATUAR como o próprio comitê médico (MedHub)! Forneça a análise médica profunda sobre os achados (ex: "O Comitê Médico avalia que a hiperprolactinemia neste cenário indica..."). Ao final do seu parecer médico, adicione uma nota instruindo que o paciente deve ser aconselhado a buscar o especialista presencialmente (ex: Endocrinologista, Cardiologista) para acompanhamento clínico.
 
 ## 5. Referências Clínicas
-Cite as fontes científicas, guidelines atualizados (como Diretrizes da SBC, SBD, ASPEN, ESPEN, ou artigos pubmed relevantes) que basearam as análises e intervenções sugeridas acima. Cite pelo menos 2 referências.`,
+Cite as fontes científicas, guidelines atualizados (como Diretrizes da SBC, SBD, ASPEN, ESPEN, ou artigos pubmed relevantes) que basearam as análises e intervenções sugeridas acima. Cite pelo menos 2 referências.
+
+## 6. Dados Estruturados (JSON)
+OBRIGATORIAMENTE crie um bloco de código JSON contendo um objeto chamado "markers" com a chave sendo o nome padronizado do biomarcador (minúsculas, sem acentos, com underscore) e o valor numérico isolado (float/int, sem unidades).
+Exemplo OBRIGATÓRIO de formato:
+\`\`\`json
+{
+  "markers": {
+    "colesterol_total": 190,
+    "colesterol_ldl": 110,
+    "colesterol_hdl": 50,
+    "glicemia_jejum": 92,
+    "triglicerideos": 130,
+    "testosterona": 550,
+    "vitamina_d": 32
+  }
+}
+\`\`\`
+Se não houver valores numéricos para extrair, retorne { "markers": {} }.`,
           messages: [{ role: "user", content: contentArray }]
       });
       const rawResult = data.choices[0].message.content;
-      setExamResult(rawResult);
+      
+      let parsedMarkers = {};
+      try {
+        const jsonMatch = rawResult.match(/```json\s*([\s\S]*?)\s*```/);
+        if (jsonMatch) {
+          parsedMarkers = JSON.parse(jsonMatch[1]);
+        }
+      } catch (e) {
+        console.warn("Falha ao fazer parse do JSON de biomarcadores", e);
+      }
+      
+      // Store the parsed markers in the state alongside the text result so we can save it later
+      setExamResult({ text: rawResult, markers: parsedMarkers.markers || {} });
       setExamUploaded(true);
     } catch (error) {
       setExamError(error.message || 'Erro ao analisar exame.');
@@ -364,7 +394,7 @@ Cite as fontes científicas, guidelines atualizados (como Diretrizes da SBC, SBD
       }
 
       if (anamnesisText) promptContext += `\nAnamnese: ${anamnesisText}`;
-      if (examResult) promptContext += `\nConduta Sugerida pelos Exames:\n${examResult}`;
+      if (examResult) promptContext += `\nConduta Sugerida pelos Exames:\n${examResult.text}`;
 
       const miniTaco = tacoData.map(f => ({ id: f.id, name: f.name, kcal: f.kcal, carb: f.carb, ptn: f.protein, fat: f.fat }));
       promptContext += `\n\nBANCO DE DADOS DE ALIMENTOS PERMITIDOS (TACO - Valores por 100g):\n${JSON.stringify(miniTaco)}`;
@@ -457,7 +487,7 @@ Exemplo de formato:
       if (activePatient.restrictions) promptContext += `\nRestrições/Contraindicações: ${activePatient.restrictions}`;
       if (activePatient.medications) promptContext += `\nMedicamentos em uso: ${activePatient.medications}`;
       if (anamnesisText) promptContext += `\nAnamnese: ${anamnesisText}`;
-      if (examResult) promptContext += `\nAnálise de Exames: ${examResult}`;
+      if (examResult) promptContext += `\nAnálise de Exames: ${examResult.text}`;
 
       const catalogList = supplementsData.map(s => `${s.name} (dose usual: ${s.defaultDosage})`).join(', ');
       promptContext += `\n\nCATÁLOGO DISPONÍVEL: ${catalogList}`;
@@ -533,7 +563,7 @@ Exemplo de formato:
 
       // Resultado dos exames laboratoriais (se disponível)
       if (examResult) {
-        promptContext += `\n\nEXAMES LABORATORIAIS RECENTES (análise clínica):\n${examResult}\n— Leve em conta marcadores como colesterol, glicemia, hemoglobina, hormônios, etc. ao definir intensidade e volume de treino.`;
+        promptContext += `\n\nEXAMES LABORATORIAIS RECENTES (análise clínica):\n${examResult.text}\n— Leve em conta marcadores como colesterol, glicemia, hemoglobina, hormônios, etc. ao definir intensidade e volume de treino.`;
       }
 
       // Dieta prescrita — resumo de macros
@@ -647,7 +677,7 @@ Não inclua textos fora do JSON. Apenas o JSON puro.`;
       type: consultationType || 'Primeira Consulta',
       anamnesis: anamnesisText,
       physicalEval: physicalEval,
-      examResult: examResult,
+      examResult: examResult ? examResult.text : null,
       dietTitle: dietTitle,
       dietMeals: formattedMeals,
       dietSupplements: dietSupplements,
@@ -679,11 +709,10 @@ Não inclua textos fora do JSON. Apenas o JSON puro.`;
 
     if (examResult) {
       const newExam = {
-        id: Date.now().toString() + "_ex",
-        date: new Date().toLocaleDateString('pt-BR'),
-        Glicemia: null,
-        Colesterol: null,
-        aiSummaryProfessional: examResult
+        date: new Date().toISOString().split('T')[0],
+        analysis: examResult.text,
+        markers: examResult.markers,
+        aiSummaryProfessional: examResult.text
       };
       updatePayload.exams = [...(activePatient.exams || []), newExam];
     }

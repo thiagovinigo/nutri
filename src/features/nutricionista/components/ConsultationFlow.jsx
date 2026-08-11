@@ -565,9 +565,9 @@ export default function ConsultationFlow({
                     ))}
                   </div>
                   <div style={{ padding: '24px', backgroundColor: 'var(--crm-surface)', borderRadius: '0 0 12px 12px', minHeight: '300px', border: '1px solid var(--crm-border)', borderTop: 'none' }}>
-                    {parseMarkdownTabs(examResult)[examTab] ? (
+                    {parseMarkdownTabs(examResult.text || examResult)[examTab] ? (
                       <div className="markdown-body">
-                        <ReactMarkdown remarkPlugins={[remarkGfm]}>{parseMarkdownTabs(examResult)[examTab]}</ReactMarkdown>
+                        <ReactMarkdown remarkPlugins={[remarkGfm]}>{parseMarkdownTabs(examResult.text || examResult)[examTab]}</ReactMarkdown>
                       </div>
                     ) : (
                       <p style={{ color: 'var(--crm-text-muted)' }}>Seção não disponível para esta análise.</p>

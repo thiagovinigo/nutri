@@ -12,6 +12,7 @@ import AnamnesisTemplateSettings from './AnamnesisTemplateSettings';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import ChatIA from './ChatIA';
+import BiomarkersChart from './BiomarkersChart';
 import toast from 'react-hot-toast';
 
 export default function PatientList({
@@ -1039,7 +1040,9 @@ export default function PatientList({
               )}
               
               {prontuarioTab === 'exames' && (
-                <div style={{ display: 'flex', gap: '24px', flexWrap: 'wrap' }}>
+                <div style={{ display: 'flex', gap: '24px', flexWrap: 'wrap', flexDirection: 'column' }}>
+                  <BiomarkersChart patient={viewedPatient} />
+                  
                   {/* HISTÓRICO DE EXAMES */}
                 <div className="crm-card" style={{ flex: '1 1 500px' }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
@@ -1856,6 +1859,23 @@ export default function PatientList({
                           <label className="crm-label">Hora Fim (ex: 18)</label>
                           <input type="number" className="crm-input-modern" value={clinicConfig.scheduleConfig?.endHour || ''} onChange={e => updateClinicConfig({ scheduleConfig: { ...clinicConfig.scheduleConfig, endHour: parseInt(e.target.value) } })} />
                         </div>
+                      </div>
+
+                      <div className="settings-fieldset" style={{ marginTop: '24px' }}>
+                        <label className="crm-label" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}><LinkIcon size={16} /> Link de Agendamento Público</label>
+                        <div style={{ display: 'flex', gap: '8px', alignItems: 'center', backgroundColor: 'var(--crm-bg)', padding: '12px', borderRadius: '8px', border: '1px solid var(--crm-border)' }}>
+                          <input type="text" readOnly value={`${window.location.origin}/agendar/${auth.currentUser?.uid}`} style={{ flex: 1, border: 'none', background: 'transparent', color: 'var(--crm-text-main)', fontSize: '0.9rem', outline: 'none' }} />
+                          <button type="button" className="crm-btn-secondary" onClick={() => { navigator.clipboard.writeText(`${window.location.origin}/agendar/${auth.currentUser?.uid}`); toast.success('Link copiado!'); }}>Copiar</button>
+                        </div>
+                        <p style={{ fontSize: '0.8rem', color: 'var(--crm-text-muted)', marginTop: '8px' }}>Envie este link para seus pacientes ou coloque na sua bio do Instagram.</p>
+                      </div>
+
+                      <div className="settings-fieldset" style={{ marginTop: '24px', backgroundColor: 'var(--crm-surface-2)', padding: '16px', borderRadius: '12px' }}>
+                        <label className="crm-label" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}><Calendar size={16} /> Integração Google Calendar</label>
+                        <p style={{ fontSize: '0.85rem', color: 'var(--crm-text-muted)', marginBottom: '16px' }}>Sincronize as consultas marcadas pelo CRM diretamente na sua agenda do Google. (Requer configuração de API OAuth no painel do Google Cloud).</p>
+                        <button type="button" className="crm-btn-secondary" onClick={() => toast('A funcionalidade base está pronta no código, mas requer ativação da API do Google Calendar no Firebase/GCP.', { icon: '⚙️' })}>
+                          <Calendar size={16} style={{ marginRight: '8px' }} /> Conectar Conta do Google
+                        </button>
                       </div>
                       <div style={{ display: 'flex', gap: '24px', marginBottom: '24px' }}>
                         <div style={{ flex: 1 }}>

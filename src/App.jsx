@@ -6,6 +6,7 @@ import LandingPage from './pages/LandingPage';
 import Login from './pages/Login';
 import ForgotPassword from './pages/ForgotPassword';
 import SignUp from './pages/SignUp';
+import PublicBooking from './pages/PublicBooking';
 import { AppProvider, useAppContext } from './context/AppContext';
 import { Toaster } from 'react-hot-toast';
 
@@ -31,6 +32,7 @@ function App() {
           <Route path="/cadastro" element={<SignUp />} />
           <Route path="/nutri" element={<RequireAuth><DashboardNutri /></RequireAuth>} />
           <Route path="/paciente" element={<PatientApp />} />
+          <Route path="/agendar/:nutriId" element={<PublicBooking />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </BrowserRouter>
