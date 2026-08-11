@@ -73,9 +73,38 @@ Sem testes automatizados neste projeto — validação manual cobre: (1) bypass 
 | Primeira vez que o projeto verifica ID token em endpoint — pode expor um gap se outro endpoint existente (`send-whatsapp.js`) continuar sem nenhuma auth | Média (risco pré-existente, não introduzido por este plano) | Fora de escopo deste milestone corrigir `send-whatsapp.js`/`cron-reminders.js`; registrar como débito técnico separado no backlog |
 
 ## Acceptance
-- [ ] `updateDoc` direto do client tentando `phone_verified: true` é rejeitado pelo Firestore (`permission-denied`)
-- [ ] Paciente consegue disparar o código, recebê-lo no WhatsApp real, e confirmar pela UI
-- [ ] Badge em `Profile.jsx` reflete corretamente verificado/não verificado, inclusive resetando ao editar o telefone
-- [ ] `api/whatsapp-webhook.js` não libera a IA pra número não verificado, manda aviso uma única vez
-- [ ] `npm run build` e `npm run lint` passam sem erros novos
-- [ ] Débito técnico (`send-whatsapp.js`/`cron-reminders.js` sem auth) registrado no `backlog.md` para tratamento futuro
+- [ ] `updateDoc` direto do client tentando `phone_verified: true` é rejeitado pelo Firestore (`permission-denied`) — regra publicada no Firebase Console em 10/08, mas o teste de bypass em si (abrir console do navegador logado como paciente e tentar) ainda não foi executado
+- [ ] Paciente consegue disparar o código, recebê-lo no WhatsApp real, e confirmar pela UI — **bloqueado**: número de teste do bot ficou restrito 5h pelo WhatsApp por volume de testes automatizados no mesmo dia (ver Status Log)
+- [x] Badge em `Profile.jsx` reflete corretamente verificado/não verificado, inclusive resetando ao editar o telefone — implementado, não testado ponta-a-ponta ainda (depende do item acima)
+- [ ] `api/whatsapp-webhook.js` não libera a IA pra número não verificado, manda aviso uma única vez — implementado, não testado ainda
+- [x] `npm run build` e `npm run lint` passam sem erros novos
+- [x] Débito técnico (`send-whatsapp.js`/`cron-reminders.js` sem auth) registrado no `backlog.md` para tratamento futuro
+
+## Status Log (10/08/2026)
+Toda a infraestrutura foi corrigida e confirmada funcionando — só falta reconectar o WhatsApp e rodar o teste ponta-a-ponta:
+
+**Confirmado funcionando:**
+- Auth: `requireAuthUid` verifica ID token corretamente em produção (testado com request sem token → 401 limpo)
+- Firestore: Admin SDK inicializa com a service account certa (`nutribase-fea35`)
+- Evolution API: payload `{number, text, delay}` confirmado funcionando via teste direto (envio real entregue, HTTP 201)
+- `firestore.rules` publicada no Firebase Console (bloqueio de `phone_verified`/campos OTP)
+- Env vars corretas na Vercel Production: `FIREBASE_SERVICE_ACCOUNT`, `EVOLUTION_API_URL`, `EVOLUTION_INSTANCE_NAME`, `EVOLUTION_API_KEY` (rotacionada)
+
+**Bugs achados e corrigidos nesta sessão (fora do escopo original, mas bloqueavam tudo):**
+1. `patient.telefone`/`patient.nome` (campos inexistentes) → `patient.phone`/`patient.name` em `whatsapp-webhook.js`, `whatsapp-ai.js`, `cron-reminders.js`
+2. Telefone sem DDI salvo no perfil vs. Evolution API exigindo DDI completo — normalizado nos dois sentidos
+3. `api/utils/firebase-admin.js` usava API legada do `firebase-admin` (removida na v14) — migrado pra API modular
+4. `jose@6` (ESM-only) incompatível com `jwks-rsa` (CJS) — pinado em `jose@^5.10.0` via `overrides` no `package.json`
+5. `FIREBASE_SERVICE_ACCOUNT` só marcada pra "Preview" na Vercel, não "Production"
+6. Valor colado em `FIREBASE_SERVICE_ACCOUNT` era código JS por engano (corrigido via Vercel CLI, contornando bug de paste no navegador)
+7. Payload da Evolution API mudou de formato (`textMessage.text` → `text` na raiz) nesta versão (v2.3.7)
+8. **Crítico:** `ChatIA.jsx` chamava a Evolution API direto do navegador com a apikey hardcoded no código — expunha controle administrativo total da instância no bundle JS público. Corrigido pra usar `/api/send-whatsapp` (server-side); apikey rotacionada por precaução
+
+**Bloqueado agora:** número do bot (`nutrivvo_bot`) ficou restrito por 5h pelo WhatsApp — padrão de detecção de bot por volume de mensagens automatizadas de teste no mesmo dia (múltiplos pareamentos, testes de payload, teste de envio direto, etc.). Não é bug de código — é o WhatsApp aplicando rate-limit/anti-abuso no número.
+
+**Para retomar:**
+1. Esperar a restrição de 5h passar (ou usar horário diferente do dia)
+2. Escanear QR novo pra reconectar (`instance/connect/nutrivvo_bot`)
+3. Testar o fluxo completo, **espaçando os envios** (não repetir rajadas de teste) pra não disparar o mesmo bloqueio de novo
+4. Rodar o teste de bypass do Firestore rules (console do navegador) explicitamente
+5. Testar `whatsapp-webhook.js` com paciente verificado e não verificado
