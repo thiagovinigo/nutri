@@ -4,6 +4,7 @@ import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import MealBuilder from './MealBuilder';
 import WorkoutBuilder from './WorkoutBuilder';
+import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid } from 'recharts';
 import { DEFAULT_TEMPLATE } from './AnamnesisTemplateSettings';
 import supplementsData from '../../../data/supplements.json';
 
@@ -103,6 +104,41 @@ export default function ConsultationFlow({
     : DEFAULT_TEMPLATE;
   const [selectedExamFiles, setSelectedExamFiles] = useState([]);
   const [prescriptionTab, setPrescriptionTab] = useState('cardapio');
+
+  const dietTotals = React.useMemo(() => {
+    let kcal = 0, protein = 0, carb = 0, fat = 0;
+    if (!dietMeals || !Array.isArray(dietMeals)) return { kcal, protein, carb, fat };
+    
+    // Calcula apenas os macros do "Dia 1" se houver múltiplos dias para não somar a semana toda
+    const dayOneMeals = dietMeals.filter(m => !m.name || !m.name.includes('Dia') || m.name.includes('Dia 1'));
+    const mealsToCalc = dayOneMeals.length > 0 ? dayOneMeals : dietMeals;
+
+    mealsToCalc.forEach(meal => {
+      if (meal.foods && Array.isArray(meal.foods)) {
+        meal.foods.forEach(food => {
+          kcal += parseFloat(food.kcal || 0);
+          protein += parseFloat(food.protein || 0);
+          carb += parseFloat(food.carb || 0);
+          fat += parseFloat(food.fat || 0);
+        });
+      }
+    });
+
+    return {
+      kcal: Math.round(kcal),
+      protein: Math.round(protein),
+      carb: Math.round(carb),
+      fat: Math.round(fat)
+    };
+  }, [dietMeals]);
+
+  const macroData = React.useMemo(() => {
+    return [
+      { name: 'Carboidratos', value: dietTotals.carb * 4, color: '#38bdf8', weight: dietTotals.carb },
+      { name: 'Proteínas', value: dietTotals.protein * 4, color: '#818cf8', weight: dietTotals.protein },
+      { name: 'Gorduras', value: dietTotals.fat * 9, color: '#fbbf24', weight: dietTotals.fat }
+    ].filter(d => d.value > 0);
+  }, [dietTotals]);
 
   // eslint-disable-next-line react-hooks/exhaustive-deps -- tmb/get/bodyFat/massaGorda/massaMagra/setPhysicalEval
   // são as SAÍDAS calculadas por este efeito; incluí-las nas deps criaria um ciclo autorreferente.
@@ -592,31 +628,89 @@ export default function ConsultationFlow({
                     <textarea className="crm-input" placeholder="Orientações, metas ou visão geral da dieta..." value={dietDescription} onChange={e => setDietDescription(e.target.value)} style={{ minHeight: '80px', resize: 'vertical' }} />
                   </div>
 
+                  {dietTotals.kcal > 0 && (
+                    <div style={{ marginBottom: '24px', display: 'flex', gap: '20px', flexWrap: 'wrap' }}>
+                      {/* Gráfico de Pizza - Distribuição de Macros */}
+                      <div className="crm-card" style={{ flex: '1 1 300px', padding: '16px', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                        <h4 style={{ margin: '0 0 8px 0', color: 'var(--crm-text-main)', fontSize: '1rem' }}>Distribuição de Macros</h4>
+                        <div style={{ width: '100%', height: '180px' }}>
+                          <ResponsiveContainer width="100%" height="100%">
+                            <PieChart>
+                              <Pie
+                                data={macroData}
+                                dataKey="value"
+                                cx="50%"
+                                cy="50%"
+                                innerRadius={50}
+                                outerRadius={70}
+                                paddingAngle={2}
+                              >
+                                {macroData.map((entry, idx) => (
+                                  <Cell key={`cell-${idx}`} fill={entry.color} />
+                                ))}
+                              </Pie>
+                              <Tooltip formatter={(val, name, props) => [`${Math.round((val / (dietTotals.kcal || 1)) * 100)}% (${props.payload.weight}g)`, name]} />
+                            </PieChart>
+                          </ResponsiveContainer>
+                        </div>
+                        <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap', justifyContent: 'center' }}>
+                          {macroData.map(m => (
+                            <div key={m.name} style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '0.85rem', color: 'var(--crm-text-muted)' }}>
+                              <div style={{ width: '10px', height: '10px', borderRadius: '50%', backgroundColor: m.color }} />
+                              {m.name}
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+
+                      {/* Gráfico de Barras - Metas Calóricas */}
+                      <div className="crm-card" style={{ flex: '1 1 300px', padding: '16px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+                        <h4 style={{ margin: '0 0 16px 0', color: 'var(--crm-text-main)', fontSize: '1rem' }}>Calorias da Dieta vs GET</h4>
+                        
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: '16px' }}>
+                          <div>
+                            <span style={{ fontSize: '0.85rem', color: 'var(--crm-text-muted)' }}>Cardápio</span>
+                            <div style={{ fontSize: '1.6rem', fontWeight: '800', color: 'var(--crm-primary)' }}>
+                              {dietTotals.kcal} <span style={{ fontSize: '0.9rem', fontWeight: '500' }}>kcal</span>
+                            </div>
+                          </div>
+                          
+                          {physicalEval?.get && (
+                            <div style={{ textAlign: 'right' }}>
+                              <span style={{ fontSize: '0.85rem', color: 'var(--crm-text-muted)' }}>Gasto Total (GET)</span>
+                              <div style={{ fontSize: '1.2rem', fontWeight: '600', color: 'var(--crm-text-main)' }}>
+                                {physicalEval.get} <span style={{ fontSize: '0.8rem', fontWeight: '500' }}>kcal</span>
+                              </div>
+                            </div>
+                          )}
+                        </div>
+
+                        {physicalEval?.get && (
+                          <div style={{ width: '100%', backgroundColor: 'var(--crm-surface-2)', borderRadius: '12px', height: '16px', overflow: 'hidden', position: 'relative' }}>
+                            <div style={{ 
+                              position: 'absolute', top: 0, left: 0, height: '100%', 
+                              backgroundColor: dietTotals.kcal > parseInt(physicalEval.get) ? '#ef4444' : 'var(--crm-accent)',
+                              width: `${Math.min(100, (dietTotals.kcal / parseInt(physicalEval.get)) * 100)}%`,
+                              transition: 'width 0.3s ease'
+                            }} />
+                            {/* Linha do GET (100%) */}
+                            <div style={{ position: 'absolute', top: 0, left: '99%', height: '100%', borderLeft: '2px dashed #000' }} />
+                          </div>
+                        )}
+                        
+                        {physicalEval?.get && (
+                          <div style={{ marginTop: '12px', fontSize: '0.85rem', color: dietTotals.kcal > parseInt(physicalEval.get) ? '#ef4444' : 'var(--crm-accent)', fontWeight: 'bold' }}>
+                            {dietTotals.kcal > parseInt(physicalEval.get) 
+                              ? `▲ Superávit de ${dietTotals.kcal - parseInt(physicalEval.get)} kcal (Bulking)` 
+                              : `▼ Déficit de ${parseInt(physicalEval.get) - dietTotals.kcal} kcal (Cutting)`}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  )}
+
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
                     <h3 style={{ fontSize: '1.1rem', color: 'var(--crm-text-main)' }}>Refeições do Cardápio</h3>
-
-                    {(() => {
-                      let totalKcal = 0, totalCarb = 0, totalPtn = 0, totalFat = 0;
-                      dietMeals.forEach(m => {
-                        if (m.foods) {
-                          m.foods.forEach(f => {
-                            totalKcal += f.kcal;
-                            totalCarb += f.carb;
-                            totalPtn += f.protein;
-                            totalFat += f.fat;
-                          });
-                        }
-                      });
-
-                      return (totalKcal > 0) ? (
-                        <div style={{ display: 'flex', gap: '12px', fontSize: '0.85rem', backgroundColor: 'var(--crm-surface-2, var(--crm-bg))', padding: '8px 12px', borderRadius: '8px', border: '1px solid var(--crm-border)' }}>
-                          <div><strong>Kcal Total:</strong> <span style={{color: 'var(--crm-accent)'}}>{totalKcal.toFixed(0)}</span></div>
-                          <div><strong>Carb:</strong> {totalCarb.toFixed(0)}g</div>
-                          <div><strong>Ptn:</strong> {totalPtn.toFixed(0)}g</div>
-                          <div><strong>Gord:</strong> {totalFat.toFixed(0)}g</div>
-                        </div>
-                      ) : null;
-                    })()}
                   </div>
 
                   {dietMeals.length === 0 ? (
