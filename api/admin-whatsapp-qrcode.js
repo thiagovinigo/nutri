@@ -32,8 +32,13 @@ export default async function handler(req, res) {
     return res.status(500).json({ error: 'Configuração da Evolution API ausente no servidor.' });
   }
 
+  // ?action=state consulta o status atual da conexao em vez de gerar QR novo.
+  const evolutionPath = req.query.action === 'state'
+    ? `instance/connectionState/${instanceName}`
+    : `instance/connect/${instanceName}`;
+
   try {
-    const response = await fetch(`${evolutionUrl}/instance/connect/${instanceName}`, {
+    const response = await fetch(`${evolutionUrl}/${evolutionPath}`, {
       method: 'GET',
       headers: { apikey }
     });
@@ -41,13 +46,13 @@ export default async function handler(req, res) {
     const data = await response.json();
 
     if (!response.ok) {
-      console.error(`Erro Evolution API (connect): ${response.status}`, data);
-      return res.status(502).json({ error: 'Falha ao buscar QR code na Evolution API.', detail: data });
+      console.error(`Erro Evolution API (${evolutionPath}): ${response.status}`, data);
+      return res.status(502).json({ error: 'Falha ao consultar a Evolution API.', detail: data });
     }
 
     return res.status(200).json(data);
   } catch (error) {
-    console.error('Erro ao buscar QR code da Evolution API:', error);
+    console.error('Erro ao consultar a Evolution API:', error);
     return res.status(500).json({ error: 'Internal Server Error' });
   }
 }
