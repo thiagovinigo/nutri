@@ -13,7 +13,20 @@
  */
 export function normalizePhoneWithDDI(phone) {
   const digitsOnly = String(phone || '').replace(/\D/g, '');
-  return digitsOnly.startsWith('55') ? digitsOnly : `55${digitsOnly}`;
+  const withDDI = digitsOnly.startsWith('55') ? digitsOnly : `55${digitsOnly}`;
+
+  // Celular BR completo com DDI = 55 (2) + DDD (2) + 9 (1) + numero (8) = 13 digitos.
+  // Numeros salvos sem o 9º digito (comum em cadastros antigos/importados)
+  // ficam com 12 digitos - a Evolution API entrega pro JID errado nesse caso
+  // (foi o que causou o codigo de verificacao nao chegar em 11/08/2026).
+  // Insere o 9 antes do numero de 8 digitos quando detecta esse padrão.
+  if (withDDI.length === 12) {
+    const ddd = withDDI.slice(2, 4);
+    const numero = withDDI.slice(4);
+    return `55${ddd}9${numero}`;
+  }
+
+  return withDDI;
 }
 
 /**
