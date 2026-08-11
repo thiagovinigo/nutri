@@ -22,9 +22,12 @@ if (!getApps().length) {
       app = initializeApp(); // Tenta usar Application Default Credentials se estiver local com gcloud auth
     } else {
       const serviceAccount = JSON.parse(serviceAccountString);
+      // DEBUG TEMPORARIO: confirma que o JSON tem os campos certos, sem logar a chave privada.
+      console.log('[DEBUG] FIREBASE_SERVICE_ACCOUNT parseado - project_id:', serviceAccount.project_id, '| client_email:', serviceAccount.client_email, '| tem private_key:', !!serviceAccount.private_key, '| tamanho private_key:', serviceAccount.private_key?.length);
       app = initializeApp({
         credential: cert(serviceAccount)
       });
+      console.log('[DEBUG] app.options.credential.projectId apos cert():', app.options?.credential?.projectId);
     }
     console.log('Firebase Admin inicializado com sucesso.');
   } catch (error) {
