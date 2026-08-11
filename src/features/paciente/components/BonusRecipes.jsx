@@ -1,7 +1,34 @@
-import React, { useState } from 'react';
-import { BookOpen, ChevronDown, ChevronUp, Plus, Save, ChefHat, Camera } from 'lucide-react';
+import React, { useState, useRef } from 'react';
+import { BookOpen, ChevronDown, ChevronUp, Plus, Save, ChefHat, Camera, ScanText, Loader2 } from 'lucide-react';
 import { useAppContext } from '../../../context/AppContext';
 import PhotoRecipeGenerator from './PhotoRecipeGenerator';
+import { callOpenAIBridge } from '../../../utils/openaiBridge';
+import toast from 'react-hot-toast';
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
+
+function compressImageFile(file, maxDimension = 1280, quality = 0.75) {
+  return new Promise((resolve, reject) => {
+    const img = new window.Image();
+    const objectUrl = URL.createObjectURL(file);
+    img.onload = () => {
+      URL.revokeObjectURL(objectUrl);
+      let width = img.width;
+      let height = img.height;
+      if (width > maxDimension || height > maxDimension) {
+        if (width > height) { height = Math.round((height * maxDimension) / width); width = maxDimension; }
+        else { width = Math.round((width * maxDimension) / height); height = maxDimension; }
+      }
+      const canvas = document.createElement('canvas');
+      canvas.width = width; canvas.height = height;
+      const ctx = canvas.getContext('2d');
+      ctx.drawImage(img, 0, 0, width, height);
+      resolve(canvas.toDataURL('image/jpeg', quality));
+    };
+    img.onerror = reject;
+    img.src = objectUrl;
+  });
+}
 
 export default function BonusRecipes({ activePatient }) {
   const { updatePatient } = useAppContext();
@@ -14,6 +41,37 @@ export default function BonusRecipes({ activePatient }) {
   const [showAddForm, setShowAddForm] = useState(false);
   const [newTitle, setNewTitle] = useState('');
   const [newContent, setNewContent] = useState('');
+
+  const fileInputRef = useRef(null);
+  const [isScanning, setIsScanning] = useState(false);
+
+  const handleScanRecipe = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setIsScanning(true);
+    const toastId = toast.loading('Lendo receita com IA...');
+    try {
+      const base64Image = await compressImageFile(file);
+      const data = await callOpenAIBridge({
+        system_prompt: 'Você é um assistente culinário. O usuário enviou a foto de uma receita (ou um prato e você deve adivinhar a receita). Extraia e formate a receita em Markdown (Ingredientes e Modo de Preparo). Retorne um JSON com os campos `title` (nome sugerido da receita) e `content` (a receita completa em Markdown).',
+        messages: [{ role: 'user', content: [{ type: 'text', text: 'Extraia esta receita:' }, { type: 'image_url', image_url: { url: base64Image } }] }],
+        format_json: true
+      });
+      const parsed = JSON.parse(data.choices[0].message.content);
+      setNewTitle(parsed.title || '');
+      setNewContent(parsed.content || '');
+      setShowAddForm(true);
+      toast.success('Receita extraída com sucesso! Revise antes de salvar.', { id: toastId });
+    } catch (error) {
+      console.error(error);
+      let errMsg = error.message;
+      if (errMsg.includes('413')) errMsg = 'Foto muito grande. Tente outra.';
+      toast.error(errMsg || 'Erro ao ler a receita.', { id: toastId });
+    } finally {
+      setIsScanning(false);
+      if (fileInputRef.current) fileInputRef.current.value = '';
+    }
+  };
 
   const handleAddPersonalRecipe = (e) => {
     e.preventDefault();
@@ -89,9 +147,11 @@ export default function BonusRecipes({ activePatient }) {
             </button>
             
             {expandedId === recipe.id && (
-              <div style={{ padding: '0 20px 20px 20px', color: 'var(--crm-text-main)', fontSize: '0.95rem', lineHeight: '1.6', whiteSpace: 'pre-wrap' }}>
+              <div style={{ padding: '0 20px 20px 20px', color: 'var(--crm-text-main)', fontSize: '0.95rem', lineHeight: '1.6' }}>
                 <div style={{ height: '1px', backgroundColor: 'var(--crm-surface-2)', marginBottom: '16px' }}></div>
-                {recipe.content}
+                <div className="markdown-body">
+                  <ReactMarkdown remarkPlugins={[remarkGfm]}>{recipe.content}</ReactMarkdown>
+                </div>
               </div>
             )}
           </div>
@@ -136,9 +196,16 @@ export default function BonusRecipes({ activePatient }) {
       {activeTab === 'personal' && (
         <div>
           {!showAddForm ? (
-            <button className="btn-3d" onClick={() => setShowAddForm(true)} style={{ width: '100%', marginBottom: '16px', backgroundColor: 'var(--primary-color)', color: 'var(--crm-surface)', border: 'none', padding: '14px', borderRadius: '12px', fontWeight: 'bold', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '8px', cursor: 'pointer', boxShadow: '0 4px 0 var(--primary-shadow)' }}>
-              <Plus size={20} /> Salvar Nova Receita Livre
-            </button>
+            <div style={{ display: 'flex', gap: '8px', marginBottom: '16px' }}>
+              <input type="file" accept="image/*" capture="environment" ref={fileInputRef} style={{ display: 'none' }} onChange={handleScanRecipe} />
+              <button className="btn-3d" onClick={() => fileInputRef.current?.click()} disabled={isScanning} style={{ flex: 1, backgroundColor: 'var(--crm-surface)', color: 'var(--primary-color)', border: '2px solid var(--primary-color)', padding: '14px', borderRadius: '12px', fontWeight: 'bold', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '8px', cursor: 'pointer', boxShadow: '0 4px 0 rgba(0,0,0,0.1)' }}>
+                {isScanning ? <Loader2 size={20} className="spinner" /> : <ScanText size={20} />}
+                Escanear (IA)
+              </button>
+              <button className="btn-3d" onClick={() => setShowAddForm(true)} style={{ flex: 1, backgroundColor: 'var(--primary-color)', color: 'var(--crm-surface)', border: 'none', padding: '14px', borderRadius: '12px', fontWeight: 'bold', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '8px', cursor: 'pointer', boxShadow: '0 4px 0 var(--primary-shadow)' }}>
+                <Plus size={20} /> Digitar Receita
+              </button>
+            </div>
           ) : (
             <div className="animate-pop-in" style={{ backgroundColor: 'var(--crm-surface)', padding: '20px', borderRadius: '16px', border: '1px solid #e2e8f0', marginBottom: '24px' }}>
               <h3 style={{ margin: '0 0 16px 0', color: 'var(--crm-text-main)' }}>Nova Receita</h3>

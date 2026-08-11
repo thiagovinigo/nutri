@@ -60,9 +60,10 @@ function buildPrompt({ restrictions, aversions, previousContent }) {
   return `Você é um Chef Nutricional da Nutrivvo. O usuário fotografou os ingredientes que tem disponíveis agora (geladeira, despensa, bancada) -- pode ser mais de uma foto do mesmo ambiente, de ângulos ou prateleiras diferentes.
 INSTRUÇÕES:
 1) Liste em tópicos os ingredientes que você reconhece no conjunto de fotos.
-2) Sugira UMA receita prática e rápida usando o máximo possível desses ingredientes. Pode complementar com temperos básicos (sal, pimenta, azeite, ervas) e itens simples de despensa.
-3) O paciente NÃO PODE comer (restrições/aversões): ${restrictions} | ${aversions}. JAMAIS use esses ingredientes, mesmo que apareçam nas fotos.
-4) Se as fotos não tiverem ingredientes reconhecíveis o suficiente para montar uma receita, explique isso educadamente em vez de inventar.${regenInstruction}
+2) Sugira UMA receita prática e rápida usando ESTRITAMENTE os ingredientes que você identificou. É EXPRESSAMENTE PROIBIDO inventar ou adicionar ingredientes principais que não aparecem nas fotos (ex: não adicione batata, cenoura, arroz, macarrão, ovos ou carnes extras se não estiverem na imagem).
+3) Você pode complementar a receita APENAS com temperos e itens básicos invisíveis (sal, pimenta, azeite, óleo, alho, ervas secas).
+4) O paciente NÃO PODE comer (restrições/aversões): ${restrictions} | ${aversions}. JAMAIS use esses ingredientes, mesmo que apareçam nas fotos.
+5) Se as fotos não tiverem ingredientes reconhecíveis o suficiente para montar uma receita, explique isso educadamente em vez de inventar.${regenInstruction}
 Retorne em formato Markdown (## Nome da Receita, ### Ingredientes Identificados, ### Modo de Preparo).`;
 }
 
