@@ -24,11 +24,14 @@ P4 🔨                   ━━━━━ (Opt)    (Super-Admin & Biomarcadores)
 
 ## Phase 1: Foundation & Go-Live V1 — Agosto (Semanas 1-3)
 
+### Status (11/08/2026)
+Concluído: bloqueios de infra (`firestore.rules` publicado, domínio autorizado no Firebase Auth, deploy automático da Vercel destravado) e o timeout de geração de dieta de 7 dias (geração dia-a-dia). Pendente: instrumentação AARRR/eventos customizados (nenhum evento disparado ainda, só Firebase Analytics inicializado).
+
 ### O que entra
-- Resolução dos Bloqueios de Infra (`firestore.rules` e Firebase Auth/Vercel).
-- Correção técnica do Timeout da IA Vercel (geração de dieta de 7 dias) via background job/otimização de `max_tokens`.
-- Instrumentação Analítica AARRR e Eventos Customizados.
-- Teste E2E (upload IA de Exames e Fluxo Ponta a Ponta).
+- ~~Resolução dos Bloqueios de Infra (`firestore.rules` e Firebase Auth/Vercel)~~ — feito.
+- ~~Correção técnica do Timeout da IA Vercel (geração de dieta de 7 dias)~~ — feito (geração dia-a-dia + timeouts client/server como rede de segurança).
+- Instrumentação Analítica AARRR e Eventos Customizados — ainda pendente.
+- Teste E2E (upload IA de Exames e Fluxo Ponta a Ponta) — upload de exame por IA segue sem teste automatizado ponta-a-ponta (ver `backlog.md`).
 
 ### Por quê essa phase?
 A base atual (V1) está visualmente madura (Rebranding feito) e sem bugs críticos, mas ainda impossibilitada de ter tráfego seguro até a correção da infraestrutura. A estabilização aqui é essencial para permitir rodar o framework de PMF com usuários reais e dados confiáveis.
@@ -49,6 +52,9 @@ A base atual (V1) está visualmente madura (Rebranding feito) e sem bugs crític
 ---
 
 ## Phase 2: Agente Ativo (WhatsApp & IA) — Setembro (Semanas 4-7)
+
+### Status (11/08/2026)
+Provider decidido: Evolution API/Baileys (self-hosted), com gatilho explícito de migração pra Meta Cloud API antes de ~50-100 pacientes reais ou de cobrar pelo módulo (ver `backlog.md`). Lembretes proativos, check-in por foto e Detetive Comportamental já implementados em código; verificação de posse do número (OTP) via WhatsApp também implementada. Bloqueio atual: o número do bot está temporariamente restrito pelo próprio WhatsApp (antiabuso por volume de testes), então o teste ponta-a-ponta com usuários reais ainda não rodou.
 
 ### O que entra
 - Integração Provedor WhatsApp API (Meta Official vs Evolution/Baileys).

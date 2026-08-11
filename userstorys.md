@@ -31,6 +31,7 @@ Abaixo estão os próximos Épicos, estruturados com **PRD, Hipóteses, Históri
 
 ## 🏗️ Épico 03: Arquitetura Segura e Escalonável (Prioridade Crítica)
 *Referência: `todo.md` - Mover chamadas de IA e regras do Firestore.*
+*Status: US 3.1 (IA segura para o paciente via `/api/openai-bridge`) e US 3.2 (`firestore.rules` publicado) concluídas — ver `features.md`/`backlog.md`.*
 
 - **PRD Summary:** A estrutura de MVP deixava a chave da OpenAI exposta no frontend do paciente e os dados visíveis por falta de regras restritas no backend. Precisamos proteger o IP da empresa e a conformidade com a LGPD.
 - **Hipótese:** Acreditamos que blindando o Firebase e usando Edge Functions, teremos 0% de vazamento de chaves ou acesso indevido entre clínicas, o que é pré-requisito para o B2B cobrar mensalidades.

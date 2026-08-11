@@ -27,7 +27,7 @@ A plataforma consiste em uma interface dupla (Toggle no frontend para MVP) const
   - Histórico de exames com resumos mastigados pela IA.
   - Botão de inserção de peso rápido (Log de medição).
   - Notas do prontuário (Recados do Nutri).
-- **Chatbot (Nutrivvo Bot):** *(Escopo Futuro)* Um co-piloto treinado no plano do paciente para tirar dúvidas de substituição de alimentos 24/7.
+- **Chatbot (Nutrivvo Bot):** Co-piloto treinado no plano do paciente para tirar dúvidas de substituição de alimentos 24/7 — implementado tanto no app (chat web) quanto via WhatsApp (Secretária Virtual/Detetive Comportamental, Evolution API), com verificação de posse do número (OTP) como pré-requisito de segurança antes de liberar dados de saúde pelo WhatsApp.
 
 ## 4. Requisitos Não Funcionais
 - **Estética "Dark Mode Premium":** O sistema conta com suporte oficial a Dark Mode em todo o CRM e no App do paciente, utilizando um design neo-brutalista premium com detalhes em neon, sombras sólidas e vidro fosco (glassmorphism), reduzindo o estresse cognitivo.
@@ -35,4 +35,4 @@ A plataforma consiste em uma interface dupla (Toggle no frontend para MVP) const
 - **Estado Global (State Management):** Para o MVP, todo o fluxo de dados (pacientes, dietas, xp) é gerido em memória via `React Context API`.
 
 ## 5. Próximos Passos (Integração)
-A próxima grande fase técnica envolve a importação do motor de Leitura de Exames do projeto legado (`medicina`) e a construção do Chatbot.
+Leitura de exames por IA e o Chatbot já foram construídos e estão em produção (ver `features.md`). Próximos passos ativos: estabilizar a reconexão do bot de WhatsApp (bloqueado por antiabuso do próprio WhatsApp, ver `backlog.md`) e monetização via Stripe.

@@ -1,4 +1,8 @@
-# React + Vite
+# Nutrivvo
+
+CRM para nutricionistas + app PWA gamificado para pacientes (React 19 + Vite, Firebase, Evolution API). Documentação de produto: `prd.md`, `spec.md`, `context.md`, `features.md`, `backlog.md` (backlog ativo unificado). Backend serverless em `api/` (Vercel Functions).
+
+## React + Vite
 
 This template provides a minimal setup to get React working in Vite with HMR and some Oxlint rules.
 

@@ -31,10 +31,11 @@ A plataforma possui duas interfaces distintas que se comunicam em tempo real:
 - **Chatbot (Nutrivvo Bot):** IA do lado do paciente para responder dúvidas sobre o plano prescrito (ainda rodando no client-side).
 
 ## 4. Limitações Conhecidas e Débitos Técnicos (Backlog Imediato)
-- **Segurança da IA no Paciente:** A chave da OpenAI ainda está exposta no lado do paciente (chamadas diretas do client). Precisa ser migrada para a Edge Function, igual foi feito no lado do Nutricionista.
+- **Segurança da IA no Paciente:** Resolvido — chamadas de IA do lado do paciente (chat, foto de refeição) passam pelo proxy server-side `/api/openai-bridge.js` via `src/utils/openaiBridge.js`, igual ao lado do Nutricionista. Nenhuma chave de IA exposta no bundle do client.
 - **Billing/Monetização:** O modelo é SaaS B2B, mas o Stripe ainda não está conectado com webhooks reais limitando features.
-- **Inteligência de Cohorts (Churn):** O sistema visual de risco de abandono (cores na tabela) e botão "Enviar Alerta" já estão mapeados na UI, mas a lógica de Push/WhatsApp real ainda não foi conectada.
+- **Inteligência de Cohorts (Churn):** O sistema visual de risco de abandono (cores na tabela) está mapeado na UI, e o botão de resgate no CRM (`PatientList.jsx`) já abre o WhatsApp real (`wa.me`) com o número do paciente. Envio automático/proativo (push ou disparo direto pela IA, sem clique manual do nutricionista) ainda não existe.
 - **Telemetria/AARRR:** Firebase Analytics está presente, mas não temos eventos customizados (Ex: 'Patient Activation', 'Diet Generated') mapeados no PostHog ou Amplitude.
+- **Verificação de posse do WhatsApp:** Implementado (10/08/2026) — paciente confirma o próprio número por código de 6 dígitos (OTP) antes da Secretária Virtual liberar dados de saúde pelo WhatsApp; `firestore.rules` bloqueia o client de setar `phone_verified: true` diretamente. Bot (`nutrivvo_bot`, Evolution API) está desconectado desde 10-11/08 por bloqueio de pareamento do próprio WhatsApp (antiabuso, não é bug de código) — ver `backlog.md`.
 
 ## 5. Próximos Passos Estratégicos
 O app já transcendeu ser apenas de nutrição e agora engloba "Saúde Integrada" (Dieta + Treino). O próximo passo estratégico é encontrar o Product-Market Fit (PMF) com early adopters (Profissionais premium que querem reter seus clientes) provando que o app de fato aumenta o Life Time Value (LTV) do paciente.

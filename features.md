@@ -33,7 +33,7 @@ Este documento detalha o mapa de funcionalidades do Nutrivvo, dividindo o que j�
 - **Geração de Dietas Automática:** O Nutrivvo Bot cria o cardápio baseando-se nos inputs e preferências coletados.
 - **ChatBot Clínico (Nutrivvo Bot):** Assistente virtual do lado do paciente que tem o contexto completo da dieta atual prescrita e tira dúvidas em tempo real.
 - **Análise de Exames Médicos:** Leitura e extração automática de arquivos PDF (exames de sangue, etc.) utilizando IA para alimentar a anamnese.
-- **Secretária Virtual e Detetive Comportamental (WhatsApp AI):** Um agente integrado via Evolution API que realiza check-ins de refeição por foto direto no WhatsApp, agenda/remarca consultas e envia lembretes proativos (`cron-reminders`). Além disso, alerta o nutricionista em caso de risco comportamental do paciente (desidratação, burnout, abandono).
+- **Secretária Virtual e Detetive Comportamental (WhatsApp AI):** Um agente integrado via Evolution API que realiza check-ins de refeição por foto direto no WhatsApp, agenda/remarca consultas e envia lembretes proativos (`cron-reminders`). Além disso, alerta o nutricionista em caso de risco comportamental do paciente (desidratação, burnout, abandono). Só responde a números com `phone_verified: true` (ver Verificação de Telefone abaixo). **Status (11/08/2026):** número do bot (`nutrivvo_bot`) está temporariamente desconectado por bloqueio de pareamento do próprio WhatsApp (antiabuso, não é bug de código) — ver `backlog.md` para detalhes e critério de retomada.
 
 ### Interação e Flexibilidade Nutricional
 - **Chat Direto Nutricionista ↔ Paciente:** Canal de mensagens diretas implementado no sistema, separando os recados humanos do ChatBot da IA.
@@ -43,6 +43,7 @@ Este documento detalha o mapa de funcionalidades do Nutrivvo, dividindo o que j�
 - **Isolamento de Dados:** Filtros que garantem que cada paciente só enxergue seus próprios dados, e cada nutricionista seus próprios pacientes (reforçado via Regras do Firestore).
 - **Segurança da IA:** Chamadas seguras de inteligência artificial mascaradas por um servidor intermediário (Edge Function - `/api/openai-bridge.js`), protegendo as chaves de API em produção.
 - **Guard de Rotas:** Redirecionamento automático de usuários deslogados tentando acessar links restritos (com bypass inteligente para novos cadastros).
+- **Verificação de Telefone via WhatsApp (OTP):** Paciente confirma a posse do próprio número por código de 6 dígitos antes da Secretária Virtual liberar dados de saúde pelo WhatsApp; `phone_verified` só pode ser setado pelo backend (Admin SDK), nunca pelo client. Implementado em 10/08/2026 (`.claude/prds/verificacao-telefone-whatsapp.prd.md`); teste ponta-a-ponta com WhatsApp real ainda pendente porque o bot está temporariamente desconectado (ver seção "A Desenvolver" e `backlog.md`).
 
 ---
 
