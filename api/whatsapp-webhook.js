@@ -1,6 +1,16 @@
+import { z } from 'zod';
 import { db } from './utils/firebase-admin.js';
 import { processWhatsAppMessage } from './whatsapp-ai.js';
 import { sendWhatsAppText } from './utils/whatsapp.js';
+
+// Validacao propositalmente frouxa (so a forma minima, sem travar em
+// campos opcionais) - o payload vem da Evolution API, que pode variar
+// entre eventos; a defesa real contra payload forjado e o WEBHOOK_SECRET
+// obrigatorio acima, nao esse schema. Isso so rejeita lixo/malformado cedo.
+const webhookBodySchema = z.object({
+  event: z.string(),
+  data: z.object({}).passthrough().optional(),
+}).passthrough();
 
 export const config = {
   api: {
@@ -31,9 +41,14 @@ export default async function handler(req, res) {
   }
 
   // 2. Extração de Dados da Evolution API
+  const parsedBody = webhookBodySchema.safeParse(req.body);
+  if (!parsedBody.success) {
+    return res.status(400).json({ error: 'Payload malformado.' });
+  }
+
   try {
-    const payload = req.body;
-    
+    const payload = parsedBody.data;
+
     // Ignorar eventos que não sejam novas mensagens recebidas
     if (payload.event !== 'messages.upsert') {
       return res.status(200).send('Event ignored');

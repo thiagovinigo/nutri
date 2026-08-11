@@ -1,4 +1,27 @@
+import { z } from 'zod';
 import { requireAuthUid } from './utils/auth.js';
+
+// Aceita conteudo multimodal (texto + imagem em base64/URL, usado por
+// PhotoRecipeGenerator/QuestBoard) alem de texto simples. Sem essa
+// validacao, "messages" podia ser qualquer coisa vinda do client,
+// incluindo tentar sobrescrever a role "system" (achado MEDIUM #10 da
+// auditoria de seguranca de 11/08/2026).
+const contentPartSchema = z.object({
+  type: z.enum(['text', 'image_url']),
+  text: z.string().max(50000).optional(),
+  image_url: z.object({ url: z.string() }).optional(),
+});
+
+const messageSchema = z.object({
+  role: z.enum(['user', 'assistant', 'tool']),
+  content: z.union([z.string().max(50000), z.array(contentPartSchema).max(10)]),
+});
+
+const bridgeBodySchema = z.object({
+  messages: z.array(messageSchema).min(1).max(50),
+  system_prompt: z.string().max(20000).optional(),
+  format_json: z.boolean().optional(),
+});
 
 export const config = {
   api: {
@@ -38,9 +61,14 @@ export default async function handler(req, res) {
     return res.status(err.statusCode || 401).json({ error: err.message });
   }
 
+  const parsed = bridgeBodySchema.safeParse(req.body);
+  if (!parsed.success) {
+    return res.status(400).json({ error: 'Payload inválido: ' + parsed.error.issues.map(i => i.message).join('; ') });
+  }
+
   try {
-    const { messages, system_prompt, format_json } = req.body;
-    
+    const { messages, system_prompt, format_json } = parsed.data;
+
     // Obter chave da OpenAI dos Environment Variables da Vercel
     const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
     

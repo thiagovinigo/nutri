@@ -1,6 +1,13 @@
+import { z } from 'zod';
 import { db } from './utils/firebase-admin.js';
 import { requireAuthUid } from './utils/auth.js';
 import { normalizePhoneWithDDI, sendWhatsAppText } from './utils/whatsapp.js';
+
+// 4096 = limite de caracteres de uma mensagem de texto do WhatsApp.
+const sendBodySchema = z.object({
+  patientId: z.string().min(1),
+  message: z.string().min(1).max(4096),
+});
 
 export const config = {
   api: {
@@ -26,12 +33,13 @@ export default async function handler(req, res) {
     return res.status(err.statusCode || 401).json({ error: err.message });
   }
 
-  try {
-    const { patientId, message } = req.body;
+  const parsed = sendBodySchema.safeParse(req.body);
+  if (!parsed.success) {
+    return res.status(400).json({ error: 'Payload inválido: ' + parsed.error.issues.map(i => i.message).join('; ') });
+  }
 
-    if (!patientId || !message) {
-      return res.status(400).json({ error: 'patientId e message são obrigatórios' });
-    }
+  try {
+    const { patientId, message } = parsed.data;
 
     const patientSnap = await db.collection('patients').doc(patientId).get();
     if (!patientSnap.exists) {
