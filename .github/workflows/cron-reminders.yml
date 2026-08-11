@@ -1,0 +1,26 @@
+name: Lembretes de refeição (WhatsApp)
+
+# Vercel Hobby só permite Cron Jobs 1x/dia, mas api/cron-reminders.js foi
+# desenhado pra rodar de hora em hora (compara so a hora do horario da
+# refeicao - ver comentario no proprio arquivo). GitHub Actions supre isso
+# sem custo, ja que o repo e publico.
+on:
+  schedule:
+    - cron: '0 * * * *'
+  workflow_dispatch: {}
+
+jobs:
+  trigger-reminders:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Chama /api/cron-reminders
+        run: |
+          status=$(curl -s -o /tmp/response.json -w "%{http_code}" \
+            -X GET "https://nutrivvo.com.br/api/cron-reminders" \
+            -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}")
+          echo "HTTP status: $status"
+          cat /tmp/response.json
+          if [ "$status" -ge 300 ]; then
+            echo "::error::cron-reminders retornou status $status"
+            exit 1
+          fi
