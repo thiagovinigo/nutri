@@ -33,9 +33,26 @@ service cloud.firestore {
           || request.resource.data.phone_verified == false
         );
       
-      // Nutricionista dono pode ler, atualizar, criar, deletar
-      allow read, update, delete: if request.auth != null
+      // Nutricionista dono pode ler, atualizar, criar, deletar - MAS com a
+      // mesma restrição do paciente acima nos campos de verificação de
+      // telefone: só o backend (Admin SDK) pode confirmar phone_verified.
+      // Sem isso, o nutricionista (ou uma conta comprometida) conseguia
+      // burlar o OTP direto pelo client SDK, setando phone_verified=true
+      // manualmente (achado HIGH da auditoria de segurança de 11/08/2026).
+      allow read, delete: if request.auth != null
         && resource.data.nutricionista_id == request.auth.uid;
+      allow update: if request.auth != null
+        && resource.data.nutricionista_id == request.auth.uid
+        && !request.resource.data.diff(resource.data).affectedKeys()
+              .hasAny(['phone_otp_hash', 'phone_otp_expires', 'phone_otp_attempts', 'phone_otp_sent_at'])
+        && (
+          !request.resource.data.diff(resource.data).affectedKeys().hasAny(['phone_verified'])
+          || request.resource.data.phone_verified == false
+        )
+        && (
+          !request.resource.data.diff(resource.data).affectedKeys().hasAny(['phone'])
+          || request.resource.data.phone_verified == false
+        );
       allow create: if request.auth != null
         && request.resource.data.nutricionista_id == request.auth.uid;
 
