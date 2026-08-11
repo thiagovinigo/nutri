@@ -32,10 +32,14 @@ export default async function handler(req, res) {
     return res.status(500).json({ error: 'Configuração da Evolution API ausente no servidor.' });
   }
 
-  // ?action=state consulta o status atual da conexao em vez de gerar QR novo.
-  const evolutionPath = req.query.action === 'state'
-    ? `instance/connectionState/${instanceName}`
-    : `instance/connect/${instanceName}`;
+  // ?action=state consulta o status atual da conexao; ?action=webhook
+  // consulta a config atual do webhook (usado uma vez pra planejar o fix
+  // do achado HIGH #4 da auditoria de 11/08 - exigir WEBHOOK_SECRET).
+  const evolutionPathByAction = {
+    state: `instance/connectionState/${instanceName}`,
+    webhook: `webhook/find/${instanceName}`,
+  };
+  const evolutionPath = evolutionPathByAction[req.query.action] || `instance/connect/${instanceName}`;
 
   try {
     const response = await fetch(`${evolutionUrl}/${evolutionPath}`, {
