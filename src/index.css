@@ -130,6 +130,62 @@ body { overflow-x: hidden; -webkit-font-smoothing: antialiased; font-family: var
   border: 1px solid var(--glass-border);
 }
 
+/* Campos de formulário do app do paciente - equivalente ao .crm-input do
+   lado do nutricionista, mas usando os tokens --patient-* (o Perfil usava
+   cor hardcoded #cbd5e1 sem background/color definidos, quebrando no dark
+   mode - ver revisão de UX de 11/08/2026). */
+.patient-label {
+  display: block;
+  margin-bottom: 6px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--patient-text-muted);
+}
+.patient-input {
+  width: 100%;
+  padding: 10px 12px;
+  border-radius: 10px;
+  border: 1px solid var(--glass-border);
+  background-color: var(--patient-surface-2);
+  color: var(--patient-text);
+  font-family: var(--font-family-patient);
+  font-size: 0.95rem;
+  box-sizing: border-box;
+}
+.patient-input:disabled {
+  color: var(--patient-text-muted);
+  cursor: not-allowed;
+}
+.patient-input::placeholder { color: var(--patient-text-muted); }
+textarea.patient-input { resize: vertical; min-height: 60px; }
+
+/* Acordeão do Perfil (grupos "Contato", "Dados Clínicos", "Identidade") */
+.patient-accordion { border: 1px solid var(--glass-border); border-radius: 14px; overflow: hidden; background-color: var(--patient-surface-2); }
+.patient-accordion + .patient-accordion { margin-top: 10px; }
+.patient-accordion summary {
+  list-style: none;
+  cursor: pointer;
+  padding: 14px 16px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-weight: 700;
+  font-size: 0.95rem;
+  color: var(--patient-text);
+}
+.patient-accordion summary::-webkit-details-marker { display: none; }
+.patient-accordion summary .patient-accordion-chevron { margin-left: auto; transition: transform 0.2s ease; color: var(--patient-text-muted); flex-shrink: 0; }
+.patient-accordion[open] summary .patient-accordion-chevron { transform: rotate(180deg); }
+.patient-accordion-body { padding: 0 16px 16px; display: flex; flex-direction: column; gap: 14px; }
+
+/* Label visível só pra leitor de tela - pra inputs cujo rótulo já é
+   redundante visualmente (ex: campo de código ao lado de um botão "Confirmar"
+   que já deixa o contexto claro), mas que ainda precisam de <label for=""> */
+.sr-only {
+  position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
+  overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0;
+}
+
 .btn-3d { display: inline-flex; align-items: center; justify-content: center; font-family: var(--font-family-patient); font-weight: 700; font-size: 1rem; letter-spacing: 0.5px; border-radius: 12px; border: none; cursor: pointer; padding: 12px 24px; transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1); user-select: none; position: relative; text-decoration: none; }
 .btn-primary { background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-shadow) 100%); color: #FFF; box-shadow: 0 4px 15px rgba(168, 85, 247, 0.3); }
 .btn-primary:active { transform: scale(0.96); box-shadow: 0 2px 8px rgba(168, 85, 247, 0.2); }
