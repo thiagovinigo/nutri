@@ -1,3 +1,5 @@
+import { db } from './utils/firebase-admin.js';
+import { requireAuthUid } from './utils/auth.js';
 import { normalizePhoneWithDDI, sendWhatsAppText } from './utils/whatsapp.js';
 
 export const config = {
@@ -11,14 +13,40 @@ export default async function handler(req, res) {
     return res.status(405).json({ error: 'Method Not Allowed' });
   }
 
+  // Sem auth + validacao de dono, qualquer pessoa na internet podia mandar
+  // mensagem arbitraria pra qualquer numero usando o WhatsApp da clinica
+  // como remetente (achado CRITICAL da auditoria de seguranca de
+  // 11/08/2026). Exige login e so envia pro telefone que ja esta salvo no
+  // paciente do proprio nutricionista - nunca aceita um `phone` livre vindo
+  // do client.
+  let uid;
   try {
-    const { phone, message } = req.body;
+    uid = await requireAuthUid(req);
+  } catch (err) {
+    return res.status(err.statusCode || 401).json({ error: err.message });
+  }
 
-    if (!phone || !message) {
-      return res.status(400).json({ error: 'Phone and message are required' });
+  try {
+    const { patientId, message } = req.body;
+
+    if (!patientId || !message) {
+      return res.status(400).json({ error: 'patientId e message são obrigatórios' });
     }
 
-    const remoteJid = `${normalizePhoneWithDDI(phone)}@s.whatsapp.net`;
+    const patientSnap = await db.collection('patients').doc(patientId).get();
+    if (!patientSnap.exists) {
+      return res.status(404).json({ error: 'Paciente não encontrado' });
+    }
+
+    const patient = patientSnap.data();
+    if (patient.nutricionista_id !== uid) {
+      return res.status(403).json({ error: 'Você não tem acesso a este paciente.' });
+    }
+    if (!patient.phone) {
+      return res.status(400).json({ error: 'Paciente não tem telefone cadastrado.' });
+    }
+
+    const remoteJid = `${normalizePhoneWithDDI(patient.phone)}@s.whatsapp.net`;
     const ok = await sendWhatsAppText(remoteJid, message);
 
     if (!ok) {

@@ -2,10 +2,18 @@ import { db } from './utils/firebase-admin.js';
 import { normalizePhoneWithDDI, sendWhatsAppText } from './utils/whatsapp.js';
 
 export default async function handler(req, res) {
-  // Segurança básica: o CRON da Vercel envia um Header específico que podemos validar
-  // Se rodarmos localmente, podemos pular a checagem se não tiver o secret configurado
+  // Segurança básica: o CRON da Vercel envia automaticamente
+  // "Authorization: Bearer $CRON_SECRET" quando essa env var está
+  // configurada. A checagem agora é sempre obrigatória - se CRON_SECRET
+  // não estiver configurada, o endpoint falha fechado (500) em vez de
+  // ficar aberto pra qualquer um disparar lembretes em massa pros
+  // pacientes (achado HIGH da auditoria de seguranca de 11/08/2026).
   const cronSecret = process.env.CRON_SECRET;
-  if (cronSecret && req.headers['authorization'] !== `Bearer ${cronSecret}`) {
+  if (!cronSecret) {
+    console.error('[CRON] CRON_SECRET não configurada no ambiente.');
+    return res.status(500).json({ error: 'Configuração de segurança ausente no servidor.' });
+  }
+  if (req.headers['authorization'] !== `Bearer ${cronSecret}`) {
     return res.status(401).json({ error: 'Unauthorized' });
   }
 

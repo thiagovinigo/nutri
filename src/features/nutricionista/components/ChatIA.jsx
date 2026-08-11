@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { doc, onSnapshot, setDoc, updateDoc } from 'firebase/firestore';
 import { db } from '../../../services/firebase';
+import { sendWhatsAppToPatient } from '../../../utils/sendWhatsApp';
 import { Send, Bot, User, PauseCircle, PlayCircle } from 'lucide-react';
 
 export default function ChatIA({ patient, clinicConfig }) {
@@ -79,12 +80,8 @@ export default function ChatIA({ patient, clinicConfig }) {
       // servidor. NUNCA chamar a Evolution API direto do navegador aqui -
       // isso expunha a apikey (controle administrativo total da instancia)
       // no bundle JS publico, visivel a qualquer um pelo DevTools.
-      await fetch('/api/send-whatsapp', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ phone: patient.phone, message: newMsg.content })
-      });
-      
+      await sendWhatsAppToPatient(patient.id, newMsg.content);
+
     } catch (err) {
       console.error("Erro ao enviar mensagem:", err);
     }

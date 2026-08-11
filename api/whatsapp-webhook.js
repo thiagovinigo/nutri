@@ -14,9 +14,19 @@ export default async function handler(req, res) {
     return res.status(405).json({ error: 'Method Not Allowed' });
   }
 
-  // (Opcional) Validar um token/header para garantir que a request vem da SUA Evolution API
+  // Valida que a request vem da nossa Evolution API. A checagem e sempre
+  // obrigatoria - se WEBHOOK_SECRET nao estiver configurada, falha fechado
+  // (500) em vez de aceitar payload de qualquer origem, o que permitia
+  // forjar mensagens em nome de um paciente ja verificado (achado HIGH da
+  // auditoria de seguranca de 11/08/2026). A Evolution API foi configurada
+  // (11/08) pra mandar esse header em toda chamada - ver webhook/set feito
+  // via api/admin-whatsapp-qrcode.js.
   const webhookSecret = process.env.WEBHOOK_SECRET;
-  if (webhookSecret && req.headers['authorization'] !== `Bearer ${webhookSecret}`) {
+  if (!webhookSecret) {
+    console.error('WEBHOOK_SECRET não configurada no ambiente.');
+    return res.status(500).json({ error: 'Configuração de segurança ausente no servidor.' });
+  }
+  if (req.headers['authorization'] !== `Bearer ${webhookSecret}`) {
     return res.status(401).json({ error: 'Unauthorized' });
   }
 

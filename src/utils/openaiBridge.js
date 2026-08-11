@@ -3,7 +3,10 @@
 // 504) antes mesmo da função serverless rodar. Este helper lê o corpo com
 // segurança e sempre lança um Error com a causa real, em vez de uma mensagem
 // genérica que esconde o problema.
+import { auth } from '../services/firebase';
+
 const FRIENDLY_STATUS_MESSAGES = {
+  401: 'Sua sessão expirou. Atualize a página e faça login de novo.',
   413: 'O conteúdo enviado é grande demais para a IA processar. Tente reduzir o texto ou os anexos.',
   429: 'A IA está recebendo muitas requisições agora. Aguarde um instante e tente novamente.',
   504: 'A IA demorou demais para responder (timeout). Tente novamente ou reduza a complexidade do pedido.',
@@ -16,11 +19,18 @@ export async function callOpenAIBridge(payload) {
   const controller = new AbortController();
   const timeoutId = setTimeout(() => controller.abort(), 130000);
 
+  // Endpoint exige login Firebase (achado CRITICAL da auditoria de
+  // seguranca de 11/08/2026 - endpoint era um proxy aberto de GPT-4o).
+  if (!auth.currentUser) {
+    throw new Error('Você precisa estar logado para usar a IA.');
+  }
+  const idToken = await auth.currentUser.getIdToken();
+
   let response;
   try {
     response = await fetch('/api/openai-bridge', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${idToken}` },
       body: JSON.stringify(payload),
       signal: controller.signal,
     });

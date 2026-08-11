@@ -1,3 +1,5 @@
+import { requireAuthUid } from './utils/auth.js';
+
 export const config = {
   api: {
     bodyParser: {
@@ -25,6 +27,15 @@ export default async function handler(req, res) {
 
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method Not Allowed' });
+  }
+
+  // Sem isso, qualquer pessoa na internet usa este endpoint como proxy
+  // gratuito de GPT-4o (achado CRITICAL da auditoria de seguranca de
+  // 11/08/2026) - exige login Firebase, igual aos endpoints de OTP.
+  try {
+    await requireAuthUid(req);
+  } catch (err) {
+    return res.status(err.statusCode || 401).json({ error: err.message });
   }
 
   try {

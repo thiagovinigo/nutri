@@ -11,6 +11,17 @@
  * o bot; ele existe so pra contornar a impossibilidade de acessar as
  * env vars de producao a partir de fora da Vercel.
  */
+import { timingSafeEqual } from 'crypto';
+
+function secretsMatch(a, b) {
+  const bufA = Buffer.from(String(a));
+  const bufB = Buffer.from(String(b));
+  // timingSafeEqual exige buffers do mesmo tamanho - sem isso, o length
+  // mismatch já vazaria timing information antes mesmo de comparar.
+  if (bufA.length !== bufB.length) return false;
+  return timingSafeEqual(bufA, bufB);
+}
+
 export default async function handler(req, res) {
   if (req.method !== 'GET' && req.method !== 'POST') {
     return res.status(405).json({ error: 'Method Not Allowed' });
@@ -19,7 +30,9 @@ export default async function handler(req, res) {
   const adminSecret = process.env.QR_ADMIN_SECRET;
   const providedSecret = req.headers['x-admin-secret'];
 
-  if (!adminSecret || providedSecret !== adminSecret) {
+  // Comparacao timing-safe (achado HIGH #6 da auditoria de 11/08/2026) -
+  // este endpoint concede controle total de pareamento do WhatsApp.
+  if (!adminSecret || !providedSecret || !secretsMatch(providedSecret, adminSecret)) {
     return res.status(401).json({ error: 'Não autorizado.' });
   }
 

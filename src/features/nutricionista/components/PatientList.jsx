@@ -5,6 +5,7 @@ import { useNavigate } from 'react-router-dom';
 import { auth } from '../../../services/firebase';
 import { useAppContext } from '../../../context/AppContext';
 import { callOpenAIBridge } from '../../../utils/openaiBridge';
+import { sendWhatsAppToPatient } from '../../../utils/sendWhatsApp';
 import WeeklyCalendar from './WeeklyCalendar';
 import FinancialCRM from './FinancialCRM';
 import AnamnesisTemplateSettings from './AnamnesisTemplateSettings';
@@ -793,14 +794,9 @@ export default function PatientList({
                           onClick={() => {
                             const msg = prompt('Digite a mensagem de resgate para enviar ao WhatsApp deste paciente:', 'Oi, senti sua falta nos últimos dias. Está tudo bem com a dieta?');
                             if (msg && viewedPatient.phone) {
-                              fetch('/api/send-whatsapp', {
-                                method: 'POST',
-                                headers: { 'Content-Type': 'application/json' },
-                                body: JSON.stringify({ phone: viewedPatient.phone, message: msg })
-                              }).then(r => r.json()).then(res => {
-                                if(res.success) toast.success('Mensagem de resgate enviada com sucesso!');
-                                else toast.error('Falha ao enviar mensagem de resgate.');
-                              }).catch(err => toast.error('Erro na comunicação com a Evolution API.'));
+                              sendWhatsAppToPatient(viewedPatient.id, msg)
+                                .then(() => toast.success('Mensagem de resgate enviada com sucesso!'))
+                                .catch(err => toast.error(err.message || 'Falha ao enviar mensagem de resgate.'));
                             } else {
                               toast.error('Este paciente não tem telefone cadastrado para WhatsApp.');
                             }
