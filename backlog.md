@@ -161,6 +161,8 @@
 | 6 | Lembretes proativos de refeição via WhatsApp | P2 | Concluído — implementado via `cron-reminders.js` |
 | 7 | Check-in de refeição por foto no WhatsApp | P2 | Concluído — implementado nativamente no `whatsapp-ai.js` |
 
+**Status (11/08/2026):** `nutrivvo_bot` segue desconectado. O bloqueio de ontem (10/08, restrição de 5h por volume de mensagens de teste) evoluiu — hoje o WhatsApp recusa até o **pareamento de novo aparelho**: QR é escaneado normalmente, mas o app mostra "Não foi possível conectar ao dispositivo, tente novamente mais tarde". Infra confirmada OK (endpoint gera QR e consulta `connectionState` sem problema, instância responde `"connecting"`); o bloqueio é 100% do lado do WhatsApp. Não insistir em tentativas seguidas — cada pareamento recusado pode reforçar o bloqueio. Retomar depois de várias horas (ou no dia seguinte), se possível em rede diferente da usada nos testes de ontem. Se persistir, reforça o gatilho já registrado de migrar pra Meta Cloud API oficial em vez do Evolution API/Baileys (não-oficial, mais vulnerável a esse tipo de bloqueio antiabuso).
+
 - [x] ~~Canal de mensagens diretas (hoje só existe o bot de IA)~~ — Concluído
 - [ ] Notificações push/e-mail quando dieta é prescrita ou consulta confirmada — Story 5 acima
 
