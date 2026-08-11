@@ -32,3 +32,4 @@ dist-ssr
 # WhatsApp pairing QR (Evolution API) - sensitive, expira em segundos mas nao deve ser versionado
 qrcode.png
 qrcode_novo.png
+qrcode_novo2.png
