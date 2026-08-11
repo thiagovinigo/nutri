@@ -41,15 +41,13 @@ export async function sendWhatsAppText(remoteJid, text) {
         'Content-Type': 'application/json',
         apikey: apikey
       },
+      // Esta versao da Evolution API (v2.3.7) espera "text" direto na raiz
+      // do payload, nao aninhado em "textMessage.text" (formato de versoes
+      // antigas/outras builds) - confirmado testando direto contra a API.
       body: JSON.stringify({
         number: remoteJid,
-        options: {
-          delay: 1500,
-          presence: 'composing'
-        },
-        textMessage: {
-          text: text
-        }
+        text: text,
+        delay: 1500
       })
     });
 

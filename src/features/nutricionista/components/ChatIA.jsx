@@ -74,26 +74,16 @@ export default function ChatIA({ patient, clinicConfig }) {
     try {
       await updateDoc(docRef, { whatsapp_messages: updatedMessages });
       
-      // NOTA: Para a mensagem chegar no celular do paciente de verdade, 
-      // precisaríamos chamar a Evolution API aqui.
-      const evolutionUrl = import.meta.env.VITE_EVOLUTION_URL || 'https://evolution-api-latest-oy03.onrender.com';
-      const instance = import.meta.env.VITE_EVOLUTION_INSTANCE || 'nutrivvo_bot';
-      const apikey = import.meta.env.VITE_EVOLUTION_APIKEY || '!Nutrivv0@2016';
-      
-      if (evolutionUrl && instance && apikey) {
-          await fetch(`${evolutionUrl}/message/sendText/${instance}`, {
-              method: 'POST',
-              headers: {
-                  'Content-Type': 'application/json',
-                  'apikey': apikey
-              },
-              body: JSON.stringify({
-                  number: `${phoneNumber}@s.whatsapp.net`,
-                  options: { delay: 1000 },
-                  textMessage: { text: newMsg.content }
-              })
-          });
-      }
+      // Envia via endpoint server-side (api/send-whatsapp.js), que usa a
+      // apikey da Evolution API a partir de variaveis de ambiente no
+      // servidor. NUNCA chamar a Evolution API direto do navegador aqui -
+      // isso expunha a apikey (controle administrativo total da instancia)
+      // no bundle JS publico, visivel a qualquer um pelo DevTools.
+      await fetch('/api/send-whatsapp', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ phone: patient.phone, message: newMsg.content })
+      });
       
     } catch (err) {
       console.error("Erro ao enviar mensagem:", err);
