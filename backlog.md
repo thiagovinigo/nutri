@@ -147,6 +147,7 @@
 
 - [ ] Integração real com Stripe (checkout, webhooks de assinatura, bloqueio de features por plano)
 - [ ] Limite de pacientes por plano aplicado de verdade (hoje é só texto)
+- [ ] **Paciente ver o próprio status de pagamento** (achado `market-scout`, 11/08/2026) — `financialStatus` (pago/pendente/atrasado) já existe no doc do paciente e já é lido/editado em `FinancialCRM.jsx`/`PatientList.jsx`, mas nunca é exposto no app do paciente; `firestore.rules` já permite leitura do próprio doc, não precisa mudar regra. Diferente do item de Stripe acima (que é sobre *processar* pagamento) — isso é só *mostrar* um campo que já existe. Esforço P pra versão simples (status atual); M se quiser virar histórico (`financialHistory: []`, ao estilo Practice Better).
 
 ## 💬 Comunicação nutricionista ↔ paciente
 
