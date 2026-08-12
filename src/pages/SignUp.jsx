@@ -473,7 +473,7 @@ export default function SignUp() {
               opacity: (loading || loadingInvite) ? 0.7 : 1,
             }}
           >
-            {loading ? 'Criando Conta...' : (role === 'paciente' ? 'Criar e Ganhar 1 Consulta Grátis' : 'Criar Conta de Especialista')}
+            {loading ? 'Criando Conta...' : (role === 'paciente' ? 'Criar Conta' : 'Criar Conta de Especialista')}
           </button>
 
           <div style={{ marginTop: '24px', textAlign: 'center' }}>
