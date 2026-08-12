@@ -49,6 +49,7 @@ export default function QuestBoard({ activePatient }) {
   
   const [analyzing, setAnalyzing] = useState(false);
   const [previewImage, setPreviewImage] = useState(null);
+  const [mealToDelete, setMealToDelete] = useState(null);
   const [activeMealIndex, setActiveMealIndex] = useState(null);
   const [expandedDescIdx, setExpandedDescIdx] = useState(null);
   const [analysisError, setAnalysisError] = useState(null);
@@ -399,7 +400,7 @@ export default function QuestBoard({ activePatient }) {
                     <strong style={{color: 'var(--accent-color)', fontSize: '0.9rem'}}>{elog.mealName || 'Refeição Livre'}</strong>
                     <div style={{display: 'flex', alignItems: 'center', gap: '8px'}}>
                       <span style={{color: 'var(--patient-text-muted)', fontSize: '0.8rem'}}>{elog.time}</span>
-                      <button onClick={() => { if(window.confirm('Excluir este registro?')) deleteExtraMealLog(activePatient.id, elog.id); }} style={{background: 'transparent', border: 'none', padding: '4px', cursor: 'pointer', color: 'var(--patient-text-muted)'}} title="Excluir log">
+                      <button onClick={() => setMealToDelete(elog.id)} style={{background: 'transparent', border: 'none', padding: '4px', cursor: 'pointer', color: 'var(--patient-text-muted)'}} title="Excluir log">
                         <Trash2 size={16} />
                       </button>
                     </div>
@@ -503,7 +504,7 @@ export default function QuestBoard({ activePatient }) {
                   ) : (
                     <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
                       <span style={{backgroundColor: 'rgba(16, 185, 129, 0.2)', color: 'var(--primary-color)', padding: '6px 12px', borderRadius: '12px', fontWeight: 'bold', fontSize: '0.8rem', whiteSpace: 'nowrap', flexShrink: 0}}>CONCLUÍDO</span>
-                      <button onClick={() => { if(window.confirm('Excluir este check-in?')) deleteExtraMealLog(activePatient.id, log.id); }} style={{background: 'transparent', border: 'none', padding: '4px', cursor: 'pointer', color: 'var(--patient-text-muted)'}} title="Desfazer check-in">
+                      <button onClick={() => setMealToDelete(log.id)} style={{background: 'transparent', border: 'none', padding: '4px', cursor: 'pointer', color: 'var(--patient-text-muted)'}} title="Desfazer check-in">
                         <Trash2 size={16} />
                       </button>
                     </div>
@@ -706,6 +707,19 @@ export default function QuestBoard({ activePatient }) {
           </div>
         </div>,
         document.body
+      )}
+      {mealToDelete && (
+        <div className="animate-fade-in" style={{ position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', backgroundColor: 'rgba(0,0,0,0.75)', zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px' }}>
+          <div className="patient-card animate-pop-in" style={{ backgroundColor: 'var(--patient-surface)', padding: '24px', width: '100%', maxWidth: '350px', textAlign: 'center', border: '1px solid rgba(255,255,255,0.1)' }}>
+            <Trash2 size={32} color="#EF4444" style={{ marginBottom: '16px' }} />
+            <h3 style={{ margin: '0 0 12px 0', color: 'var(--patient-text)', fontSize: '1.2rem' }}>Excluir registro?</h3>
+            <p style={{ margin: '0 0 24px 0', color: 'var(--patient-text-muted)', fontSize: '0.9rem', lineHeight: '1.4' }}>Tem certeza que deseja apagar este check-in? Esta ação não pode ser desfeita.</p>
+            <div style={{ display: 'flex', gap: '12px' }}>
+              <button className="btn-3d btn-secondary" style={{ flex: 1, padding: '12px' }} onClick={() => setMealToDelete(null)}>Cancelar</button>
+              <button className="btn-3d btn-primary" style={{ flex: 1, padding: '12px', background: 'linear-gradient(135deg, #EF4444 0%, #B91C1C 100%)', boxShadow: '0 8px 20px -6px rgba(239, 68, 68, 0.5)' }} onClick={() => { deleteExtraMealLog(activePatient.id, mealToDelete); setMealToDelete(null); }}>Excluir</button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );
