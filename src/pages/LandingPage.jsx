@@ -57,11 +57,11 @@ export default function LandingPage() {
         <div className="w-hero-content">
           <div className="w-hero-badge" data-w-reveal>Feito para nutricionista autônomo e clínica pequena</div>
           <h1 className="w-hero-title wellness-heading" data-w-reveal>
-            Seu paciente some do WhatsApp. <br/>
+            Seu paciente some entre consultas. <br/>
             <span>O Nutrivvo não deixa.</span>
           </h1>
           <p className="w-hero-subtitle" data-w-reveal>
-            Enquanto você atende, a IA do Nutrivvo confirma consulta, cobra a foto do prato e avisa quando um paciente está perdendo o foco — tudo pelo WhatsApp. Do outro lado, um app gamificado com XP e ofensiva diária faz o paciente voltar sozinho, todo dia.
+            Enquanto você atende, a IA do Nutrivvo confirma consulta, cobra a foto do prato e avisa quando um paciente está perdendo o foco — tudo pelo Telegram. Do outro lado, um app gamificado com XP e ofensiva diária faz o paciente voltar sozinho, todo dia.
           </p>
           <div className="w-hero-actions" data-w-reveal>
             <button className="w-btn w-btn-primary" onClick={() => navigate('/cadastro?role=nutricionista')}>
@@ -97,7 +97,7 @@ export default function LandingPage() {
         <div className="w-grid">
           <div className="w-feature-card" data-w-reveal>
             <div className="w-icon-box"><Bot size={28} /></div>
-            <h3 className="w-feature-title wellness-heading">Secretária Virtual no WhatsApp</h3>
+            <h3 className="w-feature-title wellness-heading">Secretária Virtual no Telegram</h3>
             <p className="w-feature-desc">Confirma e remarca consulta, cobra a foto da refeição e avisa você quando um paciente dá sinais de estar perdendo o foco — tudo automático, sem ocupar o seu número pessoal.</p>
           </div>
 
@@ -134,7 +134,7 @@ export default function LandingPage() {
           <div className="w-feature-card" data-w-reveal>
             <div className="w-icon-box"><Wallet size={28} /></div>
             <h3 className="w-feature-title wellness-heading">Financeiro Integrado</h3>
-            <p className="w-feature-desc">Controle planos, vencimentos e cobranças direto no CRM, com lembretes automáticos de renovação enviados por WhatsApp.</p>
+            <p className="w-feature-desc">Controle planos, vencimentos e cobranças direto no CRM, com lembrete de renovação pronto pra enviar no WhatsApp em um clique.</p>
           </div>
 
           <div className="w-feature-card" data-w-reveal>
@@ -176,7 +176,7 @@ export default function LandingPage() {
       {/* CTA */}
       <section className="w-cta">
         <div className="w-cta-inner" data-w-reveal>
-          <h2 className="w-cta-title wellness-heading">Pare de perder paciente no silêncio do WhatsApp.</h2>
+          <h2 className="w-cta-title wellness-heading">Pare de perder paciente no silêncio entre consultas.</h2>
           <p className="w-cta-desc">Junte-se aos nutricionistas que automatizaram o acompanhamento entre consultas.</p>
           <button
             className="w-btn"
