@@ -606,6 +606,15 @@ export function AppProvider({ children }) {
         setActivePatientId(mockPat.id);
         setIsLoadingPatients(false);
       },
+      // Equivalente ao setBypassPatient, mas pro lado do CRM (nutricionista) -
+      // popula patients/appointments só em estado local (nunca grava no
+      // Firestore, diferente de addAppointment). Usado pra pré-visualizar o
+      // dashboard com dado fake em vez de vazio (ver botão DEV em Login.jsx).
+      setBypassNutriData: (mockPatients, mockAppointments) => {
+        setPatients(mockPatients || []);
+        setAppointments(mockAppointments || []);
+        setIsLoadingPatients(false);
+      },
       theme,
       toggleTheme
     }}>

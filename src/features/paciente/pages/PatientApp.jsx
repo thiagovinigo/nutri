@@ -37,6 +37,8 @@ export default function PatientApp() {
     id: 'mock_1',
     name: 'Paciente Teste (Modo Dev)',
     objective: 'Ganho de massa muscular',
+    nutricionista_id: 'mock_nutri',
+    has_completed_onboarding: true,
     waterTarget: 3000,
     waterLogs: [],
     mealsCompleted: [],

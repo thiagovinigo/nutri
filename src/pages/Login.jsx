@@ -40,7 +40,24 @@ const darkLabelStyle = {
 };
 
 export default function Login() {
-  const { patients, bypassLoginAsPatient } = useAppContext();
+  const { patients, bypassLoginAsPatient, setBypassNutriData } = useAppContext();
+
+  const handleBypassNutriDemo = () => {
+    const mockPatients = [
+      { id: 'demo_1', name: 'Ana Beatriz Souza', objective: 'Emagrecimento', status: 'engajado', streak: 12, xp: 480, financialPlanId: 'plano_mensal' },
+      { id: 'demo_2', name: 'Carlos Eduardo Lima', objective: 'Hipertrofia', status: 'engajado', streak: 5, xp: 220, financialPlanId: 'plano_trimestral' },
+      { id: 'demo_3', name: 'Juliana Ferreira', objective: 'Performance esportiva', status: 'ativo', streak: 1, xp: 40, financialPlanId: 'plano_avulso' },
+      { id: 'demo_4', name: 'Rodrigo Martins', objective: 'Manutenção de saúde', status: 'ativo', streak: 0, xp: 90, financialPlanId: 'plano_mensal' },
+    ];
+    const todayISO = new Date().toISOString().split('T')[0];
+    const mockAppointments = [
+      { id: 'demo_appt_1', patientId: 'demo_1', date: todayISO, time: '14:00', type: 'Retorno', status: 'agendado' },
+      { id: 'demo_appt_2', patientId: 'demo_2', date: todayISO, time: '16:30', type: 'Primeira Consulta', status: 'agendado' },
+      { id: 'demo_appt_3', patientId: 'demo_3', date: todayISO, time: '10:00', type: 'Retorno', status: 'concluido' },
+    ];
+    setBypassNutriData(mockPatients, mockAppointments);
+    navigate('/nutri');
+  };
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
@@ -209,6 +226,13 @@ export default function Login() {
                   style={{ padding: '8px 16px', backgroundColor: 'rgba(255,255,255,0.06)', color: '#cbd5e1', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.12)', cursor: 'pointer', fontSize: '0.9rem', fontWeight: '500' }}
                 >
                   Modo Nutricionista
+                </button>
+                <button
+                  type="button"
+                  onClick={handleBypassNutriDemo}
+                  style={{ padding: '8px 16px', backgroundColor: 'rgba(34,197,94,0.15)', color: '#86efac', borderRadius: '8px', border: '1px solid rgba(34,197,94,0.3)', cursor: 'pointer', fontSize: '0.9rem', fontWeight: 'bold' }}
+                >
+                  BYPASS CRM COM DADO FAKE (DEV)
                 </button>
                 <button
                   type="button"
