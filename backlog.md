@@ -166,6 +166,10 @@
 
 **Decisão (11/08/2026):** avaliado migrar agora pra Meta Cloud API oficial (ou BSP como Twilio/Z-API/360dialog) dado que WhatsApp é a funcionalidade principal e já quebrou 2x em 24h — decisão consciente de **continuar no Evolution API** por ora e só esperar o bloqueio passar, em vez de migrar. Reavaliar se acontecer um 3º bloqueio, ou antes de expor essa funcionalidade a pacientes reais em produção.
 
+**Status (12/08/2026) — gatilho de reavaliação atingido, restrição agora permanente:** depois do bloqueio de 11/08, `nutrivvo_bot` foi repareado com sucesso (`state: "open"`) e funcionou por algumas horas (lembrete de cron testado OK, mensagens entregues). Durante um novo teste de verificação de telefone (paciente de teste "Yago"), a instância caiu de novo com `disconnectionReasonCode: 401`, motivo `conflict/device_removed`, e ao tentar reenviar o código a Evolution API retornou `400 "Error: Connection Closed"`. Repareado uma vez mais (`state: "open"` novamente), mas na tentativa seguinte de envio a Evolution API voltou a recusar — e desta vez o usuário confirmou que o WhatsApp **restringiu o número em definitivo** (não é mais bloqueio temporário de horas). Isso é o **3º+ bloqueio** que o gatilho de 11/08 previa. Bug de código relacionado (número sem o 9º dígito) foi confirmado corrigido nesse meio-tempo — não é mais fator.
+
+**Decisão pendente (12/08/2026):** com restrição permanente confirmada, a decisão de "continuar no Evolution API" precisa ser reaberta com o usuário — migrar pra Meta Cloud API oficial (ou BSP), trocar de número, ou avaliar Telegram como canal alternativo (discutido em sessão anterior) antes de tentar reconectar de novo.
+
 - [x] ~~Canal de mensagens diretas (hoje só existe o bot de IA)~~ — Concluído
 - [ ] Notificações push/e-mail quando dieta é prescrita ou consulta confirmada — Story 5 acima
 
