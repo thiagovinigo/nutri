@@ -793,17 +793,17 @@ export default function PatientList({
                           className="crm-btn-primary animate-pulse" 
                           style={{ backgroundColor: '#DC2626', borderColor: '#DC2626', display: 'flex', alignItems: 'center', gap: '8px' }}
                           onClick={() => {
-                            const msg = prompt('Digite a mensagem de resgate para enviar ao WhatsApp deste paciente:', 'Oi, senti sua falta nos últimos dias. Está tudo bem com a dieta?');
-                            if (msg && viewedPatient.phone) {
+                            const msg = prompt('Digite a mensagem de resgate para enviar pelo Telegram deste paciente:', 'Oi, senti sua falta nos últimos dias. Está tudo bem com a dieta?');
+                            if (msg && viewedPatient.telegram_chat_id) {
                               sendTelegramToPatient(viewedPatient.id, msg)
                                 .then(() => toast.success('Mensagem de resgate enviada com sucesso!'))
                                 .catch(err => toast.error(err.message || 'Falha ao enviar mensagem de resgate.'));
-                            } else {
-                              toast.error('Este paciente não tem telefone cadastrado para WhatsApp.');
+                            } else if (msg) {
+                              toast.error('Este paciente ainda não conectou o Telegram.');
                             }
                           }}
                         >
-                          <AlertTriangle size={16} /> Resgate via WhatsApp (Evolution API)
+                          <AlertTriangle size={16} /> Resgate via Telegram
                         </button>
                       </div>
                     )}

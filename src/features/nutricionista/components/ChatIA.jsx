@@ -11,15 +11,14 @@ export default function ChatIA({ patient, clinicConfig }) {
   const [loading, setLoading] = useState(true);
   const messagesEndRef = useRef(null);
   
-  const phone = patient.phone ? String(patient.phone).replace(/\D/g, '') : null;
-  const phoneNumber = phone ? (phone.startsWith('55') ? phone : `55${phone}`) : null;
+  const isTelegramLinked = !!patient.telegram_chat_id;
 
   useEffect(() => {
-    if (!phoneNumber) {
+    if (!isTelegramLinked) {
       setLoading(false);
       return;
     }
-    
+
     // Ouve o documento do paciente no Firestore em tempo real
     const docRef = doc(db, 'patients', patient.id);
     const unsubscribe = onSnapshot(docRef, (docSnap) => {
@@ -32,19 +31,19 @@ export default function ChatIA({ patient, clinicConfig }) {
       }
       setLoading(false);
     }, (error) => {
-      console.error("Erro ao carregar histórico do WhatsApp:", error);
+      console.error("Erro ao carregar histórico do chat:", error);
       setLoading(false);
     });
 
     return () => unsubscribe();
-  }, [phoneNumber, patient.id]);
+  }, [isTelegramLinked, patient.id]);
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
   const toggleBotPause = async () => {
-    if (!phoneNumber) return;
+    if (!isTelegramLinked) return;
     const docRef = doc(db, 'patients', patient.id);
     try {
       await updateDoc(docRef, { bot_paused: !botPaused });
@@ -58,7 +57,7 @@ export default function ChatIA({ patient, clinicConfig }) {
 
   const handleSendMessage = async (e) => {
     e.preventDefault();
-    if (!inputText.trim() || !phoneNumber) return;
+    if (!inputText.trim() || !isTelegramLinked) return;
     
     const newMsg = {
       role: 'assistant',
@@ -87,10 +86,10 @@ export default function ChatIA({ patient, clinicConfig }) {
     }
   };
 
-  if (!patient.phone) {
+  if (!isTelegramLinked) {
     return (
       <div style={{ padding: '2rem', textAlign: 'center', color: 'var(--crm-text-light)' }}>
-        Este paciente não possui um número de telefone válido cadastrado para usar o WhatsApp.
+        Este paciente ainda não conectou o Telegram. Peça para ele abrir "Conectar Telegram" no Perfil dele dentro do app.
       </div>
     );
   }
@@ -110,7 +109,7 @@ export default function ChatIA({ patient, clinicConfig }) {
           <div>
             <h4 style={{ margin: 0, color: 'var(--crm-text)' }}>Chat: {patient.name}</h4>
             <span style={{ fontSize: '12px', color: 'var(--crm-text-light)' }}>
-              +{phoneNumber} • {botPaused ? '🤖 IA Pausada' : '🟢 IA Ativa'}
+              Telegram conectado • {botPaused ? '🤖 IA Pausada' : '🟢 IA Ativa'}
             </span>
           </div>
         </div>
