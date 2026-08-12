@@ -57,11 +57,15 @@ html {
   z-index: 50;
 }
 .w-logo {
-  font-size: 1.5rem;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 1.4rem;
   font-weight: 800;
   color: var(--w-primary-dark);
   letter-spacing: -0.02em;
 }
+.w-logo img { height: 26px; width: auto; display: block; }
 .w-nav-links {
   display: flex;
   gap: 32px;
@@ -76,6 +80,46 @@ html {
 }
 .w-nav-links a:hover {
   color: var(--w-primary-dark);
+}
+
+/* Menu mobile - abaixo de 768px os links de ancora (#features/#benefits)
+   colapsam num drawer, sobra so logo + botao Entrar + toggle na barra
+   fixa (achado critico do comite de UX de 11/08: navbar nao tinha
+   nenhum tratamento mobile). */
+.w-nav-toggle {
+  display: none;
+  background: none;
+  border: none;
+  color: var(--w-text-main);
+  cursor: pointer;
+  padding: 8px;
+}
+@media (max-width: 768px) {
+  .w-nav-toggle { display: flex; }
+  .w-nav-links {
+    position: fixed;
+    top: 72px; left: 0; right: 0;
+    background: var(--w-bg-white);
+    border-bottom: 1px solid var(--w-border);
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0;
+    padding: 8px 5% 16px;
+    transform: translateY(-12px);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.2s ease, transform 0.2s ease;
+  }
+  .w-nav-links.is-open {
+    opacity: 1;
+    transform: translateY(0);
+    pointer-events: auto;
+  }
+  .w-nav-links a {
+    padding: 14px 4px;
+    border-bottom: 1px solid var(--w-border);
+  }
+  .w-nav-links .w-btn { margin-top: 12px; width: 100%; }
 }
 
 /* Buttons */
@@ -96,21 +140,34 @@ html {
 .w-btn-primary {
   background: var(--w-primary);
   color: white;
-  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+  /* sombra roxa (era resíduo do tema verde/mint anterior ao rebrand -
+     rgba(16,185,129) é #10b981, esmeralda, não faz parte da paleta atual) */
+  box-shadow: 0 4px 12px rgba(168, 85, 247, 0.3);
 }
 .w-btn-primary:hover {
   background: var(--w-primary-dark);
   transform: translateY(-2px);
-  box-shadow: 0 6px 16px rgba(16, 185, 129, 0.4);
+  box-shadow: 0 6px 16px rgba(168, 85, 247, 0.4);
 }
 .w-btn-outline {
   background: transparent;
   color: var(--w-text-main);
-  border: 1px solid var(--w-border);
+  /* slate-400 em vez de slate-200 (--w-border) - a borda original não
+     passava 3:1 de contraste contra o fundo branco (WCAG 1.4.11) */
+  border: 1px solid #94a3b8;
 }
 .w-btn-outline:hover {
   background: var(--w-bg);
   border-color: var(--w-text-muted);
+}
+.w-btn:focus-visible {
+  outline: 2px solid var(--w-primary-dark);
+  outline-offset: 2px;
+}
+.w-nav-links a:focus-visible {
+  outline: 2px solid var(--w-primary-dark);
+  outline-offset: 2px;
+  border-radius: 4px;
 }
 
 /* Hero Section */
@@ -353,4 +410,20 @@ html {
   border-top: 1px solid var(--w-border);
   text-align: center;
   color: var(--w-text-muted);
+}
+.w-footer-trust {
+  margin-top: 10px;
+  font-size: 0.82rem;
+}
+
+/* Trust signal abaixo do CTA principal do hero (substitui prova social
+   que ainda não existe - ver revisão de copy de 11/08) */
+.w-hero-trust {
+  margin-top: 16px;
+  font-size: 0.85rem;
+  color: var(--w-text-muted);
+}
+.w-hero-trust a {
+  color: var(--w-primary-dark);
+  text-decoration: underline;
 }
