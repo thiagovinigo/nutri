@@ -15,7 +15,7 @@ import { getFirebaseErrorMessage } from '../../../utils/firebaseErrors';
 import { callOpenAIBridge } from '../../../utils/openaiBridge';
 
 export default function PatientApp() {
-  const { patients, activePatientId, setActivePatientId, markNotificationsRead, session, profile, setBypassPatient, fetchProfile, updatePatient } = useAppContext();
+  const { patients, activePatientId, setActivePatientId, markNotificationsRead, session, profile, setBypassPatient, fetchProfile, updatePatient, isAuthLoading } = useAppContext();
 
   const [isLoggedIn, setIsLoggedIn] = useState(false);
 
@@ -147,6 +147,16 @@ export default function PatientApp() {
   const styles = {
     content: { padding: '20px', maxWidth: '600px', margin: '0 auto' }
   };
+
+  if (isAuthLoading) {
+    return (
+      <div className="patient-container" style={{display: 'flex', alignItems: 'center', justifyContent: 'center'}}>
+        <div className="animate-pulse-glow" style={{width: '60px', height: '60px', borderRadius: '50%', background: 'var(--primary-color)', display: 'flex', alignItems: 'center', justifyContent: 'center'}}>
+          <span style={{fontSize: '32px'}}>🍏</span>
+        </div>
+      </div>
+    );
+  }
 
   if (!isLoggedIn) {
     return (

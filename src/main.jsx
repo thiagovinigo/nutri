@@ -3,12 +3,10 @@ import { createRoot } from 'react-dom/client'
 import './index.css'
 import App from './App.jsx'
 
-// Força atualização automática quando novo service worker detectado
-if ('serviceWorker' in navigator) {
-  navigator.serviceWorker.addEventListener('controllerchange', () => {
-    window.location.reload();
-  });
-}
+// A atualização do Service Worker (via autoUpdate do vite-plugin-pwa)
+// agora acontece de forma silenciosa. Removemos o window.location.reload()
+// forçado no 'controllerchange' para evitar que a página recarregue
+// abruptamente enquanto o usuário está preenchendo formulários (ex: Login).
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>

@@ -115,6 +115,7 @@ export default function OnboardingProfileForm({ patient }) {
       await updatePatient(patient.id, {
         objective: formData.objective,
         restrictions: formData.aversions,
+        aversions: formData.aversions,
         activity_level: formData.activityLevel,
         supplements_taken: formData.supplements,
         has_completed_onboarding: true,

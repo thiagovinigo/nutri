@@ -131,7 +131,7 @@ export function AppProvider({ children }) {
   }, [profile]);
 
   useEffect(() => {
-    if (!auth) return;
+    if (!auth) { setIsAuthLoading(false); return; }
     const unsubscribe = onAuthStateChanged(auth, (user) => {
       setSession(user);
       if (user) fetchProfile(user.uid);
@@ -317,6 +317,14 @@ export function AppProvider({ children }) {
     const newFoodLog = { id: `food-${Date.now()}`, type: 'extra', date, time, mealName, log: aiFeedback };
     const newFoodLogs = [...(p.foodLogs || []), newFoodLog];
 
+    await updatePatient(patientId, { foodLogs: newFoodLogs });
+  };
+
+  const deleteExtraMealLog = async (patientId, logId) => {
+    const p = patients.find(pat => pat.id === patientId);
+    if (!p) return;
+
+    const newFoodLogs = (p.foodLogs || []).filter(log => log.id !== logId);
     await updatePatient(patientId, { foodLogs: newFoodLogs });
   };
 
@@ -584,7 +592,7 @@ export function AppProvider({ children }) {
       isLoadingPatients,
       clinicConfig, updateClinicConfig,
       addPatient, updatePatient, patchPatientLocal, deletePatient,
-      addRecipe, updateMealAiRecipe, markMealDone, markSupplementDone, addExtraMealLog, markWorkoutDone, addWeight, addSleepLog, addExam, completeQuest, updateWater,
+      addRecipe, updateMealAiRecipe, markMealDone, markSupplementDone, addExtraMealLog, deleteExtraMealLog, markWorkoutDone, addWeight, addSleepLog, addExam, completeQuest, updateWater,
       addNotification, markNotificationsRead,
       appointments, addAppointment, cancelAppointment, markAppointmentDone,
       dietTemplates, addDietTemplate, deleteDietTemplate,

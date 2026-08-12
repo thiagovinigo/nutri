@@ -67,6 +67,7 @@ export default function SignUp() {
   const [cpf, setCpf] = useState('');
   const [phone, setPhone] = useState('');
   const [birthDate, setBirthDate] = useState('');
+  const [gender, setGender] = useState('M');
   const [crn, setCrn] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -149,12 +150,13 @@ export default function SignUp() {
       // Se for paciente, criamos também o registro inicial em 'patients' para não dar erro no AppContext
       if (role === 'paciente') {
         let calculatedAge = 0;
-        if (birthDate) {
-          const bDate = new Date(birthDate);
+        if (birthDate && birthDate.length === 10) {
+          const [d, m, y] = birthDate.split('/');
+          const bDate = new Date(`${y}-${m}-${d}`);
           const today = new Date();
           calculatedAge = today.getFullYear() - bDate.getFullYear();
-          const m = today.getMonth() - bDate.getMonth();
-          if (m < 0 || (m === 0 && today.getDate() < bDate.getDate())) { calculatedAge--; }
+          const monthDiff = today.getMonth() - bDate.getMonth();
+          if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < bDate.getDate())) { calculatedAge--; }
         }
 
         let initialData = {
@@ -164,6 +166,7 @@ export default function SignUp() {
           phone: phone || '11999999999',
           birthDate: birthDate,
           age: calculatedAge,
+          gender: gender,
           nutricionista_id: nutriIdParam || null,
           objective: 'Melhorar alimentação',
           restrictions: 'Nenhuma registrada',
@@ -183,7 +186,7 @@ export default function SignUp() {
             const tempDocSnap = await getDoc(tempDocRef);
             if (tempDocSnap.exists()) {
               // Mescla os dados do cadastro temporário com o default (sobrescrevendo o default)
-              initialData = { ...initialData, ...tempDocSnap.data(), name: name, email: email, cpf: cpf, phone: phone || tempDocSnap.data().phone || '11999999999', birthDate: birthDate, age: calculatedAge, status: 'ativo' };
+              initialData = { ...initialData, ...tempDocSnap.data(), name: name, email: email, cpf: cpf, phone: phone || tempDocSnap.data().phone || '11999999999', birthDate: birthDate, age: calculatedAge, gender: gender, status: 'ativo' };
 
               // O paciente pode já ter consultas agendadas pelo nutricionista
               // antes de terminar o cadastro (fluxo comum: cadastra -> já
@@ -311,7 +314,7 @@ export default function SignUp() {
                 <div style={{ flex: 1 }}>
                   <label style={darkLabelStyle}>{role === 'nutricionista' ? 'CPF / CNPJ' : 'CPF'}</label>
                   <input
-                    type="text"
+                    type="tel"
                     required
                     style={darkInputStyle}
                     value={cpf}
@@ -322,14 +325,35 @@ export default function SignUp() {
                 <div style={{ flex: 1 }}>
                   <label style={darkLabelStyle}>Data Nasc.</label>
                   <input
-                    type="date"
+                    type="tel"
                     required
                     style={darkInputStyle}
                     value={birthDate}
-                    onChange={e => setBirthDate(e.target.value)}
+                    onChange={e => {
+                      let v = e.target.value.replace(/\D/g, '');
+                      if (v.length > 8) v = v.slice(0, 8);
+                      if (v.length > 4) v = v.replace(/(\d{2})(\d{2})(\d+)/, '$1/$2/$3');
+                      else if (v.length > 2) v = v.replace(/(\d{2})(\d+)/, '$1/$2');
+                      setBirthDate(v);
+                    }}
+                    placeholder="DD/MM/AAAA"
                   />
                 </div>
               </div>
+
+              {role === 'paciente' && (
+                <div style={{ marginBottom: '16px' }}>
+                  <label style={darkLabelStyle}>Sexo Biológico</label>
+                  <select
+                    style={darkInputStyle}
+                    value={gender}
+                    onChange={e => setGender(e.target.value)}
+                  >
+                    <option value="M">Masculino</option>
+                    <option value="F">Feminino</option>
+                  </select>
+                </div>
+              )}
 
               <div style={{ marginBottom: '16px' }}>
                 <label style={darkLabelStyle}>E-mail</label>

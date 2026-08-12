@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import toast from 'react-hot-toast';
-import { Target, Check, Camera, Sparkles, Flame, Droplets, AlertCircle, X, ChevronLeft, ChevronRight, Moon, Loader2, RefreshCw } from 'lucide-react';
+import { Target, Check, Camera, Sparkles, Flame, Droplets, AlertCircle, X, ChevronLeft, ChevronRight, Moon, Loader2, RefreshCw, Trash2 } from 'lucide-react';
 import { useAppContext } from '../../../context/AppContext';
 import ShareableMilestone from './ShareableMilestone';
 import ReactMarkdown from 'react-markdown';
@@ -43,7 +43,7 @@ function compressImageFile(file, maxDimension = MAX_PHOTO_DIMENSION, quality = P
 }
 
 export default function QuestBoard({ activePatient }) {
-  const { completeQuest, markMealDone, markSupplementDone, addExtraMealLog, updateWater, addSleepLog, updatePatient } = useAppContext();
+  const { completeQuest, markMealDone, markSupplementDone, addExtraMealLog, deleteExtraMealLog, updateWater, addSleepLog, updatePatient } = useAppContext();
   
   const [selectedDateObj, setSelectedDateObj] = useState(new Date());
   
@@ -242,10 +242,10 @@ export default function QuestBoard({ activePatient }) {
 
       let promptText = '';
       if (activeMealIndex === 'extra') {
-         promptText = `Você é um assistente inteligente de diário alimentar. O usuário enviou uma foto de uma refeição livre. Use formatação Markdown. 1) Liste os alimentos que você vê na imagem, já incluindo ao lado de cada um a estimativa de peso EM GRAMAS (obrigatório). 2) Dê uma mensagem amigável e motivadora (max 3 frases).`;
+         promptText = `Você é um assistente inteligente de diário alimentar. O usuário enviou uma foto de uma refeição livre. Use formatação Markdown. 1) Liste EXATAMENTE os alimentos reais que você vê na imagem, já incluindo ao lado de cada um a estimativa de peso EM GRAMAS (obrigatório). NÃO invente ingredientes ou acompanhamentos que não estão na foto. 2) Dê uma mensagem amigável e motivadora (max 3 frases).`;
       } else {
          const mealTarget = currentRecipe.meals[activeMealIndex];
-         promptText = `Você é um assistente inteligente de diário alimentar. O usuário deveria comer: "${mealTarget.desc}". Use formatação Markdown. 1) Liste os alimentos reais que você vê na foto, já incluindo ao lado de cada um a estimativa de peso EM GRAMAS (obrigatório). 2) Diga amigavelmente se parece estar dentro do planejado (max 3 frases).`;
+         promptText = `Você é um assistente inteligente de diário alimentar. O usuário deveria comer: "${mealTarget.desc}". Use formatação Markdown. 1) Liste EXATAMENTE os alimentos reais que você vê na foto, já incluindo ao lado de cada um a estimativa de peso EM GRAMAS (obrigatório). NÃO invente ingredientes ou acompanhamentos que não estão na foto, liste apenas o que você consegue ver. 2) Diga amigavelmente se parece estar dentro do planejado (max 3 frases).`;
       }
       let data;
       try {
@@ -397,7 +397,12 @@ export default function QuestBoard({ activePatient }) {
                 <div key={i} className="patient-card patient-glass" style={{marginBottom: '12px', borderColor: 'rgba(245, 158, 11, 0.3)'}}>
                   <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px'}}>
                     <strong style={{color: 'var(--accent-color)', fontSize: '0.9rem'}}>{elog.mealName || 'Refeição Livre'}</strong>
-                    <span style={{color: 'var(--patient-text-muted)', fontSize: '0.8rem'}}>{elog.time}</span>
+                    <div style={{display: 'flex', alignItems: 'center', gap: '8px'}}>
+                      <span style={{color: 'var(--patient-text-muted)', fontSize: '0.8rem'}}>{elog.time}</span>
+                      <button onClick={() => { if(window.confirm('Excluir este registro?')) deleteExtraMealLog(activePatient.id, elog.id); }} style={{background: 'transparent', border: 'none', padding: '4px', cursor: 'pointer', color: 'var(--patient-text-muted)'}} title="Excluir log">
+                        <Trash2 size={16} />
+                      </button>
+                    </div>
                   </div>
                   <div className="markdown-content" style={{margin: 0, fontSize: '0.9rem', color: 'var(--patient-text)', lineHeight: '1.5'}}>
                     <ReactMarkdown remarkPlugins={[remarkGfm]}>{elog.log}</ReactMarkdown>
@@ -496,7 +501,12 @@ export default function QuestBoard({ activePatient }) {
                       </button>
                     </div>
                   ) : (
-                    <span style={{backgroundColor: 'rgba(16, 185, 129, 0.2)', color: 'var(--primary-color)', padding: '6px 12px', borderRadius: '12px', fontWeight: 'bold', fontSize: '0.8rem', whiteSpace: 'nowrap', flexShrink: 0}}>CONCLUÍDO</span>
+                    <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                      <span style={{backgroundColor: 'rgba(16, 185, 129, 0.2)', color: 'var(--primary-color)', padding: '6px 12px', borderRadius: '12px', fontWeight: 'bold', fontSize: '0.8rem', whiteSpace: 'nowrap', flexShrink: 0}}>CONCLUÍDO</span>
+                      <button onClick={() => { if(window.confirm('Excluir este check-in?')) deleteExtraMealLog(activePatient.id, log.id); }} style={{background: 'transparent', border: 'none', padding: '4px', cursor: 'pointer', color: 'var(--patient-text-muted)'}} title="Desfazer check-in">
+                        <Trash2 size={16} />
+                      </button>
+                    </div>
                   )}
                 </div>
 

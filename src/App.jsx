@@ -13,7 +13,10 @@ import { Toaster } from 'react-hot-toast';
 // Em produção, exige sessão real. Em dev (ite dev), deixa passar sem login
 // para permitir os atalhos "Modo Nutricionista/Paciente" usados em testes.
 function RequireAuth({ children }) {
-  const { session } = useAppContext();
+  const { session, isAuthLoading } = useAppContext();
+  if (isAuthLoading) {
+    return <div style={{height: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#0a0a14'}}><span style={{color: '#fff'}}>Carregando...</span></div>;
+  }
   if (!session && !import.meta.env.DEV) {
     return <Navigate to="/login" replace />;
   }

@@ -6,6 +6,7 @@ export default function PwaInstallPrompt() {
   const [showBanner, setShowBanner] = useState(false);
   const [isIos, setIsIos] = useState(false);
   const [isStandalone, setIsStandalone] = useState(false);
+  const [isInAppBrowser, setIsInAppBrowser] = useState(false);
 
   useEffect(() => {
     // Check if the app is already installed
@@ -19,7 +20,14 @@ export default function PwaInstallPrompt() {
     // Check for iOS
     const userAgent = window.navigator.userAgent.toLowerCase();
     const _isIos = /iphone|ipad|ipod/.test(userAgent);
+    const _isInAppBrowser = /fban|fbav|instagram|whatsapp|twitter|linkedinapp|wv/i.test(userAgent) || (userAgent.includes('android') && userAgent.includes('wv'));
     setIsIos(_isIos);
+    setIsInAppBrowser(_isInAppBrowser);
+
+    if (_isInAppBrowser) {
+      const timer = setTimeout(() => setShowBanner(true), 1500);
+      return () => clearTimeout(timer);
+    }
 
     if (_isIos) {
       // iOS doesn't support beforeinstallprompt, just show instructions after a delay
@@ -79,7 +87,12 @@ export default function PwaInstallPrompt() {
         </button>
       </div>
       
-      {isIos ? (
+      
+      {isInAppBrowser ? (
+        <p style={{ margin: 0, fontSize: '0.9rem', lineHeight: '1.4' }}>
+          Você está navegando pelo aplicativo (Instagram, WhatsApp, etc). Para conseguir baixar o app do Nutrivvo, clique nos três pontinhos <strong>(⋮)</strong> e selecione <strong>Abrir no navegador</strong> (Chrome ou Safari).
+        </p>
+      ) : isIos ? (
         <p style={{ margin: 0, fontSize: '0.9rem', lineHeight: '1.4' }}>
           Para instalar, toque no botão <strong>Compartilhar</strong> (<Share size={14} style={{ display: 'inline', verticalAlign: 'middle' }}/>) no rodapé do Safari e selecione <strong>Adicionar à Tela de Início</strong>.
         </p>
