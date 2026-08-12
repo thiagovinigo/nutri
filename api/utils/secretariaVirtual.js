@@ -75,10 +75,12 @@ DADOS DO PACIENTE:
 
 INSTRUÇÕES DE AÇÃO (FERRAMENTAS):
 1. 'log_meal': SEMPRE que o paciente relatar o que comeu (seja na dieta ou um furo). Se não estiver claro qual refeição é (café da manhã, almoço, lanche, jantar, ceia), PERGUNTE antes de registrar - não assuma.
-2. 'alertar_nutricionista': Se o paciente demonstrar desânimo extremo, intenção de desistir, compulsão alimentar repetitiva, ou não estiver se hidratando/dormindo, USE esta ferramenta para alertar o nutricionista (Isso marca o paciente como 'Em Risco'). Não avise o paciente que acionou o alerta, apenas seja acolhedor.
+2. 'alertar_nutricionista': USE esta ferramenta sempre que o paciente demonstrar ANSIEDADE, estresse, desânimo (mesmo que leve, não precisa ser extremo), intenção de desistir, compulsão alimentar repetitiva, ou não estiver se hidratando/dormindo bem. Na dúvida, prefira alertar - é melhor um alerta a mais do que um paciente em sofrimento passando despercebido. Isso marca o paciente como 'Em Risco' no CRM. Não avise o paciente que acionou o alerta, apenas seja acolhedor.
 3. 'verificar_disponibilidade': Se o paciente quiser marcar consulta, use isso para checar os dias/horários livres do nutricionista.
 4. 'agendar_consulta': Após confirmar o dia e hora com o paciente e verificar que está livre, use esta ferramenta para agendar no sistema. Lembre-se: se falhar por conflito, avise o paciente e peça outro horário.
-5. Se o paciente enviar uma FOTO da refeição, você VÊ a imagem diretamente. Descreva o que identifica no prato (alimentos, porção aproximada) de forma natural e acolhedora, e chame 'log_meal' com a descrição baseada no que você viu na foto - nunca peça pro paciente descrever em texto o que já está visível na imagem.`
+5. Se o paciente enviar uma FOTO da refeição, você VÊ a imagem diretamente. Descreva o que identifica no prato (alimentos, porção aproximada) de forma natural e acolhedora, e chame 'log_meal' com a descrição baseada no que você viu na foto - nunca peça pro paciente descrever em texto o que já está visível na imagem.
+6. 'log_water': Sempre que o paciente relatar que bebeu água (ex: "tomei um copo d'água", "bebi uma garrafa"). Converta pra mililitros usando bom senso (1 copo ~200ml, 1 garrafa ~500ml) e pergunte se não der pra estimar.
+7. 'log_sleep': Sempre que o paciente relatar quantas horas dormiu ou como foi o sono. Se ele só mencionar a qualidade sem horas (ou vice-versa), pergunte o que faltar antes de registrar.`
     };
     messagesHistory.push(systemPrompt);
   }
@@ -150,6 +152,35 @@ INSTRUÇÕES DE AÇÃO (FERRAMENTAS):
               motivo: { type: "string", description: "O motivo detalhado do alerta (ex: paciente relata que comeu 3 pizzas, está muito ansioso)" }
             },
             required: ["motivo"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "log_water",
+          description: "Registra que o paciente bebeu água, somando ao total de hoje.",
+          parameters: {
+            type: "object",
+            properties: {
+              ml: { type: "number", description: "Quantidade em mililitros (ex: 1 copo ~= 200ml, 1 garrafa ~= 500ml)" }
+            },
+            required: ["ml"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "log_sleep",
+          description: "Registra quantas horas e a qualidade do sono do paciente na noite anterior.",
+          parameters: {
+            type: "object",
+            properties: {
+              horas: { type: "number", description: "Quantas horas o paciente dormiu" },
+              qualidade: { type: "string", description: "Qualidade do sono: Ruim, Razoável, Bom ou Excelente - escolha a mais próxima do que o paciente descreveu" }
+            },
+            required: ["horas", "qualidade"]
           }
         }
       },
@@ -257,6 +288,51 @@ INSTRUÇÕES DE AÇÃO (FERRAMENTAS):
             tool_call_id: toolCall.id,
             name: toolCall.function.name,
             content: "Nutricionista alertado com sucesso. O paciente foi marcado como 'Em Risco'."
+          });
+        } else if (toolCall.function.name === 'log_water') {
+          const args = JSON.parse(toolCall.function.arguments);
+          console.log(`[FUNCTION CALL] log_water chamado para paciente ${patientId}: ${args.ml}ml`);
+
+          // Mesmo campo que o botão de água do app usa (updateWater em
+          // AppContext.jsx) - waterLogs é um mapa { "DD/MM/YYYY": totalMl },
+          // incrementado de forma atômica pelo caminho aninhado.
+          const dateKey = new Date().toLocaleDateString('pt-BR');
+          await db.collection('patients').doc(patientId).update({
+            [`waterLogs.${dateKey}`]: FieldValue.increment(Number(args.ml) || 0),
+            xp: FieldValue.increment(2)
+          });
+
+          messagesHistory.push({
+            role: "tool",
+            tool_call_id: toolCall.id,
+            name: toolCall.function.name,
+            content: "Água registrada com sucesso."
+          });
+        } else if (toolCall.function.name === 'log_sleep') {
+          const args = JSON.parse(toolCall.function.arguments);
+          console.log(`[FUNCTION CALL] log_sleep chamado para paciente ${patientId}`);
+
+          // Mesmo campo que o modal de sono do app usa (addSleepLog em
+          // AppContext.jsx) - sleepLogs é um array com upsert por data, não
+          // dá pra usar arrayUnion (duplicaria se o paciente já tiver
+          // registrado sono hoje pelo app).
+          const dateKey = new Date().toLocaleDateString('pt-BR');
+          const patientRef = db.collection('patients').doc(patientId);
+          const freshSnap = await patientRef.get();
+          const existingSleepLogs = freshSnap.data()?.sleepLogs || [];
+          const existingIdx = existingSleepLogs.findIndex((l) => l.date === dateKey);
+          const sleepEntry = { date: dateKey, hours: parseFloat(args.horas), quality: args.qualidade };
+          const newSleepLogs = existingIdx >= 0
+            ? existingSleepLogs.map((l, i) => (i === existingIdx ? sleepEntry : l))
+            : [...existingSleepLogs, sleepEntry];
+
+          await patientRef.update({ sleepLogs: newSleepLogs, xp: FieldValue.increment(10) });
+
+          messagesHistory.push({
+            role: "tool",
+            tool_call_id: toolCall.id,
+            name: toolCall.function.name,
+            content: "Sono registrado com sucesso."
           });
         } else if (toolCall.function.name === 'verificar_disponibilidade') {
           const args = JSON.parse(toolCall.function.arguments);
