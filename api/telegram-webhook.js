@@ -1,6 +1,20 @@
 import { db } from './utils/firebase-admin.js';
-import { processTelegramMessage } from './telegram-ai.js';
 import { sendTelegramText } from './utils/telegram.js';
+import { runSecretariaVirtual } from './utils/secretariaVirtual.js';
+
+/**
+ * Processa a mensagem com a Secretária Virtual (IA) e responde pelo
+ * Telegram. Inline aqui (em vez de um arquivo telegram-ai.js separado)
+ * pra economizar slot de Serverless Function - o plano Hobby da Vercel
+ * limita 12 por deployment, e cada arquivo em api/ (incl. api/utils/)
+ * conta como uma função.
+ */
+async function processTelegramMessage(patientId, patientData, textContent, chatId) {
+  const replyText = await runSecretariaVirtual(patientId, patientData, textContent);
+  if (!replyText) return;
+  const ok = await sendTelegramText(chatId, replyText);
+  if (ok) console.log('Mensagem Telegram enviada com sucesso.');
+}
 
 /**
  * Webhook do Telegram - substitui whatsapp-webhook.js como canal principal

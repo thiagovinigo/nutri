@@ -170,6 +170,13 @@
 
 **Decisão pendente (12/08/2026):** com restrição permanente confirmada, a decisão de "continuar no Evolution API" precisa ser reaberta com o usuário — migrar pra Meta Cloud API oficial (ou BSP), trocar de número, ou avaliar Telegram como canal alternativo (discutido em sessão anterior) antes de tentar reconectar de novo.
 
+**Decisão final e migração (12/08/2026):** escolhido Telegram como substituto do WhatsApp (não canal alternativo opcional - substituição completa por ora). Migração feita:
+- Toda a infra de WhatsApp (Evolution API/Baileys) foi **removida do código** (não só desativada) - `api/whatsapp-*.js`, `api/send-whatsapp.js`, `api/admin-whatsapp-qrcode.js`, `api/utils/whatsapp.js`, `src/utils/sendWhatsApp.js`. O código continua no histórico do git (commits até `5bd015e`) se precisar restaurar.
+- Motivo de remover em vez de manter dormente: o plano Hobby da Vercel limita 12 Serverless Functions por deployment (cada arquivo em `api/`, incluindo `api/utils/`, conta como uma função) - o deploy da migração falhou (`exceeded_serverless_functions_per_deployment`) até essa limpeza. Ficar carregando canal desativado tem custo real de orçamento de deploy, não só cognitivo.
+- Novo canal: `api/telegram-webhook.js` (recebe `/start <patientId>` pra vincular `telegram_chat_id` + mensagens de texto pra Secretária Virtual), `api/send-telegram.js` (envio manual do nutricionista), `api/cron-reminders.js` migrado. Motor de IA compartilhado em `api/utils/secretariaVirtual.js`.
+- Verificação de telefone por OTP também foi removida (o vínculo `/start` do Telegram já prova posse da conta, dispensa código de 6 dígitos) - `Profile.jsx` agora tem "Conectar Telegram" em vez de "Verificar via WhatsApp".
+- Pendente: confirmar `setWebhook` registrado (endpoint temporário `api/admin-telegram-setup.js`, remover depois de confirmar) e testar o vínculo ponta-a-ponta com um paciente de teste.
+
 - [x] ~~Canal de mensagens diretas (hoje só existe o bot de IA)~~ — Concluído
 - [ ] Notificações push/e-mail quando dieta é prescrita ou consulta confirmada — Story 5 acima
 
