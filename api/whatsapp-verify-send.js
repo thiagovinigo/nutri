@@ -61,16 +61,7 @@ export default async function handler(req, res) {
       phone_verified: false
     }, { merge: true });
 
-    const normalized = normalizePhoneWithDDI(patient.phone);
-    // Log temporario de diagnostico (11-12/08/2026) - sem expor o numero
-    // completo, so tamanho/sufixo, pra investigar por que o codigo ainda
-    // vai pro JID sem o 9o digito mesmo com o fix ja deployado.
-    console.log('[verify-send][diag]', {
-      rawLen: String(patient.phone).length,
-      normalizedLen: normalized.length,
-      last4: normalized.slice(-4)
-    });
-    const remoteJid = `${normalized}@s.whatsapp.net`;
+    const remoteJid = `${normalizePhoneWithDDI(patient.phone)}@s.whatsapp.net`;
     const text = `🔐 Seu código de verificação Nutrivvo é: *${code}*\n\nEle expira em 10 minutos. Não compartilhe com ninguém.`;
     const sent = await sendWhatsAppText(remoteJid, text);
 
