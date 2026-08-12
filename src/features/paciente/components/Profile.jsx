@@ -1,9 +1,18 @@
 import React, { useState, useEffect } from 'react';
-import { User, Save, Scale, X, Sparkles, TrendingUp, ShieldCheck, ShieldAlert, ChevronDown, Flame, Gem } from 'lucide-react';
+import { User, Save, Scale, X, Sparkles, TrendingUp, ShieldCheck, ShieldAlert, ChevronDown, Flame, Gem, FileText, Activity } from 'lucide-react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, Legend, ResponsiveContainer } from 'recharts';
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 import toast from 'react-hot-toast';
 import { useAppContext } from '../../../context/AppContext';
 import { auth } from '../../../services/firebase';
+import { parseMarkdownTabs } from '../../../utils/examMarkdown';
+
+function formatExamDate(d) {
+  if (!d) return '—';
+  const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(d);
+  return m ? `${m[3]}/${m[2]}/${m[1]}` : d;
+}
 
 function formatPhone(v) {
   const digits = v.replace(/\D/g, '').slice(0, 11);
@@ -343,6 +352,38 @@ export default function Profile({ activePatient }) {
           <Save size={18} style={{ marginRight: '8px' }} /> Salvar Alterações
         </button>
       </form>
+
+      {/* Meus Exames — o nutricionista sempre via o laudo, o paciente nunca via
+          o próprio resultado. Mostra só a tradução em linguagem leiga (seção
+          "Tradução para o Paciente" do laudo), nunca o parecer clínico interno
+          completo (ver src/utils/examMarkdown.js). */}
+      {activePatient?.exams?.length > 0 && (
+        <div className="patient-card" style={{ marginBottom: '16px' }}>
+          <h3 style={styles.cardTitle}>
+            <Activity size={20} color="#8b5cf6" /> Meus Exames
+          </h3>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+            {activePatient.exams.slice().reverse().map((ex, idx) => {
+              const parsed = parseMarkdownTabs(ex.aiSummaryProfessional || ex.analysis || '');
+              const summary = parsed.leiga || 'Resultado ainda sem tradução disponível — fale com sua nutricionista.';
+              return (
+                <details key={ex.id || idx} className="patient-accordion">
+                  <summary>
+                    <FileText size={16} style={{ flexShrink: 0 }} />
+                    Exame de {formatExamDate(ex.date || ex.dateUploaded)}
+                    <ChevronDown size={18} className="patient-accordion-chevron" />
+                  </summary>
+                  <div className="patient-accordion-body">
+                    <div className="markdown-content" style={{ fontSize: '0.9rem', color: 'var(--patient-text)' }}>
+                      <ReactMarkdown remarkPlugins={[remarkGfm]}>{summary}</ReactMarkdown>
+                    </div>
+                  </div>
+                </details>
+              );
+            })}
+          </div>
+        </div>
+      )}
 
       {/* Bloco 3: Conquistas — tira do 4º card, vira uma faixa curta (não duplica a TopBar) */}
       <div className="patient-card" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px' }}>
