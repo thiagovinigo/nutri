@@ -1942,6 +1942,11 @@ export default function PatientList({
                         <input type="text" className="crm-input-modern" value={clinicConfig?.name || ''} onChange={e => updateClinicConfig({ name: e.target.value })} />
                       </div>
                       <div className="settings-fieldset">
+                        <label className="crm-label">Endereço da Clínica</label>
+                        <input type="text" className="crm-input-modern" placeholder="Rua, número, bairro, cidade - UF" value={clinicConfig?.address || ''} onChange={e => updateClinicConfig({ address: e.target.value })} />
+                        <p style={{ fontSize: '0.8rem', color: 'var(--crm-text-muted)', margin: '6px 0 0 0' }}>Aparece no Perfil dos seus pacientes vinculados, com link direto pro mapa.</p>
+                      </div>
+                      <div className="settings-fieldset">
                         <label className="crm-label">Cor Principal da Marca</label>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '16px', backgroundColor: 'var(--crm-surface-2, var(--crm-bg))', padding: '16px', borderRadius: '8px', border: '1px solid var(--crm-border)' }}>
                           <input type="color" value={clinicConfig?.primaryColor || '#2563eb'} onChange={e => updateClinicConfig({ primaryColor: e.target.value })} style={{ width: '48px', height: '48px', padding: '0', border: 'none', borderRadius: '8px', cursor: 'pointer' }} />

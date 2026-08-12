@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { User, Save, Scale, X, Sparkles, TrendingUp, ShieldCheck, ShieldAlert, ChevronDown, Flame, Gem, FileText, Activity } from 'lucide-react';
+import { User, Save, Scale, X, Sparkles, TrendingUp, ShieldCheck, ShieldAlert, ChevronDown, Flame, Gem, FileText, Activity, MapPin } from 'lucide-react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, Legend, ResponsiveContainer } from 'recharts';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
@@ -130,6 +130,17 @@ export default function Profile({ activePatient }) {
           <h4 style={{ margin: '4px 0 0 0', color: 'var(--patient-text)', display: 'flex', alignItems: 'center', gap: '8px' }}>
             <Sparkles size={16} color="#8b5cf6" /> {activePatient.nutriName}
           </h4>
+          {activePatient.nutriAddress && (
+            <a
+              href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(activePatient.nutriAddress)}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              style={{ marginTop: '8px', display: 'flex', alignItems: 'flex-start', gap: '6px', fontSize: '0.85rem', color: 'var(--patient-text-muted)', textDecoration: 'none' }}
+            >
+              <MapPin size={14} color="#8b5cf6" style={{ flexShrink: 0, marginTop: '2px' }} />
+              <span style={{ textDecoration: 'underline' }}>{activePatient.nutriAddress}</span>
+            </a>
+          )}
         </div>
       )}
 

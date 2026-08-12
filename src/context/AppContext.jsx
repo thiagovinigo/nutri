@@ -33,6 +33,7 @@ export function AppProvider({ children }) {
 
   const [clinicConfig, setClinicConfig] = useState({
     name: 'Nutrivvo',
+    address: '',
     primaryColor: '#3949AB',
     scheduleConfig: {
       workingDays: [1, 2, 3, 4, 5], // Seg a Sex
@@ -72,7 +73,9 @@ export function AppProvider({ children }) {
                const nutriRef = doc(db, 'users', patData.nutricionista_id);
                const nutriSnap = await getDoc(nutriRef);
                if (nutriSnap.exists()) {
-                 patData.nutriName = nutriSnap.data().name;
+                 const nutriData = nutriSnap.data();
+                 patData.nutriName = nutriData.name;
+                 patData.nutriAddress = nutriData.clinicConfig?.address || '';
                }
              } catch(err) {
                console.warn("Aviso: Sem permissão para ler o nome do nutricionista.", err);
