@@ -1,5 +1,5 @@
 import { db } from './utils/firebase-admin.js';
-import { sendTelegramText } from './utils/telegram.js';
+import { sendTelegramText, fetchTelegramPhotoAsDataUrl } from './utils/telegram.js';
 import { runSecretariaVirtual } from './utils/secretariaVirtual.js';
 
 /**
@@ -9,8 +9,8 @@ import { runSecretariaVirtual } from './utils/secretariaVirtual.js';
  * limita 12 por deployment, e cada arquivo em api/ (incl. api/utils/)
  * conta como uma função.
  */
-async function processTelegramMessage(patientId, patientData, textContent, chatId) {
-  const replyText = await runSecretariaVirtual(patientId, patientData, textContent);
+async function processTelegramMessage(patientId, patientData, textContent, chatId, imageDataUrl) {
+  const replyText = await runSecretariaVirtual(patientId, patientData, textContent, imageDataUrl);
   if (!replyText) return;
   const ok = await sendTelegramText(chatId, replyText);
   if (ok) console.log('Mensagem Telegram enviada com sucesso.');
@@ -61,6 +61,10 @@ export default async function handler(req, res) {
 
   const chatId = message.chat?.id;
   const fromText = message.text || message.caption || '';
+  // O Telegram manda o mesmo arquivo em vários tamanhos - o último elemento
+  // do array é sempre a maior resolução disponível.
+  const photos = Array.isArray(message.photo) ? message.photo : [];
+  const hasPhoto = photos.length > 0;
 
   if (!chatId) {
     return res.status(200).send('No chat id');
@@ -99,7 +103,7 @@ export default async function handler(req, res) {
       return res.status(200).json({ status: 'ok' });
     }
 
-    if (!fromText) {
+    if (!fromText && !hasPhoto) {
       return res.status(200).json({ status: 'ok' });
     }
 
@@ -116,7 +120,13 @@ export default async function handler(req, res) {
     const patientId = doc.id;
     const patientData = doc.data();
 
-    await processTelegramMessage(patientId, patientData, fromText, chatId);
+    // Baixa a foto ANTES de chamar a IA - se falhar, ainda seguimos com o
+    // texto/legenda (se houver) em vez de travar a resposta inteira.
+    const imageDataUrl = hasPhoto
+      ? await fetchTelegramPhotoAsDataUrl(photos[photos.length - 1].file_id)
+      : null;
+
+    await processTelegramMessage(patientId, patientData, fromText, chatId, imageDataUrl);
     return res.status(200).json({ status: 'ok' });
   } catch (err) {
     console.error('Erro no processamento do webhook do Telegram:', err);

@@ -7,15 +7,36 @@
 import { db } from './firebase-admin.js';
 
 /**
+ * Remove o payload base64 de fotos antes de persistir o histórico no
+ * Firestore. Uma foto de refeição facilmente passa de 100-500KB em base64,
+ * e o Firestore tem limite de 1MiB por documento - guardar isso em toda
+ * mensagem do histórico estouraria o limite depois de poucas fotos. A IA já
+ * respondeu com base na imagem antes desse ponto, então trocar por um
+ * marcador textual não perde nada pro paciente.
+ * @param {Array<object>} messages
+ * @returns {Array<object>}
+ */
+function sanitizeForStorage(messages) {
+  return messages.map((msg) => {
+    if (!Array.isArray(msg?.content)) return msg;
+    const textPart = msg.content.find((part) => part.type === 'text')?.text || '';
+    return { ...msg, content: `${textPart} [foto anexada]`.trim() };
+  });
+}
+
+/**
  * Processa uma mensagem recebida do paciente com a IA e persiste o
  * histórico da conversa no Firestore. Não envia a resposta - só retorna o
  * texto final pro chamador entregar no canal certo.
  * @param {string} patientId
  * @param {object} patientData
  * @param {string} textContent
+ * @param {string|null} [imageDataUrl] - data URL "data:image/...;base64,..." de uma foto
+ *   enviada pelo paciente (ex: foto do prato). Quando presente, a mensagem vai
+ *   multimodal pra OpenAI pra IA de fato "ver" a refeição em vez de só receber texto/legenda.
  * @returns {Promise<string|null>} texto da resposta, ou null se o bot está pausado/erro
  */
-export async function runSecretariaVirtual(patientId, patientData, textContent) {
+export async function runSecretariaVirtual(patientId, patientData, textContent, imageDataUrl = null) {
   const sessionRef = db.collection('patients').doc(patientId);
   const sessionSnap = await sessionRef.get();
 
@@ -55,12 +76,23 @@ INSTRUÇÕES DE AÇÃO (FERRAMENTAS):
 1. 'log_meal': SEMPRE que o paciente relatar o que comeu (seja na dieta ou um furo).
 2. 'alertar_nutricionista': Se o paciente demonstrar desânimo extremo, intenção de desistir, compulsão alimentar repetitiva, ou não estiver se hidratando/dormindo, USE esta ferramenta para alertar o nutricionista (Isso marca o paciente como 'Em Risco'). Não avise o paciente que acionou o alerta, apenas seja acolhedor.
 3. 'verificar_disponibilidade': Se o paciente quiser marcar consulta, use isso para checar os dias/horários livres do nutricionista.
-4. 'agendar_consulta': Após confirmar o dia e hora com o paciente e verificar que está livre, use esta ferramenta para agendar no sistema. Lembre-se: se falhar por conflito, avise o paciente e peça outro horário.`
+4. 'agendar_consulta': Após confirmar o dia e hora com o paciente e verificar que está livre, use esta ferramenta para agendar no sistema. Lembre-se: se falhar por conflito, avise o paciente e peça outro horário.
+5. Se o paciente enviar uma FOTO da refeição, você VÊ a imagem diretamente. Descreva o que identifica no prato (alimentos, porção aproximada) de forma natural e acolhedora, e chame 'log_meal' com a descrição baseada no que você viu na foto - nunca peça pro paciente descrever em texto o que já está visível na imagem.`
     };
     messagesHistory.push(systemPrompt);
   }
 
-  messagesHistory.push({ role: 'user', content: textContent });
+  messagesHistory.push(
+    imageDataUrl
+      ? {
+          role: 'user',
+          content: [
+            { type: 'text', text: textContent || 'Aqui está a foto da minha refeição.' },
+            { type: 'image_url', image_url: { url: imageDataUrl } }
+          ]
+        }
+      : { role: 'user', content: textContent }
+  );
 
   // Poda o histórico para não exceder limites de token (mantém system + últimas 10 msgs)
   if (messagesHistory.length > 11) {
@@ -75,7 +107,7 @@ INSTRUÇÕES DE AÇÃO (FERRAMENTAS):
   if (isBotPaused) {
     console.log(`Bot pausado para o paciente ${patientId}. Salvando mensagem e encerrando.`);
     await sessionRef.set({
-      whatsapp_messages: messagesHistory,
+      whatsapp_messages: sanitizeForStorage(messagesHistory),
       last_interaction: new Date(),
       bot_paused: true
     }, { merge: true });
@@ -294,7 +326,7 @@ INSTRUÇÕES DE AÇÃO (FERRAMENTAS):
     }
 
     await sessionRef.set({
-      whatsapp_messages: messagesHistory,
+      whatsapp_messages: sanitizeForStorage(messagesHistory),
       last_interaction: new Date()
     }, { merge: true });
 
