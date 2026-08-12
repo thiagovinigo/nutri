@@ -66,56 +66,62 @@ export default async function handler(req, res) {
     return res.status(200).send('No chat id');
   }
 
-  // Retorna 200 OK imediatamente (mesma ressalva de whatsapp-webhook.js:
-  // processamento roda solto depois, sem await, pra não segurar a resposta).
-  res.status(200).json({ status: 'received' });
-
-  (async () => {
-    try {
-      // /start <patientId> - vínculo inicial. O link é gerado no Perfil do
-      // paciente (Profile.jsx), só visível pra ele logado, então o
-      // patientId funciona como token de posse nesse fluxo (mesmo nível de
-      // confiança que outros vínculos do app).
-      if (fromText.startsWith('/start')) {
-        const patientId = fromText.replace('/start', '').trim();
-        if (!patientId) {
-          await sendTelegramText(chatId, 'Olá! Para vincular sua conta, abra o link "Conectar Telegram" dentro do seu Perfil no app Nutrivvo.');
-          return;
-        }
-
-        const patientRef = db.collection('patients').doc(patientId);
-        const patientSnap = await patientRef.get();
-        if (!patientSnap.exists) {
-          await sendTelegramText(chatId, 'Não encontrei seu cadastro. Verifique se abriu o link certo dentro do app Nutrivvo.');
-          return;
-        }
-
-        await patientRef.set({ telegram_chat_id: chatId, telegram_linked_at: new Date() }, { merge: true });
-        const patientData = patientSnap.data();
-        await sendTelegramText(chatId, `Prontinho, ${patientData.name?.split(' ')[0] || ''}! 🎉 Seu Telegram está conectado ao Nutrivvo. Pode me mandar mensagem por aqui sempre que precisar - dúvidas sobre a dieta, o que comeu no dia, ou marcar consulta.`);
-        return;
+  // IMPORTANTE: processa e espera (await) ANTES de responder. A versao
+  // anterior respondia 200 e rodava o resto solto num IIFE sem await
+  // ("fire and forget") - a Vercel congela/mata a funcao assim que a
+  // resposta e enviada, entao esse trabalho solto nunca chegava a rodar de
+  // verdade (bug encontrado em producao em 12/08/2026: webhook recebia e
+  // respondia 200, mas Firestore/Telegram nunca eram chamados de fato).
+  // Telegram tolera ate 60s de resposta antes de dar timeout/retry, entao
+  // esperar aqui e seguro.
+  try {
+    // /start <patientId> - vínculo inicial. O link é gerado no Perfil do
+    // paciente (Profile.jsx), só visível pra ele logado, então o
+    // patientId funciona como token de posse nesse fluxo (mesmo nível de
+    // confiança que outros vínculos do app).
+    if (fromText.startsWith('/start')) {
+      const patientId = fromText.replace('/start', '').trim();
+      if (!patientId) {
+        await sendTelegramText(chatId, 'Olá! Para vincular sua conta, abra o link "Conectar Telegram" dentro do seu Perfil no app Nutrivvo.');
+        return res.status(200).json({ status: 'ok' });
       }
 
-      if (!fromText) {
-        return;
+      const patientRef = db.collection('patients').doc(patientId);
+      const patientSnap = await patientRef.get();
+      if (!patientSnap.exists) {
+        await sendTelegramText(chatId, 'Não encontrei seu cadastro. Verifique se abriu o link certo dentro do app Nutrivvo.');
+        return res.status(200).json({ status: 'ok' });
       }
 
-      // Busca o paciente pelo chat_id já vinculado.
-      const patientsRef = db.collection('patients');
-      const snapshot = await patientsRef.where('telegram_chat_id', '==', chatId).limit(1).get();
-
-      if (snapshot.empty) {
-        await sendTelegramText(chatId, 'Seu Telegram ainda não está vinculado a nenhuma conta Nutrivvo. Abra "Conectar Telegram" no seu Perfil dentro do app pra vincular.');
-        return;
-      }
-
-      const doc = snapshot.docs[0];
-      const patientId = doc.id;
-      const patientData = doc.data();
-
-      await processTelegramMessage(patientId, patientData, fromText, chatId);
-    } catch (err) {
-      console.error('Erro no processamento background do webhook do Telegram:', err);
+      await patientRef.set({ telegram_chat_id: chatId, telegram_linked_at: new Date() }, { merge: true });
+      const patientData = patientSnap.data();
+      await sendTelegramText(chatId, `Prontinho, ${patientData.name?.split(' ')[0] || ''}! 🎉 Seu Telegram está conectado ao Nutrivvo. Pode me mandar mensagem por aqui sempre que precisar - dúvidas sobre a dieta, o que comeu no dia, ou marcar consulta.`);
+      return res.status(200).json({ status: 'ok' });
     }
-  })();
+
+    if (!fromText) {
+      return res.status(200).json({ status: 'ok' });
+    }
+
+    // Busca o paciente pelo chat_id já vinculado.
+    const patientsRef = db.collection('patients');
+    const snapshot = await patientsRef.where('telegram_chat_id', '==', chatId).limit(1).get();
+
+    if (snapshot.empty) {
+      await sendTelegramText(chatId, 'Seu Telegram ainda não está vinculado a nenhuma conta Nutrivvo. Abra "Conectar Telegram" no seu Perfil dentro do app pra vincular.');
+      return res.status(200).json({ status: 'ok' });
+    }
+
+    const doc = snapshot.docs[0];
+    const patientId = doc.id;
+    const patientData = doc.data();
+
+    await processTelegramMessage(patientId, patientData, fromText, chatId);
+    return res.status(200).json({ status: 'ok' });
+  } catch (err) {
+    console.error('Erro no processamento do webhook do Telegram:', err);
+    // Ainda responde 200 pro Telegram nao ficar retentando um update que
+    // provavelmente vai falhar de novo do mesmo jeito.
+    return res.status(200).json({ status: 'error_logged' });
+  }
 }
