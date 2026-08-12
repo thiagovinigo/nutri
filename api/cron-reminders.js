@@ -1,5 +1,5 @@
 import { db } from './utils/firebase-admin.js';
-import { normalizePhoneWithDDI, sendWhatsAppText } from './utils/whatsapp.js';
+import { sendTelegramText } from './utils/telegram.js';
 
 export default async function handler(req, res) {
   // Segurança básica: o CRON da Vercel envia automaticamente
@@ -32,10 +32,8 @@ export default async function handler(req, res) {
     for (const doc of patientsSnap.docs) {
       const patient = doc.data();
 
-      // Se não tem telefone ou receitas (dieta), ignora
-      if (!patient.phone || !patient.recipes || patient.recipes.length === 0) continue;
-
-      const remoteJid = `${normalizePhoneWithDDI(patient.phone)}@s.whatsapp.net`;
+      // Se não conectou o Telegram ou não tem receitas (dieta), ignora
+      if (!patient.telegram_chat_id || !patient.recipes || patient.recipes.length === 0) continue;
 
       // Procura alguma refeição marcada exatamente para esta hora
       for (const meal of patient.recipes) {
@@ -49,7 +47,7 @@ export default async function handler(req, res) {
 
           const text = `Oi ${patient.name.split(' ')[0]}! 🍎\n\nPassando aqui para lembrar que está na hora do seu *${meal.name}*!\nNão esquece de registrar como foi para eu acompanhar seu progresso, tá bom?`;
 
-          await sendWhatsAppText(remoteJid, text);
+          await sendTelegramText(patient.telegram_chat_id, text);
           lembretesEnviados++;
 
           // Se encontrou uma refeição para essa hora, quebra o loop desse paciente

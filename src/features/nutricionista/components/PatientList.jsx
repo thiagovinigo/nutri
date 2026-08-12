@@ -5,7 +5,7 @@ import { useNavigate } from 'react-router-dom';
 import { auth } from '../../../services/firebase';
 import { useAppContext } from '../../../context/AppContext';
 import { callOpenAIBridge } from '../../../utils/openaiBridge';
-import { sendWhatsAppToPatient } from '../../../utils/sendWhatsApp';
+import { sendTelegramToPatient } from '../../../utils/sendTelegram';
 import WeeklyCalendar from './WeeklyCalendar';
 import FinancialCRM from './FinancialCRM';
 import AnamnesisTemplateSettings from './AnamnesisTemplateSettings';
@@ -795,7 +795,7 @@ export default function PatientList({
                           onClick={() => {
                             const msg = prompt('Digite a mensagem de resgate para enviar ao WhatsApp deste paciente:', 'Oi, senti sua falta nos últimos dias. Está tudo bem com a dieta?');
                             if (msg && viewedPatient.phone) {
-                              sendWhatsAppToPatient(viewedPatient.id, msg)
+                              sendTelegramToPatient(viewedPatient.id, msg)
                                 .then(() => toast.success('Mensagem de resgate enviada com sucesso!'))
                                 .catch(err => toast.error(err.message || 'Falha ao enviar mensagem de resgate.'));
                             } else {

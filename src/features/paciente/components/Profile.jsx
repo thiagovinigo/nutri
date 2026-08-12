@@ -5,7 +5,6 @@ import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import toast from 'react-hot-toast';
 import { useAppContext } from '../../../context/AppContext';
-import { auth } from '../../../services/firebase';
 import { parseMarkdownTabs } from '../../../utils/examMarkdown';
 
 function formatExamDate(d) {
@@ -30,7 +29,7 @@ function formatCpf(v) {
 }
 
 export default function Profile({ activePatient }) {
-  const { updatePatient, patchPatientLocal, addWeight, completeQuest } = useAppContext();
+  const { updatePatient, addWeight, completeQuest } = useAppContext();
   const [editName, setEditName] = useState('');
   const [editEmail, setEditEmail] = useState('');
   const [editCpf, setEditCpf] = useState('');
@@ -41,13 +40,6 @@ export default function Profile({ activePatient }) {
   const [editPhone, setEditPhone] = useState('');
   const [showWeightModal, setShowWeightModal] = useState(false);
   const [weightInput, setWeightInput] = useState('');
-
-  // Verificação de telefone via WhatsApp (OTP)
-  const [verifyStep, setVerifyStep] = useState('idle'); // idle | code_sent
-  const [otpInput, setOtpInput] = useState('');
-  const [verifySending, setVerifySending] = useState(false);
-  const [verifyConfirming, setVerifyConfirming] = useState(false);
-  const [verifyError, setVerifyError] = useState('');
 
   useEffect(() => {
     if (activePatient) {
@@ -105,72 +97,9 @@ export default function Profile({ activePatient }) {
     e.preventDefault();
     if (activePatient) {
       const newPhoneDigits = editPhone.replace(/\D/g, '');
-      const phoneChanged = newPhoneDigits !== (activePatient.phone || '');
       const payload = { ...activePatient, name: editName, email: editEmail, cpf: editCpf.replace(/\D/g, ''), age: editAge, gender: editGender, aversions: editAversions, medications: editMedications, phone: newPhoneDigits };
-      // Trocar o número derruba a verificação anterior - firestore.rules exige
-      // isso no mesmo write (ver .claude/prds/verificacao-telefone-whatsapp.prd.md).
-      if (phoneChanged) {
-        payload.phone_verified = false;
-        setVerifyStep('idle');
-        setOtpInput('');
-        setVerifyError('');
-      }
       updatePatient(activePatient.id, payload);
       toast.success('Perfil atualizado com sucesso!');
-    }
-  };
-
-  const handleSendVerifyCode = async () => {
-    if (!activePatient || !auth.currentUser) return;
-    setVerifySending(true);
-    setVerifyError('');
-    try {
-      const idToken = await auth.currentUser.getIdToken();
-      const res = await fetch('/api/whatsapp-verify-send', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${idToken}` },
-        body: JSON.stringify({ patientId: activePatient.id })
-      });
-      const data = await res.json();
-      if (!res.ok) {
-        setVerifyError(data.error || 'Falha ao enviar código.');
-        return;
-      }
-      setVerifyStep('code_sent');
-    } catch (err) {
-      console.error('Erro ao enviar código de verificação:', err);
-      setVerifyError('Erro de conexão ao enviar código.');
-    } finally {
-      setVerifySending(false);
-    }
-  };
-
-  const handleConfirmVerifyCode = async () => {
-    if (!activePatient || !auth.currentUser || !otpInput) return;
-    setVerifyConfirming(true);
-    setVerifyError('');
-    try {
-      const idToken = await auth.currentUser.getIdToken();
-      const res = await fetch('/api/whatsapp-verify-confirm', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${idToken}` },
-        body: JSON.stringify({ patientId: activePatient.id, code: otpInput })
-      });
-      const data = await res.json();
-      if (!res.ok) {
-        setVerifyError(data.error || 'Código incorreto.');
-        return;
-      }
-      // O write já foi feito pelo servidor (Admin SDK); só refletimos localmente.
-      patchPatientLocal(activePatient.id, { phone_verified: true });
-      setVerifyStep('idle');
-      setOtpInput('');
-      toast.success('Telefone verificado!');
-    } catch (err) {
-      console.error('Erro ao confirmar código de verificação:', err);
-      setVerifyError('Erro de conexão ao confirmar código.');
-    } finally {
-      setVerifyConfirming(false);
     }
   };
 
@@ -186,8 +115,10 @@ export default function Profile({ activePatient }) {
     }
   };
 
-  const phoneVerified = !!activePatient?.phone_verified;
-  const needsPhoneAction = !!activePatient?.phone && !phoneVerified;
+  const telegramConnected = !!activePatient?.telegram_chat_id;
+  const needsTelegramAction = !telegramConnected;
+  const telegramBotUsername = import.meta.env.VITE_TELEGRAM_BOT_USERNAME || 'nutrivvo_bot';
+  const telegramConnectUrl = activePatient?.id ? `https://t.me/${telegramBotUsername}?start=${activePatient.id}` : '#';
 
   return (
     <div className="animate-pop-in">
@@ -238,56 +169,36 @@ export default function Profile({ activePatient }) {
       <form onSubmit={handleSaveProfile} className="patient-card" style={{ marginBottom: '16px' }}>
         <h3 style={styles.cardTitle}>Meus Dados</h3>
 
-        <details className="patient-accordion" open={needsPhoneAction}>
+        <details className="patient-accordion" open={needsTelegramAction}>
           <summary>
-            <span style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: needsPhoneAction ? '#f59e0b' : '#10b981', flexShrink: 0 }} />
-            Contato &amp; Verificação
-            {needsPhoneAction && <span style={styles.summaryHint}>ação necessária</span>}
+            <span style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: needsTelegramAction ? '#f59e0b' : '#10b981', flexShrink: 0 }} />
+            Contato &amp; Telegram
+            {needsTelegramAction && <span style={styles.summaryHint}>ação necessária</span>}
             <ChevronDown size={18} className="patient-accordion-chevron" />
           </summary>
           <div className="patient-accordion-body">
             <div>
-              <label className="patient-label" htmlFor="profile-phone">Telefone (WhatsApp)</label>
+              <label className="patient-label" htmlFor="profile-phone">Telefone</label>
               <input id="profile-phone" type="text" className="patient-input" value={editPhone} onChange={e => setEditPhone(formatPhone(e.target.value))} placeholder="(99) 99999-9999" />
-
-              {activePatient?.phone && (
-                <div style={{ marginTop: '10px' }}>
-                  {phoneVerified ? (
-                    <span style={styles.verifiedBadge}>
-                      <ShieldCheck size={16} /> Verificado
-                    </span>
-                  ) : (
-                    <div>
-                      <span style={styles.unverifiedBadge}>
-                        <ShieldAlert size={16} /> Não verificado — a Secretária Virtual só responde a números confirmados
-                      </span>
-
-                      {verifyStep === 'idle' && (
-                        <button type="button" onClick={handleSendVerifyCode} disabled={verifySending}
-                          className="btn-3d btn-primary" style={{ padding: '8px 14px', fontSize: '0.85rem' }}>
-                          {verifySending ? 'Enviando...' : 'Verificar via WhatsApp'}
-                        </button>
-                      )}
-
-                      {verifyStep === 'code_sent' && (
-                        <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', alignItems: 'center' }}>
-                          <label className="sr-only" htmlFor="profile-otp">Código de verificação</label>
-                          <input id="profile-otp" type="text" inputMode="numeric" maxLength={6} placeholder="Código de 6 dígitos"
-                            className="patient-input" value={otpInput} onChange={e => setOtpInput(e.target.value.replace(/\D/g, ''))}
-                            style={{ width: '160px' }} />
-                          <button type="button" onClick={handleConfirmVerifyCode} disabled={verifyConfirming || otpInput.length !== 6}
-                            className="btn-3d" style={{ ...styles.actionBtn, backgroundColor: '#10b981', boxShadow: '0 4px 0 #059669', padding: '8px 14px', fontSize: '0.85rem' }}>
-                            {verifyConfirming ? 'Confirmando...' : 'Confirmar'}
-                          </button>
-                          <button type="button" onClick={handleSendVerifyCode} disabled={verifySending} style={styles.resendBtn}>
-                            Reenviar código
-                          </button>
-                        </div>
-                      )}
-
-                      {verifyError && <p style={{ color: '#ef4444', fontSize: '0.8rem', marginTop: '6px' }}>{verifyError}</p>}
-                    </div>
-                  )}
+            </div>
+            <div>
+              <span className="patient-label">Secretária Virtual (Telegram)</span>
+              {telegramConnected ? (
+                <span style={styles.verifiedBadge}>
+                  <ShieldCheck size={16} /> Conectado
+                </span>
+              ) : (
+                <div>
+                  <span style={styles.unverifiedBadge}>
+                    <ShieldAlert size={16} /> Não conectado — a Secretária Virtual só responde depois de conectar
+                  </span>
+                  <a href={telegramConnectUrl} target="_blank" rel="noopener noreferrer"
+                    className="btn-3d btn-primary" style={{ padding: '8px 14px', fontSize: '0.85rem', textDecoration: 'none', display: 'inline-flex' }}>
+                    Conectar no Telegram
+                  </a>
+                  <p style={{ fontSize: '0.78rem', color: 'var(--patient-text-muted)', marginTop: '8px' }}>
+                    Abre o Telegram — é só apertar "Iniciar" na conversa com o bot pra vincular.
+                  </p>
                 </div>
               )}
             </div>
@@ -433,7 +344,6 @@ const styles = {
   actionBtn: { color: 'var(--patient-text)', border: 'none', borderRadius: '12px', padding: '12px 20px', fontWeight: '800', fontSize: '1rem', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px' },
   verifiedBadge: { display: 'inline-flex', alignItems: 'center', gap: '6px', fontSize: '0.85rem', color: '#10b981', fontWeight: 700 },
   unverifiedBadge: { display: 'inline-flex', alignItems: 'center', gap: '6px', fontSize: '0.85rem', color: '#f59e0b', fontWeight: 700, marginBottom: '8px' },
-  resendBtn: { background: 'none', border: 'none', color: 'var(--patient-text-muted)', fontSize: '0.85rem', cursor: 'pointer', textDecoration: 'underline', padding: '12px 4px', minHeight: '44px' },
   summaryHint: { fontSize: '0.72rem', fontWeight: 600, color: 'var(--patient-text-muted)', marginLeft: 'auto' },
   modalOverlay: { position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.8)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 9999, padding: '20px' },
   closeBtn: { background: 'none', border: 'none', cursor: 'pointer', color: 'var(--patient-text-muted)', display: 'flex', padding: 0 }

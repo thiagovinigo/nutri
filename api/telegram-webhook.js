@@ -1,0 +1,93 @@
+import { db } from './utils/firebase-admin.js';
+import { processTelegramMessage } from './telegram-ai.js';
+import { sendTelegramText } from './utils/telegram.js';
+
+/**
+ * Webhook do Telegram - substitui whatsapp-webhook.js como canal principal
+ * a partir de 12/08/2026. Espelha a mesma estrutura (secret obrigatório,
+ * resposta 200 imediata, processamento em background) mas usa o
+ * mecanismo nativo do Telegram: header X-Telegram-Bot-Api-Secret-Token
+ * (configurado via setWebhook, ver scripts/setup_telegram.cjs) em vez do
+ * "Authorization: Bearer" usado pela Evolution API.
+ */
+export default async function handler(req, res) {
+  if (req.method !== 'POST') {
+    return res.status(405).json({ error: 'Method Not Allowed' });
+  }
+
+  const webhookSecret = process.env.TELEGRAM_WEBHOOK_SECRET;
+  if (!webhookSecret) {
+    console.error('TELEGRAM_WEBHOOK_SECRET não configurada no ambiente.');
+    return res.status(500).json({ error: 'Configuração de segurança ausente no servidor.' });
+  }
+  if (req.headers['x-telegram-bot-api-secret-token'] !== webhookSecret) {
+    return res.status(401).json({ error: 'Unauthorized' });
+  }
+
+  const update = req.body || {};
+  const message = update.message;
+
+  if (!message) {
+    return res.status(200).send('Event ignored');
+  }
+
+  const chatId = message.chat?.id;
+  const fromText = message.text || message.caption || '';
+
+  if (!chatId) {
+    return res.status(200).send('No chat id');
+  }
+
+  // Retorna 200 OK imediatamente (mesma ressalva de whatsapp-webhook.js:
+  // processamento roda solto depois, sem await, pra não segurar a resposta).
+  res.status(200).json({ status: 'received' });
+
+  (async () => {
+    try {
+      // /start <patientId> - vínculo inicial. O link é gerado no Perfil do
+      // paciente (Profile.jsx), só visível pra ele logado, então o
+      // patientId funciona como token de posse nesse fluxo (mesmo nível de
+      // confiança que outros vínculos do app).
+      if (fromText.startsWith('/start')) {
+        const patientId = fromText.replace('/start', '').trim();
+        if (!patientId) {
+          await sendTelegramText(chatId, 'Olá! Para vincular sua conta, abra o link "Conectar Telegram" dentro do seu Perfil no app Nutrivvo.');
+          return;
+        }
+
+        const patientRef = db.collection('patients').doc(patientId);
+        const patientSnap = await patientRef.get();
+        if (!patientSnap.exists) {
+          await sendTelegramText(chatId, 'Não encontrei seu cadastro. Verifique se abriu o link certo dentro do app Nutrivvo.');
+          return;
+        }
+
+        await patientRef.set({ telegram_chat_id: chatId, telegram_linked_at: new Date() }, { merge: true });
+        const patientData = patientSnap.data();
+        await sendTelegramText(chatId, `Prontinho, ${patientData.name?.split(' ')[0] || ''}! 🎉 Seu Telegram está conectado ao Nutrivvo. Pode me mandar mensagem por aqui sempre que precisar - dúvidas sobre a dieta, o que comeu no dia, ou marcar consulta.`);
+        return;
+      }
+
+      if (!fromText) {
+        return;
+      }
+
+      // Busca o paciente pelo chat_id já vinculado.
+      const patientsRef = db.collection('patients');
+      const snapshot = await patientsRef.where('telegram_chat_id', '==', chatId).limit(1).get();
+
+      if (snapshot.empty) {
+        await sendTelegramText(chatId, 'Seu Telegram ainda não está vinculado a nenhuma conta Nutrivvo. Abra "Conectar Telegram" no seu Perfil dentro do app pra vincular.');
+        return;
+      }
+
+      const doc = snapshot.docs[0];
+      const patientId = doc.id;
+      const patientData = doc.data();
+
+      await processTelegramMessage(patientId, patientData, fromText, chatId);
+    } catch (err) {
+      console.error('Erro no processamento background do webhook do Telegram:', err);
+    }
+  })();
+}
