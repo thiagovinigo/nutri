@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { FileText, Activity, Sparkles, Edit3, Send, Plus, X, Upload, CheckCircle, Trash2, Download, Dumbbell } from 'lucide-react';
+import { FileText, Activity, Sparkles, Edit3, Send, Plus, X, Upload, CheckCircle, Trash2, Download, Dumbbell, Printer } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import MealBuilder from './MealBuilder';
@@ -7,67 +7,7 @@ import WorkoutBuilder from './WorkoutBuilder';
 import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid } from 'recharts';
 import { DEFAULT_TEMPLATE } from './AnamnesisTemplateSettings';
 import supplementsData from '../../../data/supplements.json';
-
-function normTitle(s) {
-  return (s || '').toLowerCase()
-    .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
-    .replace(/[^a-z\s]/g, '').trim();
-}
-
-function parseMarkdownTabs(markdown) {
-  if (!markdown) return {};
-  const chunks = [];
-  let cur = { title: 'analise detalhada', lines: [] };
-  
-  const lines = markdown.split('\n');
-  for (let line of lines) {
-    const cleanLine = line.trim();
-    // Tenta capturar headers como "## Titulo", "**Titulo**", "1. Titulo", "1. **Titulo**", "### **Titulo**"
-    let headerMatch = cleanLine.match(/^#{1,6}\s+(?:(?:[0-9]+\.)?\s*)?(?:\*\*)?(.*?)(?:\*\*)?:?$/) || 
-                      cleanLine.match(/^(?:[0-9]+\.)?\s*\*\*(.*?)\*\*:?$/) ||
-                      cleanLine.match(/^[0-9]+\.\s+(.*)$/);
-                      
-    if (headerMatch) {
-      const parsedTitle = normTitle(headerMatch[1]);
-      // Verifica se o header bate com nossas abas esperadas para não quebrar em listas numeradas comuns
-      if (['analise', 'evolucao', 'traducao', 'visao', 'comite', 'leiga', 'profissional', 'referencias', 'historico'].some(k => parsedTitle.includes(k))) {
-        chunks.push(cur);
-        cur = { title: parsedTitle, lines: [] };
-        continue;
-      }
-    } 
-    
-    cur.lines.push(line);
-  }
-  chunks.push(cur);
-
-  const find = (...keys) => {
-    const c = chunks.filter(c => keys.some(k => c.title.includes(k)));
-    return c.length ? c.map(x => x.lines.join('\n').trim()).join('\n\n---\n\n') : '';
-  };
-
-  const parsed = {
-    detalhada: find('analise', 'exames'),
-    evolucao: find('evolucao', 'comparacao', 'historico'),
-    leiga: find('traducao', 'leiga', 'paciente'),
-    profissional: find('visao', 'medica', 'nutricional', 'tecnica', 'profissional', 'comite'),
-    referencias: find('referencias bibliograficas', 'referencias'),
-  };
-
-  if (!parsed.detalhada && !parsed.leiga && !parsed.profissional && !parsed.evolucao) {
-    parsed.detalhada = markdown;
-  }
-
-  return parsed;
-}
-
-const EXAM_TABS = [
-  { key: 'detalhada', label: 'Análise Detalhada' },
-  { key: 'evolucao', label: 'Evolução Clínica' },
-  { key: 'leiga', label: 'Tradução para o Paciente' },
-  { key: 'profissional', label: 'Visão do Prof. e Comitê' },
-  { key: 'referencias', label: 'Referências' },
-];
+import { parseMarkdownTabs, EXAM_TABS } from '../../../utils/examMarkdown';
 
 export default function ConsultationFlow({
   activePatient,
@@ -131,6 +71,20 @@ export default function ConsultationFlow({
       fat: Math.round(fat)
     };
   }, [dietMeals]);
+
+  // Agrupa as refeicoes prescritas por dia (ex: "Dia 1", "Dia 2") pro
+  // resumo impresso/PDF do passo 5 - mesma logica usada no lado do
+  // paciente (DietPlan.jsx).
+  const buildPrintDays = (meals) => {
+    const days = {};
+    (meals || []).forEach(m => {
+      const match = (m.name || '').match(/Dia (\d+)/i);
+      const key = match ? `Dia ${match[1]}` : 'Cardápio';
+      if (!days[key]) days[key] = [];
+      days[key].push(m);
+    });
+    return days;
+  };
 
   const macroData = React.useMemo(() => {
     return [
@@ -966,10 +920,53 @@ export default function ConsultationFlow({
               </div>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '32px', borderTop: '1px solid var(--crm-border)', paddingTop: '24px' }}>
                 <button className="crm-btn-secondary" onClick={() => setConsultationStep(4)}>← Voltar para Prescrição</button>
-                <button className="crm-btn-primary" onClick={finishConsultation} style={{ padding: '12px 24px', fontSize: '1.05rem' }}>
-                  <Send size={18} /> Publicar Diário no App
-                </button>
+                <div style={{ display: 'flex', gap: '12px' }}>
+                  {dietMeals.length > 0 && (
+                    <button className="crm-btn-secondary" onClick={() => window.print()} style={{ padding: '12px 20px' }}>
+                      <Printer size={18} /> Imprimir / Baixar PDF
+                    </button>
+                  )}
+                  <button className="crm-btn-primary" onClick={finishConsultation} style={{ padding: '12px 24px', fontSize: '1.05rem' }}>
+                    <Send size={18} /> Publicar Diário no App
+                  </button>
+                </div>
               </div>
+
+              {/* Área invisível na tela, só aparece no preview de impressão
+                  do navegador - resumo do plano prescrito pra entregar
+                  fisicamente ou salvar como PDF antes/depois de publicar. */}
+              {dietMeals.length > 0 && (
+                <div className="print-area">
+                  <h1 style={{ fontSize: '1.4rem', marginBottom: '4px' }}>Nutrivvo</h1>
+                  <p className="print-muted" style={{ marginBottom: '16px' }}>
+                    Plano alimentar de {activePatient.name} · Gerado em {new Date().toLocaleDateString('pt-BR')}
+                  </p>
+                  {dietTitle && <h2 style={{ fontSize: '1.15rem', marginBottom: '2px' }}>{dietTitle}</h2>}
+                  {dietDescription && <p className="print-muted">{dietDescription}</p>}
+                  {Object.entries(buildPrintDays(dietMeals)).map(([day, meals]) => (
+                    <div key={day} style={{ marginTop: '18px' }}>
+                      <h3 style={{ fontSize: '1rem', borderBottom: '2px solid #A855F7', paddingBottom: '4px' }}>{day}</h3>
+                      {meals.map((m, i) => (
+                        <div key={i} style={{ marginTop: '10px' }}>
+                          <strong>{m.name}</strong>
+                          <ul style={{ margin: '4px 0', paddingLeft: '20px' }}>
+                            {(m.foods || []).map((f, j) => (
+                              <li key={j}>{f.amount}g — {f.name} ({f.kcal} kcal | C:{f.carb}g P:{f.protein}g G:{f.fat}g)</li>
+                            ))}
+                          </ul>
+                          {m.desc && <p className="print-muted" style={{ fontSize: '0.85rem', whiteSpace: 'pre-wrap' }}>{m.desc}</p>}
+                        </div>
+                      ))}
+                    </div>
+                  ))}
+                  {dietSupplements && (
+                    <div style={{ marginTop: '18px' }}>
+                      <h3 style={{ fontSize: '1rem' }}>Vitaminas e Suplementos</h3>
+                      <p style={{ whiteSpace: 'pre-wrap' }}>{dietSupplements}</p>
+                    </div>
+                  )}
+                </div>
+              )}
               {finishedMessage && (
                 <div style={{ marginTop: '16px', padding: '14px 16px', backgroundColor: 'var(--crm-good-soft)', border: '1px solid var(--crm-good-soft-border)', borderRadius: '8px', color: 'var(--crm-good-text)', fontSize: '0.9rem', fontWeight: 600 }}>
                   {finishedMessage}

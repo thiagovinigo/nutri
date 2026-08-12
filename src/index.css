@@ -201,6 +201,31 @@ textarea.patient-input { resize: vertical; min-height: 60px; }
 .animate-slide-up { animation: slideUp 0.4s ease-out forwards; }
 
 /* ----------------------------------------------------
+   IMPRESSAO / PDF (plano alimentar, ficha de consulta)
+   Qualquer bloco marcado com .print-area fica oculto na tela normal e so
+   aparece no preview de impressao do navegador (Ctrl+P / "Salvar como PDF"),
+   isolado do resto da UI (tema escuro, sidebar, bottom nav, modais etc.).
+   Ver DietPlan.jsx e ConsultationFlow.jsx.
+------------------------------------------------------- */
+.print-area { display: none; }
+@media print {
+  body * { visibility: hidden; }
+  .print-area, .print-area * { visibility: visible; }
+  .print-area {
+    display: block;
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    padding: 24px;
+    color: #0F172A;
+    background: #FFFFFF;
+  }
+  .print-area h1, .print-area h2, .print-area h3, .print-area h4 { color: #0F172A; }
+  .print-area .print-muted { color: #64748B; }
+}
+
+/* ----------------------------------------------------
    MARKDOWN CONTENT 
 ------------------------------------------------------- */
 .markdown-content p {

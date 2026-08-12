@@ -104,6 +104,21 @@ export default function DietPlan({ activePatient }) {
     return byCategory;
   };
 
+  // Agrupa as refeicoes do plano atual por dia (ex: "Dia 1", "Dia 2") pra
+  // impressao completa - a navegacao em tela mostra so 1 dia por vez
+  // (selectedPlanDay), mas o PDF entregue ao paciente precisa do plano
+  // inteiro de uma vez.
+  const buildPrintDays = (meals) => {
+    const days = {};
+    (meals || []).forEach(m => {
+      const match = (m.name || '').match(/Dia (\d+)/i);
+      const key = match ? `Dia ${match[1]}` : 'Cardápio';
+      if (!days[key]) days[key] = [];
+      days[key].push(m);
+    });
+    return days;
+  };
+
   const shoppingListGroups = showShoppingList ? generateShoppingList() : {};
   const foodLogs = activePatient?.foodLogs || [];
 
@@ -169,6 +184,13 @@ export default function DietPlan({ activePatient }) {
               </span>
             </button>
           )}
+          {/* Print full plan button */}
+          {currentRecipe && (
+            <button className="btn-3d btn-secondary" onClick={() => window.print()}
+              style={{ padding: '8px 14px', fontSize: '0.85rem', display: 'flex', alignItems: 'center', gap: '6px' }}>
+              <Printer size={16} /> Imprimir Plano
+            </button>
+          )}
           {/* Shopping list button */}
           {currentRecipe && (
             <button className="btn-3d" onClick={() => setShowShoppingList(true)}
@@ -178,6 +200,45 @@ export default function DietPlan({ activePatient }) {
           )}
         </div>
       </div>
+
+      {/* Área invisível na tela, usada só para gerar o PDF/impressão do
+          plano completo (todos os dias, não só o selecionado no carrossel).
+          Fica fora do fluxo enquanto a lista de compras estiver aberta, pra
+          não imprimir os dois ao mesmo tempo. */}
+      {currentRecipe && !showShoppingList && (
+        <div className="print-area">
+          <h1 style={{ fontSize: '1.4rem', marginBottom: '4px' }}>Nutrivvo</h1>
+          <p className="print-muted" style={{ marginBottom: '16px' }}>
+            Plano alimentar de {activePatient?.name}
+            {activePatient?.nutriName ? ` · Prescrito por ${activePatient.nutriName}` : ''}
+            {' '}· Gerado em {todayFormatted}
+          </p>
+          <h2 style={{ fontSize: '1.15rem', marginBottom: '2px' }}>{currentRecipe.title}</h2>
+          {currentRecipe.description && <p className="print-muted">{currentRecipe.description}</p>}
+          {Object.entries(buildPrintDays(currentRecipe.meals)).map(([day, meals]) => (
+            <div key={day} style={{ marginTop: '18px' }}>
+              <h3 style={{ fontSize: '1rem', borderBottom: '2px solid #A855F7', paddingBottom: '4px' }}>{day}</h3>
+              {meals.map((m, i) => (
+                <div key={i} style={{ marginTop: '10px' }}>
+                  <strong>{m.name}</strong>
+                  <ul style={{ margin: '4px 0', paddingLeft: '20px' }}>
+                    {(m.foods || []).map((f, j) => (
+                      <li key={j}>{f.amount}g — {f.name} ({f.kcal} kcal | C:{f.carb}g P:{f.protein}g G:{f.fat}g)</li>
+                    ))}
+                  </ul>
+                  {m.desc && <p className="print-muted" style={{ fontSize: '0.85rem', whiteSpace: 'pre-wrap' }}>{m.desc}</p>}
+                </div>
+              ))}
+            </div>
+          ))}
+          {currentRecipe.supplements && (
+            <div style={{ marginTop: '18px' }}>
+              <h3 style={{ fontSize: '1rem' }}>Vitaminas e Suplementos</h3>
+              <p style={{ whiteSpace: 'pre-wrap' }}>{currentRecipe.supplements}</p>
+            </div>
+          )}
+        </div>
+      )}
 
       {/* ── Plans list ── */}
       {(() => {
@@ -517,7 +578,7 @@ export default function DietPlan({ activePatient }) {
             {Object.keys(shoppingListGroups).length === 0 ? (
               <p style={{ color: 'var(--patient-text-muted)' }}>Nenhum alimento estruturado encontrado na dieta.</p>
             ) : (
-              <div id="shopping-list-print" style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+              <div className="print-area" style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
                 {Object.keys(shoppingListGroups).sort().map(category => (
                   <div key={category}>
                     <h4 style={{ margin: '0 0 8px 0', color: 'var(--primary-color)', borderBottom: '1px solid var(--glass-border)', paddingBottom: '4px', fontSize: '0.85rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>{category}</h4>
