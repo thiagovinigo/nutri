@@ -4,6 +4,7 @@
  * function-calling. Não sabe nada sobre transporte (WhatsApp/Telegram) -
  * quem chama decide como entregar `replyText` pro paciente.
  */
+import { FieldValue } from 'firebase-admin/firestore';
 import { db } from './firebase-admin.js';
 
 /**
@@ -73,7 +74,7 @@ DADOS DO PACIENTE:
 - Plano Alimentar Atual: ${dietPlan}
 
 INSTRUÇÕES DE AÇÃO (FERRAMENTAS):
-1. 'log_meal': SEMPRE que o paciente relatar o que comeu (seja na dieta ou um furo).
+1. 'log_meal': SEMPRE que o paciente relatar o que comeu (seja na dieta ou um furo). Se não estiver claro qual refeição é (café da manhã, almoço, lanche, jantar, ceia), PERGUNTE antes de registrar - não assuma.
 2. 'alertar_nutricionista': Se o paciente demonstrar desânimo extremo, intenção de desistir, compulsão alimentar repetitiva, ou não estiver se hidratando/dormindo, USE esta ferramenta para alertar o nutricionista (Isso marca o paciente como 'Em Risco'). Não avise o paciente que acionou o alerta, apenas seja acolhedor.
 3. 'verificar_disponibilidade': Se o paciente quiser marcar consulta, use isso para checar os dias/horários livres do nutricionista.
 4. 'agendar_consulta': Após confirmar o dia e hora com o paciente e verificar que está livre, use esta ferramenta para agendar no sistema. Lembre-se: se falhar por conflito, avise o paciente e peça outro horário.
@@ -126,14 +127,15 @@ INSTRUÇÕES DE AÇÃO (FERRAMENTAS):
         type: "function",
         function: {
           name: "log_meal",
-          description: "Registra uma refeição consumida pelo paciente (dentro ou fora da dieta) no diário dele.",
+          description: "Registra uma refeição consumida pelo paciente (dentro ou fora da dieta) no diário alimentar dele - aparece no app do paciente e no CRM do nutricionista.",
           parameters: {
             type: "object",
             properties: {
               descricao: { type: "string", description: "O que o paciente comeu" },
+              refeicao: { type: "string", description: "Qual refeição é essa: Café da Manhã, Almoço, Lanche da Tarde, Jantar, Ceia ou Refeição Livre (se não se encaixar em nenhuma das anteriores)" },
               furo_dieta: { type: "boolean", description: "Verdadeiro se o paciente relatar que furou a dieta" }
             },
-            required: ["descricao", "furo_dieta"]
+            required: ["descricao", "refeicao", "furo_dieta"]
           }
         }
       },
@@ -216,11 +218,23 @@ INSTRUÇÕES DE AÇÃO (FERRAMENTAS):
           const args = JSON.parse(toolCall.function.arguments);
           console.log(`[FUNCTION CALL] log_meal chamado para paciente ${patientId}`);
 
-          await db.collection('patients').doc(patientId).collection('diario').add({
-            timestamp: new Date(),
-            descricao: args.descricao,
-            furo_dieta: args.furo_dieta,
-            origem: 'chat'
+          // Grava no MESMO campo/formato que o app do paciente (QuestBoard -
+          // "Diário Livre") e o CRM (Diário Alimentar) já leem - patients/{id}
+          // .foodLogs, um array com {date, time, mealName, log} em pt-BR
+          // (ver addExtraMealLog em AppContext.jsx). A versão anterior gravava
+          // numa subcoleção "diario" que nenhuma tela do app lê - o paciente
+          // via a IA dizer "registrei" mas a refeição nunca aparecia.
+          const now = new Date();
+          const logText = args.furo_dieta ? `⚠️ Fora do planejado: ${args.descricao}` : `✅ ${args.descricao}`;
+          await db.collection('patients').doc(patientId).update({
+            foodLogs: FieldValue.arrayUnion({
+              id: `food-${now.getTime()}`,
+              type: 'extra',
+              date: now.toLocaleDateString('pt-BR'),
+              time: now.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }),
+              mealName: args.refeicao || 'Refeição Livre',
+              log: logText
+            })
           });
 
           messagesHistory.push({
