@@ -25,6 +25,22 @@ async function processTelegramMessage(patientId, patientData, textContent, chatI
  * "Authorization: Bearer" usado pela Evolution API.
  */
 export default async function handler(req, res) {
+  // Diagnostico temporario (12/08/2026): GET com o mesmo secret do webhook
+  // consulta getWebhookInfo direto na API do Telegram - reaproveita esta
+  // funcao em vez de criar um endpoint admin novo (orcamento de Serverless
+  // Functions apertado no Hobby). Remover depois de confirmar a causa do
+  // '/start' nao estar chegando aqui.
+  if (req.method === 'GET') {
+    const webhookSecret = process.env.TELEGRAM_WEBHOOK_SECRET;
+    if (req.headers['x-diag-secret'] !== webhookSecret) {
+      return res.status(401).json({ error: 'Unauthorized' });
+    }
+    const token = process.env.TELEGRAM_BOT_TOKEN;
+    const infoResp = await fetch(`https://api.telegram.org/bot${token}/getWebhookInfo`);
+    const infoData = await infoResp.json();
+    return res.status(200).json(infoData);
+  }
+
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method Not Allowed' });
   }
