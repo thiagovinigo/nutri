@@ -85,6 +85,7 @@ export default function DashboardNutri() {
   const [examUploaded, setExamUploaded] = useState(false);
   const [examAnalyzing, setExamAnalyzing] = useState(false);
   const [examResult, setExamResult] = useState(null);
+  const [nutriExamParecer, setNutriExamParecer] = useState('');
   const [examTab, setExamTab] = useState('detalhada'); 
   
   const [dietTitle, setDietTitle] = useState('');
@@ -240,6 +241,7 @@ export default function DashboardNutri() {
     setPhysicalEval({ weight: '', height: '', bodyFat: '', muscleMass: '', waist: '', hips: '', age: pat?.age || '', gender: pat?.gender || 'M', activityLevel: '1.2', tmb: '', get: '', protocoloDobras: 'nenhum', triceps: '', peitoral: '', subescapular: '', axilar: '', suprailiaca: '', abdomen: '', coxa: '', massaGorda: '', massaMagra: '' });
     setExamUploaded(false);
     setExamResult(null);
+    setNutriExamParecer('');
     setDietTitle('');
     setDietDescription('');
     setDietSupplements('');
@@ -257,6 +259,7 @@ export default function DashboardNutri() {
     setPhysicalEval({ weight: '', height: '', bodyFat: '', muscleMass: '', waist: '', hips: '', age: p.age || '', gender: p.gender || 'M', activityLevel: '1.2', tmb: '', get: '', protocoloDobras: 'nenhum', triceps: '', peitoral: '', subescapular: '', axilar: '', suprailiaca: '', abdomen: '', coxa: '', massaGorda: '', massaMagra: '' });
     setExamUploaded(false);
     setExamResult(null);
+    setNutriExamParecer('');
     setDietTitle('');
     setDietDescription('');
     setDietSupplements('');
@@ -712,7 +715,8 @@ Não inclua textos fora do JSON. Apenas o JSON puro.`;
         date: new Date().toISOString().split('T')[0],
         analysis: examResult.text,
         markers: examResult.markers,
-        aiSummaryProfessional: examResult.text
+        aiSummaryProfessional: examResult.text,
+        nutriParecer: nutriExamParecer || ''
       };
       updatePayload.exams = [...(activePatient.exams || []), newExam];
     }
@@ -736,6 +740,7 @@ Não inclua textos fora do JSON. Apenas o JSON puro.`;
         examUploaded={examUploaded} setExamUploaded={setExamUploaded}
         examAnalyzing={examAnalyzing}
         examResult={examResult} setExamTab={setExamTab} examTab={examTab}
+        nutriExamParecer={nutriExamParecer} setNutriExamParecer={setNutriExamParecer}
         dietTitle={dietTitle} setDietTitle={setDietTitle}
         dietDescription={dietDescription} setDietDescription={setDietDescription}
         dietSupplements={dietSupplements} setDietSupplements={setDietSupplements}

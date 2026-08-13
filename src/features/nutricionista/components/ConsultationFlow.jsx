@@ -20,6 +20,7 @@ export default function ConsultationFlow({
   examUploaded, setExamUploaded,
   examAnalyzing,
   examResult, setExamTab, examTab,
+  nutriExamParecer, setNutriExamParecer,
   dietTitle, setDietTitle,
   dietDescription, setDietDescription,
   dietSupplements, setDietSupplements,
@@ -529,6 +530,22 @@ export default function ConsultationFlow({
                   </div>
                 </div>
               )}
+              <div style={{ marginTop: '24px' }}>
+                <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 'bold', color: 'var(--crm-text-muted)', marginBottom: '8px', textTransform: 'uppercase' }}>
+                  <Edit3 size={14} style={{ marginRight: '6px', verticalAlign: 'middle' }} />
+                  Parecer do Nutricionista
+                </label>
+                <p style={{ fontSize: '0.85rem', color: 'var(--crm-text-muted)', margin: '0 0 8px 0' }}>
+                  Sua leitura clínica sobre este exame, além da análise da IA. Fica visível pra você no prontuário e pro paciente no app dele.
+                </p>
+                <textarea
+                  className="crm-input-modern"
+                  style={{ width: '100%', minHeight: '120px', resize: 'vertical', fontFamily: 'inherit' }}
+                  placeholder="Ex: Colesterol LDL levemente elevado, mas dentro do esperado pro histórico familiar. Vamos reavaliar em 60 dias..."
+                  value={nutriExamParecer || ''}
+                  onChange={(e) => setNutriExamParecer(e.target.value)}
+                />
+              </div>
               <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '32px', borderTop: '1px solid var(--crm-border)', paddingTop: '24px' }}>
                 <button className="crm-btn-secondary" onClick={() => setConsultationStep(2)}>← Voltar para Avaliação</button>
                 <button className="crm-btn-primary" onClick={() => setConsultationStep(4)}>Avançar para Prescrição →</button>

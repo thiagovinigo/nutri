@@ -299,6 +299,14 @@ export default function Profile({ activePatient }) {
                     <div className="markdown-content" style={{ fontSize: '0.9rem', color: 'var(--patient-text)' }}>
                       <ReactMarkdown remarkPlugins={[remarkGfm]}>{summary}</ReactMarkdown>
                     </div>
+                    {ex.nutriParecer && (
+                      <div style={{ marginTop: '12px', paddingTop: '12px', borderTop: '1px dashed var(--patient-border, #e2e8f0)' }}>
+                        <p style={{ margin: '0 0 4px 0', fontSize: '0.8rem', fontWeight: 700, color: 'var(--patient-text-muted)', textTransform: 'uppercase' }}>
+                          Parecer da sua nutricionista
+                        </p>
+                        <p style={{ margin: 0, fontSize: '0.9rem', color: 'var(--patient-text)', whiteSpace: 'pre-wrap' }}>{ex.nutriParecer}</p>
+                      </div>
+                    )}
                   </div>
                 </details>
               );

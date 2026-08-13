@@ -1082,6 +1082,25 @@ export default function PatientList({
                               </p>
                             )}
                           </div>
+                          <div style={{ marginTop: '16px', paddingTop: '12px', borderTop: '1px dashed var(--crm-border)' }}>
+                            <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 'bold', color: 'var(--crm-text-muted)', marginBottom: '6px', textTransform: 'uppercase' }}>
+                              Parecer do Nutricionista {ex.nutriParecer && <span title="Visível pro paciente no app dele">👁️</span>}
+                            </label>
+                            <textarea
+                              className="crm-input-modern"
+                              style={{ width: '100%', minHeight: '80px', resize: 'vertical', fontFamily: 'inherit', fontSize: '0.9rem' }}
+                              placeholder="Sua leitura clínica sobre este exame - visível pro paciente no app dele."
+                              defaultValue={ex.nutriParecer || ''}
+                              onBlur={(e) => {
+                                const novoValor = e.target.value;
+                                if (novoValor === (ex.nutriParecer || '')) return;
+                                const updatedExams = viewedPatient.exams.map((examItem) =>
+                                  examItem === ex ? { ...examItem, nutriParecer: novoValor } : examItem
+                                );
+                                updatePatient(viewedPatient.id, { exams: updatedExams });
+                              }}
+                            />
+                          </div>
                         </div>
                       ))}
                     </div>
