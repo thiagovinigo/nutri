@@ -10,8 +10,19 @@
  * Vercel Hobby - já em 9/12. Mantido como um arquivo só até esse orçamento
  * folgar (upgrade de plano ou remoção de outro endpoint).
  */
+import { createRequire } from 'module';
 import { FieldValue, FieldPath } from 'firebase-admin/firestore';
 import { db } from './firebase-admin.js';
+
+// Tabela TACO (mesma base que o app usa em src/features/paciente/components/
+// DietPlan.jsx e MealBuilder.jsx) pra calcular substituições nutricionalmente
+// equivalentes com gramas precisas - ver suggestSubstitutions() abaixo. Usa
+// createRequire (CJS) em vez de import assertion porque é a forma mais
+// portável de importar JSON em ESM independente da versão exata do Node da
+// Vercel, e o bundler consegue rastrear a dependência estática pra incluir o
+// arquivo no deploy.
+const require = createRequire(import.meta.url);
+const tacoData = require('../../src/data/taco.json');
 
 /**
  * Transcreve um áudio (ex: nota de voz do Telegram) usando o Whisper da
@@ -75,43 +86,108 @@ function sanitizeForStorage(messages) {
 }
 
 /**
- * Monta um resumo do cardápio de hoje a partir do ciclo de dias da última
- * receita - mesma lógica de "Dia N" e cálculo de ciclo usada em
- * QuestBoard.jsx (currentCycleDay), reimplementada aqui porque api/ e src/
- * são bundles separados na Vercel (sem import cruzado entre eles). Injetado
- * como contexto EFêmero (nunca persistido) pra estar sempre correto mesmo
- * em conversas antigas, onde o system prompt original já tem dias/semanas.
+ * Resolve as refeições de HOJE a partir do ciclo de dias da última receita -
+ * mesma lógica de "Dia N" e cálculo de ciclo usada em QuestBoard.jsx
+ * (currentCycleDay), reimplementada aqui porque api/ e src/ são bundles
+ * separados na Vercel (sem import cruzado entre eles). Compartilhada entre
+ * buildTodayContext (resumo em texto) e a ferramenta 'sugerir_substituicao'
+ * (precisa das refeições estruturadas, não só do resumo).
  * @param {object} patientData
- * @returns {string|null}
+ * @returns {Array<object>}
  */
-function buildTodayContext(patientData) {
+function resolveTodaysMeals(patientData) {
   const recipes = patientData.recipes;
-  if (!recipes || recipes.length === 0) return null;
+  if (!recipes || recipes.length === 0) return [];
   const currentRecipe = recipes[recipes.length - 1];
-  if (!currentRecipe?.meals?.length) return null;
+  if (!currentRecipe?.meals?.length) return [];
 
   const dayMatches = currentRecipe.meals.map((m) => (m.name || '').match(/Dia (\d+)/i)).filter(Boolean);
   const maxDays = dayMatches.length > 0 ? Math.max(...dayMatches.map((m) => parseInt(m[1], 10))) : 0;
 
-  let todaysMeals = currentRecipe.meals;
-  if (maxDays > 0) {
-    const startOfDiet = patientData.createdAt ? new Date(patientData.createdAt) : new Date();
-    startOfDiet.setHours(0, 0, 0, 0);
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    const daysDiff = Math.floor((today - startOfDiet) / (1000 * 60 * 60 * 24));
-    const cycleDay = daysDiff >= 0
-      ? (daysDiff % maxDays) + 1
-      : maxDays - ((Math.abs(daysDiff) - 1) % maxDays);
-    todaysMeals = currentRecipe.meals.filter((m) => {
-      const hasDayPrefix = /Dia \d+/i.test(m.name || '');
-      return !hasDayPrefix || new RegExp(`Dia ${cycleDay}\\b`, 'i').test(m.name || '');
-    });
-  }
+  if (maxDays === 0) return currentRecipe.meals;
 
+  const startOfDiet = patientData.createdAt ? new Date(patientData.createdAt) : new Date();
+  startOfDiet.setHours(0, 0, 0, 0);
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const daysDiff = Math.floor((today - startOfDiet) / (1000 * 60 * 60 * 24));
+  const cycleDay = daysDiff >= 0
+    ? (daysDiff % maxDays) + 1
+    : maxDays - ((Math.abs(daysDiff) - 1) % maxDays);
+  return currentRecipe.meals.filter((m) => {
+    const hasDayPrefix = /Dia \d+/i.test(m.name || '');
+    return !hasDayPrefix || new RegExp(`Dia ${cycleDay}\\b`, 'i').test(m.name || '');
+  });
+}
+
+/**
+ * Monta um resumo do cardápio de hoje pra IA responder "o que eu como hoje?"
+ * sem inventar. Injetado como contexto EFêmero (nunca persistido) pra estar
+ * sempre correto mesmo em conversas antigas, onde o system prompt original
+ * já tem dias/semanas.
+ * @param {object} patientData
+ * @returns {string|null}
+ */
+function buildTodayContext(patientData) {
+  const todaysMeals = resolveTodaysMeals(patientData);
   if (todaysMeals.length === 0) return null;
   const mealsList = todaysMeals.map((m) => `- ${m.name}${m.time ? ` às ${m.time}` : ''}: ${m.desc || ''}`).join('\n');
   return `CARDÁPIO DE HOJE (${new Date().toLocaleDateString('pt-BR')}):\n${mealsList}`;
+}
+
+/**
+ * Encontra um alimento específico dentro das refeições estruturadas de hoje
+ * (meal.foods[], preenchido pelo nutricionista no MealBuilder - cada item
+ * tem foodId/amount/macros, diferente do meal.desc que é só texto livre).
+ * Match por substring case-insensitive nos dois sentidos, pra tolerar o
+ * paciente escrever só parte do nome (ex: "abacate" encontra "Abacate,
+ * cru").
+ * @param {Array<object>} todaysMeals
+ * @param {string} alimento
+ * @returns {{food: object, mealName: string}|null}
+ */
+function findFoodInTodaysMeals(todaysMeals, alimento) {
+  const term = (alimento || '').trim().toLowerCase();
+  if (!term) return null;
+  for (const meal of todaysMeals) {
+    const food = (meal.foods || []).find((f) => {
+      const name = (f.name || '').toLowerCase();
+      return name.includes(term) || term.includes(name);
+    });
+    if (food) return { food, mealName: meal.name };
+  }
+  return null;
+}
+
+/**
+ * Calcula substitutos nutricionalmente equivalentes pra um alimento (mesma
+ * categoria da Tabela TACO, quantidade em gramas ajustada pra manter o
+ * mesmo valor do macro principal da categoria) - EXATAMENTE a mesma lógica
+ * de handleOpenSub em DietPlan.jsx (botão "Substituir" do app), reimplementada
+ * aqui pra IA nunca inventar opções sem gramas (api/ e src/ são bundles
+ * separados na Vercel, sem import cruzado entre eles).
+ * @param {object} baseFood - item de meal.foods[] (tem foodId, name, kcal, carb, protein, fat)
+ * @param {object} patientData
+ * @returns {Array<{name: string, suggestedAmount: number}>|null}
+ */
+function suggestSubstitutions(baseFood, patientData) {
+  const baseDbFood = tacoData.find((db) => String(db.id) === String(baseFood.foodId) || db.name === baseFood.name);
+  if (!baseDbFood) return null;
+
+  let mainMacro = 'kcal';
+  if (baseDbFood.category === 'Carboidratos' || baseDbFood.category === 'Frutas') mainMacro = 'carb';
+  if (baseDbFood.category === 'Proteínas') mainMacro = 'protein';
+  if (baseDbFood.category === 'Gorduras') mainMacro = 'fat';
+  const targetValue = baseFood[mainMacro] || 0;
+
+  const aversionList = (patientData.aversions || '').split(/[,;\n]+/).map((a) => a.trim().toLowerCase()).filter(Boolean);
+
+  return tacoData
+    .filter((t) => t.category === baseDbFood.category && String(t.id) !== String(baseDbFood.id))
+    .filter((t) => !aversionList.some((av) => t.name.toLowerCase().includes(av)))
+    .map((alt) => ({ name: alt.name, suggestedAmount: Math.round((targetValue * 100) / (alt[mainMacro] || 1)) }))
+    .sort((a, b) => a.name.localeCompare(b.name))
+    .slice(0, 5);
 }
 
 /**
@@ -189,6 +265,7 @@ DIRETRIZES DE COMPORTAMENTO E TOM DE VOZ:
 - Use mensagens curtas (formato chat), separe parágrafos e use emojis com moderação.
 - NUNCA julgue se o paciente furou a dieta. Sempre o acolha, valide o sentimento e incentive a voltar ao foco na próxima refeição ("Tá tudo bem! O importante é a constância, vamos focar na próxima refeição! 🥗").
 - Fale de forma simples, evitando jargões técnicos complexos.
+- NUNCA use formatação Markdown (nada de **negrito**, ### títulos, listas com "-") no texto pro paciente - o Telegram está configurado pra renderizar HTML, não Markdown, e os símbolos apareceriam literalmente na tela dele. Escreva em texto corrido natural, com emojis pra dar ênfase quando fizer sentido.
 
 LIMITES MÉDICOS E ÉTICOS (GUARDRAILS):
 - VOCÊ NÃO É MÉDICO. Nunca diagnostique doenças, não prescreva ou altere suplementos/remédios.
@@ -215,6 +292,7 @@ INSTRUÇÕES DE AÇÃO (FERRAMENTAS):
 11. 'cancelar_consulta': Sempre que o paciente quiser desmarcar/cancelar uma consulta já agendada.
 12. 'marcar_suplemento': Sempre que o paciente relatar que tomou um suplemento prescrito.
 13. 'marcar_treino': Sempre que o paciente relatar que terminou o treino do dia.
+14. 'sugerir_substituicao': SEMPRE que o paciente quiser trocar/variar um alimento específico do cardápio de hoje (ex: "posso trocar o abacate por outra coisa?", "que outras opções eu tenho pro almoço?"). NUNCA invente substitutos de cabeça sem gramas - esta ferramenta calcula equivalência nutricional real (mesma categoria, mesmo valor de macro aproximado) e sempre retorna a quantidade certa em gramas, igual ao botão "Substituir" do app. Repasse as opções e as gramas exatamente como a ferramenta retornou.
 
 CONTEXTO DO DIA: você pode receber blocos "CARDÁPIO DE HOJE", "ÚLTIMO EXAME" e/ou "PROGRESSO DO PACIENTE" (ofensiva/XP) logo antes da mensagem do paciente - use esses dados pra responder perguntas como "o que eu como hoje?", "o que meu exame mostrou?" ou "quantos dias de ofensiva eu tô?" diretamente, sem pedir pro paciente repetir informação que você já tem.`
     };
@@ -455,6 +533,20 @@ CONTEXTO DO DIA: você pode receber blocos "CARDÁPIO DE HOJE", "ÚLTIMO EXAME" 
               nome_treino: { type: "string", description: "Nome/dia do treino concluído (ex: 'Treino A - Peito e Tríceps'), se souber" }
             },
             required: []
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "sugerir_substituicao",
+          description: "Calcula substitutos nutricionalmente equivalentes (mesma categoria, quantidade em gramas ajustada pra manter o mesmo valor de macro) pra um alimento específico do cardápio de hoje - mesma lógica do botão 'Substituir' do app. Use sempre que o paciente quiser trocar/variar um item do cardápio.",
+          parameters: {
+            type: "object",
+            properties: {
+              alimento: { type: "string", description: "Nome do alimento que o paciente quer trocar, como aparece no cardápio de hoje (ex: 'abacate', 'peito de frango')" }
+            },
+            required: ["alimento"]
           }
         }
       }
@@ -808,6 +900,24 @@ INSTRUÇÕES:
             tool_call_id: toolCall.id,
             name: toolCall.function.name,
             content: "Treino registrado como concluído."
+          });
+        } else if (toolCall.function.name === 'sugerir_substituicao') {
+          const args = JSON.parse(toolCall.function.arguments);
+          console.log(`[FUNCTION CALL] sugerir_substituicao chamado para paciente ${patientId}: ${args.alimento}`);
+
+          const todaysMeals = resolveTodaysMeals(patientData);
+          const found = findFoodInTodaysMeals(todaysMeals, args.alimento);
+          const alternatives = found ? suggestSubstitutions(found.food, patientData) : null;
+
+          const toolContent = alternatives && alternatives.length > 0
+            ? `Substitutos nutricionalmente equivalentes pra "${found.food.name}" (${found.food.amount}g), mesma categoria e macro aproximado da Tabela TACO - use SEMPRE a quantidade em gramas exata ao listar pro paciente, nunca omita:\n${alternatives.map((a) => `- ${a.name}: ${a.suggestedAmount}g`).join('\n')}`
+            : `Não encontrei "${args.alimento}" no cardápio estruturado de hoje pra calcular substitutos com gramas precisas. Avise o paciente que pra essa troca é melhor confirmar com a nutricionista, ou pergunte o nome exato do item do cardápio.`;
+
+          messagesHistory.push({
+            role: "tool",
+            tool_call_id: toolCall.id,
+            name: toolCall.function.name,
+            content: toolContent
           });
         }
       }
