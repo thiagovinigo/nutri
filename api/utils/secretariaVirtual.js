@@ -191,6 +191,7 @@ INSTRUÇÕES DE AÇÃO (FERRAMENTAS):
 7. 'log_sleep': Sempre que o paciente relatar quantas horas dormiu ou como foi o sono. Se ele só mencionar a qualidade sem horas (ou vice-versa), use 'perguntar_multipla_escolha' pra pedir o que faltar (ex: opções de qualidade: Ruim/Razoável/Bom/Excelente).
 8. 'log_weight': Sempre que o paciente informar o peso atual (ex: "hoje tô com 72kg", "pesei 68,5").
 9. 'perguntar_multipla_escolha': use sempre que quiser confirmar algo com poucas opções fixas (sim/não, qual refeição, qualidade do sono) em vez de esperar o paciente digitar de forma livre - é mais rápido e confiável pro paciente responder tocando num botão.
+10. 'gerar_receita': SEMPRE que o paciente pedir o modo de preparo de uma refeição (ex: "como eu faço o almoço de hoje?", "me dá uma receita"). Você é o único canal disponível pra isso - o paciente não precisa abrir o app pra nada, tudo pode ser feito e visto aqui na conversa.
 
 CONTEXTO DO DIA: você pode receber um bloco "CARDÁPIO DE HOJE" e/ou "ÚLTIMO EXAME" logo antes da mensagem do paciente - use esses dados pra responder perguntas como "o que eu como hoje?" ou "o que meu exame mostrou?" diretamente, sem pedir pro paciente repetir informação que você já tem.`
     };
@@ -317,6 +318,21 @@ CONTEXTO DO DIA: você pode receber um bloco "CARDÁPIO DE HOJE" e/ou "ÚLTIMO E
               kg: { type: "number", description: "Peso em quilogramas" }
             },
             required: ["kg"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "gerar_receita",
+          description: "Gera uma receita completa (ingredientes + modo de preparo) pra uma refeição do paciente. Use quando ele pedir 'como eu preparo isso', 'me dá uma receita', 'como faço o almoço de hoje', etc. Use o CARDÁPIO DE HOJE (se disponível) pra saber os alimentos da refeição sem precisar perguntar.",
+          parameters: {
+            type: "object",
+            properties: {
+              nome_refeicao: { type: "string", description: "Nome da refeição (ex: 'Almoço', 'Café da Manhã') - use o nome exato do CARDÁPIO DE HOJE quando disponível" },
+              alimentos: { type: "string", description: "Lista dos alimentos/ingredientes dessa refeição, como aparecem no cardápio de hoje (ou descritos pelo paciente se for um pedido livre)" }
+            },
+            required: ["nome_refeicao", "alimentos"]
           }
         }
       },
@@ -502,6 +518,70 @@ CONTEXTO DO DIA: você pode receber um bloco "CARDÁPIO DE HOJE" e/ou "ÚLTIMO E
             tool_call_id: toolCall.id,
             name: toolCall.function.name,
             content: "Peso registrado com sucesso."
+          });
+        } else if (toolCall.function.name === 'gerar_receita') {
+          const args = JSON.parse(toolCall.function.arguments);
+          console.log(`[FUNCTION CALL] gerar_receita chamado para paciente ${patientId}: ${args.nome_refeicao}`);
+
+          // Mesmo prompt/formato que o botão "Gerar Receita da IA" do app usa
+          // (useAiRecipe.js), pra ficar consistente independente de onde o
+          // paciente pediu.
+          const aversions = patientData.aversions || 'Nenhuma aversão registrada';
+          const recipePrompt = `Você é um Chef Nutricional da Nutrivvo. Sua missão é sugerir uma receita prática e rápida utilizando os seguintes ingredientes: ${args.alimentos}. Se precisar, pode adicionar temperos básicos (sal, pimenta, azeite, ervas).
+INSTRUÇÕES:
+- O paciente NÃO COME (aversões/restrições): ${aversions}. JAMAIS use esses ingredientes.
+- Retorne em formato Markdown (## Nome da Receita, ### Ingredientes, ### Modo de Preparo).
+- Mantenha a resposta super focada na praticidade para o dia a dia.`;
+
+          let recipeMarkdown = null;
+          try {
+            const recipeResp = await fetch('https://api.openai.com/v1/chat/completions', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${OPENAI_API_KEY}` },
+              body: JSON.stringify({
+                model: 'gpt-4o-mini',
+                messages: [
+                  { role: 'system', content: 'Você é um assistente culinário focado em dietas de alta performance.' },
+                  { role: 'user', content: recipePrompt }
+                ],
+                max_tokens: 600
+              })
+            });
+            const recipeData = await recipeResp.json();
+            recipeMarkdown = recipeData.choices?.[0]?.message?.content || null;
+          } catch (recipeErr) {
+            console.error('Erro ao gerar receita via chat:', recipeErr);
+          }
+
+          if (recipeMarkdown) {
+            // Mesmo campo que o botão do app grava (patients/{id}.aiRecipes,
+            // chave "titulo-nomeRefeicao") - a receita gerada pelo bot também
+            // aparece no app se o paciente abrir depois, e vice-versa.
+            const recipeTitle = patientData.recipes?.length > 0
+              ? patientData.recipes[patientData.recipes.length - 1].title
+              : 'Plano Atual';
+            const recipeKey = `${recipeTitle}-${args.nome_refeicao}`;
+            const newAiRecipes = { ...(patientData.aiRecipes || {}), [recipeKey]: recipeMarkdown };
+
+            await db.collection('patients').doc(patientId).update({
+              aiRecipes: newAiRecipes,
+              aiRecipeHistory: FieldValue.arrayUnion({
+                id: Date.now().toString(),
+                mealName: args.nome_refeicao,
+                recipeTitle,
+                content: recipeMarkdown,
+                date: new Date().toISOString()
+              })
+            });
+          }
+
+          messagesHistory.push({
+            role: "tool",
+            tool_call_id: toolCall.id,
+            name: toolCall.function.name,
+            content: recipeMarkdown
+              ? `Receita gerada com sucesso: ${recipeMarkdown}\n\nEnvie o conteúdo da receita pro paciente de forma legível no chat (sem headers markdown como ## ou ###, texto corrido com quebras de linha e emojis).`
+              : "Não foi possível gerar a receita agora - avise o paciente pra tentar novamente em instantes."
           });
         } else if (toolCall.function.name === 'perguntar_multipla_escolha') {
           const args = JSON.parse(toolCall.function.arguments);
