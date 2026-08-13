@@ -8,6 +8,47 @@ import { FieldValue } from 'firebase-admin/firestore';
 import { db } from './firebase-admin.js';
 
 /**
+ * Transcreve um áudio (ex: nota de voz do Telegram) usando o Whisper da
+ * OpenAI. Fica aqui (não em utils/telegram.js) porque é uma chamada de IA,
+ * não uma chamada da API do Telegram - mantém o mesmo princípio do resto do
+ * arquivo, de não misturar IA com transporte.
+ * @param {Buffer} audioBuffer
+ * @param {string} filename
+ * @returns {Promise<string|null>} texto transcrito, ou null se falhar
+ */
+export async function transcribeAudioWithWhisper(audioBuffer, filename) {
+  const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
+  if (!OPENAI_API_KEY) {
+    console.error('OPENAI_API_KEY não definida (transcrição de áudio)');
+    return null;
+  }
+
+  try {
+    const formData = new FormData();
+    formData.append('file', new Blob([audioBuffer]), filename);
+    formData.append('model', 'whisper-1');
+    formData.append('language', 'pt');
+
+    const response = await fetch('https://api.openai.com/v1/audio/transcriptions', {
+      method: 'POST',
+      headers: { 'Authorization': `Bearer ${OPENAI_API_KEY}` },
+      body: formData
+    });
+
+    if (!response.ok) {
+      console.error(`Erro Whisper API: ${response.status} - ${await response.text()}`);
+      return null;
+    }
+
+    const data = await response.json();
+    return data.text || null;
+  } catch (error) {
+    console.error('Erro ao transcrever áudio:', error);
+    return null;
+  }
+}
+
+/**
  * Remove o payload base64 de fotos antes de persistir o histórico no
  * Firestore. Uma foto de refeição facilmente passa de 100-500KB em base64,
  * e o Firestore tem limite de 1MiB por documento - guardar isso em toda
@@ -99,7 +140,10 @@ function buildExamContext(patientData) {
  * @param {string|null} [imageDataUrl] - data URL "data:image/...;base64,..." de uma foto
  *   enviada pelo paciente (ex: foto do prato). Quando presente, a mensagem vai
  *   multimodal pra OpenAI pra IA de fato "ver" a refeição em vez de só receber texto/legenda.
- * @returns {Promise<string|null>} texto da resposta, ou null se o bot está pausado/erro
+ * @returns {Promise<{text: string, options: string[]|null}|null>} resposta final (com
+ *   opções de botão quando a IA usou 'perguntar_multipla_escolha'), ou null se o bot
+ *   está pausado/erro. Quem chama decide como renderizar `options` no canal (Telegram:
+ *   inline keyboard).
  */
 export async function runSecretariaVirtual(patientId, patientData, textContent, imageDataUrl = null) {
   const sessionRef = db.collection('patients').doc(patientId);
@@ -138,14 +182,15 @@ DADOS DO PACIENTE:
 - Plano Alimentar Atual: ${dietPlan}
 
 INSTRUÇÕES DE AÇÃO (FERRAMENTAS):
-1. 'log_meal': SEMPRE que o paciente relatar o que comeu (seja na dieta ou um furo). Se não estiver claro qual refeição é (café da manhã, almoço, lanche, jantar, ceia), PERGUNTE antes de registrar - não assuma.
+1. 'log_meal': SEMPRE que o paciente relatar o que comeu (seja na dieta ou um furo). Se não estiver claro qual refeição é, use 'perguntar_multipla_escolha' com as opções Café da Manhã/Almoço/Lanche da Tarde/Jantar/Ceia/Refeição Livre antes de registrar - não assuma.
 2. 'alertar_nutricionista': USE esta ferramenta sempre que o paciente demonstrar ANSIEDADE, estresse, desânimo (mesmo que leve, não precisa ser extremo), intenção de desistir, compulsão alimentar repetitiva, ou não estiver se hidratando/dormindo bem. Na dúvida, prefira alertar - é melhor um alerta a mais do que um paciente em sofrimento passando despercebido. Isso marca o paciente como 'Em Risco' no CRM. Não avise o paciente que acionou o alerta, apenas seja acolhedor.
 3. 'verificar_disponibilidade': Se o paciente quiser marcar consulta, use isso para checar os dias/horários livres do nutricionista.
 4. 'agendar_consulta': Após confirmar o dia e hora com o paciente e verificar que está livre, use esta ferramenta para agendar no sistema. Lembre-se: se falhar por conflito, avise o paciente e peça outro horário.
 5. Se o paciente enviar uma FOTO da refeição, você VÊ a imagem diretamente. Descreva o que identifica no prato (alimentos, porção aproximada) de forma natural e acolhedora, e chame 'log_meal' com a descrição baseada no que você viu na foto - nunca peça pro paciente descrever em texto o que já está visível na imagem.
 6. 'log_water': Sempre que o paciente relatar que bebeu água (ex: "tomei um copo d'água", "bebi uma garrafa"). Converta pra mililitros usando bom senso (1 copo ~200ml, 1 garrafa ~500ml) e pergunte se não der pra estimar.
-7. 'log_sleep': Sempre que o paciente relatar quantas horas dormiu ou como foi o sono. Se ele só mencionar a qualidade sem horas (ou vice-versa), pergunte o que faltar antes de registrar.
+7. 'log_sleep': Sempre que o paciente relatar quantas horas dormiu ou como foi o sono. Se ele só mencionar a qualidade sem horas (ou vice-versa), use 'perguntar_multipla_escolha' pra pedir o que faltar (ex: opções de qualidade: Ruim/Razoável/Bom/Excelente).
 8. 'log_weight': Sempre que o paciente informar o peso atual (ex: "hoje tô com 72kg", "pesei 68,5").
+9. 'perguntar_multipla_escolha': use sempre que quiser confirmar algo com poucas opções fixas (sim/não, qual refeição, qualidade do sono) em vez de esperar o paciente digitar de forma livre - é mais rápido e confiável pro paciente responder tocando num botão.
 
 CONTEXTO DO DIA: você pode receber um bloco "CARDÁPIO DE HOJE" e/ou "ÚLTIMO EXAME" logo antes da mensagem do paciente - use esses dados pra responder perguntas como "o que eu como hoje?" ou "o que meu exame mostrou?" diretamente, sem pedir pro paciente repetir informação que você já tem.`
     };
@@ -278,6 +323,21 @@ CONTEXTO DO DIA: você pode receber um bloco "CARDÁPIO DE HOJE" e/ou "ÚLTIMO E
       {
         type: "function",
         function: {
+          name: "perguntar_multipla_escolha",
+          description: "Envia uma pergunta com opções de resposta rápida (botões clicáveis) pro paciente, em vez de esperar que ele digite livremente. Use sempre que a resposta esperada for uma escolha entre poucas opções fixas (ex: qual refeição, qualidade do sono, confirmar sim/não).",
+          parameters: {
+            type: "object",
+            properties: {
+              pergunta: { type: "string", description: "O texto da pergunta" },
+              opcoes: { type: "array", items: { type: "string" }, description: "2 a 5 opções curtas de resposta" }
+            },
+            required: ["pergunta", "opcoes"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
           name: "verificar_disponibilidade",
           description: "Verifica os horários de atendimento do nutricionista para um dia específico.",
           parameters: {
@@ -331,6 +391,8 @@ CONTEXTO DO DIA: você pode receber um bloco "CARDÁPIO DE HOJE" e/ou "ÚLTIMO E
     }
 
     let finalText = null;
+    let pendingQuestionText = null;
+    let pendingOptions = null;
 
     if (responseMessage.tool_calls) {
       messagesHistory.push(responseMessage);
@@ -441,6 +503,19 @@ CONTEXTO DO DIA: você pode receber um bloco "CARDÁPIO DE HOJE" e/ou "ÚLTIMO E
             name: toolCall.function.name,
             content: "Peso registrado com sucesso."
           });
+        } else if (toolCall.function.name === 'perguntar_multipla_escolha') {
+          const args = JSON.parse(toolCall.function.arguments);
+          console.log(`[FUNCTION CALL] perguntar_multipla_escolha chamado para paciente ${patientId}`);
+
+          pendingQuestionText = args.pergunta;
+          pendingOptions = Array.isArray(args.opcoes) ? args.opcoes.slice(0, 5) : null;
+
+          messagesHistory.push({
+            role: "tool",
+            tool_call_id: toolCall.id,
+            name: toolCall.function.name,
+            content: "Pergunta com botões de resposta rápida enviada ao paciente."
+          });
         } else if (toolCall.function.name === 'verificar_disponibilidade') {
           const args = JSON.parse(toolCall.function.arguments);
           console.log(`[FUNCTION CALL] verificar_disponibilidade chamado para data ${args.data}`);
@@ -497,25 +572,34 @@ CONTEXTO DO DIA: você pode receber um bloco "CARDÁPIO DE HOJE" e/ou "ÚLTIMO E
         }
       }
 
-      const secondResponse = await fetch('https://api.openai.com/v1/chat/completions', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${OPENAI_API_KEY}`
-        },
-        body: JSON.stringify({
-          model: 'gpt-4o-mini',
-          messages: messagesHistory,
-          max_tokens: 500
-        })
-      });
+      if (pendingOptions) {
+        // A própria pergunta já É a resposta final - pula a segunda chamada
+        // à OpenAI (economiza uma requisição e evita o modelo gerar um texto
+        // redundante depois de já ter formulado a pergunta na chamada da
+        // ferramenta).
+        finalText = pendingQuestionText;
+        messagesHistory.push({ role: 'assistant', content: finalText });
+      } else {
+        const secondResponse = await fetch('https://api.openai.com/v1/chat/completions', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${OPENAI_API_KEY}`
+          },
+          body: JSON.stringify({
+            model: 'gpt-4o-mini',
+            messages: messagesHistory,
+            max_tokens: 500
+          })
+        });
 
-      const secondData = await secondResponse.json();
-      const finalMessage = secondData.choices?.[0]?.message;
+        const secondData = await secondResponse.json();
+        const finalMessage = secondData.choices?.[0]?.message;
 
-      if (finalMessage) {
-        messagesHistory.push(finalMessage);
-        finalText = finalMessage.content;
+        if (finalMessage) {
+          messagesHistory.push(finalMessage);
+          finalText = finalMessage.content;
+        }
       }
     } else if (responseMessage.content) {
       messagesHistory.push(responseMessage);
@@ -527,7 +611,7 @@ CONTEXTO DO DIA: você pode receber um bloco "CARDÁPIO DE HOJE" e/ou "ÚLTIMO E
       last_interaction: new Date()
     }, { merge: true });
 
-    return finalText;
+    return finalText ? { text: finalText, options: pendingOptions } : null;
   } catch (error) {
     console.error("Erro ao chamar OpenAI:", error);
     return null;

@@ -1,19 +1,50 @@
 import { db } from './utils/firebase-admin.js';
-import { sendTelegramText, fetchTelegramPhotoAsDataUrl } from './utils/telegram.js';
-import { runSecretariaVirtual } from './utils/secretariaVirtual.js';
+import {
+  sendTelegramText,
+  sendTelegramKeyboard,
+  answerTelegramCallback,
+  fetchTelegramPhotoAsDataUrl,
+  fetchTelegramFileAsBuffer
+} from './utils/telegram.js';
+import { runSecretariaVirtual, transcribeAudioWithWhisper } from './utils/secretariaVirtual.js';
 
 /**
  * Processa a mensagem com a Secretária Virtual (IA) e responde pelo
- * Telegram. Inline aqui (em vez de um arquivo telegram-ai.js separado)
- * pra economizar slot de Serverless Function - o plano Hobby da Vercel
- * limita 12 por deployment, e cada arquivo em api/ (incl. api/utils/)
- * conta como uma função.
+ * Telegram - com botões de resposta rápida quando a IA pediu opções via
+ * 'perguntar_multipla_escolha'. Inline aqui (em vez de um arquivo
+ * telegram-ai.js separado) pra economizar slot de Serverless Function - o
+ * plano Hobby da Vercel limita 12 por deployment, e cada arquivo em api/
+ * (incl. api/utils/) conta como uma função.
  */
 async function processTelegramMessage(patientId, patientData, textContent, chatId, imageDataUrl) {
-  const replyText = await runSecretariaVirtual(patientId, patientData, textContent, imageDataUrl);
-  if (!replyText) return;
-  const ok = await sendTelegramText(chatId, replyText);
+  const reply = await runSecretariaVirtual(patientId, patientData, textContent, imageDataUrl);
+  if (!reply || !reply.text) return;
+
+  const ok = (reply.options && reply.options.length > 0)
+    ? await sendTelegramKeyboard(chatId, reply.text, reply.options)
+    : await sendTelegramText(chatId, reply.text);
+
   if (ok) console.log('Mensagem Telegram enviada com sucesso.');
+}
+
+/**
+ * Busca o paciente pelo chat_id já vinculado e processa uma entrada de
+ * texto (digitada, transcrita de áudio, ou vinda de um clique em botão
+ * inline - as três chegam aqui do mesmo jeito, a IA nunca precisa saber a
+ * origem).
+ */
+async function handlePatientText(chatId, fromText, imageDataUrl, res) {
+  const patientsRef = db.collection('patients');
+  const snapshot = await patientsRef.where('telegram_chat_id', '==', chatId).limit(1).get();
+
+  if (snapshot.empty) {
+    await sendTelegramText(chatId, 'Seu Telegram ainda não está vinculado a nenhuma conta Nutrivvo. Abra "Conectar Telegram" no seu Perfil dentro do app pra vincular.');
+    return res.status(200).json({ status: 'ok' });
+  }
+
+  const doc = snapshot.docs[0];
+  await processTelegramMessage(doc.id, doc.data(), fromText, chatId, imageDataUrl);
+  return res.status(200).json({ status: 'ok' });
 }
 
 /**
@@ -54,20 +85,10 @@ export default async function handler(req, res) {
 
   const update = req.body || {};
   const message = update.message;
+  const callbackQuery = update.callback_query;
 
-  if (!message) {
+  if (!message && !callbackQuery) {
     return res.status(200).send('Event ignored');
-  }
-
-  const chatId = message.chat?.id;
-  const fromText = message.text || message.caption || '';
-  // O Telegram manda o mesmo arquivo em vários tamanhos - o último elemento
-  // do array é sempre a maior resolução disponível.
-  const photos = Array.isArray(message.photo) ? message.photo : [];
-  const hasPhoto = photos.length > 0;
-
-  if (!chatId) {
-    return res.status(200).send('No chat id');
   }
 
   // IMPORTANTE: processa e espera (await) ANTES de responder. A versao
@@ -79,6 +100,32 @@ export default async function handler(req, res) {
   // Telegram tolera ate 60s de resposta antes de dar timeout/retry, entao
   // esperar aqui e seguro.
   try {
+    // Clique num botão inline (resposta a 'perguntar_multipla_escolha') -
+    // trata o texto do botão exatamente como se o paciente tivesse digitado.
+    if (callbackQuery) {
+      await answerTelegramCallback(callbackQuery.id);
+      const chatId = callbackQuery.message?.chat?.id;
+      const fromText = callbackQuery.data || '';
+      if (!chatId || !fromText) {
+        return res.status(200).json({ status: 'ok' });
+      }
+      return await handlePatientText(chatId, fromText, null, res);
+    }
+
+    const chatId = message.chat?.id;
+    let fromText = message.text || message.caption || '';
+    // O Telegram manda o mesmo arquivo em vários tamanhos - o último elemento
+    // do array é sempre a maior resolução disponível.
+    const photos = Array.isArray(message.photo) ? message.photo : [];
+    const hasPhoto = photos.length > 0;
+    // "voice" = nota de voz gravada no próprio Telegram; "audio" = arquivo de
+    // áudio enviado como anexo. Tratamos os dois igual.
+    const voiceFileId = message.voice?.file_id || message.audio?.file_id || null;
+
+    if (!chatId) {
+      return res.status(200).send('No chat id');
+    }
+
     // /start <patientId> - vínculo inicial. O link é gerado no Perfil do
     // paciente (Profile.jsx), só visível pra ele logado, então o
     // patientId funciona como token de posse nesse fluxo (mesmo nível de
@@ -103,22 +150,22 @@ export default async function handler(req, res) {
       return res.status(200).json({ status: 'ok' });
     }
 
+    // Nota de voz/áudio: baixa e transcreve com Whisper ANTES de seguir pro
+    // fluxo normal de texto - se a transcrição falhar, avisa o paciente em
+    // vez de processar uma mensagem vazia.
+    if (voiceFileId && !fromText) {
+      const audioFile = await fetchTelegramFileAsBuffer(voiceFileId);
+      const transcript = audioFile ? await transcribeAudioWithWhisper(audioFile.buffer, audioFile.filename) : null;
+      if (!transcript) {
+        await sendTelegramText(chatId, 'Não consegui entender o áudio 😕 Pode tentar de novo ou escrever a mensagem?');
+        return res.status(200).json({ status: 'ok' });
+      }
+      fromText = transcript;
+    }
+
     if (!fromText && !hasPhoto) {
       return res.status(200).json({ status: 'ok' });
     }
-
-    // Busca o paciente pelo chat_id já vinculado.
-    const patientsRef = db.collection('patients');
-    const snapshot = await patientsRef.where('telegram_chat_id', '==', chatId).limit(1).get();
-
-    if (snapshot.empty) {
-      await sendTelegramText(chatId, 'Seu Telegram ainda não está vinculado a nenhuma conta Nutrivvo. Abra "Conectar Telegram" no seu Perfil dentro do app pra vincular.');
-      return res.status(200).json({ status: 'ok' });
-    }
-
-    const doc = snapshot.docs[0];
-    const patientId = doc.id;
-    const patientData = doc.data();
 
     // Baixa a foto ANTES de chamar a IA - se falhar, ainda seguimos com o
     // texto/legenda (se houver) em vez de travar a resposta inteira.
@@ -126,8 +173,7 @@ export default async function handler(req, res) {
       ? await fetchTelegramPhotoAsDataUrl(photos[photos.length - 1].file_id)
       : null;
 
-    await processTelegramMessage(patientId, patientData, fromText, chatId, imageDataUrl);
-    return res.status(200).json({ status: 'ok' });
+    return await handlePatientText(chatId, fromText, imageDataUrl, res);
   } catch (err) {
     console.error('Erro no processamento do webhook do Telegram:', err);
     // Ainda responde 200 pro Telegram nao ficar retentando um update que
