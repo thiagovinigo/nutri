@@ -180,11 +180,23 @@ function suggestSubstitutions(baseFood, patientData) {
   if (baseDbFood.category === 'Gorduras') mainMacro = 'fat';
   const targetValue = baseFood[mainMacro] || 0;
 
-  const aversionList = (patientData.aversions || '').split(/[,;\n]+/).map((a) => a.trim().toLowerCase()).filter(Boolean);
+  // Exclui candidatos cujo nome bate com um termo de aversões OU de
+  // restrições/contraindicações médicas (ex: "lactose", "glúten", "camarão")
+  // - mesmo filtro textual pros dois campos, já que ambos guardam frases
+  // livres com itens a evitar (ver DashboardNutri.jsx, onde os dois são
+  // tratados como igualmente críticos ao montar cardápio/treino). Isso pega
+  // o caso mais comum e mais grave (alergia/intolerância escrita como
+  // palavra), mas não substitui julgamento clínico pra contraindicações sem
+  // nome de alimento (ex: "Diabetes tipo 2") - por isso o resultado ainda
+  // vai pro segundo prompt da IA junto com restrições/medicamentos/exame
+  // completos, pra ela avaliar e avisar o paciente se algo não for
+  // recomendado mesmo sem bater no filtro textual.
+  const excludeList = `${patientData.aversions || ''},${patientData.restrictions || ''}`
+    .split(/[,;\n]+/).map((a) => a.trim().toLowerCase()).filter(Boolean);
 
   return tacoData
     .filter((t) => t.category === baseDbFood.category && String(t.id) !== String(baseDbFood.id))
-    .filter((t) => !aversionList.some((av) => t.name.toLowerCase().includes(av)))
+    .filter((t) => !excludeList.some((term) => t.name.toLowerCase().includes(term)))
     .map((alt) => ({ name: alt.name, suggestedAmount: Math.round((targetValue * 100) / (alt[mainMacro] || 1)) }))
     .sort((a, b) => a.name.localeCompare(b.name))
     .slice(0, 5);
@@ -292,7 +304,7 @@ INSTRUÇÕES DE AÇÃO (FERRAMENTAS):
 11. 'cancelar_consulta': Sempre que o paciente quiser desmarcar/cancelar uma consulta já agendada.
 12. 'marcar_suplemento': Sempre que o paciente relatar que tomou um suplemento prescrito.
 13. 'marcar_treino': Sempre que o paciente relatar que terminou o treino do dia.
-14. 'sugerir_substituicao': SEMPRE que o paciente quiser trocar/variar um alimento específico do cardápio de hoje (ex: "posso trocar o abacate por outra coisa?", "que outras opções eu tenho pro almoço?"). NUNCA invente substitutos de cabeça sem gramas - esta ferramenta calcula equivalência nutricional real (mesma categoria, mesmo valor de macro aproximado) e sempre retorna a quantidade certa em gramas, igual ao botão "Substituir" do app. Repasse as opções e as gramas exatamente como a ferramenta retornou.
+14. 'sugerir_substituicao': SEMPRE que o paciente quiser trocar/variar um alimento específico do cardápio de hoje (ex: "posso trocar o abacate por outra coisa?", "que outras opções eu tenho pro almoço?"). NUNCA invente substitutos de cabeça sem gramas - esta ferramenta calcula equivalência nutricional real (mesma categoria, mesmo valor de macro aproximado) e sempre retorna a quantidade certa em gramas, igual ao botão "Substituir" do app. A ferramenta também manda restrições/medicamentos/exame do paciente junto - antes de repassar, remova qualquer opção que não seja recomendada pra ele com base nesses dados (ex: contraindicação médica, não só aversão alimentar). Repasse as opções restantes com as gramas exatamente como a ferramenta retornou.
 
 CONTEXTO DO DIA: você pode receber blocos "CARDÁPIO DE HOJE", "ÚLTIMO EXAME" e/ou "PROGRESSO DO PACIENTE" (ofensiva/XP) logo antes da mensagem do paciente - use esses dados pra responder perguntas como "o que eu como hoje?", "o que meu exame mostrou?" ou "quantos dias de ofensiva eu tô?" diretamente, sem pedir pro paciente repetir informação que você já tem.`
     };
@@ -909,8 +921,20 @@ INSTRUÇÕES:
           const found = findFoodInTodaysMeals(todaysMeals, args.alimento);
           const alternatives = found ? suggestSubstitutions(found.food, patientData) : null;
 
+          // O filtro de suggestSubstitutions já exclui candidatos que batem
+          // literalmente com aversões/restrições (ex: "lactose", "camarão"),
+          // mas contraindicações clínicas sem nome de alimento (ex: "Diabetes
+          // tipo 2", medicamento que interage com determinado grupo, exame
+          // com glicemia/colesterol alterado) exigem julgamento, não match de
+          // texto - manda tudo pra IA revisar antes de repassar ao paciente.
+          const clinicalContext = [
+            patientData.restrictions ? `Restrições/contraindicações médicas: ${patientData.restrictions}` : null,
+            patientData.medications ? `Medicamentos em uso: ${patientData.medications}` : null,
+            buildExamContext(patientData)
+          ].filter(Boolean).join('\n');
+
           const toolContent = alternatives && alternatives.length > 0
-            ? `Substitutos nutricionalmente equivalentes pra "${found.food.name}" (${found.food.amount}g), mesma categoria e macro aproximado da Tabela TACO - use SEMPRE a quantidade em gramas exata ao listar pro paciente, nunca omita:\n${alternatives.map((a) => `- ${a.name}: ${a.suggestedAmount}g`).join('\n')}`
+            ? `Substitutos nutricionalmente equivalentes pra "${found.food.name}" (${found.food.amount}g), mesma categoria e macro aproximado da Tabela TACO - use SEMPRE a quantidade em gramas exata ao listar pro paciente, nunca omita:\n${alternatives.map((a) => `- ${a.name}: ${a.suggestedAmount}g`).join('\n')}\n\n${clinicalContext ? `Antes de responder, cheque essas opções contra o perfil clínico do paciente abaixo e REMOVA (sem precisar avisar o motivo em detalhe) qualquer uma que não seja recomendada pra ele - na dúvida, prefira sugerir menos opções mais seguras a listar algo contraindicado:\n${clinicalContext}` : 'Nenhuma restrição médica, medicamento ou exame cadastrado pra cruzar com essas opções.'}`
             : `Não encontrei "${args.alimento}" no cardápio estruturado de hoje pra calcular substitutos com gramas precisas. Avise o paciente que pra essa troca é melhor confirmar com a nutricionista, ou pergunte o nome exato do item do cardápio.`;
 
           messagesHistory.push({
