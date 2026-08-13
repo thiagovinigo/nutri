@@ -10,7 +10,7 @@
  * Vercel Hobby - já em 9/12. Mantido como um arquivo só até esse orçamento
  * folgar (upgrade de plano ou remoção de outro endpoint).
  */
-import { FieldValue } from 'firebase-admin/firestore';
+import { FieldValue, FieldPath } from 'firebase-admin/firestore';
 import { db } from './firebase-admin.js';
 
 /**
@@ -246,7 +246,19 @@ CONTEXTO DO DIA: você pode receber blocos "CARDÁPIO DE HOJE", "ÚLTIMO EXAME" 
   // Poda o histórico para não exceder limites de token (mantém system + últimas 10 msgs)
   if (messagesHistory.length > 11) {
     const system = messagesHistory[0];
-    const recent = messagesHistory.slice(messagesHistory.length - 10);
+    let recent = messagesHistory.slice(messagesHistory.length - 10);
+    // O corte por contagem fixa pode cair no meio de uma rodada de function-
+    // calling (assistant com tool_calls + N respostas 'tool'), deixando uma
+    // mensagem 'tool' órfã no início da janela - a OpenAI rejeita a
+    // requisição inteira nesse caso ("messages with role 'tool' must be a
+    // response to a preceding message with 'tool_calls'"). Como isso
+    // acontecia ANTES do save, o histórico quebrado ficava travado no
+    // Firestore e toda mensagem seguinte do paciente reproduzia o mesmo erro
+    // pra sempre (bug em produção 13/08/2026). Descarta as mensagens 'tool'
+    // órfãs do início em vez de simplesmente fatiar por contagem fixa.
+    while (recent.length > 0 && recent[0].role === 'tool') {
+      recent = recent.slice(1);
+    }
     messagesHistory = [system, ...recent];
   }
 
@@ -529,12 +541,17 @@ CONTEXTO DO DIA: você pode receber blocos "CARDÁPIO DE HOJE", "ÚLTIMO EXAME" 
 
           // Mesmo campo que o botão de água do app usa (updateWater em
           // AppContext.jsx) - waterLogs é um mapa { "DD/MM/YYYY": totalMl },
-          // incrementado de forma atômica pelo caminho aninhado.
+          // incrementado de forma atômica pelo caminho aninhado. Usa
+          // FieldPath (em vez de string com ponto tipo `waterLogs.${dateKey}`)
+          // porque a chave "DD/MM/YYYY" tem barras, e o Firestore trata "/"
+          // como caractere inválido num caminho em string - toda chamada
+          // quebrava com "Value for argument ... is not a valid field path"
+          // (bug em produção 12/08/2026, água nunca era registrada pelo bot).
           const dateKey = new Date().toLocaleDateString('pt-BR');
-          await db.collection('patients').doc(patientId).update({
-            [`waterLogs.${dateKey}`]: FieldValue.increment(Number(args.ml) || 0),
-            xp: FieldValue.increment(2)
-          });
+          await db.collection('patients').doc(patientId).update(
+            new FieldPath('waterLogs', dateKey), FieldValue.increment(Number(args.ml) || 0),
+            'xp', FieldValue.increment(2)
+          );
 
           messagesHistory.push({
             role: "tool",
