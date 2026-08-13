@@ -70,11 +70,19 @@ export default defineConfig(({ mode }) => {
     react(),
     openaiBridgeDevMiddleware(env),
     VitePWA({
-      registerType: 'autoUpdate',
+      // 'prompt' em vez de 'autoUpdate': com skipWaiting+clientsClaim, um
+      // deploy novo forçava reload automático da página assim que o Service
+      // Worker novo assumia o controle - se isso acontecesse bem no
+      // instante em que o paciente estava logando/digitando, a tela
+      // recarregava e apagava o que ele tinha escrito (relatado em
+      // 13/08/2026, sessão com dezenas de deploys seguidos). Agora o SW
+      // novo fica esperando e só assume quando o usuário confirma via
+      // toast (ver registerSW em main.jsx) ou reabre o app do zero.
+      registerType: 'prompt',
+      injectRegister: false,
       includeAssets: ['favicon.ico', 'apple-touch-icon.png', 'masked-icon.svg'],
       workbox: {
         maximumFileSizeToCacheInBytes: 5000000,
-        skipWaiting: true,
         clientsClaim: true,
         cleanupOutdatedCaches: true,
       },
