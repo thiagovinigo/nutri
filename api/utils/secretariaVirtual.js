@@ -18,11 +18,75 @@ import { db } from './firebase-admin.js';
  * @returns {Array<object>}
  */
 function sanitizeForStorage(messages) {
-  return messages.map((msg) => {
-    if (!Array.isArray(msg?.content)) return msg;
-    const textPart = msg.content.find((part) => part.type === 'text')?.text || '';
-    return { ...msg, content: `${textPart} [foto anexada]`.trim() };
-  });
+  return messages
+    .filter((msg) => !msg.ephemeral)
+    .map((msg) => {
+      if (!Array.isArray(msg?.content)) return msg;
+      const textPart = msg.content.find((part) => part.type === 'text')?.text || '';
+      return { ...msg, content: `${textPart} [foto anexada]`.trim() };
+    });
+}
+
+/**
+ * Monta um resumo do cardápio de hoje a partir do ciclo de dias da última
+ * receita - mesma lógica de "Dia N" e cálculo de ciclo usada em
+ * QuestBoard.jsx (currentCycleDay), reimplementada aqui porque api/ e src/
+ * são bundles separados na Vercel (sem import cruzado entre eles). Injetado
+ * como contexto EFêmero (nunca persistido) pra estar sempre correto mesmo
+ * em conversas antigas, onde o system prompt original já tem dias/semanas.
+ * @param {object} patientData
+ * @returns {string|null}
+ */
+function buildTodayContext(patientData) {
+  const recipes = patientData.recipes;
+  if (!recipes || recipes.length === 0) return null;
+  const currentRecipe = recipes[recipes.length - 1];
+  if (!currentRecipe?.meals?.length) return null;
+
+  const dayMatches = currentRecipe.meals.map((m) => (m.name || '').match(/Dia (\d+)/i)).filter(Boolean);
+  const maxDays = dayMatches.length > 0 ? Math.max(...dayMatches.map((m) => parseInt(m[1], 10))) : 0;
+
+  let todaysMeals = currentRecipe.meals;
+  if (maxDays > 0) {
+    const startOfDiet = patientData.createdAt ? new Date(patientData.createdAt) : new Date();
+    startOfDiet.setHours(0, 0, 0, 0);
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const daysDiff = Math.floor((today - startOfDiet) / (1000 * 60 * 60 * 24));
+    const cycleDay = daysDiff >= 0
+      ? (daysDiff % maxDays) + 1
+      : maxDays - ((Math.abs(daysDiff) - 1) % maxDays);
+    todaysMeals = currentRecipe.meals.filter((m) => {
+      const hasDayPrefix = /Dia \d+/i.test(m.name || '');
+      return !hasDayPrefix || new RegExp(`Dia ${cycleDay}\\b`, 'i').test(m.name || '');
+    });
+  }
+
+  if (todaysMeals.length === 0) return null;
+  const mealsList = todaysMeals.map((m) => `- ${m.name}${m.time ? ` às ${m.time}` : ''}: ${m.desc || ''}`).join('\n');
+  return `CARDÁPIO DE HOJE (${new Date().toLocaleDateString('pt-BR')}):\n${mealsList}`;
+}
+
+/**
+ * Resume o exame mais recente (parecer da nutricionista + laudo bruto) pra
+ * IA conseguir responder "o que meu exame mostrou?" sem inventar. Manda o
+ * laudo bruto e pede pra IA mesma traduzir em linguagem simples na hora, em
+ * vez de duplicar aqui o parser de seções de src/utils/examMarkdown.js.
+ * @param {object} patientData
+ * @returns {string|null}
+ */
+function buildExamContext(patientData) {
+  const exams = patientData.exams;
+  if (!exams || exams.length === 0) return null;
+  const latest = exams[exams.length - 1];
+  const raw = latest.analysis || latest.aiSummaryProfessional || '';
+  if (!raw && !latest.nutriParecer) return null;
+
+  const dateLabel = latest.date || latest.dateUploaded || 'data não informada';
+  const parts = [`ÚLTIMO EXAME (${dateLabel}):`];
+  if (latest.nutriParecer) parts.push(`Parecer da nutricionista: ${latest.nutriParecer}`);
+  if (raw) parts.push(`Laudo completo (traduza em linguagem simples e acolhedora se o paciente perguntar, nunca despeje termos técnicos crus): ${raw.slice(0, 2000)}`);
+  return parts.join('\n');
 }
 
 /**
@@ -80,7 +144,10 @@ INSTRUÇÕES DE AÇÃO (FERRAMENTAS):
 4. 'agendar_consulta': Após confirmar o dia e hora com o paciente e verificar que está livre, use esta ferramenta para agendar no sistema. Lembre-se: se falhar por conflito, avise o paciente e peça outro horário.
 5. Se o paciente enviar uma FOTO da refeição, você VÊ a imagem diretamente. Descreva o que identifica no prato (alimentos, porção aproximada) de forma natural e acolhedora, e chame 'log_meal' com a descrição baseada no que você viu na foto - nunca peça pro paciente descrever em texto o que já está visível na imagem.
 6. 'log_water': Sempre que o paciente relatar que bebeu água (ex: "tomei um copo d'água", "bebi uma garrafa"). Converta pra mililitros usando bom senso (1 copo ~200ml, 1 garrafa ~500ml) e pergunte se não der pra estimar.
-7. 'log_sleep': Sempre que o paciente relatar quantas horas dormiu ou como foi o sono. Se ele só mencionar a qualidade sem horas (ou vice-versa), pergunte o que faltar antes de registrar.`
+7. 'log_sleep': Sempre que o paciente relatar quantas horas dormiu ou como foi o sono. Se ele só mencionar a qualidade sem horas (ou vice-versa), pergunte o que faltar antes de registrar.
+8. 'log_weight': Sempre que o paciente informar o peso atual (ex: "hoje tô com 72kg", "pesei 68,5").
+
+CONTEXTO DO DIA: você pode receber um bloco "CARDÁPIO DE HOJE" e/ou "ÚLTIMO EXAME" logo antes da mensagem do paciente - use esses dados pra responder perguntas como "o que eu como hoje?" ou "o que meu exame mostrou?" diretamente, sem pedir pro paciente repetir informação que você já tem.`
     };
     messagesHistory.push(systemPrompt);
   }
@@ -96,6 +163,16 @@ INSTRUÇÕES DE AÇÃO (FERRAMENTAS):
         }
       : { role: 'user', content: textContent }
   );
+
+  // Contexto do dia (cardápio de hoje + último exame) injetado logo antes da
+  // mensagem do paciente, marcado como ephemeral pra NUNCA ser persistido -
+  // é recalculado do zero a cada mensagem, então fica sempre correto mesmo
+  // em conversas de dias/semanas atrás (o system prompt original não é
+  // reconstruído depois da primeira mensagem).
+  const dailyContext = [buildTodayContext(patientData), buildExamContext(patientData)].filter(Boolean).join('\n\n');
+  if (dailyContext) {
+    messagesHistory.splice(messagesHistory.length - 1, 0, { role: 'system', content: dailyContext, ephemeral: true });
+  }
 
   // Poda o histórico para não exceder limites de token (mantém system + últimas 10 msgs)
   if (messagesHistory.length > 11) {
@@ -181,6 +258,20 @@ INSTRUÇÕES DE AÇÃO (FERRAMENTAS):
               qualidade: { type: "string", description: "Qualidade do sono: Ruim, Razoável, Bom ou Excelente - escolha a mais próxima do que o paciente descreveu" }
             },
             required: ["horas", "qualidade"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "log_weight",
+          description: "Registra o peso atual do paciente.",
+          parameters: {
+            type: "object",
+            properties: {
+              kg: { type: "number", description: "Peso em quilogramas" }
+            },
+            required: ["kg"]
           }
         }
       },
@@ -333,6 +424,22 @@ INSTRUÇÕES DE AÇÃO (FERRAMENTAS):
             tool_call_id: toolCall.id,
             name: toolCall.function.name,
             content: "Sono registrado com sucesso."
+          });
+        } else if (toolCall.function.name === 'log_weight') {
+          const args = JSON.parse(toolCall.function.arguments);
+          console.log(`[FUNCTION CALL] log_weight chamado para paciente ${patientId}: ${args.kg}kg`);
+
+          // Mesmo formato que addWeight em AppContext.jsx - sempre acrescenta
+          // (não faz upsert por data, igual ao botão do app).
+          await db.collection('patients').doc(patientId).update({
+            weights: FieldValue.arrayUnion({ date: new Date().toLocaleDateString('pt-BR'), value: parseFloat(args.kg) })
+          });
+
+          messagesHistory.push({
+            role: "tool",
+            tool_call_id: toolCall.id,
+            name: toolCall.function.name,
+            content: "Peso registrado com sucesso."
           });
         } else if (toolCall.function.name === 'verificar_disponibilidade') {
           const args = JSON.parse(toolCall.function.arguments);
