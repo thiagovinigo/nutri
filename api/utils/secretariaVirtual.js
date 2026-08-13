@@ -3,6 +3,12 @@
  * compartilhado entre canais (WhatsApp, Telegram) sem duplicar o prompt/
  * function-calling. Não sabe nada sobre transporte (WhatsApp/Telegram) -
  * quem chama decide como entregar `replyText` pro paciente.
+ *
+ * Passou de 800 linhas (limite geral do projeto) e normalmente seria
+ * quebrado em módulos menores, mas cada arquivo novo em api/ (incl.
+ * api/utils/) consome um slot do limite de 12 Serverless Functions da
+ * Vercel Hobby - já em 9/12. Mantido como um arquivo só até esse orçamento
+ * folgar (upgrade de plano ou remoção de outro endpoint).
  */
 import { FieldValue } from 'firebase-admin/firestore';
 import { db } from './firebase-admin.js';
@@ -131,6 +137,20 @@ function buildExamContext(patientData) {
 }
 
 /**
+ * Ofensiva (streak) e XP atuais - pra IA responder "quantos dias eu tô
+ * seguido?" sem precisar de ferramenta, é só leitura.
+ * @param {object} patientData
+ * @returns {string|null}
+ */
+function buildProgressContext(patientData) {
+  const parts = [];
+  if (typeof patientData.streak === 'number') parts.push(`Ofensiva atual: ${patientData.streak} dias seguidos`);
+  if (typeof patientData.xp === 'number') parts.push(`XP total: ${patientData.xp}`);
+  if (parts.length === 0) return null;
+  return `PROGRESSO DO PACIENTE: ${parts.join(' | ')}`;
+}
+
+/**
  * Processa uma mensagem recebida do paciente com a IA e persiste o
  * histórico da conversa no Firestore. Não envia a resposta - só retorna o
  * texto final pro chamador entregar no canal certo.
@@ -192,8 +212,11 @@ INSTRUÇÕES DE AÇÃO (FERRAMENTAS):
 8. 'log_weight': Sempre que o paciente informar o peso atual (ex: "hoje tô com 72kg", "pesei 68,5").
 9. 'perguntar_multipla_escolha': use sempre que quiser confirmar algo com poucas opções fixas (sim/não, qual refeição, qualidade do sono) em vez de esperar o paciente digitar de forma livre - é mais rápido e confiável pro paciente responder tocando num botão.
 10. 'gerar_receita': SEMPRE que o paciente pedir o modo de preparo de uma refeição (ex: "como eu faço o almoço de hoje?", "me dá uma receita"). Você é o único canal disponível pra isso - o paciente não precisa abrir o app pra nada, tudo pode ser feito e visto aqui na conversa.
+11. 'cancelar_consulta': Sempre que o paciente quiser desmarcar/cancelar uma consulta já agendada.
+12. 'marcar_suplemento': Sempre que o paciente relatar que tomou um suplemento prescrito.
+13. 'marcar_treino': Sempre que o paciente relatar que terminou o treino do dia.
 
-CONTEXTO DO DIA: você pode receber um bloco "CARDÁPIO DE HOJE" e/ou "ÚLTIMO EXAME" logo antes da mensagem do paciente - use esses dados pra responder perguntas como "o que eu como hoje?" ou "o que meu exame mostrou?" diretamente, sem pedir pro paciente repetir informação que você já tem.`
+CONTEXTO DO DIA: você pode receber blocos "CARDÁPIO DE HOJE", "ÚLTIMO EXAME" e/ou "PROGRESSO DO PACIENTE" (ofensiva/XP) logo antes da mensagem do paciente - use esses dados pra responder perguntas como "o que eu como hoje?", "o que meu exame mostrou?" ou "quantos dias de ofensiva eu tô?" diretamente, sem pedir pro paciente repetir informação que você já tem.`
     };
     messagesHistory.push(systemPrompt);
   }
@@ -215,7 +238,7 @@ CONTEXTO DO DIA: você pode receber um bloco "CARDÁPIO DE HOJE" e/ou "ÚLTIMO E
   // é recalculado do zero a cada mensagem, então fica sempre correto mesmo
   // em conversas de dias/semanas atrás (o system prompt original não é
   // reconstruído depois da primeira mensagem).
-  const dailyContext = [buildTodayContext(patientData), buildExamContext(patientData)].filter(Boolean).join('\n\n');
+  const dailyContext = [buildTodayContext(patientData), buildExamContext(patientData), buildProgressContext(patientData)].filter(Boolean).join('\n\n');
   if (dailyContext) {
     messagesHistory.splice(messagesHistory.length - 1, 0, { role: 'system', content: dailyContext, ephemeral: true });
   }
@@ -378,6 +401,48 @@ CONTEXTO DO DIA: você pode receber um bloco "CARDÁPIO DE HOJE" e/ou "ÚLTIMO E
               tipo: { type: "string", description: "Tipo de consulta (ex: Retorno, Primeira Consulta)" }
             },
             required: ["data", "hora", "tipo"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "cancelar_consulta",
+          description: "Cancela uma consulta agendada do paciente.",
+          parameters: {
+            type: "object",
+            properties: {
+              data: { type: "string", description: "Data da consulta a cancelar (YYYY-MM-DD). Deixe vazio pra cancelar a próxima consulta agendada se o paciente não especificar." }
+            },
+            required: []
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "marcar_suplemento",
+          description: "Marca que o paciente tomou um suplemento prescrito.",
+          parameters: {
+            type: "object",
+            properties: {
+              nome_suplemento: { type: "string", description: "Nome do suplemento tomado" }
+            },
+            required: ["nome_suplemento"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "marcar_treino",
+          description: "Marca o treino do dia como concluído.",
+          parameters: {
+            type: "object",
+            properties: {
+              nome_treino: { type: "string", description: "Nome/dia do treino concluído (ex: 'Treino A - Peito e Tríceps'), se souber" }
+            },
+            required: []
           }
         }
       }
@@ -649,6 +714,84 @@ INSTRUÇÕES:
               content: "Consulta agendada com sucesso no sistema. Avise o paciente."
             });
           }
+        } else if (toolCall.function.name === 'cancelar_consulta') {
+          const args = JSON.parse(toolCall.function.arguments || '{}');
+          console.log(`[FUNCTION CALL] cancelar_consulta chamado para paciente ${patientId}`);
+
+          // Aceita maiúscula/minúscula porque agendamentos criados pelo CRM
+          // (AppContext.addAppointment) usam status 'agendado' minúsculo,
+          // enquanto o 'agendar_consulta' da IA usa 'Agendado' - inconsistência
+          // pré-existente no app, não introduzida aqui.
+          let query = db.collection('appointments')
+            .where('patientId', '==', patientId)
+            .where('status', 'in', ['Agendado', 'Confirmado', 'agendado', 'confirmado']);
+          if (args.data) query = query.where('date', '==', args.data);
+
+          const apptSnap = await query.get();
+          if (apptSnap.empty) {
+            messagesHistory.push({
+              role: "tool",
+              tool_call_id: toolCall.id,
+              name: toolCall.function.name,
+              content: "Não encontrei nenhuma consulta agendada pra cancelar."
+            });
+          } else {
+            // Sem data específica, cancela a mais próxima (menor data/hora).
+            const sorted = apptSnap.docs.sort((a, b) =>
+              `${a.data().date}${a.data().time}`.localeCompare(`${b.data().date}${b.data().time}`)
+            );
+            const apptDoc = sorted[0];
+            const apptData = apptDoc.data();
+            await apptDoc.ref.delete();
+
+            messagesHistory.push({
+              role: "tool",
+              tool_call_id: toolCall.id,
+              name: toolCall.function.name,
+              content: `Consulta de ${apptData.date} às ${apptData.time} cancelada com sucesso. Avise o paciente.`
+            });
+          }
+        } else if (toolCall.function.name === 'marcar_suplemento') {
+          const args = JSON.parse(toolCall.function.arguments);
+          console.log(`[FUNCTION CALL] marcar_suplemento chamado para paciente ${patientId}: ${args.nome_suplemento}`);
+
+          const now = new Date();
+          await db.collection('patients').doc(patientId).update({
+            supplementLogs: FieldValue.arrayUnion({
+              id: `supplement-${now.getTime()}`,
+              date: now.toLocaleDateString('pt-BR'),
+              time: now.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }),
+              name: args.nome_suplemento,
+              supplementId: null
+            })
+          });
+
+          messagesHistory.push({
+            role: "tool",
+            tool_call_id: toolCall.id,
+            name: toolCall.function.name,
+            content: "Suplemento registrado com sucesso."
+          });
+        } else if (toolCall.function.name === 'marcar_treino') {
+          const args = JSON.parse(toolCall.function.arguments || '{}');
+          console.log(`[FUNCTION CALL] marcar_treino chamado para paciente ${patientId}`);
+
+          await db.collection('patients').doc(patientId).update({
+            workoutLogs: FieldValue.arrayUnion({
+              id: `workout-${Date.now()}`,
+              date: new Date().toLocaleDateString('pt-BR'),
+              dayName: args.nome_treino || 'Treino do dia',
+              completedExercises: [],
+              totalExercises: 0
+            })
+          });
+
+          messagesHistory.push({
+            role: "tool",
+            tool_call_id: toolCall.id,
+            name: toolCall.function.name,
+            content: "Treino registrado como concluído."
+          });
         }
       }
 
