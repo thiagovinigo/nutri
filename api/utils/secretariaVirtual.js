@@ -13,6 +13,7 @@
 import { createRequire } from 'module';
 import { FieldValue, FieldPath } from 'firebase-admin/firestore';
 import { db } from './firebase-admin.js';
+import { resolveTodaysMeals } from './meals.js';
 
 // Tabela TACO (mesma base que o app usa em src/features/paciente/components/
 // DietPlan.jsx e MealBuilder.jsx) pra calcular substituições nutricionalmente
@@ -83,41 +84,6 @@ function sanitizeForStorage(messages) {
       const textPart = msg.content.find((part) => part.type === 'text')?.text || '';
       return { ...msg, content: `${textPart} [foto anexada]`.trim() };
     });
-}
-
-/**
- * Resolve as refeições de HOJE a partir do ciclo de dias da última receita -
- * mesma lógica de "Dia N" e cálculo de ciclo usada em QuestBoard.jsx
- * (currentCycleDay), reimplementada aqui porque api/ e src/ são bundles
- * separados na Vercel (sem import cruzado entre eles). Compartilhada entre
- * buildTodayContext (resumo em texto) e a ferramenta 'sugerir_substituicao'
- * (precisa das refeições estruturadas, não só do resumo).
- * @param {object} patientData
- * @returns {Array<object>}
- */
-function resolveTodaysMeals(patientData) {
-  const recipes = patientData.recipes;
-  if (!recipes || recipes.length === 0) return [];
-  const currentRecipe = recipes[recipes.length - 1];
-  if (!currentRecipe?.meals?.length) return [];
-
-  const dayMatches = currentRecipe.meals.map((m) => (m.name || '').match(/Dia (\d+)/i)).filter(Boolean);
-  const maxDays = dayMatches.length > 0 ? Math.max(...dayMatches.map((m) => parseInt(m[1], 10))) : 0;
-
-  if (maxDays === 0) return currentRecipe.meals;
-
-  const startOfDiet = patientData.createdAt ? new Date(patientData.createdAt) : new Date();
-  startOfDiet.setHours(0, 0, 0, 0);
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-  const daysDiff = Math.floor((today - startOfDiet) / (1000 * 60 * 60 * 24));
-  const cycleDay = daysDiff >= 0
-    ? (daysDiff % maxDays) + 1
-    : maxDays - ((Math.abs(daysDiff) - 1) % maxDays);
-  return currentRecipe.meals.filter((m) => {
-    const hasDayPrefix = /Dia \d+/i.test(m.name || '');
-    return !hasDayPrefix || new RegExp(`Dia ${cycleDay}\\b`, 'i').test(m.name || '');
-  });
 }
 
 /**
@@ -788,7 +754,11 @@ INSTRUÇÕES:
 
           const appointmentsSnap = await db.collection('appointments')
             .where('date', '==', args.data)
-            .where('status', 'in', ['Agendado', 'Confirmado'])
+            // Inclui minusculas: consultas criadas pelo CRM (AppContext.addAppointment)
+            // usam 'agendado'/'confirmado', a IA usa 'Agendado'/'Confirmado'.
+            // Sem isso, verificar_disponibilidade nao enxergava consultas do
+            // CRM e o bot oferecia horario ja ocupado.
+            .where('status', 'in', ['Agendado', 'Confirmado', 'agendado', 'confirmado'])
             .get();
 
           const horariosOcupados = appointmentsSnap.docs.map(d => d.data().time);
@@ -806,7 +776,9 @@ INSTRUÇÕES:
           const checkSnap = await db.collection('appointments')
             .where('date', '==', args.data)
             .where('time', '==', args.hora)
-            .where('status', 'in', ['Agendado', 'Confirmado'])
+            // Mesmo motivo do verificar_disponibilidade: inclui os status em
+            // minuscula gravados pelo CRM pra nao dar overbooking.
+            .where('status', 'in', ['Agendado', 'Confirmado', 'agendado', 'confirmado'])
             .get();
 
           if (!checkSnap.empty) {

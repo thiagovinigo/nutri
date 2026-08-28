@@ -15,7 +15,6 @@ export function AppProvider({ children }) {
   const [appointments, setAppointments] = useState([]);
   const [dietTemplates, setDietTemplates] = useState([]);
   const [recipeLibrary, setRecipeLibrary] = useState([]);
-  const [directMessages, setDirectMessages] = useState([]);
   const [activePatientId, setActivePatientId] = useState(null);
 
   const [theme, setTheme] = useState(() => {
@@ -231,7 +230,7 @@ export function AppProvider({ children }) {
 
   // Atualiza só o estado local (React), sem escrever no Firestore. Usado depois
   // de endpoints server-side (Admin SDK) que já persistiram a mudança por fora
-  // do client SDK - ex: confirmação de verificação de telefone via WhatsApp,
+  // do client SDK - ex: confirmação de verificação de telefone via Telegram,
   // onde o client é propositalmente bloqueado por firestore.rules de escrever
   // phone_verified: true diretamente.
   const patchPatientLocal = (id, partial) => {
@@ -290,6 +289,31 @@ export function AppProvider({ children }) {
     }
   };
 
+  const calculateGamification = (p) => {
+    const today = new Date().toISOString();
+    let newXp = (p.xp || 0) + 10;
+    let newStreak = p.streak || 0;
+    
+    const lastActivity = p.lastActivityDate ? new Date(p.lastActivityDate) : null;
+    const now = new Date();
+    
+    if (!lastActivity || lastActivity.toDateString() !== now.toDateString()) {
+      if (lastActivity) {
+        const yesterday = new Date(now);
+        yesterday.setDate(yesterday.getDate() - 1);
+        if (lastActivity.toDateString() === yesterday.toDateString()) {
+          newStreak += 1;
+        } else {
+          newStreak = 1;
+        }
+      } else {
+        newStreak = 1;
+      }
+    }
+    
+    return { xp: newXp, streak: newStreak, lastActivityDate: today };
+  };
+
   const markMealDone = async (patientId, recipeIdx, mealIdx, aiFeedback, mealName = 'Refeição', date = new Date().toLocaleDateString('pt-BR')) => {
     const p = patients.find(pat => pat.id === patientId);
     if (!p) return;
@@ -298,7 +322,10 @@ export function AppProvider({ children }) {
     const newFoodLog = { id: `food-${Date.now()}`, type: 'plano', date, time, mealName, log: aiFeedback, mealIdx, recipeIdx };
     const newFoodLogs = [...(p.foodLogs || []), newFoodLog];
 
-    await updatePatient(patientId, { foodLogs: newFoodLogs });
+    await updatePatient(patientId, { 
+      foodLogs: newFoodLogs, 
+      ...calculateGamification(p) 
+    });
   };
 
   const markSupplementDone = async (patientId, supplementId, name, date = new Date().toLocaleDateString('pt-BR')) => {
@@ -320,7 +347,10 @@ export function AppProvider({ children }) {
     const newFoodLog = { id: `food-${Date.now()}`, type: 'extra', date, time, mealName, log: aiFeedback };
     const newFoodLogs = [...(p.foodLogs || []), newFoodLog];
 
-    await updatePatient(patientId, { foodLogs: newFoodLogs });
+    await updatePatient(patientId, { 
+      foodLogs: newFoodLogs, 
+      ...calculateGamification(p) 
+    });
   };
 
   const deleteExtraMealLog = async (patientId, logId) => {
@@ -338,7 +368,10 @@ export function AppProvider({ children }) {
     const currentVal = currentWaterLogs[date] || 0;
     const newVal = Math.max(0, currentVal + amountMl);
     const newWaterLogs = { ...currentWaterLogs, [date]: newVal };
-    await updatePatient(patientId, { waterLogs: newWaterLogs });
+    await updatePatient(patientId, { 
+      waterLogs: newWaterLogs, 
+      ...calculateGamification(p) 
+    });
   };
 
   const addWeight = async (patientId, value) => {
@@ -417,18 +450,6 @@ export function AppProvider({ children }) {
     }
   };
     
-  const sendDirectMessage = async (patientId, sender, text) => {
-      const msg = {
-        id: `msg-${Date.now()}`,
-        patientId,
-        sender, // 'nutri' or 'paciente'
-        text,
-        date: new Date().toISOString()
-      };
-      setDirectMessages(prev => [...prev, msg]);
-      // Na versão final, isso salvaria numa collection `messages` no Firestore.
-    };
-
   const markNotificationsRead = (patientId) => {
     setPatients(prev => prev.map(p => {
       if (p.id !== patientId) return p;
@@ -600,7 +621,6 @@ export function AppProvider({ children }) {
       appointments, addAppointment, cancelAppointment, markAppointmentDone,
       dietTemplates, addDietTemplate, deleteDietTemplate,
       recipeLibrary, addLibraryRecipe, deleteLibraryRecipe,
-      directMessages, sendDirectMessage,
       addBonusRecipe,
       isFirebaseConfigured,
       bypassLoginAsPatient,

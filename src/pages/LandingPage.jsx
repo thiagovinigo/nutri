@@ -134,7 +134,7 @@ export default function LandingPage() {
           <div className="w-feature-card" data-w-reveal>
             <div className="w-icon-box"><Wallet size={28} /></div>
             <h3 className="w-feature-title wellness-heading">Financeiro Integrado</h3>
-            <p className="w-feature-desc">Controle planos, vencimentos e cobranças direto no CRM, com lembrete de renovação pronto pra enviar no WhatsApp em um clique.</p>
+            <p className="w-feature-desc">Controle planos, vencimentos e cobranças direto no CRM, com lembrete de renovação pronto pra enviar no Telegram em um clique.</p>
           </div>
 
           <div className="w-feature-card" data-w-reveal>

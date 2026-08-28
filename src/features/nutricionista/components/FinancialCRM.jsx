@@ -30,7 +30,7 @@ export default function FinancialCRM({
   const defaultPlans = [
     { id: 'plano_avulso', name: 'Consulta Avulsa', price: 250, durationDays: 1, description: 'Consulta única com retorno incluso.' },
     { id: 'plano_mensal', name: 'Plano Mensal (30 dias)', price: 350, durationDays: 30, description: 'Acompanhamento de 1 mês com suporte pelo chat.' },
-    { id: 'plano_trimestral', name: 'Plano Trimestral VIP (90 dias)', price: 900, durationDays: 90, description: '3 consultas + WhatsApp proativo e reavaliação contínua.' },
+    { id: 'plano_trimestral', name: 'Plano Trimestral VIP (90 dias)', price: 900, durationDays: 90, description: '3 consultas + Telegram proativo e reavaliação contínua.' },
   ];
 
   const plans = (clinicConfig?.financialPlans && clinicConfig.financialPlans.length > 0) 
@@ -135,7 +135,7 @@ export default function FinancialCRM({
     if (addNotification) addNotification(`Dados financeiros atualizados para ${patient.name}`);
   };
 
-  // Enviar Lembrete no WhatsApp
+  // Enviar Lembrete no Telegram
   const handleSendWhatsAppReminder = (patient) => {
     const plan = plans.find(pl => pl.id === patient.financialPlanId) || plans[0];
     const phone = patient.phone ? patient.phone.replace(/\D/g, '') : '';
@@ -489,7 +489,7 @@ export default function FinancialCRM({
                               fontSize: '0.8rem'
                             }}
                           >
-                            <Send size={14} /> Cobrar no WhatsApp
+                            <Send size={14} /> Cobrar no Telegram
                           </button>
                         </td>
                       </tr>
@@ -602,7 +602,7 @@ export default function FinancialCRM({
                 </label>
                 <textarea 
                   rows={3} 
-                  placeholder="Ex: Inclui 3 consultas presenciais, plano alimentar ajustável e suporte via WhatsApp."
+                  placeholder="Ex: Inclui 3 consultas presenciais, plano alimentar ajustável e suporte via Telegram."
                   value={planDescription}
                   onChange={(e) => setPlanDescription(e.target.value)}
                   style={{ width: '100%', padding: '10px 12px', borderRadius: '8px', border: '1px solid var(--crm-border)', background: 'var(--crm-surface)', color: 'var(--crm-text)', fontFamily: 'inherit', resize: 'vertical' }}

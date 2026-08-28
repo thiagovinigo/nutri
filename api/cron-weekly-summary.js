@@ -1,5 +1,5 @@
 import { db } from './utils/firebase-admin.js';
-import { sendTelegramText } from './utils/telegram.js';
+import { sendTelegramText, escapeTelegramHtml } from './utils/telegram.js';
 
 /** Converte "DD/MM/YYYY" (formato pt-BR usado em todo o app) pra Date. */
 function parsePtBrDate(dateStr) {
@@ -64,7 +64,7 @@ export default async function handler(req, res) {
         weightLine = `⚖️ Peso: ${sinal}${diff.toFixed(1)}kg na semana\n`;
       }
 
-      const text = `📅 *Seu resumo da semana, ${patient.name?.split(' ')[0] || ''}!*\n\n` +
+      const text = `📅 <b>Seu resumo da semana, ${escapeTelegramHtml(patient.name?.split(' ')[0] || '')}!</b>\n\n` +
         `🍽️ ${foodLogsWeek.length} refeições registradas\n` +
         (avgWaterMl !== null ? `💧 Média de ${avgWaterMl}ml de água por dia\n` : '') +
         (avgSleepHours !== null ? `😴 Média de ${avgSleepHours}h de sono por noite\n` : '') +

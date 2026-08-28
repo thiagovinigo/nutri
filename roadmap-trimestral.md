@@ -1,3 +1,8 @@
+> ⚠️ **APOSENTADO em 28/08/2026** — não é mais a referência ativa. Use `backlog.md` (documento único
+> de status). As seções de "Status" aqui ficaram defasadas (WhatsApp ainda tratado como canal ativo;
+> na verdade foi substituído por Telegram em 12/08/2026 e já roda com pacientes reais). Mantido só
+> como histórico do planejamento trimestral.
+
 # Roadmap: Nutrivvo V2 — Trimestral (Agosto - Outubro 2026)
 
 ## Visão geral

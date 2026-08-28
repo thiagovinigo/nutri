@@ -43,7 +43,36 @@ async function handlePatientText(chatId, fromText, imageDataUrl, res) {
   }
 
   const doc = snapshot.docs[0];
-  await processTelegramMessage(doc.id, doc.data(), fromText, chatId, imageDataUrl);
+  const patientData = doc.data();
+  await processTelegramMessage(doc.id, patientData, fromText, chatId, imageDataUrl);
+
+  // Gamificação: Atualiza XP, Streak e lastActivityDate pelo Telegram
+  const today = new Date().toISOString();
+  let newXp = (patientData.xp || 0) + 10;
+  let newStreak = patientData.streak || 0;
+  const lastActivity = patientData.lastActivityDate ? new Date(patientData.lastActivityDate) : null;
+  const now = new Date();
+
+  if (!lastActivity || lastActivity.toDateString() !== now.toDateString()) {
+    if (lastActivity) {
+      const yesterday = new Date(now);
+      yesterday.setDate(yesterday.getDate() - 1);
+      if (lastActivity.toDateString() === yesterday.toDateString()) {
+        newStreak += 1;
+      } else {
+        newStreak = 1;
+      }
+    } else {
+      newStreak = 1;
+    }
+  }
+
+  await doc.ref.update({
+    xp: newXp,
+    streak: newStreak,
+    lastActivityDate: today
+  });
+
   return res.status(200).json({ status: 'ok' });
 }
 

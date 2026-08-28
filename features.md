@@ -1,3 +1,8 @@
+> ⚠️ **APOSENTADO em 28/08/2026** — não é mais a referência ativa. Use `backlog.md` (documento único
+> de status, auditado item-a-item contra o código). Este arquivo tinha itens desatualizados (dava como
+> "A Desenvolver" features que já estão em produção — gráfico de peso, biomarcadores, receitas bônus).
+> Mantido só como histórico.
+
 # Features do Produto — Nutrivvo
 
 Este documento detalha o mapa de funcionalidades do Nutrivvo, dividindo o que já foi construído e validado em produção, e as funcionalidades planejadas para o futuro (Backlog).

@@ -11,7 +11,6 @@ import FinancialCRM from './FinancialCRM';
 import AnamnesisTemplateSettings from './AnamnesisTemplateSettings';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
-import ChatIA from './ChatIA';
 import BiomarkersChart from './BiomarkersChart';
 import toast from 'react-hot-toast';
 
@@ -34,7 +33,6 @@ export default function PatientList({
   addNotification, addExam,
   dietTemplates, deleteDietTemplate,
   recipeLibrary, addLibraryRecipe, deleteLibraryRecipe,
-  directMessages, sendDirectMessage,
   addBonusRecipe,
   clinicConfig, updateClinicConfig
 }) {
@@ -847,7 +845,6 @@ export default function PatientList({
                 <button className={prontuarioTab === 'resumo' ? 'results-tab-btn active' : 'results-tab-btn'} onClick={() => setProntuarioTab('resumo')}>Visão Geral</button>
                 <button className={prontuarioTab === 'consultas' ? 'results-tab-btn active' : 'results-tab-btn'} onClick={() => { setProntuarioTab('consultas'); setSelectedHistoryIdx(null); }}>Protocolo Vigente</button>
                 <button className={prontuarioTab === 'exames' ? 'results-tab-btn active' : 'results-tab-btn'} onClick={() => setProntuarioTab('exames')}>Exames & Biomarcadores</button>
-                <button className={prontuarioTab === 'chat_ia' ? 'results-tab-btn active' : 'results-tab-btn'} onClick={() => setProntuarioTab('chat_ia')}>🤖 Chat IA</button>
                 <button className={prontuarioTab === 'financeiro' ? 'results-tab-btn active' : 'results-tab-btn'} onClick={() => setProntuarioTab('financeiro')}>💰 Plano & Contrato</button>
               </div>
 
@@ -1113,7 +1110,7 @@ export default function PatientList({
                 const defaultPlans = [
                   { id: 'plano_avulso', name: 'Consulta Avulsa', price: 250, durationDays: 1, description: 'Consulta única com retorno incluso.' },
                   { id: 'plano_mensal', name: 'Plano Mensal (30 dias)', price: 350, durationDays: 30, description: 'Acompanhamento de 1 mês com suporte pelo chat.' },
-                  { id: 'plano_trimestral', name: 'Plano Trimestral VIP (90 dias)', price: 900, durationDays: 90, description: '3 consultas + WhatsApp proativo e reavaliação contínua.' },
+                  { id: 'plano_trimestral', name: 'Plano Trimestral VIP (90 dias)', price: 900, durationDays: 90, description: '3 consultas + Telegram proativo e reavaliação contínua.' },
                 ];
                 const currentPlans = (clinicConfig?.financialPlans && clinicConfig.financialPlans.length > 0) ? clinicConfig.financialPlans : defaultPlans;
                 const activePlanId = viewedPatient.financialPlanId || currentPlans[0].id;
@@ -1185,14 +1182,14 @@ export default function PatientList({
                           onClick={handleSendCobrança}
                           style={{ display: 'flex', alignItems: 'center', gap: '8px', background: '#F59E0B', border: 'none', cursor: 'pointer', padding: '10px 16px', borderRadius: '8px', color: '#fff', fontWeight: '600' }}
                         >
-                          <Send size={16} /> Enviar Lembrete / Cobrança no WhatsApp
+                          <Send size={16} /> Enviar Lembrete / Cobrança no Telegram
                         </button>
                         <button 
                           className="crm-btn-primary" 
                           onClick={handleSendRecibo}
                           style={{ display: 'flex', alignItems: 'center', gap: '8px', background: '#10B981', border: 'none', cursor: 'pointer', padding: '10px 16px', borderRadius: '8px', color: '#fff', fontWeight: '600' }}
                         >
-                          <FileText size={16} /> Emitir Comprovante / Recibo no WhatsApp
+                          <FileText size={16} /> Emitir Comprovante / Recibo no Telegram
                         </button>
                       </div>
                     </div>
@@ -1211,11 +1208,6 @@ export default function PatientList({
                 );
               })()}
 
-              {prontuarioTab === 'chat_ia' && viewedPatient && (
-                <div className="tab-pane active" style={{ padding: '0 20px 20px 20px' }}>
-                  <ChatIA patient={viewedPatient} clinicConfig={clinicConfig} />
-                </div>
-              )}
               {prontuarioTab === 'consultas' && (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
                   <div className="results-tabs" style={{ marginBottom: '0', borderBottom: '1px solid var(--crm-border)' }}>
@@ -2175,7 +2167,7 @@ export default function PatientList({
               </div>
               <div style={{ marginBottom: '16px' }}>
                 <label className="crm-label">
-                  Telefone (WhatsApp) {!!editingPatient && <span style={{ fontSize: '12px', marginLeft: '4px' }}>🔒</span>}
+                  Telefone (Telegram) {!!editingPatient && <span style={{ fontSize: '12px', marginLeft: '4px' }}>🔒</span>}
                 </label>
                 <input type="tel" className="crm-input" placeholder="(11) 99999-9999" value={patPhone} onChange={e => {
                   let v = e.target.value.replace(/\D/g, '');

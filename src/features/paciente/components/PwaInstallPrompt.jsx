@@ -90,7 +90,7 @@ export default function PwaInstallPrompt() {
       
       {isInAppBrowser ? (
         <p style={{ margin: 0, fontSize: '0.9rem', lineHeight: '1.4' }}>
-          Você está navegando pelo aplicativo (Instagram, WhatsApp, etc). Para conseguir baixar o app do Nutrivvo, clique nos três pontinhos <strong>(⋮)</strong> e selecione <strong>Abrir no navegador</strong> (Chrome ou Safari).
+          Você está navegando pelo aplicativo (Instagram, Telegram, etc). Para conseguir baixar o app do Nutrivvo, clique nos três pontinhos <strong>(⋮)</strong> e selecione <strong>Abrir no navegador</strong> (Chrome ou Safari).
         </p>
       ) : isIos ? (
         <p style={{ margin: 0, fontSize: '0.9rem', lineHeight: '1.4' }}>

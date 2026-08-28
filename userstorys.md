@@ -1,3 +1,6 @@
+> ⚠️ **APOSENTADO em 28/08/2026** — não é mais a referência ativa. Use `backlog.md` (documento único
+> de status, auditado contra o código). Mantido só como histórico das user stories iniciais.
+
 # Nutrivvo Nutri - Product Requirements & User Stories
 *Documento vivo consolidando o Passado, Presente e Futuro das features do Nutrivvo usando frameworks de PM.*
 

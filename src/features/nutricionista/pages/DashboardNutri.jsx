@@ -165,8 +165,13 @@ export default function DashboardNutri() {
     let conflictReason = "";
     const isDuplicate = patients.some(p => {
       if (editingPatient && p.id === editingPatient) return false;
-      if (p.status === 'inativo' || p.status === 'arquivado') return false;
-      
+      if (p.status === 'arquivado') return false;
+      // Ao CRIAR, uma ficha provisoria (inativo) com o mesmo CPF/e-mail e
+      // justamente a duplicata que queremos barrar (o nutri criou 2x). Ao
+      // EDITAR um paciente ja ativo, pulamos as inativo pra nao brigar com
+      // um orfao do proprio paciente (ver backlog.md "Cadastro duplicado").
+      if (editingPatient && p.status === 'inativo') return false;
+
       const cleanPatCpf = normalizeCpf(patCpf);
       const cleanPatEmail = normalizeEmail(patEmail);
       

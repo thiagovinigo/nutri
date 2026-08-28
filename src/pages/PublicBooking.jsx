@@ -124,7 +124,7 @@ export default function PublicBooking() {
         <p style={{ color: '#94a3b8', marginTop: '8px', maxWidth: '400px' }}>
           Sua consulta com <strong>{nutri.name}</strong> foi pré-agendada para <strong>{selectedDate.split('-').reverse().join('/')}</strong> às <strong>{selectedTime}</strong>.
         </p>
-        <p style={{ color: '#94a3b8', marginTop: '8px' }}>O profissional entrará em contato via WhatsApp ({patientData.phone}) para confirmar e enviar o link.</p>
+        <p style={{ color: '#94a3b8', marginTop: '8px' }}>O profissional entrará em contato via Telegram ({patientData.phone}) para confirmar e enviar o link.</p>
         
         <div style={{ marginTop: '32px' }}>
           <button className="crm-btn-primary" onClick={() => navigate('/')}>Voltar ao Início</button>
@@ -210,7 +210,7 @@ export default function PublicBooking() {
             </div>
 
             <div style={{ marginBottom: '24px' }}>
-              <label style={{ display: 'block', marginBottom: '6px', color: '#cbd5e1', fontSize: '0.9rem' }}>WhatsApp</label>
+              <label style={{ display: 'block', marginBottom: '6px', color: '#cbd5e1', fontSize: '0.9rem' }}>Telegram</label>
               <input type="tel" required value={patientData.phone} onChange={e => {
                     let v = e.target.value.replace(/\D/g, '');
                     if (v.length > 11) v = v.slice(0, 11);

@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { auth, db } from '../services/firebase';
-import { createUserWithEmailAndPassword } from 'firebase/auth';
+import { createUserWithEmailAndPassword, sendEmailVerification } from 'firebase/auth';
 import { doc, setDoc, getDoc, deleteDoc, collection, query, where, getDocs, updateDoc } from 'firebase/firestore';
 import { getFirebaseErrorMessage } from '../utils/firebaseErrors';
 import { useAppContext } from '../context/AppContext';
@@ -128,6 +128,33 @@ export default function SignUp() {
       return;
     }
 
+    if (role === 'nutricionista') {
+      // Aceita as 11 regioes (CRN-1 a CRN-11) e espaco opcional entre regiao
+      // e numero. A regex anterior /^CRN-\d\s\d{4,6}$/ so pegava 1 digito de
+      // regiao (barrava CRN-10 e CRN-11) e exigia exatamente 1 espaco.
+      const crnRegex = /^CRN-\d{1,2}\s?\d{4,6}$/i;
+      if (!crnRegex.test((crn || '').trim())) {
+        setErrorMsg('CRN inválido. Use o formato "CRN-<região> <número>" (ex: CRN-3 12345 ou CRN-10 98765).');
+        setLoading(false);
+        return;
+      }
+    }
+
+    if (role === 'paciente' && phone && !vincularId) {
+      try {
+        const patientsRef = collection(db, 'patients');
+        const q = query(patientsRef, where('phone', '==', phone), where('nutricionista_id', '==', nutriIdParam || null));
+        const snap = await getDocs(q);
+        if (!snap.empty) {
+          setErrorMsg('Este número de telefone já está cadastrado.');
+          setLoading(false);
+          return;
+        }
+      } catch (err) {
+        console.warn('Erro ao verificar duplicidade de telefone', err);
+      }
+    }
+
     try {
       // Cria o usuário no Auth
       const userCredential = await createUserWithEmailAndPassword(auth, email, password);
@@ -142,6 +169,13 @@ export default function SignUp() {
       };
       if (role === 'nutricionista' && crn) {
         userDoc.crn = crn;
+      }
+
+      // Envia email de ativação
+      try {
+        await sendEmailVerification(user);
+      } catch (emailErr) {
+        console.warn("Falha ao enviar e-mail de verificação:", emailErr);
       }
 
       // Salva o documento do usuário (role e nome)
@@ -179,10 +213,35 @@ export default function SignUp() {
           weights: []
         };
 
-        const vincularId = searchParams.get('vincular');
-        if (vincularId) {
+        // Reivindicacao de ficha provisoria:
+        //  - via ?vincular=ID (link de convite), OU
+        //  - descoberta por e-mail: paciente que se cadastrou direto no
+        //    /cadastro (sem o link) mas o nutri ja tinha criado uma ficha
+        //    provisoria (status 'inativo') com esse e-mail. Sem isso criava-se
+        //    um 2o doc e a ficha virava orfa (duplicata - ver find_ghost.js /
+        //    backlog.md "Cadastro duplicado"). A query filtra status=inativo
+        //    de proposito: e a unica forma que firestore.rules permite ler
+        //    doc de outro paciente aqui.
+        let claimId = searchParams.get('vincular');
+        if (!claimId) {
           try {
-            const tempDocRef = doc(db, 'patients', vincularId);
+            const emailLower = (email || '').trim().toLowerCase();
+            if (emailLower) {
+              const dupSnap = await getDocs(query(
+                collection(db, 'patients'),
+                where('email', '==', emailLower),
+                where('status', '==', 'inativo')
+              ));
+              if (!dupSnap.empty) claimId = dupSnap.docs[0].id;
+            }
+          } catch (dupErr) {
+            console.warn('Falha ao procurar ficha provisoria por e-mail', dupErr);
+          }
+        }
+
+        if (claimId) {
+          try {
+            const tempDocRef = doc(db, 'patients', claimId);
             const tempDocSnap = await getDoc(tempDocRef);
             if (tempDocSnap.exists()) {
               // Mescla os dados do cadastro temporário com o default (sobrescrevendo o default)
@@ -191,18 +250,21 @@ export default function SignUp() {
               // O paciente pode já ter consultas agendadas pelo nutricionista
               // antes de terminar o cadastro (fluxo comum: cadastra -> já
               // agenda -> manda o link). Essas consultas referenciam o ID
-              // temporário (vincularId) — sem essa migração, elas ficam órfãs
+              // temporário (claimId) — sem essa migração, elas ficam órfãs
               // assim que o doc temporário é deletado abaixo, porque o
               // paciente passa a existir só sob o UID do Firebase Auth.
               try {
-                const apptsQuery = query(collection(db, 'appointments'), where('patientId', '==', vincularId));
+                const apptsQuery = query(collection(db, 'appointments'), where('patientId', '==', claimId));
                 const apptsSnap = await getDocs(apptsQuery);
                 await Promise.all(apptsSnap.docs.map(d => updateDoc(doc(db, 'appointments', d.id), { patientId: user.uid })));
               } catch (apptError) {
                 console.warn('Falha ao migrar agendamentos do convite para o novo ID do paciente.', apptError);
               }
 
-              // Deleta o temporário
+              // Deleta o temporário. Exige firestore.rules com o delete de
+              // ficha 'inativo' liberado pra qualquer usuario logado (ver
+              // backlog.md) - ate publicar, isso falha e a orfa continua,
+              // mas o doc ATIVO ja fica correto.
               await deleteDoc(tempDocRef);
             }
           } catch(e) {
@@ -216,7 +278,9 @@ export default function SignUp() {
       // Garante que o profile seja lido agora, para evitar "race condition" com o onAuthStateChanged
       await fetchProfile(user.uid);
 
-      // Redireciona com base na role escolhida
+      // Redireciona com base na role escolhida e avisa sobre o e-mail
+      alert('Sua conta foi criada! Enviamos um link de confirmação para o seu e-mail. Por favor, verifique sua caixa de entrada.');
+      
       if (role === 'nutricionista') {
         navigate('/nutri');
       } else {
@@ -368,7 +432,7 @@ export default function SignUp() {
               </div>
 
               <div style={{ marginBottom: '16px' }}>
-                <label style={darkLabelStyle}>Telefone (WhatsApp)</label>
+                <label style={darkLabelStyle}>Telefone (Telegram)</label>
                 <input
                   type="tel"
                   required

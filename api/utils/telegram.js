@@ -5,6 +5,22 @@
  */
 
 /**
+ * Escapa os 3 caracteres que o Telegram exige escapados quando parse_mode e
+ * 'HTML' (& < >). Aplicar em QUALQUER valor dinamico (nome do paciente, nome
+ * da refeicao) interpolado num texto enviado com parse_mode: 'HTML' - sem
+ * isso um nome tipo "Pao & manteiga" faz o Telegram rejeitar a mensagem
+ * inteira com 400 "can't parse entities".
+ * @param {unknown} text
+ * @returns {string}
+ */
+export function escapeTelegramHtml(text) {
+  return String(text ?? '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;');
+}
+
+/**
  * Envia uma mensagem de texto via Telegram Bot API.
  * @param {string|number} chatId - chat_id do paciente (obtido no /start do bot)
  * @param {string} text

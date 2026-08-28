@@ -9,59 +9,27 @@ service cloud.firestore {
     }
 
     match /patients/{patientId} {
-      // Paciente pode ler, criar e atualizar seu próprio doc
-      allow read, create: if request.auth != null && request.auth.uid == patientId;
+      // Paciente pode ler, criar e atualizar o próprio doc. As guardas de
+      // OTP/phone_verified foram removidas em 28/08/2026 junto com o fluxo de
+      // verificação de telefone por SMS (o /start do Telegram já prova posse
+      // da conta) - nenhum código lê/escreve esses campos mais.
+      allow read, create, update: if request.auth != null && request.auth.uid == patientId;
 
-      // Update do próprio paciente: liberado, EXCETO nos campos de verificação
-      // de telefone via WhatsApp (ver .claude/prds/verificacao-telefone-whatsapp.prd.md).
-      // Só o backend (Admin SDK, que ignora estas regras) pode gravar o código OTP
-      // e confirmar phone_verified = true - senão o paciente forjaria a verificação
-      // direto pelo client SDK, anulando o propósito da feature.
-      allow update: if request.auth != null && request.auth.uid == patientId
-        && !request.resource.data.diff(resource.data).affectedKeys()
-              .hasAny(['phone_otp_hash', 'phone_otp_expires', 'phone_otp_attempts', 'phone_otp_sent_at'])
-        // phone_verified só pode ser tocado pelo client para desligar (false),
-        // nunca para ligar (true) - isso é exclusivo do Admin SDK no backend.
-        && (
-          !request.resource.data.diff(resource.data).affectedKeys().hasAny(['phone_verified'])
-          || request.resource.data.phone_verified == false
-        )
-        // Trocar o número de telefone sem re-verificar deve sempre derrubar o
-        // status de verificado no mesmo write, nunca manter true "de graça".
-        && (
-          !request.resource.data.diff(resource.data).affectedKeys().hasAny(['phone'])
-          || request.resource.data.phone_verified == false
-        );
-      
-      // Nutricionista dono pode ler, atualizar, criar, deletar - MAS com a
-      // mesma restrição do paciente acima nos campos de verificação de
-      // telefone: só o backend (Admin SDK) pode confirmar phone_verified.
-      // Sem isso, o nutricionista (ou uma conta comprometida) conseguia
-      // burlar o OTP direto pelo client SDK, setando phone_verified=true
-      // manualmente (achado HIGH da auditoria de segurança de 11/08/2026).
-      allow read, delete: if request.auth != null
+      // Nutricionista dono pode ler, atualizar, criar e deletar seus pacientes.
+      allow read, update, delete: if request.auth != null
         && resource.data.nutricionista_id == request.auth.uid;
-      allow update: if request.auth != null
-        && resource.data.nutricionista_id == request.auth.uid
-        && !request.resource.data.diff(resource.data).affectedKeys()
-              .hasAny(['phone_otp_hash', 'phone_otp_expires', 'phone_otp_attempts', 'phone_otp_sent_at'])
-        && (
-          !request.resource.data.diff(resource.data).affectedKeys().hasAny(['phone_verified'])
-          || request.resource.data.phone_verified == false
-        )
-        && (
-          !request.resource.data.diff(resource.data).affectedKeys().hasAny(['phone'])
-          || request.resource.data.phone_verified == false
-        );
       allow create: if request.auth != null
         && request.resource.data.nutricionista_id == request.auth.uid;
 
       // Paciente novo pode ler o documento temporário gerado pelo nutri antes de ter conta (ID atua como token de convite)
       allow read: if resource.data.status == 'inativo';
-      // Só o próprio paciente reivindicando o convite (uid == patientId) pode apagar o placeholder,
-      // nunca outro usuário autenticado qualquer
+      // Qualquer usuário autenticado pode apagar uma ficha provisória ainda
+      // não reivindicada (status 'inativo'). Antes exigia uid == patientId,
+      // mas o ID da ficha é aleatório (addDoc), nunca igual ao uid do paciente
+      // que se cadastra — então o delete SEMPRE falhava e a ficha virava órfã
+      // em todo convite (ver backlog.md "Cadastro duplicado"). Superfície de
+      // abuso: baixa (IDs não adivinháveis, docs transitórios).
       allow delete: if request.auth != null
-        && request.auth.uid == patientId
         && resource.data.status == 'inativo';
     }
 
