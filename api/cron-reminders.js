@@ -1,6 +1,6 @@
-import { db } from './utils/firebase-admin.js';
-import { sendTelegramText, escapeTelegramHtml } from './utils/telegram.js';
-import { resolveTodaysMeals } from './utils/meals.js';
+import { db } from '../lib/firebase-admin.js';
+import { sendTelegramText, escapeTelegramHtml } from '../lib/telegram.js';
+import { resolveTodaysMeals } from '../lib/meals.js';
 
 export default async function handler(req, res) {
   // Segurança básica: o CRON da Vercel envia automaticamente

@@ -1,8 +1,8 @@
 import { z } from 'zod';
 import { FieldValue } from 'firebase-admin/firestore';
-import { db } from './utils/firebase-admin.js';
-import { requireAuthUid } from './utils/auth.js';
-import { normalizeCpfDigits, resolveCpfClaim } from './utils/patients.js';
+import { db } from '../lib/firebase-admin.js';
+import { requireAuthUid } from '../lib/auth.js';
+import { normalizeCpfDigits, resolveCpfClaim } from '../lib/patients.js';
 
 // Fecha o residual do bug "Cadastro duplicado" (backlog.md): garante que
 // nenhum paciente ATIVO exista com o mesmo CPF de outro paciente ativo já

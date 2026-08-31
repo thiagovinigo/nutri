@@ -1,5 +1,5 @@
-import { db } from './utils/firebase-admin.js';
-import { sendTelegramText, escapeTelegramHtml } from './utils/telegram.js';
+import { db } from '../lib/firebase-admin.js';
+import { sendTelegramText, escapeTelegramHtml } from '../lib/telegram.js';
 
 /** Converte "DD/MM/YYYY" (formato pt-BR usado em todo o app) pra Date. */
 function parsePtBrDate(dateStr) {

@@ -5,7 +5,7 @@
 // Uso: node test-cpf-guard.mjs
 
 import assert from 'node:assert/strict';
-import { normalizeCpfDigits, resolveCpfClaim, findCpfConflictGroups } from './api/utils/patients.js';
+import { normalizeCpfDigits, resolveCpfClaim, findCpfConflictGroups } from './lib/patients.js';
 
 let passed = 0;
 function test(name, fn) {

@@ -1,8 +1,8 @@
 import { z } from 'zod';
 import { FieldValue } from 'firebase-admin/firestore';
-import { db } from './utils/firebase-admin.js';
-import { requireAuthUid } from './utils/auth.js';
-import { normalizeCpfDigits, findCpfConflictGroups } from './utils/patients.js';
+import { db } from '../lib/firebase-admin.js';
+import { requireAuthUid } from '../lib/auth.js';
+import { normalizeCpfDigits, findCpfConflictGroups } from '../lib/patients.js';
 
 // Painel de admin V1 (dono único do sistema, não um dos nutricionistas):
 // resolver conflitos de CPF, ver usuários entre tenants, métricas agregadas.

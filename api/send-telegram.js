@@ -1,7 +1,7 @@
 import { z } from 'zod';
-import { db } from './utils/firebase-admin.js';
-import { requireAuthUid } from './utils/auth.js';
-import { sendTelegramText } from './utils/telegram.js';
+import { db } from '../lib/firebase-admin.js';
+import { requireAuthUid } from '../lib/auth.js';
+import { sendTelegramText } from '../lib/telegram.js';
 
 // Espelha api/send-whatsapp.js (dormente desde 12/08/2026) pro canal do
 // Telegram - mesma validacao de dono do paciente, so troca o transporte.

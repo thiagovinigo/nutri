@@ -1,20 +1,22 @@
-import { db } from './utils/firebase-admin.js';
+import { db } from '../lib/firebase-admin.js';
 import {
   sendTelegramText,
   sendTelegramKeyboard,
   answerTelegramCallback,
   fetchTelegramPhotoAsDataUrl,
   fetchTelegramFileAsBuffer
-} from './utils/telegram.js';
-import { runSecretariaVirtual, transcribeAudioWithWhisper } from './utils/secretariaVirtual.js';
+} from '../lib/telegram.js';
+import { runSecretariaVirtual, transcribeAudioWithWhisper } from '../lib/secretariaVirtual.js';
 
 /**
  * Processa a mensagem com a Secretária Virtual (IA) e responde pelo
  * Telegram - com botões de resposta rápida quando a IA pediu opções via
  * 'perguntar_multipla_escolha'. Inline aqui (em vez de um arquivo
  * telegram-ai.js separado) pra economizar slot de Serverless Function - o
- * plano Hobby da Vercel limita 12 por deployment, e cada arquivo em api/
- * (incl. api/utils/) conta como uma função.
+ * plano Hobby da Vercel limita 12 por deployment, e cada arquivo dentro de
+ * api/ conta como uma função (código compartilhado fica em lib/, fora de
+ * api/, justamente pra não contar - ver commit que moveu api/utils -> lib/
+ * depois de estourar o limite com 13 arquivos).
  */
 async function processTelegramMessage(patientId, patientData, textContent, chatId, imageDataUrl) {
   const reply = await runSecretariaVirtual(patientId, patientData, textContent, imageDataUrl);

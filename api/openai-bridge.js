@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { requireAuthUid } from './utils/auth.js';
+import { requireAuthUid } from '../lib/auth.js';
 
 // Aceita conteudo multimodal (texto + imagem em base64/URL, usado por
 // PhotoRecipeGenerator/QuestBoard) alem de texto simples. Sem essa
