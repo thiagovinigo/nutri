@@ -28,3 +28,25 @@ export function resolveCpfClaim({ indexPatientId, targetPatientId, conflictingDo
   if (indexPatientId === targetPatientId) return 'idempotent';
   return conflictingDocExists ? 'conflict' : 'reclaim';
 }
+
+/**
+ * Agrupa pacientes ativos por CPF pra achar duplicatas criadas ANTES do
+ * patientCpfIndex existir (que só passou a reservar CPF a partir desta
+ * mudança - não cobre dado legado). Usado pelo painel de conflitos do
+ * admin (api/admin.js, action 'list_conflicts').
+ *
+ * @param {Array<{ id: string, cpf?: string, cpfDigits?: string }>} patients
+ * @returns {Array<{ cpfDigits: string, patients: Array }>} só grupos com 2+ pacientes
+ */
+export function findCpfConflictGroups(patients) {
+  const groups = new Map();
+  for (const patient of patients) {
+    const cpfDigits = patient.cpfDigits || normalizeCpfDigits(patient.cpf);
+    if (cpfDigits.length !== 11) continue;
+    if (!groups.has(cpfDigits)) groups.set(cpfDigits, []);
+    groups.get(cpfDigits).push(patient);
+  }
+  return Array.from(groups.entries())
+    .filter(([, group]) => group.length > 1)
+    .map(([cpfDigits, group]) => ({ cpfDigits, patients: group }));
+}

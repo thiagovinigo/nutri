@@ -203,6 +203,7 @@ export default function SignUp() {
           email: email, // garantindo o email no doc também
           cpf: cpf,
           cpfDigits: normalizeCpf(cpf),
+          createdAt: new Date().toISOString(),
           phone: phone || '11999999999',
           birthDate: birthDate,
           age: calculatedAge,

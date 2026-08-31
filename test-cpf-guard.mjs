@@ -5,7 +5,7 @@
 // Uso: node test-cpf-guard.mjs
 
 import assert from 'node:assert/strict';
-import { normalizeCpfDigits, resolveCpfClaim } from './api/utils/patients.js';
+import { normalizeCpfDigits, resolveCpfClaim, findCpfConflictGroups } from './api/utils/patients.js';
 
 let passed = 0;
 function test(name, fn) {
@@ -53,6 +53,37 @@ test('CPF reservado por doc que não existe mais (conta apagada/inativa) -> recl
     resolveCpfClaim({ indexPatientId: 'uid-b', targetPatientId: 'uid-a', conflictingDocExists: false }),
     'reclaim'
   );
+});
+
+console.log('findCpfConflictGroups:');
+test('paciente único não forma grupo', () => {
+  const result = findCpfConflictGroups([{ id: 'a', cpfDigits: '11111111111' }]);
+  assert.deepEqual(result, []);
+});
+test('2 pacientes com o mesmo CPF formam um grupo', () => {
+  const result = findCpfConflictGroups([
+    { id: 'a', cpfDigits: '11111111111' },
+    { id: 'b', cpfDigits: '11111111111' },
+  ]);
+  assert.equal(result.length, 1);
+  assert.equal(result[0].cpfDigits, '11111111111');
+  assert.equal(result[0].patients.length, 2);
+});
+test('CPF vazio/inválido é ignorado (não aparece como grupo)', () => {
+  const result = findCpfConflictGroups([
+    { id: 'a', cpf: '' },
+    { id: 'b', cpf: '' },
+    { id: 'c', cpf: '123' },
+  ]);
+  assert.deepEqual(result, []);
+});
+test('deriva cpfDigits de cpf quando o campo já normalizado não existe (doc legado)', () => {
+  const result = findCpfConflictGroups([
+    { id: 'a', cpf: '111.111.111-11' },
+    { id: 'b', cpf: '11111111111' },
+  ]);
+  assert.equal(result.length, 1);
+  assert.equal(result[0].patients.length, 2);
 });
 
 console.log(`\n${passed} asserts OK.`);

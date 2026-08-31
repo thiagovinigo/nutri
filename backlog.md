@@ -133,8 +133,9 @@ nutri.
   `test-cpf-guard.mjs` (8 asserts, `node test-cpf-guard.mjs`) — mesmo padrão do script da Onda 1,
   sem framework de teste. `npm run build` OK. Ponta-a-ponta real (dois cadastros com o mesmo CPF)
   só verificável pós-deploy contra o Firestore de produção.
-- ⬜ **Limpeza dos órfãos que já existem:** `scratchpad/dedupe-report.mjs` (dry-run) lista os grupos;
-  você revisa e funde manualmente ou com script.
+- ✅ **[FEITO 31/08/2026] Limpeza dos órfãos que já existem:** substituído por uma ferramenta de
+  verdade — aba "Conflitos" do painel `/admin` (ver "Super-Admin" abaixo), em vez do script
+  `scratchpad/dedupe-report.mjs` manual.
 
 ---
 
@@ -261,8 +262,20 @@ nutri.
 - ⬜ **XP por manter exames em dia** — motor de XP e upload/OCR já existem; falta disparar `addXP` no
   fluxo de upload (com cooldown por paciente).
 
-### 👑 Super-Admin / Observabilidade — nada existe
+### 👑 Super-Admin / Observabilidade
 
+- ✅ **[FEITO 31/08/2026] V1 — resolver conflitos, ver usuários, métricas.** Rota `/admin`
+  (`src/features/admin/`), autorização por uid fixo (`ADMIN_UID`, env var só-servidor, nunca
+  `VITE_`-prefixada) checado em `api/admin.js` (endpoint único, roteado por `action`, pra não
+  gastar mais slots de Serverless Function). 3 abas: Métricas (nutris/pacientes ativos,
+  pacientes inativos, streak/xp médio), Usuários (tabela de nutricionistas entre todos os
+  tenants, com contagem de pacientes), Conflitos (agrupa pacientes `ativo` por `cpfDigits` via
+  `findCpfConflictGroups` — cobre duplicatas *legadas*, criadas antes do `patientCpfIndex`
+  existir; botão "Manter este, arquivar o outro" chama `resolve_conflict`, que revalida o CPF
+  server-side antes de arquivar). Fecha "Limpeza dos órfãos que já existem" com uma UI real em
+  vez do `find_ghost.js` manual. **Requer configurar `ADMIN_UID` nas env vars de produção da
+  Vercel** (uid do Firebase Auth do dono, pego no Firebase Console) — sem isso todo o painel
+  retorna 403.
 - ⬜ Painel de saúde do sistema (status de endpoints serverless, filas, erros de webhook).
 - ⬜ Gestão de créditos de IA / tokenomics (tracking de tokens por nutri, cotas, recarga).
 - ⬜ Seletor dinâmico de modelo de IA / edição de system prompts sem redeploy.

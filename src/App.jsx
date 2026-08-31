@@ -7,6 +7,7 @@ import Login from './pages/Login';
 import ForgotPassword from './pages/ForgotPassword';
 import SignUp from './pages/SignUp';
 import PublicBooking from './pages/PublicBooking';
+import AdminDashboard from './features/admin/pages/AdminDashboard';
 import { AppProvider, useAppContext } from './context/AppContext';
 import { Toaster } from 'react-hot-toast';
 
@@ -36,6 +37,7 @@ function App() {
           <Route path="/nutri" element={<RequireAuth><DashboardNutri /></RequireAuth>} />
           <Route path="/paciente" element={<PatientApp />} />
           <Route path="/agendar/:nutriId" element={<PublicBooking />} />
+          <Route path="/admin" element={<RequireAuth><AdminDashboard /></RequireAuth>} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </BrowserRouter>
