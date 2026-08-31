@@ -1,6 +1,8 @@
 # Backlog — Nutrivvo
 
-> **Documento único de status do produto.** Auditado item-a-item contra o código em **28/08/2026**.
+> **Documento único de status do produto.** Auditado item-a-item contra o código em **28/08/2026**
+> (atualizado em **31/08/2026** — checagem de CPF único, painel `/admin` V1, reorganização de
+> `api/utils` → `lib/`).
 > Este arquivo substitui `features.md`, `roadmap-trimestral.md`, `userstorys.md`, `todo.md`, `todo2.md` e
 > `backlog-user-stories.md` (todos marcados como aposentados no topo, mantidos no repo só como histórico).
 > Docs de **estratégia** seguem válidos e separados: `prd.md`, `spec.md`, `context.md`,
@@ -11,10 +13,13 @@
 
 ---
 
-## 📸 Estado em produção (28/08/2026)
+## 📸 Estado em produção (atualizado 31/08/2026)
 
-Stack: React 19 + Vite 8, Firebase (Firestore + Auth), Vercel (Hobby, 12 Serverless Functions),
-sem TypeScript (`.jsx`), sem testes automatizados. PWA via `vite-plugin-pwa`.
+Stack: React 19 + Vite 8, Firebase (Firestore + Auth), Vercel (Hobby, 12 Serverless Functions —
+código compartilhado do backend vive em `lib/`, **fora** de `api/`, porque o Vercel conta todo
+`.js` dentro de `api/` recursivamente pro limite; `api/` está em 7/12 hoje), sem TypeScript
+(`.jsx`), sem testes automatizados (exceto scripts `assert` avulsos na raiz, ex. `test-cpf-guard.mjs`).
+PWA via `vite-plugin-pwa`.
 
 - **App do paciente** (`/paciente`): QuestBoard (check-in diário água/refeição/foto), DietPlan (cardápio
   dia-a-dia da Tabela TACO + "Substituir" alimento), WorkoutPlan, BonusRecipes (receitas da nutri +
@@ -27,9 +32,12 @@ sem TypeScript (`.jsx`), sem testes automatizados. PWA via `vite-plugin-pwa`.
   honorários por paciente, alerta de renovação, dashboard de faturamento), Agenda semanal, Configurações
   (identidade visual, campos de anamnese, horários).
 - **Secretária Virtual (Telegram)** — canal ativo com pacientes reais desde 12/08/2026. Webhook
-  (`api/telegram-webhook.js`) + motor de IA compartilhado (`api/utils/secretariaVirtual.js`, 15 tools) +
+  (`api/telegram-webhook.js`) + motor de IA compartilhado (`lib/secretariaVirtual.js`, 15 tools) +
   2 crons via GitHub Actions (`cron-reminders` hourly, `cron-weekly-summary` segundas).
 - **Página pública de agendamento**: `/agendar/:nutriId` (`PublicBooking.jsx`).
+- **Painel Admin** (`/admin`, dono único do sistema) — métricas agregadas, lista de nutricionistas
+  entre tenants, resolução de conflitos de CPF duplicado. Autorização por uid fixo (`ADMIN_UID`).
+  Ver "👑 Super-Admin" abaixo.
 
 ---
 
@@ -129,7 +137,7 @@ nutri.
   conta Auth recém-criada (`user.delete()`) pra não deixar órfã sem ficha. Fichas `inativo`
   (provisórias) ficam fora da checagem de propósito — só o momento em que o paciente vira `ativo`
   importa. `cpfDigits` (só dígitos) agora é gravado em todo write novo (`AppContext.addPatient`,
-  `SignUp.jsx`, `DashboardNutri.jsx`). Lógica pura testável em `api/utils/patients.js` +
+  `SignUp.jsx`, `DashboardNutri.jsx`). Lógica pura testável em `lib/patients.js` +
   `test-cpf-guard.mjs` (8 asserts, `node test-cpf-guard.mjs`) — mesmo padrão do script da Onda 1,
   sem framework de teste. `npm run build` OK. Ponta-a-ponta real (dois cadastros com o mesmo CPF)
   só verificável pós-deploy contra o Firestore de produção.
@@ -163,12 +171,12 @@ nutri.
   "Radar de Abandono" (ver H1 abaixo).
 - ✅ **[CORRIGIDO — Onda 1, 28/08/2026] Crons mandavam markdown `*negrito*` com Telegram em `parse_mode: 'HTML'`.**
   `cron-reminders.js` e `cron-weekly-summary.js` agora usam `<b>...</b>` + novo helper
-  `escapeTelegramHtml()` (`api/utils/telegram.js`) em todo valor dinâmico (nome, refeição) pra um "&"
+  `escapeTelegramHtml()` (`lib/telegram.js`) em todo valor dinâmico (nome, refeição) pra um "&"
   não derrubar a mensagem inteira com 400.
 - ✅ **[CORRIGIDO — Onda 1, 28/08/2026] `cron-reminders.js` iterava `patient.recipes` como refeições.**
   `recipes` é `[{title, meals:[...]}]`, sem `.time` — o lembrete de refeição por horário **nunca
   disparava** (era a North Star). Agora usa `resolveTodaysMeals(patient)`, **extraído pra
-  `api/utils/meals.js`** (função pura, testável sem `firebase-admin`; `secretariaVirtual.js` e
+  `lib/meals.js`** (função pura, testável sem `firebase-admin`; `secretariaVirtual.js` e
   `cron-reminders.js` importam de lá). Bônus: o denominador da checagem de baixa adesão também estava
   inflado (contava refeições de todos os dias) — agora usa `resolveTodaysMeals(patient, yesterday)`.
   **Testado:** 53 asserts em `scratchpad/test-onda1.mjs` (ciclo de dias, wrap, sem-prefixo, escape HTML,
@@ -306,6 +314,16 @@ nutri.
 
 ### 🧹 Infra / Qualidade
 
+- ✅ **[INCIDENTE 31/08/2026] Deploy falhou silenciosamente por estourar o limite de 12 Serverless
+  Functions.** O commit do painel Admin (`bf53385`) passou de `api/` com 11/12 arquivos pra 13/12 —
+  Vercel conta **todo `.js` dentro de `api/`, recursivamente (inclusive subpastas como
+  `api/utils/`)**, como uma function separada. O app em produção não caiu (Vercel mantém a última
+  versão OK no ar), mas o deploy novo simplesmente não ia — só percebido porque o usuário notou
+  "última versão é de 8h atrás" no dashboard da Vercel. **Fix:** `api/utils/` → `lib/` (fora de
+  `api/`, não conta no limite); `api/` voltou a 7/12. **Lição:** qualquer arquivo `.js` novo sob
+  `api/` (em qualquer profundidade) consome 1 slot — código compartilhado do backend deve nascer
+  em `lib/`, nunca em `api/utils/`. Isso já estava documentado num comentário em
+  `telegram-webhook.js` antes desta sessão; deveria ter sido conferido antes de adicionar arquivos.
 - ⬜ **Zero testes automatizados** (confirmado: sem vitest/jest/playwright no `package.json`). Priorizar:
   login, CRUD paciente, agendar consulta, prescrever dieta, cálculo de XP/streak, regra anti-duplicidade.
 - ⬜ **Instrumentação AARRR / eventos customizados** — nada disparado (só Firebase Analytics inicializado).
