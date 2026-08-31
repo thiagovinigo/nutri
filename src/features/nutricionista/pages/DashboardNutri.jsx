@@ -7,6 +7,7 @@ import tacoData from '../../../data/taco.json';
 import supplementsData from '../../../data/supplements.json';
 import { callOpenAIBridge } from '../../../utils/openaiBridge';
 import { formatAnamnesisAnswers } from '../../../utils/anamnesis';
+import { reserveCpfForPatient } from '../../../utils/checkCpfUnique';
 import { DEFAULT_TEMPLATE as DEFAULT_ANAMNESIS_TEMPLATE } from '../components/AnamnesisTemplateSettings';
 import toast from 'react-hot-toast';
 
@@ -206,7 +207,23 @@ export default function DashboardNutri() {
     }
 
     if (editingPatient) {
-      await updatePatient(editingPatient, { name: patName, objective: patObj, restrictions: patRest, cpf: patCpf, email: patEmail, phone: patPhone, birthDate: patBirthDate, age: calculatedAge, gender: patGender, aversions: patAversions, medications: patMedications });
+      // Checagem server-side de CPF único: só relevante pra paciente já
+      // ATIVO (fichas 'inativo' ficam fora de propósito - ver backlog.md
+      // "Cadastro duplicado" e api/patient-cpf-guard.js). O dedup em memória
+      // acima só compara contra os pacientes do próprio nutri; isto cobre
+      // colisão com paciente ativo de outro nutri.
+      const currentPatient = patients.find(p => p.id === editingPatient);
+      if (currentPatient?.status === 'ativo') {
+        try {
+          await reserveCpfForPatient(editingPatient, patCpf);
+        } catch (cpfErr) {
+          toast.error(cpfErr.statusCode === 409
+            ? 'Este CPF já está em uso por outro paciente ativo no sistema.'
+            : 'Não foi possível validar o CPF agora. Tente novamente.');
+          return;
+        }
+      }
+      await updatePatient(editingPatient, { name: patName, objective: patObj, restrictions: patRest, cpf: patCpf, cpfDigits: normalizeCpf(patCpf), email: patEmail, phone: patPhone, birthDate: patBirthDate, age: calculatedAge, gender: patGender, aversions: patAversions, medications: patMedications });
     } else {
       const newId = await addPatient(patName, patObj, patRest, patCpf, normalizeEmail(patEmail), patAversions, patMedications, patBirthDate, patGender, calculatedAge, patPhone);
       if (patEmail && newId) {

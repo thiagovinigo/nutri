@@ -4,6 +4,7 @@ import { auth, db } from '../services/firebase';
 import { createUserWithEmailAndPassword, sendEmailVerification } from 'firebase/auth';
 import { doc, setDoc, getDoc, deleteDoc, collection, query, where, getDocs, updateDoc } from 'firebase/firestore';
 import { getFirebaseErrorMessage } from '../utils/firebaseErrors';
+import { reserveCpfForPatient } from '../utils/checkCpfUnique';
 import { useAppContext } from '../context/AppContext';
 
 const NLogo = () => (
@@ -60,6 +61,10 @@ const maskCpf = (value) => {
   if (digits.length !== 11) return value;
   return `${digits.slice(0, 3)}.***.***-${digits.slice(9, 11)}`;
 };
+
+// Mesma regex de normalizeCpf em DashboardNutri.jsx - grava cpfDigits junto
+// do cpf em todo write novo (ver backlog.md "Cadastro duplicado").
+const normalizeCpf = (value) => String(value || '').replace(/\D/g, '');
 
 export default function SignUp() {
   const [name, setName] = useState('');
@@ -197,6 +202,7 @@ export default function SignUp() {
           name: name,
           email: email, // garantindo o email no doc também
           cpf: cpf,
+          cpfDigits: normalizeCpf(cpf),
           phone: phone || '11999999999',
           birthDate: birthDate,
           age: calculatedAge,
@@ -245,7 +251,7 @@ export default function SignUp() {
             const tempDocSnap = await getDoc(tempDocRef);
             if (tempDocSnap.exists()) {
               // Mescla os dados do cadastro temporário com o default (sobrescrevendo o default)
-              initialData = { ...initialData, ...tempDocSnap.data(), name: name, email: email, cpf: cpf, phone: phone || tempDocSnap.data().phone || '11999999999', birthDate: birthDate, age: calculatedAge, gender: gender, status: 'ativo' };
+              initialData = { ...initialData, ...tempDocSnap.data(), name: name, email: email, cpf: cpf, cpfDigits: normalizeCpf(cpf), phone: phone || tempDocSnap.data().phone || '11999999999', birthDate: birthDate, age: calculatedAge, gender: gender, status: 'ativo' };
 
               // O paciente pode já ter consultas agendadas pelo nutricionista
               // antes de terminar o cadastro (fluxo comum: cadastra -> já
@@ -270,6 +276,24 @@ export default function SignUp() {
           } catch(e) {
             console.warn("Falha ao mesclar dados do convite. Pode ser restrição de permissão se o e-mail for diferente.", e);
           }
+        }
+
+        // Checagem server-side de CPF único entre pacientes ATIVOS (o client
+        // não consegue ler doc de paciente de outro nutri por firestore.rules
+        // - ver backlog.md "Cadastro duplicado" e api/patient-cpf-guard.js).
+        // Roda depois do createUserWithEmailAndPassword de propósito: só
+        // precisamos abortar antes de criar o doc em 'patients'; em conflito,
+        // apaga a conta Auth recém-criada pra não sobrar uma conta órfã sem
+        // ficha de paciente.
+        try {
+          await reserveCpfForPatient(user.uid, cpf);
+        } catch (cpfErr) {
+          await user.delete().catch(() => {});
+          setErrorMsg(cpfErr.statusCode === 409
+            ? 'Este CPF já está cadastrado para outro paciente ativo. Se você acredita que isso é um erro, contate seu nutricionista ou o suporte.'
+            : 'Não foi possível validar seu CPF agora. Tente novamente em instantes.');
+          setLoading(false);
+          return;
         }
 
         await setDoc(doc(db, 'patients', user.uid), initialData);

@@ -118,11 +118,21 @@ nutri.
   `inativo` por **e-mail** e reivindica (roda o mesmo merge do `?vincular`). Cobre B e C parcialmente.
 - ✅ `firestore.rules` — `allow delete` da ficha provisória relaxado pra `request.auth != null &&
   status == 'inativo'` (qualquer usuário logado pode limpar ficha não reivindicada) → o merge agora
-  de fato remove a órfã. **Precisa ser publicado por você no Firebase Console.**
-- ⬜ **Residual (precisa server-side):** colisão de CPF com e-mail diferente entre docs *ativos* — o
-  client não consegue ler o doc do outro (rules) pra detectar. Precisa de um endpoint Admin SDK que
-  faça a checagem de unicidade com transação. Também: campo `cpfDigits` normalizado em todo write pra
-  query por CPF funcionar (hoje CPF é gravado ora formatado, ora só dígitos).
+  de fato remove a órfã. **[CONFIRMADO 31/08/2026] Publicado no Firebase Console** (colado no
+  editor de regras e o botão "Publicar" não apareceu — Firestore já reconheceu como idêntico ao
+  que estava rodando).
+- ✅ **[CORRIGIDO 31/08/2026] Residual server-side: checagem de unicidade de CPF entre docs *ativos*.**
+  Novo endpoint `api/patient-cpf-guard.js` (Admin SDK, transação) contra um índice
+  `patientCpfIndex/{cpfDigits}` (ID do doc = trava de unicidade nativa do Firestore). Chamado por
+  `SignUp.jsx` antes do `setDoc` final (self-service, inclui o merge de ficha reivindicada) e por
+  `DashboardNutri.jsx` ao editar um paciente já `ativo`. Em conflito (409), `SignUp.jsx` apaga a
+  conta Auth recém-criada (`user.delete()`) pra não deixar órfã sem ficha. Fichas `inativo`
+  (provisórias) ficam fora da checagem de propósito — só o momento em que o paciente vira `ativo`
+  importa. `cpfDigits` (só dígitos) agora é gravado em todo write novo (`AppContext.addPatient`,
+  `SignUp.jsx`, `DashboardNutri.jsx`). Lógica pura testável em `api/utils/patients.js` +
+  `test-cpf-guard.mjs` (8 asserts, `node test-cpf-guard.mjs`) — mesmo padrão do script da Onda 1,
+  sem framework de teste. `npm run build` OK. Ponta-a-ponta real (dois cadastros com o mesmo CPF)
+  só verificável pós-deploy contra o Firestore de produção.
 - ⬜ **Limpeza dos órfãos que já existem:** `scratchpad/dedupe-report.mjs` (dry-run) lista os grupos;
   você revisa e funde manualmente ou com script.
 
@@ -166,7 +176,7 @@ nutri.
 - ✅ **[FEITO — Onda 3, 28/08/2026] `firestore.rules` — guardas de OTP/`phone_verified` removidas.**
   Confirmado 0 referências a `phone_otp_*`/`phone_verified` em código. As 2 cláusulas `allow update` de
   `/patients` viraram um `allow read, create, update: if uid == patientId` simples + nutri sem os
-  guards. **Precisa ser publicado no Firebase Console** (junto com o `allow delete` da mini-wave dup).
+  guards. **[CONFIRMADO 31/08/2026] Publicado no Firebase Console** (junto com o `allow delete` da mini-wave dup).
 - ✅ **[CORRIGIDO — Onda 1, 28/08/2026] Status de agendamento com caixa inconsistente.**
   CRM grava `'agendado'` minúsculo (`AppContext.jsx:484`), a IA grava `'Agendado'`. `verificar_disponibilidade`
   e `agendar_consulta` (`secretariaVirtual.js`) agora checam
