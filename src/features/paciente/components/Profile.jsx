@@ -120,6 +120,12 @@ export default function Profile({ activePatient }) {
   const telegramBotUsername = import.meta.env.VITE_TELEGRAM_BOT_USERNAME || 'nutrivvo_bot';
   const telegramConnectUrl = activePatient?.id ? `https://t.me/${telegramBotUsername}?start=${activePatient.id}` : '#';
 
+  const whatsappConnected = !!activePatient?.whatsapp_chat_id;
+  const whatsappBotNumber = import.meta.env.VITE_WHATSAPP_BOT_NUMBER || '';
+  const whatsappConnectUrl = (activePatient?.id && whatsappBotNumber)
+    ? `https://wa.me/${whatsappBotNumber}?text=${encodeURIComponent(`/start ${activePatient.id}`)}`
+    : '#';
+
   return (
     <div className="animate-pop-in">
       <h2 style={styles.sectionTitle}><User color="#8b5cf6" /> Seu Perfil Pessoal</h2>
@@ -209,6 +215,27 @@ export default function Profile({ activePatient }) {
                   </a>
                   <p style={{ fontSize: '0.78rem', color: 'var(--patient-text-muted)', marginTop: '8px' }}>
                     Abre o Telegram — é só apertar "Iniciar" na conversa com o bot pra vincular.
+                  </p>
+                </div>
+              )}
+            </div>
+            <div>
+              <span className="patient-label">Secretária Virtual (WhatsApp)</span>
+              {whatsappConnected ? (
+                <span style={styles.verifiedBadge}>
+                  <ShieldCheck size={16} /> Conectado
+                </span>
+              ) : (
+                <div>
+                  <span style={styles.unverifiedBadge}>
+                    <ShieldAlert size={16} /> Não conectado — a Secretária Virtual só responde depois de conectar
+                  </span>
+                  <a href={whatsappConnectUrl} target="_blank" rel="noopener noreferrer"
+                    className="btn-3d btn-primary" style={{ padding: '8px 14px', fontSize: '0.85rem', textDecoration: 'none', display: 'inline-flex' }}>
+                    Conectar no WhatsApp
+                  </a>
+                  <p style={{ fontSize: '0.78rem', color: 'var(--patient-text-muted)', marginTop: '8px' }}>
+                    Abre o WhatsApp com uma mensagem pronta — é só apertar "Enviar" pra vincular.
                   </p>
                 </div>
               )}

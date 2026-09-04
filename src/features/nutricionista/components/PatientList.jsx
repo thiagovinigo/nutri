@@ -1,11 +1,10 @@
 import React, { useState, useMemo, useEffect } from 'react';
-import { Users, Calendar, PlayCircle, Trash2, Plus, Eye, Edit3, TrendingUp, Utensils, FileText, BrainCircuit, Play, Sparkles, Activity, Settings, CreditCard, Palette, AlertTriangle, Trophy, Star, Zap, LayoutDashboard, Search, ChevronUp, ChevronDown, ArrowRight, UserCog, BookOpen, ChefHat, Link as LinkIcon, Camera, Upload, Moon, Dumbbell, DollarSign, Send, CheckCircle2 } from 'lucide-react';
+import { Users, Calendar, PlayCircle, Trash2, Plus, Eye, Edit3, TrendingUp, Utensils, FileText, BrainCircuit, Play, Sparkles, Activity, Settings, CreditCard, Palette, AlertTriangle, Trophy, Star, Zap, LayoutDashboard, Search, ChevronUp, ChevronDown, ArrowRight, UserCog, BookOpen, ChefHat, Link as LinkIcon, Camera, Upload, Moon, Dumbbell, DollarSign, CheckCircle2 } from 'lucide-react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, Legend, ResponsiveContainer } from 'recharts';
 import { useNavigate } from 'react-router-dom';
 import { auth } from '../../../services/firebase';
 import { useAppContext } from '../../../context/AppContext';
 import { callOpenAIBridge } from '../../../utils/openaiBridge';
-import { sendTelegramToPatient } from '../../../utils/sendTelegram';
 import WeeklyCalendar from './WeeklyCalendar';
 import FinancialCRM from './FinancialCRM';
 import AnamnesisTemplateSettings from './AnamnesisTemplateSettings';
@@ -785,28 +784,8 @@ export default function PatientList({
                       )}
                     </div>
 
-                    {viewedPatient.status === 'em_risco' && (
-                      <div style={{ marginTop: '16px' }}>
-                        <button 
-                          className="crm-btn-primary animate-pulse" 
-                          style={{ backgroundColor: '#DC2626', borderColor: '#DC2626', display: 'flex', alignItems: 'center', gap: '8px' }}
-                          onClick={() => {
-                            const msg = prompt('Digite a mensagem de resgate para enviar pelo Telegram deste paciente:', 'Oi, senti sua falta nos últimos dias. Está tudo bem com a dieta?');
-                            if (msg && viewedPatient.telegram_chat_id) {
-                              sendTelegramToPatient(viewedPatient.id, msg)
-                                .then(() => toast.success('Mensagem de resgate enviada com sucesso!'))
-                                .catch(err => toast.error(err.message || 'Falha ao enviar mensagem de resgate.'));
-                            } else if (msg) {
-                              toast.error('Este paciente ainda não conectou o Telegram.');
-                            }
-                          }}
-                        >
-                          <AlertTriangle size={16} /> Resgate via Telegram
-                        </button>
-                      </div>
-                    )}
                   </div>
-                  
+
                   <div style={{ flex: '1 1 300px', backgroundColor: 'var(--crm-surface)', padding: '16px', borderRadius: '8px', border: '1px dashed var(--crm-border)' }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
                       <h4 style={{ display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--crm-text-main)', margin: 0 }}>
@@ -1117,20 +1096,6 @@ export default function PatientList({
                 const activePlan = currentPlans.find(pl => pl.id === activePlanId) || currentPlans[0];
                 const activeStatus = viewedPatient.financialStatus || 'pendente';
                 const activeDueDate = viewedPatient.financialDueDate || new Date().toISOString().split('T')[0];
-                const phone = viewedPatient.phone ? viewedPatient.phone.replace(/\D/g, '') : '';
-
-                const handleSendCobrança = () => {
-                  if (!phone) { toast.error('Paciente sem telefone cadastrado no perfil.'); return; }
-                  const msg = `Olá, ${viewedPatient.name}! 🌟 Passando para lembrar sobre o pagamento/renovação do seu plano (${activePlan.name} - R$ ${activePlan.price}) no Nutrivvo. Qualquer dúvida estou à disposição!`;
-                  window.open(`https://wa.me/55${phone}?text=${encodeURIComponent(msg)}`, '_blank');
-                };
-
-                const handleSendRecibo = () => {
-                  if (!phone) { toast.error('Paciente sem telefone cadastrado no perfil.'); return; }
-                  const msg = `🧾 *RECIBO DE PAGAMENTO - NUTRIVVO*\n\nConfirmamos o recebimento do valor de *R$ ${activePlan.price}* referente ao plano *${activePlan.name}* do(a) paciente *${viewedPatient.name}*.\n\nStatus: Confirmado e Quitado 🟢\nData: ${new Date().toLocaleDateString('pt-BR')}\n\nMuito obrigado pela confiança em nosso acompanhamento nutricional! 🍎✨`;
-                  window.open(`https://wa.me/55${phone}?text=${encodeURIComponent(msg)}`, '_blank');
-                };
-
                 return (
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
                     <div className="crm-card" style={{ padding: '24px', borderLeft: '4px solid var(--crm-primary)' }}>
@@ -1174,23 +1139,6 @@ export default function PatientList({
                             <option value="atrasado">🔴 Atrasado</option>
                           </select>
                         </div>
-                      </div>
-
-                      <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap', borderTop: '1px solid var(--crm-border)', paddingTop: '16px' }}>
-                        <button 
-                          className="crm-btn-primary" 
-                          onClick={handleSendCobrança}
-                          style={{ display: 'flex', alignItems: 'center', gap: '8px', background: '#F59E0B', border: 'none', cursor: 'pointer', padding: '10px 16px', borderRadius: '8px', color: '#fff', fontWeight: '600' }}
-                        >
-                          <Send size={16} /> Enviar Lembrete / Cobrança no Telegram
-                        </button>
-                        <button 
-                          className="crm-btn-primary" 
-                          onClick={handleSendRecibo}
-                          style={{ display: 'flex', alignItems: 'center', gap: '8px', background: '#10B981', border: 'none', cursor: 'pointer', padding: '10px 16px', borderRadius: '8px', color: '#fff', fontWeight: '600' }}
-                        >
-                          <FileText size={16} /> Emitir Comprovante / Recibo no Telegram
-                        </button>
                       </div>
                     </div>
 
