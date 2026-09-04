@@ -84,12 +84,20 @@ export default async function handler(req, res) {
     return res.status(405).json({ error: 'Method Not Allowed' });
   }
 
+  // Autenticação via header customizado (configurado no /webhook/set da
+  // instância) - NÃO via req.body.apikey. O campo "apiKey" que a Evolution
+  // embute no corpo (camelCase, não "apikey") só existe quando
+  // AUTHENTICATION_EXPOSE_IN_FETCH_INSTANCES está ativo e carrega o token
+  // DA INSTÂNCIA, não a Global API Key - descoberto lendo o código-fonte da
+  // imagem (evoapicloud/evolution-api v2.3.7, método sendDataWebhook) depois
+  // de um 401 silencioso em produção. Header é mais simples e reaproveita a
+  // mesma EVOLUTION_API_KEY já usada nas chamadas REST de saída.
   const expectedApiKey = process.env.EVOLUTION_API_KEY;
   if (!expectedApiKey) {
     console.error('EVOLUTION_API_KEY não configurada no ambiente.');
     return res.status(500).json({ error: 'Configuração de segurança ausente no servidor.' });
   }
-  if (req.body?.apikey !== expectedApiKey) {
+  if (req.headers['apikey'] !== expectedApiKey) {
     return res.status(401).json({ error: 'Unauthorized' });
   }
 
