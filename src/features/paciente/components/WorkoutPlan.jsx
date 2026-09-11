@@ -43,10 +43,11 @@ function formatDate(dateObj) {
 }
 
 export default function WorkoutPlan({ activePatient }) {
-  const { markWorkoutDone, completeQuest } = useAppContext();
+  const { markWorkoutDone, completeQuest, updatePatient } = useAppContext();
   const [expandedDay, setExpandedDay] = useState(null);
   const [checkedExercises, setCheckedExercises] = useState({});
   const [localCompleted, setLocalCompleted] = useState({});
+  const [isDisclaimerChecked, setIsDisclaimerChecked] = useState(false);
 
   const workoutPlan = activePatient?.workoutPlan;
   const workoutLogs = activePatient?.workoutLogs || [];
@@ -132,6 +133,50 @@ export default function WorkoutPlan({ activePatient }) {
     );
   }
 
+  // Prescrição de exercício físico é escopo de Educador Físico (CREF), não
+  // de Nutricionista (CRN) -- o treino aqui é uma sugestão opcional gerada
+  // por IA, e o paciente precisa dar ciência explícita antes de ver os
+  // exercícios pela primeira vez (fica salvo no perfil, não pergunta de novo).
+  if (!activePatient.workoutDisclaimerAcceptedAt) {
+    return (
+      <div className="animate-pop-in" style={{ paddingBottom: '30px' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+          <h2 style={{ fontSize: '1.4rem', color: 'var(--crm-text-main)', display: 'flex', alignItems: 'center', gap: '8px', margin: 0 }}>
+            <Dumbbell color="var(--primary-color)" /> Meu Treino
+          </h2>
+        </div>
+        <div style={{ padding: '24px', backgroundColor: 'var(--crm-surface)', borderRadius: '16px', border: '1px solid var(--crm-border)' }}>
+          <p style={{ color: 'var(--crm-text-main)', fontWeight: '600', marginTop: 0 }}>Antes de começar, leia com atenção:</p>
+          <p style={{ color: 'var(--crm-text-muted)', fontSize: '0.9rem', lineHeight: 1.6 }}>
+            Este treino é uma <strong>sugestão opcional gerada por Inteligência Artificial</strong>. Ele não substitui o acompanhamento de um <strong>Educador Físico</strong> (profissional habilitado a prescrever exercícios). A execução é por sua conta e risco — seu <strong>nutricionista não se responsabiliza</strong> por lesões ou resultados decorrentes da prática dos exercícios sugeridos aqui.
+          </p>
+          <label style={{ display: 'flex', alignItems: 'flex-start', gap: '10px', cursor: 'pointer', margin: '16px 0', fontSize: '0.9rem', color: 'var(--crm-text-main)' }}>
+            <input
+              type="checkbox"
+              checked={isDisclaimerChecked}
+              onChange={(e) => setIsDisclaimerChecked(e.target.checked)}
+              style={{ marginTop: '3px', width: '16px', height: '16px', flexShrink: 0 }}
+            />
+            Li e estou ciente de que este treino é uma sugestão opcional de IA e que meu nutricionista não se responsabiliza pela execução dos exercícios.
+          </label>
+          <button
+            onClick={() => updatePatient(activePatient.id, { workoutDisclaimerAcceptedAt: new Date().toISOString() })}
+            disabled={!isDisclaimerChecked}
+            className="btn-3d"
+            style={{
+              width: '100%', backgroundColor: isDisclaimerChecked ? '#10B981' : '#94A3B8', color: '#fff',
+              border: 'none', padding: '13px', borderRadius: '12px', fontWeight: 'bold',
+              cursor: isDisclaimerChecked ? 'pointer' : 'not-allowed', fontSize: '0.95rem',
+              boxShadow: isDisclaimerChecked ? '0 4px 0 #059669' : 'none', transition: 'all 0.2s'
+            }}
+          >
+            Concordar e ver meu treino
+          </button>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="animate-pop-in" style={{ paddingBottom: '30px' }}>
       {!activePatient.nutricionista_id && (
@@ -155,6 +200,13 @@ export default function WorkoutPlan({ activePatient }) {
           <Flame size={14} />
           {weeklyDoneCount}/{weeklyTrainingCount} treinos esta semana
         </span>
+      </div>
+
+      {/* Lembrete permanente (não bloqueante) -- o consentimento acima só
+          aparece uma vez, mas a isenção de responsabilidade continua visível
+          toda vez que o paciente abre a tela. */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', backgroundColor: 'rgba(148,163,184,0.12)', border: '1px solid var(--crm-border)', borderRadius: '10px', padding: '8px 12px', marginBottom: '16px', fontSize: '0.75rem', color: 'var(--crm-text-muted)' }}>
+        ℹ️ Sugestão opcional gerada por IA — não substitui um Educador Físico.
       </div>
 
       {/* Card da periodização */}
