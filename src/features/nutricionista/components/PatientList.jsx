@@ -1243,14 +1243,22 @@ export default function PatientList({
                           <div style={{ display: 'flex', gap: '24px', flexWrap: 'wrap' }}>
                             <div className="crm-card animate-pop-in" style={{ flex: '2 1 400px' }}>
                               <h3 style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '16px' }}>
-                                <Utensils size={20} color="var(--crm-accent)" /> Prescrições Dietéticas Ativas
+                                <Utensils size={20} color="var(--crm-accent)" /> Prescrição Dietética Vigente
                               </h3>
                               {(!viewedPatient.recipes || viewedPatient.recipes.length === 0) ? (
                                 <p style={{ color: 'var(--crm-text-muted)' }}>Nenhuma dieta cadastrada para este paciente.</p>
                               ) : (
+                                // Só a última prescrição é "vigente" e editável aqui — é a mesma que o
+                                // paciente vê (recipes.slice(-1)[0] em PatientApp/DietPlan/QuestBoard).
+                                // Planos anteriores continuam preservados no array (finishConsultation
+                                // dá push, não sobrescreve mais) e ficam em somente leitura na aba
+                                // "Histórico de Consultas".
+                                (() => {
+                                  const idx = viewedPatient.recipes.length - 1;
+                                  const r = viewedPatient.recipes[idx];
+                                  return (
                                 <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-                                  {viewedPatient.recipes.map((r, idx) => (
-                                    <div key={idx} style={{ padding: '16px', backgroundColor: 'var(--crm-surface-2, var(--crm-bg))', borderRadius: '8px', border: '1px solid var(--crm-border)' }}>
+                                    <div style={{ padding: '16px', backgroundColor: 'var(--crm-surface-2, var(--crm-bg))', borderRadius: '8px', border: '1px solid var(--crm-border)' }}>
                                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
                                         <strong style={{ fontSize: '1.1rem' }}>{r.title}</strong>
                                         <div style={{ display: 'flex', gap: '16px' }}>
@@ -1395,8 +1403,14 @@ export default function PatientList({
                                         )}
                                       </div>
                                     </div>
-                                  ))}
+                                    {idx > 0 && (
+                                      <p style={{ fontSize: '0.8rem', color: 'var(--crm-text-muted)', margin: 0 }}>
+                                        {idx} plano{idx > 1 ? 's' : ''} anterior{idx > 1 ? 'es' : ''} disponível{idx > 1 ? 'eis' : ''} em somente leitura na aba "Histórico de Consultas".
+                                      </p>
+                                    )}
                                 </div>
+                                  );
+                                })()
                               )}
                             </div>
                           </div>

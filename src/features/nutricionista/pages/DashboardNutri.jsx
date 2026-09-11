@@ -720,13 +720,18 @@ Não inclua textos fora do JSON. Apenas o JSON puro.`;
     };
 
     if (dietMeals.length > 0) {
-      updatePayload.recipes = [{
+      // Push no histórico em vez de sobrescrever — activePatient.recipes já é
+      // lido como histórico ordenado pelo lado do paciente (PatientApp/DietPlan/
+      // QuestBoard usam recipes.slice(-1)[0] como "a dieta vigente"). Substituir
+      // o array inteiro aqui apagava prescrições de consultas anteriores.
+      const newRecipe = {
         title: dietTitle || 'Plano Alimentar Padrão',
         description: dietDescription,
         supplements: dietSupplements,
         supplementsList: dietSupplementsList,
         meals: formattedMeals
-      }];
+      };
+      updatePayload.recipes = [...(activePatient.recipes || []), newRecipe];
     }
 
     if (workoutPlan) {
