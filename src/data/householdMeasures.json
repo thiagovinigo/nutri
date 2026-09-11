@@ -1,0 +1,112 @@
+{
+  "1": {
+    "small": { "label": "colher de sopa", "labelPlural": "colheres de sopa", "grams": 25 },
+    "large": { "label": "xícara de chá", "labelPlural": "xícaras de chá", "grams": 150 }
+  },
+  "2": {
+    "small": { "label": "colher de sopa", "labelPlural": "colheres de sopa", "grams": 25 },
+    "large": { "label": "xícara de chá", "labelPlural": "xícaras de chá", "grams": 150 }
+  },
+  "3": {
+    "small": { "label": "colher de sopa", "labelPlural": "colheres de sopa", "grams": 20 },
+    "large": { "label": "concha média", "labelPlural": "conchas médias", "grams": 80 }
+  },
+  "4": {
+    "small": { "label": "colher de sopa", "labelPlural": "colheres de sopa", "grams": 20 },
+    "large": { "label": "concha média", "labelPlural": "conchas médias", "grams": 80 }
+  },
+  "5": {
+    "large": { "label": "pedaço médio", "labelPlural": "pedaços médios", "grams": 100 }
+  },
+  "6": {
+    "large": { "label": "unidade média", "labelPlural": "unidades médias", "grams": 130 }
+  },
+  "7": {
+    "large": { "label": "pedaço médio", "labelPlural": "pedaços médios", "grams": 90 }
+  },
+  "8": {
+    "small": { "label": "colher de sopa", "labelPlural": "colheres de sopa", "grams": 25 },
+    "large": { "label": "xícara de chá", "labelPlural": "xícaras de chá", "grams": 120 }
+  },
+  "9": {
+    "small": { "label": "colher de sopa", "labelPlural": "colheres de sopa", "grams": 10 },
+    "large": { "label": "xícara de chá", "labelPlural": "xícaras de chá", "grams": 80 }
+  },
+  "10": {
+    "large": { "label": "fatia", "labelPlural": "fatias", "grams": 25 }
+  },
+  "11": {
+    "large": { "label": "unidade", "labelPlural": "unidades", "grams": 50 }
+  },
+  "12": {
+    "large": { "label": "filé médio", "labelPlural": "filés médios", "grams": 120 }
+  },
+  "13": {
+    "large": { "label": "bife médio", "labelPlural": "bifes médios", "grams": 100 }
+  },
+  "14": {
+    "large": { "label": "unidade", "labelPlural": "unidades", "grams": 50 }
+  },
+  "15": {
+    "large": { "label": "filé médio", "labelPlural": "filés médios", "grams": 120 }
+  },
+  "16": {
+    "small": { "label": "colher de sopa", "labelPlural": "colheres de sopa", "grams": 15 },
+    "large": { "label": "lata escorrida", "labelPlural": "latas escorridas", "grams": 120 }
+  },
+  "17": {
+    "small": { "label": "colher de sopa", "labelPlural": "colheres de sopa", "grams": 15 },
+    "large": { "label": "xícara de chá", "labelPlural": "xícaras de chá", "grams": 240 }
+  },
+  "18": {
+    "small": { "label": "colher de sopa", "labelPlural": "colheres de sopa", "grams": 15 },
+    "large": { "label": "xícara de chá", "labelPlural": "xícaras de chá", "grams": 240 }
+  },
+  "19": {
+    "large": { "label": "fatia média", "labelPlural": "fatias médias", "grams": 30 }
+  },
+  "20": {
+    "large": { "label": "scoop (colher medidora)", "labelPlural": "scoops (colheres medidoras)", "grams": 30 }
+  },
+  "21": {
+    "small": { "label": "colher de chá", "labelPlural": "colheres de chá", "grams": 4.5 },
+    "large": { "label": "colher de sopa", "labelPlural": "colheres de sopa", "grams": 13 }
+  },
+  "22": {
+    "large": { "label": "unidade média", "labelPlural": "unidades médias", "grams": 200 }
+  },
+  "23": {
+    "large": { "label": "unidade", "labelPlural": "unidades", "grams": 5 }
+  },
+  "24": {
+    "small": { "label": "colher de chá", "labelPlural": "colheres de chá", "grams": 5 },
+    "large": { "label": "colher de sopa", "labelPlural": "colheres de sopa", "grams": 16 }
+  },
+  "25": {
+    "small": { "label": "colher de sopa", "labelPlural": "colheres de sopa", "grams": 15 },
+    "large": { "label": "xícara de chá", "labelPlural": "xícaras de chá", "grams": 90 }
+  },
+  "26": {
+    "small": { "label": "colher de sopa", "labelPlural": "colheres de sopa", "grams": 15 },
+    "large": { "label": "xícara de chá", "labelPlural": "xícaras de chá", "grams": 110 }
+  },
+  "27": {
+    "large": { "label": "xícara de chá (picada)", "labelPlural": "xícaras de chá (picada)", "grams": 30 }
+  },
+  "28": {
+    "large": { "label": "unidade média", "labelPlural": "unidades médias", "grams": 90 }
+  },
+  "29": {
+    "large": { "label": "unidade média", "labelPlural": "unidades médias", "grams": 70 }
+  },
+  "30": {
+    "large": { "label": "unidade média", "labelPlural": "unidades médias", "grams": 130 }
+  },
+  "31": {
+    "large": { "label": "fatia média", "labelPlural": "fatias médias", "grams": 150 }
+  },
+  "32": {
+    "small": { "label": "colher de sopa", "labelPlural": "colheres de sopa", "grams": 15 },
+    "large": { "label": "xícara de chá", "labelPlural": "xícaras de chá", "grams": 100 }
+  }
+}

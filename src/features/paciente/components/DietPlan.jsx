@@ -6,6 +6,7 @@ import remarkGfm from 'remark-gfm';
 import tacoData from '../../../data/taco.json';
 import { useAppContext } from '../../../context/AppContext';
 import { useAiRecipe } from '../hooks/useAiRecipe';
+import { getHouseholdMeasure } from '../../../utils/householdMeasure';
 import toast from 'react-hot-toast';
 
 export default function DietPlan({ activePatient }) {
@@ -81,7 +82,7 @@ export default function DietPlan({ activePatient }) {
         m.foods.forEach(f => {
           const dbFood = tacoData.find(db => String(db.id) === String(f.foodId) || db.name === f.name);
           const category = dbFood ? dbFood.category : 'Outros';
-          if (!aggregated[f.name]) aggregated[f.name] = { amount: 0, category };
+          if (!aggregated[f.name]) aggregated[f.name] = { amount: 0, category, foodId: dbFood?.id };
           aggregated[f.name].amount += parseFloat(f.amount) || 0;
         });
       }
@@ -94,7 +95,8 @@ export default function DietPlan({ activePatient }) {
     const list = Object.keys(aggregated).map(name => ({
       name,
       totalAmount: Math.ceil((aggregated[name].amount / maxDays) * shoppingDays),
-      category: aggregated[name].category
+      category: aggregated[name].category,
+      foodId: aggregated[name].foodId
     }));
     const byCategory = {};
     list.forEach(item => {
@@ -222,9 +224,12 @@ export default function DietPlan({ activePatient }) {
                 <div key={i} style={{ marginTop: '10px' }}>
                   <strong>{m.name}</strong>
                   <ul style={{ margin: '4px 0', paddingLeft: '20px' }}>
-                    {(m.foods || []).map((f, j) => (
-                      <li key={j}>{f.amount}g — {f.name} ({f.kcal} kcal | C:{f.carb}g P:{f.protein}g G:{f.fat}g)</li>
-                    ))}
+                    {(m.foods || []).map((f, j) => {
+                      const householdMeasure = getHouseholdMeasure({ foodId: f.foodId, name: f.name, grams: f.amount });
+                      return (
+                        <li key={j}>{f.amount}g{householdMeasure ? ` (${householdMeasure})` : ''} — {f.name} ({f.kcal} kcal | C:{f.carb}g P:{f.protein}g G:{f.fat}g)</li>
+                      );
+                    })}
                   </ul>
                   {m.desc && <p className="print-muted" style={{ fontSize: '0.85rem', whiteSpace: 'pre-wrap' }}>{m.desc}</p>}
                 </div>
@@ -348,11 +353,16 @@ export default function DietPlan({ activePatient }) {
                       {/* Food items */}
                       {m.foods && m.foods.length > 0 && (
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', marginBottom: '12px' }}>
-                          {m.foods.map((f, fIdx) => (
+                          {m.foods.map((f, fIdx) => {
+                            const householdMeasure = getHouseholdMeasure({ foodId: f.foodId, name: f.name, grams: f.amount });
+                            return (
                             <div key={fIdx} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', backgroundColor: 'var(--patient-surface-2)', padding: '10px 12px', borderRadius: '10px', border: '1px solid var(--glass-border)' }}>
                               <div style={{ flex: 1 }}>
                                 <strong style={{ color: 'var(--patient-text)', display: 'block', fontSize: '0.88rem' }}>{f.amount}g — {f.name}</strong>
-                                <span style={{ fontSize: '0.75rem', color: 'var(--patient-text-muted)' }}>
+                                {householdMeasure && (
+                                  <span style={{ fontSize: '0.72rem', color: 'var(--patient-text-muted)', fontStyle: 'italic' }}>{householdMeasure}</span>
+                                )}
+                                <span style={{ fontSize: '0.75rem', color: 'var(--patient-text-muted)', display: 'block' }}>
                                   {f.kcal} kcal&nbsp;|&nbsp;C: {f.carb}g&nbsp;|&nbsp;P: {f.protein}g&nbsp;|&nbsp;G: {f.fat}g
                                 </span>
                               </div>
@@ -363,7 +373,8 @@ export default function DietPlan({ activePatient }) {
                                 </button>
                               )}
                             </div>
-                          ))}
+                            );
+                          })}
                         </div>
                       )}
 
@@ -586,7 +597,15 @@ export default function DietPlan({ activePatient }) {
                       {shoppingListGroups[category].map((item, i) => (
                         <li key={i} style={{ display: 'flex', justifyContent: 'space-between', padding: '7px 0', borderBottom: '1px dashed var(--glass-border)' }}>
                           <span style={{ color: 'var(--patient-text)', fontWeight: 500, fontSize: '0.9rem' }}>{item.name}</span>
-                          <strong style={{ color: '#10b981', fontSize: '0.9rem' }}>{item.totalAmount > 1000 ? (item.totalAmount / 1000).toFixed(1).replace('.0', '') + ' kg' : item.totalAmount + ' g'}</strong>
+                          <span style={{ textAlign: 'right' }}>
+                            <strong style={{ color: '#10b981', fontSize: '0.9rem', display: 'block' }}>{item.totalAmount > 1000 ? (item.totalAmount / 1000).toFixed(1).replace('.0', '') + ' kg' : item.totalAmount + ' g'}</strong>
+                            {(() => {
+                              const householdMeasure = getHouseholdMeasure({ foodId: item.foodId, name: item.name, grams: item.totalAmount });
+                              return householdMeasure && (
+                                <span style={{ fontSize: '0.7rem', color: 'var(--patient-text-muted)', fontStyle: 'italic' }}>{householdMeasure}</span>
+                              );
+                            })()}
+                          </span>
                         </li>
                       ))}
                     </ul>
