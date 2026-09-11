@@ -49,7 +49,11 @@ export default function PatientList({
   
   const [editingMealPath, setEditingMealPath] = useState(null); // { rIdx, mIdx }
   const [editingMealDesc, setEditingMealDesc] = useState('');
-  
+  const [editingMealName, setEditingMealName] = useState('');
+
+  const [editingSupplementPath, setEditingSupplementPath] = useState(null); // { rIdx, sIdx }
+  const [editingSupplementData, setEditingSupplementData] = useState({ name: '', dosage: '', mealName: '' });
+
   const [editingExercisePath, setEditingExercisePath] = useState(null); // { dIdx, eIdx }
   const [editingExerciseData, setEditingExerciseData] = useState({name: '', sets: '', reps: ''});
   
@@ -87,10 +91,46 @@ export default function PatientList({
   };
 
   const handleSaveActiveMealEdit = (rIdx, mIdx) => {
-    const newRecipes = [...viewedPatient.recipes];
-    newRecipes[rIdx].meals[mIdx].desc = editingMealDesc;
+    const newRecipes = viewedPatient.recipes.map((r, i) => {
+      if (i !== rIdx) return r;
+      const meals = [...(r.meals || [])];
+      if (mIdx === -1) {
+        meals.push({ name: editingMealName, desc: editingMealDesc, foods: [] });
+      } else {
+        meals[mIdx] = { ...meals[mIdx], name: editingMealName, desc: editingMealDesc };
+      }
+      return { ...r, meals };
+    });
     updatePatient(viewedPatient.id, { recipes: newRecipes });
     setEditingMealPath(null);
+    setEditingMealName('');
+    setEditingMealDesc('');
+  };
+
+  const handleSaveSupplement = (rIdx, sIdx) => {
+    const newRecipes = viewedPatient.recipes.map((r, i) => {
+      if (i !== rIdx) return r;
+      const supplementsList = [...(r.supplementsList || [])];
+      if (sIdx === -1) {
+        supplementsList.push({ id: Date.now().toString(), ...editingSupplementData });
+      } else {
+        supplementsList[sIdx] = { ...supplementsList[sIdx], ...editingSupplementData };
+      }
+      return { ...r, supplementsList };
+    });
+    updatePatient(viewedPatient.id, { recipes: newRecipes });
+    setEditingSupplementPath(null);
+    setEditingSupplementData({ name: '', dosage: '', mealName: '' });
+  };
+
+  const handleDeleteSupplement = (rIdx, sIdx) => {
+    if (window.confirm('Excluir este suplemento?')) {
+      const newRecipes = viewedPatient.recipes.map((r, i) => {
+        if (i !== rIdx) return r;
+        return { ...r, supplementsList: (r.supplementsList || []).filter((_, j) => j !== sIdx) };
+      });
+      updatePatient(viewedPatient.id, { recipes: newRecipes });
+    }
   };
 
   const handleCreateEmptyWorkout = () => {
@@ -1213,9 +1253,14 @@ export default function PatientList({
                                     <div key={idx} style={{ padding: '16px', backgroundColor: 'var(--crm-surface-2, var(--crm-bg))', borderRadius: '8px', border: '1px solid var(--crm-border)' }}>
                                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
                                         <strong style={{ fontSize: '1.1rem' }}>{r.title}</strong>
-                                        <button onClick={() => handleDeleteActiveRecipe(idx)} style={{ background: 'none', border: 'none', color: 'var(--crm-danger)', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px', fontSize: '0.85rem' }}>
-                                          <Trash2 size={14} /> Excluir Plano
-                                        </button>
+                                        <div style={{ display: 'flex', gap: '16px' }}>
+                                          <button onClick={() => { setEditingMealPath({ rIdx: idx, mIdx: -1 }); setEditingMealName(''); setEditingMealDesc(''); }} style={{ background: 'none', border: 'none', color: 'var(--crm-primary)', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px', fontSize: '0.85rem' }}>
+                                            <Plus size={14} /> Adicionar Refeição
+                                          </button>
+                                          <button onClick={() => handleDeleteActiveRecipe(idx)} style={{ background: 'none', border: 'none', color: 'var(--crm-danger)', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px', fontSize: '0.85rem' }}>
+                                            <Trash2 size={14} /> Excluir Plano
+                                          </button>
+                                        </div>
                                       </div>
                                       <ul style={{ margin: 0, paddingLeft: '0', color: 'var(--crm-text-muted)', fontSize: '0.95rem', listStyle: 'none' }}>
                                         {r.meals?.map((m, midx) => {
@@ -1224,17 +1269,33 @@ export default function PatientList({
                                             <li key={midx} style={{ marginBottom: '12px', position: 'relative' }}>
                                               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
                                                 <div style={{ flex: 1, paddingRight: '12px' }}>
-                                                  <strong style={{ color: 'var(--crm-text-main)' }}>{m.name}:</strong> 
                                                   {isEditing ? (
-                                                    <textarea 
-                                                      className="crm-input" 
-                                                      style={{ width: '100%', minHeight: '100px', marginTop: '4px', fontSize: '0.9rem', lineHeight: '1.4' }} 
-                                                      value={editingMealDesc} 
-                                                      onChange={e => setEditingMealDesc(e.target.value)} 
+                                                    <input
+                                                      type="text"
+                                                      className="crm-input"
+                                                      style={{ width: '100%', fontWeight: 600, padding: '4px 8px', fontSize: '0.9rem', marginBottom: '4px' }}
+                                                      value={editingMealName}
+                                                      onChange={e => setEditingMealName(e.target.value)}
+                                                      placeholder="Nome da refeição"
+                                                    />
+                                                  ) : (
+                                                    <strong style={{ color: 'var(--crm-text-main)' }}>{m.name}:</strong>
+                                                  )}
+                                                  {isEditing ? (
+                                                    <textarea
+                                                      className="crm-input"
+                                                      style={{ width: '100%', minHeight: '100px', marginTop: '4px', fontSize: '0.9rem', lineHeight: '1.4' }}
+                                                      value={editingMealDesc}
+                                                      onChange={e => setEditingMealDesc(e.target.value)}
                                                     />
                                                   ) : (
                                                     <div>
                                                       {m.desc && <span style={{ whiteSpace: 'pre-wrap', display: 'block', marginTop: '4px', lineHeight: '1.4', color: 'var(--crm-text-muted)' }}>{m.desc}</span>}
+                                                      {m.whyChosen && (
+                                                        <div style={{ marginTop: '6px', fontSize: '0.8rem', color: 'var(--crm-text-muted)', fontStyle: 'italic' }}>
+                                                          🧠 {m.whyChosen}
+                                                        </div>
+                                                      )}
                                                       {m.foods && m.foods.length > 0 && (
                                                         <div style={{ marginTop: '8px', padding: '8px', backgroundColor: 'var(--crm-surface)', borderRadius: '4px', border: '1px solid #E2E8F0' }}>
                                                           {m.foods.map((f, fIdx) => (
@@ -1252,7 +1313,7 @@ export default function PatientList({
                                                     <button onClick={() => handleSaveActiveMealEdit(idx, midx)} className="crm-btn-primary" style={{ padding: '4px 12px', fontSize: '0.8rem' }}>Salvar</button>
                                                   ) : (
                                                     <>
-                                                      <button onClick={() => { setEditingMealPath({ rIdx: idx, mIdx: midx }); setEditingMealDesc(m.desc); }} style={{ background: 'none', border: 'none', color: 'var(--crm-accent)', cursor: 'pointer', padding: '4px' }}><Edit3 size={14} /></button>
+                                                      <button onClick={() => { setEditingMealPath({ rIdx: idx, mIdx: midx }); setEditingMealDesc(m.desc); setEditingMealName(m.name || ''); }} style={{ background: 'none', border: 'none', color: 'var(--crm-accent)', cursor: 'pointer', padding: '4px' }}><Edit3 size={14} /></button>
                                                       <button onClick={() => handleDeleteActiveMeal(idx, midx)} style={{ background: 'none', border: 'none', color: 'var(--crm-danger)', cursor: 'pointer', padding: '4px' }}><Trash2 size={14} /></button>
                                                     </>
                                                   )}
@@ -1261,7 +1322,78 @@ export default function PatientList({
                                             </li>
                                           );
                                         })}
+                                        {editingMealPath?.rIdx === idx && editingMealPath?.mIdx === -1 && (
+                                          <li style={{ marginBottom: '12px' }}>
+                                            <input
+                                              type="text"
+                                              className="crm-input"
+                                              style={{ width: '100%', fontWeight: 600, padding: '4px 8px', fontSize: '0.9rem', marginBottom: '4px' }}
+                                              value={editingMealName}
+                                              onChange={e => setEditingMealName(e.target.value)}
+                                              placeholder="Nome da refeição"
+                                            />
+                                            <textarea
+                                              className="crm-input"
+                                              style={{ width: '100%', minHeight: '100px', fontSize: '0.9rem', lineHeight: '1.4' }}
+                                              value={editingMealDesc}
+                                              onChange={e => setEditingMealDesc(e.target.value)}
+                                              placeholder="Preparo / instruções"
+                                            />
+                                            <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '6px' }}>
+                                              <button onClick={() => handleSaveActiveMealEdit(idx, -1)} className="crm-btn-primary" style={{ padding: '4px 12px', fontSize: '0.8rem' }}>Salvar</button>
+                                            </div>
+                                          </li>
+                                        )}
                                       </ul>
+
+                                      <div style={{ marginTop: '16px', paddingTop: '16px', borderTop: '1px solid var(--crm-border)' }}>
+                                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+                                          <strong style={{ fontSize: '0.95rem', color: 'var(--crm-text-main)' }}>Suplementos e Vitaminas</strong>
+                                          <button onClick={() => { setEditingSupplementPath({ rIdx: idx, sIdx: -1 }); setEditingSupplementData({ name: '', dosage: '', mealName: '' }); }} style={{ background: 'none', border: 'none', color: 'var(--crm-primary)', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px', fontSize: '0.85rem' }}>
+                                            <Plus size={14} /> Adicionar Suplemento
+                                          </button>
+                                        </div>
+                                        {(!r.supplementsList || r.supplementsList.length === 0) && !(editingSupplementPath?.rIdx === idx && editingSupplementPath?.sIdx === -1) ? (
+                                          <p style={{ color: 'var(--crm-text-muted)', fontSize: '0.85rem', margin: 0 }}>Nenhum suplemento cadastrado.</p>
+                                        ) : (
+                                          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                                            {(r.supplementsList || []).map((sItem, sIdx) => {
+                                              const isEditingSupp = editingSupplementPath?.rIdx === idx && editingSupplementPath?.sIdx === sIdx;
+                                              return (
+                                                <div key={sItem.id || sIdx} style={{ display: 'flex', flexDirection: 'column', gap: '4px', padding: '8px', backgroundColor: 'var(--crm-surface)', borderRadius: '6px', border: '1px solid var(--crm-border)' }}>
+                                                  {isEditingSupp ? (
+                                                    <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+                                                      <input type="text" className="crm-input" placeholder="Nome" value={editingSupplementData.name} onChange={e => setEditingSupplementData({ ...editingSupplementData, name: e.target.value })} style={{ flex: '1 1 140px', padding: '4px 8px', fontSize: '0.85rem' }} />
+                                                      <input type="text" className="crm-input" placeholder="Dose (ex: 1000mg)" value={editingSupplementData.dosage} onChange={e => setEditingSupplementData({ ...editingSupplementData, dosage: e.target.value })} style={{ flex: '1 1 120px', padding: '4px 8px', fontSize: '0.85rem' }} />
+                                                      <input type="text" className="crm-input" placeholder="Refeição associada (opcional)" value={editingSupplementData.mealName} onChange={e => setEditingSupplementData({ ...editingSupplementData, mealName: e.target.value })} style={{ flex: '1 1 160px', padding: '4px 8px', fontSize: '0.85rem' }} />
+                                                      <button onClick={() => handleSaveSupplement(idx, sIdx)} className="crm-btn-primary" style={{ padding: '4px 12px', fontSize: '0.8rem' }}>Salvar</button>
+                                                    </div>
+                                                  ) : (
+                                                    <div style={{ display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap' }}>
+                                                      <strong style={{ flex: '1 1 140px', fontSize: '0.85rem', color: 'var(--crm-text-main)' }}>{sItem.name}</strong>
+                                                      <span style={{ fontSize: '0.82rem', color: 'var(--crm-text-muted)' }}>{sItem.dosage}</span>
+                                                      {sItem.mealName && <span style={{ fontSize: '0.78rem', color: 'var(--crm-text-muted)' }}>({sItem.mealName})</span>}
+                                                      <button onClick={() => { setEditingSupplementPath({ rIdx: idx, sIdx }); setEditingSupplementData({ name: sItem.name, dosage: sItem.dosage, mealName: sItem.mealName || '' }); }} style={{ background: 'none', border: 'none', color: 'var(--crm-accent)', cursor: 'pointer', padding: '4px' }}><Edit3 size={13} /></button>
+                                                      <button onClick={() => handleDeleteSupplement(idx, sIdx)} style={{ background: 'none', border: 'none', color: 'var(--crm-danger)', cursor: 'pointer', padding: '4px' }}><Trash2 size={13} /></button>
+                                                    </div>
+                                                  )}
+                                                  {sItem.reason && !isEditingSupp && (
+                                                    <div style={{ fontSize: '0.76rem', color: 'var(--crm-text-muted)', fontStyle: 'italic' }}>🧠 {sItem.reason}</div>
+                                                  )}
+                                                </div>
+                                              );
+                                            })}
+                                            {editingSupplementPath?.rIdx === idx && editingSupplementPath?.sIdx === -1 && (
+                                              <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', padding: '8px', backgroundColor: 'var(--crm-surface)', borderRadius: '6px', border: '1px dashed var(--crm-border)' }}>
+                                                <input type="text" className="crm-input" placeholder="Nome" value={editingSupplementData.name} onChange={e => setEditingSupplementData({ ...editingSupplementData, name: e.target.value })} style={{ flex: '1 1 140px', padding: '4px 8px', fontSize: '0.85rem' }} />
+                                                <input type="text" className="crm-input" placeholder="Dose (ex: 1000mg)" value={editingSupplementData.dosage} onChange={e => setEditingSupplementData({ ...editingSupplementData, dosage: e.target.value })} style={{ flex: '1 1 120px', padding: '4px 8px', fontSize: '0.85rem' }} />
+                                                <input type="text" className="crm-input" placeholder="Refeição associada (opcional)" value={editingSupplementData.mealName} onChange={e => setEditingSupplementData({ ...editingSupplementData, mealName: e.target.value })} style={{ flex: '1 1 160px', padding: '4px 8px', fontSize: '0.85rem' }} />
+                                                <button onClick={() => handleSaveSupplement(idx, -1)} className="crm-btn-primary" style={{ padding: '4px 12px', fontSize: '0.8rem' }}>Salvar</button>
+                                              </div>
+                                            )}
+                                          </div>
+                                        )}
+                                      </div>
                                     </div>
                                   ))}
                                 </div>

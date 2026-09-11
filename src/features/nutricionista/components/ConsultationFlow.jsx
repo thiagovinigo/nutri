@@ -785,40 +785,47 @@ export default function ConsultationFlow({
                   {dietSupplementsList.length > 0 && (
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginBottom: '20px' }}>
                       {dietSupplementsList.map((item, idx) => (
-                        <div key={item.id} style={{ display: 'flex', gap: '8px', alignItems: 'center', backgroundColor: 'var(--crm-surface-2, var(--crm-bg))', padding: '8px 12px', borderRadius: '8px', border: '1px solid var(--crm-border)', flexWrap: 'wrap' }}>
-                          <strong style={{ flex: '1 1 140px', color: 'var(--crm-text-main)', fontSize: '0.9rem' }}>{item.name}</strong>
-                          <input
-                            type="text"
-                            className="crm-input"
-                            style={{ width: '120px', padding: '6px 8px', fontSize: '0.85rem' }}
-                            value={item.dosage}
-                            onChange={(e) => {
-                              const newList = [...dietSupplementsList];
-                              newList[idx] = { ...item, dosage: e.target.value };
-                              setDietSupplementsList(newList);
-                            }}
-                          />
-                          <select
-                            className="crm-input"
-                            style={{ width: '160px', padding: '6px 8px', fontSize: '0.85rem' }}
-                            value={item.mealName || ''}
-                            onChange={(e) => {
-                              const newList = [...dietSupplementsList];
-                              newList[idx] = { ...item, mealName: e.target.value };
-                              setDietSupplementsList(newList);
-                            }}
-                          >
-                            <option value="">Geral (sem refeição)</option>
-                            {dietMeals.map((m, mi) => (
-                              <option key={mi} value={m.name}>{m.name || `Refeição ${mi + 1}`}</option>
-                            ))}
-                          </select>
-                          <button
-                            onClick={() => setDietSupplementsList(dietSupplementsList.filter((_, i) => i !== idx))}
-                            style={{ background: 'none', border: 'none', color: 'var(--crm-danger)', cursor: 'pointer' }}
-                          >
-                            <Trash2 size={16} />
-                          </button>
+                        <div key={item.id} style={{ display: 'flex', flexDirection: 'column', gap: '4px', backgroundColor: 'var(--crm-surface-2, var(--crm-bg))', padding: '8px 12px', borderRadius: '8px', border: '1px solid var(--crm-border)' }}>
+                          <div style={{ display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap' }}>
+                            <strong style={{ flex: '1 1 140px', color: 'var(--crm-text-main)', fontSize: '0.9rem' }}>{item.name}</strong>
+                            <input
+                              type="text"
+                              className="crm-input"
+                              style={{ width: '120px', padding: '6px 8px', fontSize: '0.85rem' }}
+                              value={item.dosage}
+                              onChange={(e) => {
+                                const newList = [...dietSupplementsList];
+                                newList[idx] = { ...item, dosage: e.target.value };
+                                setDietSupplementsList(newList);
+                              }}
+                            />
+                            <select
+                              className="crm-input"
+                              style={{ width: '160px', padding: '6px 8px', fontSize: '0.85rem' }}
+                              value={item.mealName || ''}
+                              onChange={(e) => {
+                                const newList = [...dietSupplementsList];
+                                newList[idx] = { ...item, mealName: e.target.value };
+                                setDietSupplementsList(newList);
+                              }}
+                            >
+                              <option value="">Geral (sem refeição)</option>
+                              {dietMeals.map((m, mi) => (
+                                <option key={mi} value={m.name}>{m.name || `Refeição ${mi + 1}`}</option>
+                              ))}
+                            </select>
+                            <button
+                              onClick={() => setDietSupplementsList(dietSupplementsList.filter((_, i) => i !== idx))}
+                              style={{ background: 'none', border: 'none', color: 'var(--crm-danger)', cursor: 'pointer' }}
+                            >
+                              <Trash2 size={16} />
+                            </button>
+                          </div>
+                          {item.reason && (
+                            <div style={{ fontSize: '0.78rem', color: 'var(--crm-text-muted)', fontStyle: 'italic', paddingLeft: '2px' }}>
+                              🧠 {item.reason}
+                            </div>
+                          )}
                         </div>
                       ))}
                     </div>

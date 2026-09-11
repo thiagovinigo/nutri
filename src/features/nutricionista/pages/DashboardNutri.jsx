@@ -424,11 +424,12 @@ Se não houver valores numéricos para extrair, retorne { "markers": {} }.`,
       const miniTaco = tacoData.map(f => ({ id: f.id, name: f.name, kcal: f.kcal, carb: f.carb, ptn: f.protein, fat: f.fat }));
       promptContext += `\n\nBANCO DE DADOS DE ALIMENTOS PERMITIDOS (TACO - Valores por 100g):\n${JSON.stringify(miniTaco)}`;
 
-      const formatInstruction = `Você deve retornar EXATAMENTE UM JSON contendo um array chamado 'meals'. Cada item no array deve ter 'name' (Nome da Refeição, ex: "Almoço"), 'desc' (a receita completa) e um array 'foods'.
+      const formatInstruction = `Você deve retornar EXATAMENTE UM JSON contendo um array chamado 'meals'. Cada item no array deve ter 'name' (Nome da Refeição, ex: "Almoço"), 'desc' (a receita completa), 'whyChosen' (explicação técnica) e um array 'foods'.
 Você é também um Chef de cozinha saudável: o campo 'desc' deve ler como uma RECEITA de verdade, gostosa e convidativa — nunca uma lista fria de instruções técnicas. No campo 'desc', você DEVE incluir, nesta ordem:
 1) Um nome apetitoso e criativo para o prato, com um emoji (ex: "🍳 Omelete Cremosa de Espinafre com Queijo"), não apenas o nome genérico dos alimentos.
 2) Uma frase curta e convidativa explicando por que esse prato é gostoso e como ele ajuda no objetivo do paciente (tom de chef que ama comida boa, não de relatório clínico).
 3) Duas quebras de linha (\\n\\n), seguidas pelo título "👨‍🍳 Modo de Preparo:" e um passo a passo saboroso — combine temperos, texturas, técnicas de preparo (grelhar, refogar, temperar) e dicas de sabor, usando APENAS os alimentos listados em 'foods' desta refeição.
+No campo 'whyChosen', escreva 2-3 frases em tom clínico (não de chef) explicando ao NUTRICIONISTA por que essas escolhas de alimento fazem sentido para o objetivo e o contexto clínico do paciente (ex: densidade proteica, índice glicêmico, timing de macronutrientes). É diferente do 'desc' — o 'desc' é a receita voltada ao paciente, o 'whyChosen' é só para leitura do profissional.
 Para cada alimento em 'foods', você DEVE buscar um item correspondente no BANCO DE DADOS DE ALIMENTOS PERMITIDOS e retornar:
 - foodId: id do alimento no banco
 - name: nome exato do alimento no banco
@@ -436,7 +437,7 @@ Para cada alimento em 'foods', você DEVE buscar um item correspondente no BANCO
 - kcal, carb, protein, fat: os valores nutricionais multiplicados pela quantidade recomendada (se 100g tem 100kcal, 50g terá 50kcal) (number)
 
 Exemplo de formato:
-{ "meals": [ { "name": "Almoço", "desc": "🍗 Frango Grelhado ao Alecrim com Arroz Soltinho\\n\\nUm clássico reconfortante que combina uma proteína suculenta com um arroz levinho — perfeito para manter a energia sem pesar.\\n\\n👨‍🍳 Modo de Preparo:\\n1. Tempere o frango com alecrim, alho e uma pitada de sal, deixando descansar 10 min para pegar sabor.\\n2. Grelhe em fogo médio por 5-6 min de cada lado até dourar por fora e ficar suculento por dentro.\\n3. Sirva com o arroz soltinho e a salada fresca crua ao lado.", "foods": [ { "foodId": "14", "name": "Frango, peito, sem pele, grelhado", "amount": 150, "kcal": 238.5, "carb": 0, "protein": 48, "fat": 3.75 } ] } ] }`;
+{ "meals": [ { "name": "Almoço", "desc": "🍗 Frango Grelhado ao Alecrim com Arroz Soltinho\\n\\nUm clássico reconfortante que combina uma proteína suculenta com um arroz levinho — perfeito para manter a energia sem pesar.\\n\\n👨‍🍳 Modo de Preparo:\\n1. Tempere o frango com alecrim, alho e uma pitada de sal, deixando descansar 10 min para pegar sabor.\\n2. Grelhe em fogo médio por 5-6 min de cada lado até dourar por fora e ficar suculento por dentro.\\n3. Sirva com o arroz soltinho e a salada fresca crua ao lado.", "whyChosen": "Frango grelhado oferece alta densidade proteica com baixo teor de gordura, apoiando a manutenção de massa magra no déficit calórico do paciente. O arroz entra como fonte de carboidrato de digestão moderada para sustentar energia até a próxima refeição.", "foods": [ { "foodId": "14", "name": "Frango, peito, sem pele, grelhado", "amount": 150, "kcal": 238.5, "carb": 0, "protein": 48, "fat": 3.75 } ] } ] }`;
 
       // Pedir os N dias inteiros numa única resposta da IA era a causa raiz do
       // erro "A IA demorou demais para responder": um plano de 7+ dias com
@@ -529,12 +530,12 @@ Exemplo de formato:
       }
 
       const data = await callOpenAIBridge({
-        system_prompt: `Você é um Nutricionista Clínico especialista em suplementação. Retorne EXATAMENTE UM JSON com um array 'supplements', cada item com 'name' (nome do suplemento, preferencialmente do catálogo fornecido), 'dosage' (dose recomendada, ex: "1000mg" ou "1 cápsula") e 'mealName' (nome exato de uma das refeições já criadas, ou string vazia se for de uso geral). Não inclua explicações fora do JSON.`,
+        system_prompt: `Você é um Nutricionista Clínico especialista em suplementação. Retorne EXATAMENTE UM JSON com um array 'supplements', cada item com 'name' (nome do suplemento, preferencialmente do catálogo fornecido), 'dosage' (dose recomendada, ex: "1000mg" ou "1 cápsula"), 'mealName' (nome exato de uma das refeições já criadas, ou string vazia se for de uso geral) e 'reason' (motivo clínico da escolha e da dose, em 1-2 frases, explicando o benefício esperado para o caso). Não inclua explicações fora do JSON.`,
         messages: [{ role: "user", content: `Sugira suplementos considerando este contexto clínico:\n\n${promptContext}` }],
         format_json: true
       });
       const parsed = JSON.parse(data.choices[0].message.content);
-      const suggested = (parsed.supplements || []).map(s => ({ id: Date.now().toString() + Math.random().toString(36).slice(2), name: s.name, dosage: s.dosage, mealName: mealNames.includes(s.mealName) ? s.mealName : '' }));
+      const suggested = (parsed.supplements || []).map(s => ({ id: Date.now().toString() + Math.random().toString(36).slice(2), name: s.name, dosage: s.dosage, mealName: mealNames.includes(s.mealName) ? s.mealName : '', reason: s.reason || '' }));
       setDietSupplementsList([...dietSupplementsList, ...suggested]);
     } catch (error) {
       setDietError(error.message || 'Erro ao sugerir suplementos com IA.');

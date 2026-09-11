@@ -303,6 +303,14 @@ Formato obrigatório (texto simples, sem markdown de código):
         </div>
       )}
 
+      {/* Raciocínio clínico da IA — leitura do nutricionista, não editável aqui */}
+      {meal.whyChosen && (
+        <div style={{ display: 'flex', gap: '8px', padding: '8px 10px', backgroundColor: 'var(--crm-surface-2, var(--crm-bg))', border: '1px dashed var(--crm-border)', borderRadius: '6px', fontSize: '0.8rem', color: 'var(--crm-text-muted)', fontStyle: 'italic' }}>
+          <span aria-hidden="true">🧠</span>
+          <span>{meal.whyChosen}</span>
+        </div>
+      )}
+
       {/* Instruções, sugestão ou modo de preparo */}
       {isRegeneratingDesc && (
         <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.8rem', color: 'var(--crm-accent)' }}>
