@@ -1,7 +1,9 @@
 import React, { useState } from 'react';
-import { Trash2, Plus, Search, RefreshCw } from 'lucide-react';
+import { Trash2, Plus, Search, RefreshCw, Loader2 } from 'lucide-react';
 import tacoData from '../../../data/taco.json';
 import toast from 'react-hot-toast';
+import { callOpenAIBridge } from '../../../utils/openaiBridge';
+import { getHouseholdMeasure } from '../../../utils/householdMeasure';
 
 export default function MealBuilder({ meal, onChange, onDelete, aversions }) {
   const [searchTerm, setSearchTerm] = useState('');
@@ -9,6 +11,7 @@ export default function MealBuilder({ meal, onChange, onDelete, aversions }) {
   const [selectedFood, setSelectedFood] = useState(null);
   const [amount, setAmount] = useState('');
   const [subFoodIdx, setSubFoodIdx] = useState(null);
+  const [isRegeneratingDesc, setIsRegeneratingDesc] = useState(false);
 
   const aversionList = (aversions || '').split(/[,;\n]+/).map(a => a.trim().toLowerCase()).filter(a => a);
 
@@ -28,7 +31,7 @@ export default function MealBuilder({ meal, onChange, onDelete, aversions }) {
     return { alternatives, mainMacro };
   };
 
-  const handleApplySub = (idx, alt) => {
+  const handleApplySub = async (idx, alt) => {
     const factor = alt.suggestedAmount / 100;
     const newFoods = [...(meal.foods || [])];
     newFoods[idx] = {
@@ -40,8 +43,44 @@ export default function MealBuilder({ meal, onChange, onDelete, aversions }) {
       protein: Number((alt.protein * factor).toFixed(1)),
       fat: Number((alt.fat * factor).toFixed(1)),
     };
-    onChange({ ...meal, foods: newFoods });
     setSubFoodIdx(null);
+
+    // Se não há texto de preparo, não há nada pra dessincronizar -- aplica a
+    // troca e encerra sem gastar uma chamada de IA à toa.
+    if (!meal.desc || !meal.desc.trim()) {
+      onChange({ ...meal, foods: newFoods });
+      return;
+    }
+
+    // O preparo foi escrito (por IA ou pelo nutri) pensando no ingrediente
+    // antigo -- trocar o alimento sem regenerar o texto deixa a receita
+    // descrevendo um prato que não bate mais com a tabela (ex: "Sopa de
+    // Abóbora" depois de substituir a abóbora por batata doce).
+    setIsRegeneratingDesc(true);
+    try {
+      const foodsList = newFoods.map(f => `${f.amount}g de ${f.name}`).join(', ');
+      const prompt = `Você é um Chef Nutricional da Nutrivvo. O nutricionista acabou de trocar um dos ingredientes desta refeição. Gere um NOVO texto de receita/preparo para substituir o anterior, usando exatamente estes alimentos: ${foodsList}. Se precisar, pode adicionar temperos básicos (sal, pimenta, azeite, ervas).
+${aversions ? `O paciente NÃO COME (aversões/restrições): ${aversions}. JAMAIS use esses ingredientes.` : ''}
+Formato obrigatório (texto simples, sem markdown de código):
+1) Um nome apetitoso e criativo para o prato, com um emoji (ex: "🍳 Omelete Cremosa de Espinafre com Queijo"), não apenas o nome genérico dos alimentos.
+2) Uma frase curta e convidativa explicando por que esse prato é gostoso (tom de chef que ama comida boa, não de relatório clínico).
+3) Duas quebras de linha, seguidas do título "👨‍🍳 Modo de Preparo:" e um passo a passo saboroso usando APENAS os alimentos listados acima.`;
+
+      const data = await callOpenAIBridge({
+        system_prompt: 'Você é um Chef Nutricional focado em receitas práticas e gostosas para dietas de alta performance.',
+        messages: [{ role: 'user', content: prompt }]
+      });
+      const newDesc = data.choices[0].message.content.trim();
+      onChange({ ...meal, foods: newFoods, desc: newDesc });
+    } catch (err) {
+      console.error('Erro ao regenerar preparo após substituição de ingrediente:', err);
+      toast.error(err.message || 'Não foi possível regenerar o preparo automaticamente. Atualize o texto manualmente.');
+      // Aplica a troca do ingrediente mesmo assim -- não trava o fluxo do
+      // nutri por causa de uma falha na IA; ele edita o texto na mão.
+      onChange({ ...meal, foods: newFoods });
+    } finally {
+      setIsRegeneratingDesc(false);
+    }
   };
 
   const handleSearch = (e) => {
@@ -196,17 +235,24 @@ export default function MealBuilder({ meal, onChange, onDelete, aversions }) {
               </tr>
             </thead>
             <tbody>
-              {meal.foods.map((food, idx) => (
+              {meal.foods.map((food, idx) => {
+                const householdMeasure = getHouseholdMeasure({ foodId: food.foodId, name: food.name, grams: food.amount });
+                return (
                 <React.Fragment key={idx}>
                   <tr style={{ borderBottom: subFoodIdx === idx ? 'none' : '1px solid #f1f5f9' }}>
                     <td style={{ padding: '8px 4px' }}>{food.name}</td>
-                    <td style={{ padding: '8px 4px' }}>{food.amount}g</td>
+                    <td style={{ padding: '8px 4px' }}>
+                      {food.amount}g
+                      {householdMeasure && (
+                        <div style={{ fontSize: '0.75rem', color: 'var(--crm-text-muted)' }}>{householdMeasure}</div>
+                      )}
+                    </td>
                     <td style={{ padding: '8px 4px' }}>{food.kcal}</td>
                     <td style={{ padding: '8px 4px' }}>{food.carb}</td>
                     <td style={{ padding: '8px 4px' }}>{food.protein}</td>
                     <td style={{ padding: '8px 4px' }}>{food.fat}</td>
                     <td style={{ padding: '8px 4px', textAlign: 'right', whiteSpace: 'nowrap' }}>
-                      <button onClick={() => setSubFoodIdx(subFoodIdx === idx ? null : idx)} title="Substituir" style={{ background: 'none', border: 'none', color: 'var(--crm-accent)', cursor: 'pointer', marginRight: '8px' }}>
+                      <button onClick={() => setSubFoodIdx(subFoodIdx === idx ? null : idx)} disabled={isRegeneratingDesc} title="Substituir" style={{ background: 'none', border: 'none', color: 'var(--crm-accent)', cursor: isRegeneratingDesc ? 'not-allowed' : 'pointer', marginRight: '8px', opacity: isRegeneratingDesc ? 0.5 : 1 }}>
                         <RefreshCw size={14} />
                       </button>
                       <button onClick={() => handleRemoveFood(idx)} style={{ background: 'none', border: 'none', color: 'var(--crm-danger)', cursor: 'pointer' }}>
@@ -227,7 +273,8 @@ export default function MealBuilder({ meal, onChange, onDelete, aversions }) {
                                 <button
                                   key={alt.id}
                                   onClick={() => handleApplySub(idx, alt)}
-                                  style={{ padding: '6px 10px', fontSize: '0.8rem', backgroundColor: 'var(--crm-surface-2, var(--crm-bg))', border: '1px solid var(--crm-border)', borderRadius: '6px', cursor: 'pointer', color: 'var(--crm-text-main)' }}
+                                  disabled={isRegeneratingDesc}
+                                  style={{ padding: '6px 10px', fontSize: '0.8rem', backgroundColor: 'var(--crm-surface-2, var(--crm-bg))', border: '1px solid var(--crm-border)', borderRadius: '6px', cursor: isRegeneratingDesc ? 'not-allowed' : 'pointer', color: 'var(--crm-text-main)', opacity: isRegeneratingDesc ? 0.5 : 1 }}
                                 >
                                   {alt.name} <span style={{ color: 'var(--crm-text-muted)' }}>({alt.suggestedAmount}g)</span>
                                 </button>
@@ -239,7 +286,8 @@ export default function MealBuilder({ meal, onChange, onDelete, aversions }) {
                     );
                   })()}
                 </React.Fragment>
-              ))}
+                );
+              })}
             </tbody>
             <tfoot>
               <tr style={{ fontWeight: 'bold', backgroundColor: 'var(--crm-surface-2, var(--crm-bg))' }}>
@@ -256,12 +304,18 @@ export default function MealBuilder({ meal, onChange, onDelete, aversions }) {
       )}
 
       {/* Instruções, sugestão ou modo de preparo */}
-      <textarea 
-        className="crm-input" 
-        style={{ width: '100%', minHeight: '110px', resize: 'vertical', background: 'transparent', border: '1px solid var(--crm-border)', fontSize: '0.85rem', lineHeight: '1.4' }} 
-        value={meal.desc || ''} 
-        onChange={(e) => onChange({ ...meal, desc: e.target.value })} 
-        placeholder="Sugestão de consumo ou modo de preparo completo (pode usar quebras de linha)..." 
+      {isRegeneratingDesc && (
+        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.8rem', color: 'var(--crm-accent)' }}>
+          <Loader2 size={13} className="spin" /> Atualizando o preparo com o novo ingrediente...
+        </div>
+      )}
+      <textarea
+        className="crm-input"
+        style={{ width: '100%', minHeight: '110px', resize: 'vertical', background: 'transparent', border: '1px solid var(--crm-border)', fontSize: '0.85rem', lineHeight: '1.4' }}
+        value={meal.desc || ''}
+        onChange={(e) => onChange({ ...meal, desc: e.target.value })}
+        disabled={isRegeneratingDesc}
+        placeholder="Sugestão de consumo ou modo de preparo completo (pode usar quebras de linha)..."
       />
     </div>
   );
