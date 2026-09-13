@@ -652,7 +652,8 @@ Não inclua textos fora do JSON. Apenas o JSON puro.`;
       const recentSupplementLogs = (patient.supplementLogs || []).slice(-15).map(s => `[${s.date} ${s.time}] ${s.name}`).join(' | ') || 'Nenhum registro de suplemento tomado';
       const recentWaterLogs = patient.waterLogs ? Object.entries(patient.waterLogs).slice(-7).map(([date, ml]) => `${date}: ${ml}ml`).join(' | ') : 'Nenhum registro de água';
       const recentSleepLogs = (patient.sleepLogs || []).slice(-7).map(s => `${s.date}: ${s.hours}h (${s.quality})`).join(' | ') || 'Nenhum registro de sono';
-      const statusCohort = patient.status === 'em_risco' ? '⚠️ EM RISCO DE ABANDONO (PERDENDO FOCO)' : (patient.status || 'Ativo');
+      const effectivePatientRiskLevel = patient.riskOverride?.level || patient.riskLevel;
+      const statusCohort = effectivePatientRiskLevel === 'alto' ? '⚠️ EM RISCO DE ABANDONO (PERDENDO FOCO)' : (patient.status || 'Ativo');
 
       const patientDataString = `
       Nome: ${patient.name}

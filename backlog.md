@@ -2,7 +2,10 @@
 
 > **Documento único de status do produto.** Auditado item-a-item contra o código em **28/08/2026**
 > (atualizado em **31/08/2026** — checagem de CPF único, painel `/admin` V1, reorganização de
-> `api/utils` → `lib/`).
+> `api/utils` → `lib/`; atualizado em **12/09/2026** — WhatsApp de volta como canal via Evolution
+> API, edição completa de plano fora da consulta, raciocínio clínico da IA, medida caseira,
+> disclaimer de treino, fix de histórico de planos alimentares, Radar de Abandono unificado +
+> varredura diária de risco → nutricionista).
 > Este arquivo substitui `features.md`, `roadmap-trimestral.md`, `userstorys.md`, `todo.md`, `todo2.md` e
 > `backlog-user-stories.md` (todos marcados como aposentados no topo, mantidos no repo só como histórico).
 > Docs de **estratégia** seguem válidos e separados: `prd.md`, `spec.md`, `context.md`,
@@ -31,9 +34,12 @@ PWA via `vite-plugin-pwa`.
   (anamnese → exames → dieta/suplementos/treino gerados por IA), FinancialCRM (catálogo de planos,
   honorários por paciente, alerta de renovação, dashboard de faturamento), Agenda semanal, Configurações
   (identidade visual, campos de anamnese, horários).
-- **Secretária Virtual (Telegram)** — canal ativo com pacientes reais desde 12/08/2026. Webhook
-  (`api/telegram-webhook.js`) + motor de IA compartilhado (`lib/secretariaVirtual.js`, 15 tools) +
-  2 crons via GitHub Actions (`cron-reminders` hourly, `cron-weekly-summary` segundas).
+- **Secretária Virtual (Telegram + WhatsApp)** — canal ativo com pacientes reais desde 12/08/2026.
+  Webhook (`api/telegram-webhook.js`) + motor de IA compartilhado (`lib/secretariaVirtual.js`,
+  15 tools) + 2 crons via GitHub Actions (`cron-reminders` hourly, `cron-weekly-summary` segundas).
+  **WhatsApp voltou como 2º canal em 04/09/2026** (`api/whatsapp-webhook.js` + `lib/whatsapp.js`,
+  Evolution API self-hosted — ver reconciliação abaixo, não é o mesmo caminho que levou ao
+  bloqueio de 12/08).
 - **Página pública de agendamento**: `/agendar/:nutriId` (`PublicBooking.jsx`).
 - **Painel Admin** (`/admin`, dono único do sistema) — métricas agregadas, lista de nutricionistas
   entre tenants, resolução de conflitos de CPF duplicado. Autorização por uid fixo (`ADMIN_UID`).
@@ -92,8 +98,12 @@ Itens que `features.md` / `roadmap-trimestral.md` / versões antigas deste backl
   ali. `secretariaVirtual.js` ainda *lê* `bot_paused` (branch morta inofensiva — só ativável setando o
   campo à mão no Firestore). Havia trabalho pré-sessão pra opção B (`ChatIA.jsx` filtrando msgs da IA)
   — descartado com o arquivo, conforme a decisão.
-- 🤔 **Botões de cobrança/resgate ainda usam WhatsApp** (`FinancialCRM.jsx:149`, `PatientList.jsx:1128,1134`
-  — link `wa.me/55...`, sem API, sem risco de ban). Manter WhatsApp pra cobrança ou migrar pra Telegram?
+- 🤔 **Cobrança em `FinancialCRM.jsx` ainda é link manual `wa.me/55...`** (sem API, sem risco de ban),
+  separado do canal automatizado da Secretária Virtual. *(Os botões duplicados de Resgate/Cobrança/
+  Recibo em `PatientList.jsx` — órfãos desde a remoção do ChatIA — foram removidos em 04/09/2026,
+  `3c0bde2`.)* Com o WhatsApp de volta como canal automatizado (ver reintrodução acima), avaliar se
+  a cobrança deveria migrar pra dentro do fluxo da Secretária Virtual (Telegram ou WhatsApp) em vez
+  de continuar como link manual à parte.
 
 ### 🐛 Cadastro duplicado — CONFIRMADO possível (auditoria 28/08/2026)
 
@@ -161,14 +171,12 @@ nutri.
   local, nunca persistia, nunca renderizado. Deletados `DirectChat.jsx` + `sendDirectMessage` +
   `directMessages` do `AppContext.jsx` + destructure não usado em `PatientList.jsx`. Canal nutri↔paciente
   que resta: o resgate manual via `sendTelegramToPatient` (`PatientList.jsx`, botão de cobrança/resgate).
-- 🐛 **3 sinais de "risco" concorrentes que não se falam:**
-  1. `computedPatients` (`AppContext.jsx:605-611`) — deriva `em_risco` de `streak === 0 && xp > 50`.
-  2. `secretariaVirtual.js:631` (`alertar_nutricionista`) — grava `status: 'Em Risco'` + `riskReason`.
-  3. `PatientApp.jsx:128` (ChatBot) — grava `behavioral_risk: true` por heurística de palavra-chave + sono.
-  Pior: o `computedStatus` do item 1 **sobrescreve** o `status: 'Em Risco'` do item 2 no próximo render
-  (só respeita `p.status` quando é `'inativo'`). O CRM mostra badge de `behavioral_risk` (`PatientList.jsx:672,782`)
-  e de `em_risco` separadamente. Precisa unificar num único campo/modelo antes de qualquer trabalho no
-  "Radar de Abandono" (ver H1 abaixo).
+- ✅ **[CORRIGIDO 12/09/2026] 3 sinais de "risco" concorrentes que não se falavam.** Eram:
+  1. `computedPatients` (`AppContext.jsx`) — derivava `em_risco` de `streak === 0 && xp > 50`.
+  2. `secretariaVirtual.js` (`alertar_nutricionista`) — gravava `status: 'Em Risco'` + `riskReason`.
+  3. `PatientApp.jsx` (ChatBot) — gravava `behavioral_risk: true` por heurística de palavra-chave + sono.
+  O `computedStatus` do item 1 sobrescrevia o `status: 'Em Risco'` do item 2 no próximo render. Ver
+  "H1 — Radar de Abandono unificado" abaixo pra correção completa (score único em `lib/riskScore.js`).
 - ✅ **[CORRIGIDO — Onda 1, 28/08/2026] Crons mandavam markdown `*negrito*` com Telegram em `parse_mode: 'HTML'`.**
   `cron-reminders.js` e `cron-weekly-summary.js` agora usam `<b>...</b>` + novo helper
   `escapeTelegramHtml()` (`lib/telegram.js`) em todo valor dinâmico (nome, refeição) pra um "&"
@@ -226,25 +234,29 @@ nutri.
 
 ### 📊 Inteligência de Cohorts e Risco
 
-- ⬜/🐛 **H1 — Radar de Abandono unificado.** Antes de qualquer coisa, resolver os 3 sinais concorrentes
-  (ver bug acima). Depois: um único score derivado de comportamento real (streak zerado, dias sem
-  check-in) que substitua ou complemente o campo manual. **Validar com o usuário:** ele quer perder o
-  controle manual ou prefere manual + sugestão automática?
-- ⬜ **Alertas automatizados** (push / e-mail / Telegram) quando o nutri aciona um alerta do CRM —
-  hoje o alerta só muda o status, não notifica ninguém.
+- ✅ **[FEITO 12/09/2026] H1 — Radar de Abandono unificado + Varredura diária → nutricionista.**
+  Ver `.claude/prds/radar-abandono-unificado.prd.md` / `.claude/plans/radar-abandono-unificado.plan.md`.
+  Os 3 sinais concorrentes (`computedPatients` streak/xp, `alertar_nutricionista` `status: 'Em
+  Risco'`, ChatBot web `behavioral_risk`) viraram inputs de um único score puro
+  (`lib/riskScore.js`, `computeRiskScore` — adesão/recência/hidratação/sono + boost de sinal
+  reativo, cortes baixo/médio/alto). Novo cron diário (`api/cron-risk-scan.js`, 08h BRT via
+  `.github/workflows/cron-risk-scan.yml`, 8ª Serverless Function) grava `riskScore/riskLevel/
+  riskFactors` em `patients/{id}` e notifica o nutricionista — in-app (sino novo na sidebar do CRM,
+  `users/{nutriId}.notifications`) **e** Telegram/WhatsApp (novo vínculo `/start nutri:<uid>` nos
+  dois webhooks, aba Perfil do CRM) — na transição pra "alto" ou a cada 3 dias se continuar "alto".
+  **Decisão do usuário:** score automático + `riskOverride` manual (nutri sempre pode corrigir,
+  tem prioridade sobre o cálculo). `computedPatients` (`AppContext.jsx`) perdeu a derivação de
+  `'em_risco'` — vira ciclo de vida puro (ativo/engajado/inativo), risco agora é ortogonal. Bugfix
+  de passagem: `markNotificationsRead` (paciente) nunca persistia a leitura no Firestore.
+  Verificado: `node test-risk-score.mjs` (18 asserts), `npm run build`, `api/` em 8/12. Ponta-a-
+  ponta real (cron produção → Telegram/WhatsApp) só verificável pós-deploy, como todo cron do
+  projeto. *(Fecha também "Alertas automatizados" e "Detetive Comportamental agendado" abaixo.)*
 - ⬜ **Patient 360 Dashboard** — painel único no prontuário: food log visual + peso + plano + anotações.
   Peças existem espalhadas (`BiomarkersChart`, `foodLogs`, `recipes`), falta a consolidação.
 - ⬜ **Resumo diário pro paciente (fim do dia).** Hoje só existe o semanal (`cron-weekly-summary.js`,
   segundas). Falta um recap de fim de dia via Telegram: "hoje bateu 4/5 refeições, 1,8L de água, faltou
   registrar o jantar 🌙". Reaproveita a lógica do `cron-weekly-summary.js` com janela "hoje"; novo
   horário no cron (ex: 20h/21h) ou cron próprio.
-- ⬜ **Varredura diária proativa → nutricionista (Detetive Comportamental agendado).** Hoje a detecção
-  diária das 9h em `cron-reminders.js` só cobre inatividade 3+ dias e adesão <30%, e **só avisa o
-  paciente**. Falta: no mesmo cron, por paciente, cruzar streak zerado + dias sem check-in + sono ruim +
-  água baixa + <30% adesão → gravar `riskFlag` no doc e **notificar o nutricionista** (via o
-  `notifications[]` em `users/{nutriId}` do item de Alertas Automatizados). É a versão *agendada* do
-  Detetive — a que existe hoje (`alertar_nutricionista` em `secretariaVirtual.js`) é só reativa (dispara
-  quando o paciente fala algo no chat).
 
 ### 🩺 Clínico
 
@@ -400,9 +412,23 @@ antiabuso do WhatsApp após 3+ bloqueios em 48h (Evolution API/Baileys, canal n�
 de WhatsApp foi **removida do código** (não desativada) — `api/whatsapp-*.js`, `api/send-whatsapp.js`,
 `api/utils/whatsapp.js`, `src/utils/sendWhatsApp.js` — porque cada arquivo em `api/` consome 1 dos 12
 slots de Serverless Function do plano Hobby e o deploy estava estourando. Histórico no git até `5bd015e`.
-Telegram é **substituição completa**, não canal opcional. O gatilho antigo de "migrar pra Meta Cloud API
-antes de 50-100 pacientes" **não se aplica ao Telegram** (Bot API é oficial, gratuita, sem templates
-pré-aprovados, sem risco de ban arbitrário).
+Telegram virou canal principal (Bot API oficial, gratuita, sem templates pré-aprovados, sem risco de
+ban arbitrário) — mas, diferente do que este documento registrava antes, **não ficou como único
+canal**: ver reintrodução do WhatsApp abaixo (04/09/2026).
+
+**WhatsApp reintroduzido como 2º canal (04/09/2026):** `api/whatsapp-webhook.js` + `lib/whatsapp.js`
+espelham o fluxo do Telegram (`/start <patientId>` pra vincular, texto/foto/áudio, lista numerada em
+texto no lugar de botão nativo). `secretariaVirtual.js` ganhou parâmetro `channel` opcional pra ajustar
+formatação (WhatsApp não renderiza HTML como o Telegram). Diferença chave em relação ao episódio de
+12/08: usa a mesma instância self-hosted da Evolution API já operada pelo nutricionista, não o fluxo
+que levou ao bloqueio — mas é o **mesmo tipo de canal não-oficial**, então o risco de restrição por
+antiabuso da Meta continua existindo em tese; não há mitigação nova além do maior cuidado no volume de
+envio. Zero mudança líquida no budget de Serverless Functions (removeu `send-telegram.js`/
+`sendTelegram.js`, órfãos desde a remoção do ChatIA, ao adicionar o webhook — `api/` seguiu em 7/12).
+Bug de produção corrigido em seguida (`784f913`, 04/09): o webhook autenticava contra `req.body.apikey`
+(minúsculo) — a Evolution só expõe esse campo com uma flag específica ligada, e mesmo assim seria o
+token da instância, não a Global API Key. Fix: autenticação por header `apikey` customizado, comparado
+contra a mesma `EVOLUTION_API_KEY` já usada nas chamadas REST de saída.
 
 **Secretária Virtual no Telegram (ago/2026):** webhook robusto (texto, foto, áudio via Whisper, botões
 inline, `/start` de vínculo, gamificação), 15 tools em `secretariaVirtual.js` (log de refeição/água/sono/
@@ -410,6 +436,36 @@ peso/suplemento/treino, alertar nutricionista, gerar receita, verificar disponib
 cancelar consulta, múltipla escolha, sugerir substituição com gramas da TACO), pausar bot pra
 atendimento humano (`ChatIA.jsx`), 2 crons via GitHub Actions (lembrete + resumo semanal), resumo do
 dia/exame/progresso injetado como contexto efêmero.
+
+**Edição de plano fora da consulta + raciocínio clínico da IA (11/09/2026, `8926d5a`):** aba
+Cardápios (`PatientList.jsx`) ganhou o CRUD que já existia em Treino — editar plano a qualquer
+momento, não só durante a consulta: adicionar/editar/excluir suplementos e vitaminas por
+prescrição, adicionar refeição nova com nome editável. `generateDietFromAI` e
+`generateSupplementsFromAI` (`DashboardNutri.jsx`) agora pedem um campo de raciocínio clínico
+separado da receita voltada ao paciente (`whyChosen` por refeição, `reason` por suplemento),
+exibido read-only ao nutricionista em `MealBuilder.jsx`/`ConsultationFlow.jsx`/`PatientList.jsx`
+mesmo depois da consulta encerrada.
+
+**Medida caseira ao lado da grama (11/09/2026, `b38a913`):** `src/data/householdMeasures.json`
+(mapa de conversão por alimento da TACO) + `src/utils/householdMeasure.js` (formata "≈ 1½ xícara
+de chá", com fallback gracioso pra alimentos sem mapeamento). Aplicado em `MealBuilder.jsx`
+(builder do nutricionista), `DietPlan.jsx` (tela + impressão/PDF do paciente) e lista de compras.
+*Mapa baseado em referências padrão de medida caseira — vale revisão de uma nutricionista antes de
+considerar 100% preciso.*
+
+**Disclaimer e consentimento no treino sugerido por IA (11/09/2026, `ece00ae`):** prescrição de
+exercício é escopo de Educador Físico (CREF), não de Nutricionista (CRN). App do paciente exige
+checkbox de ciência antes da 1ª exibição da ficha de treino (`workoutDisclaimerAcceptedAt` no
+perfil, pedido só uma vez); faixa de aviso permanente fica visível no topo depois do aceite.
+
+**Fix: histórico de planos alimentares não era mais apagado a cada consulta (12/09/2026,
+`89afb59`):** `finishConsultation` gravava `updatePayload.recipes = [novoPlano]`, sobrescrevendo o
+array inteiro e apagando prescrições de consultas anteriores — mesmo o app do paciente já tratando
+`recipes[]` como histórico ordenado (`recipes.slice(-1)[0]` como dieta vigente). Corrigido para
+`push` preservando o histórico. Como consequência, a aba Cardápios agora mostra/edita só a última
+prescrição (a vigente), com nota indicando quantos planos anteriores ficam disponíveis em somente
+leitura no Histórico de Consultas; a substituição de ingrediente (🔄) ali também voltou a funcionar
+para consultas antigas (antes só funcionava pra última, já que o overwrite apagava as demais).
 
 **Segurança (auditoria 11/08/2026):** `api/openai-bridge.js` exige Firebase ID token (era proxy grátis
 de GPT-4o), `cron-reminders.js` / `cron-weekly-summary.js` exigem `Bearer $CRON_SECRET` (falha fechado

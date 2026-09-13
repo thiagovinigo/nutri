@@ -1,0 +1,27 @@
+name: Radar de Abandono (varredura diária)
+
+# Roda 1x/dia, antes do bloco das 9h de cron-reminders.yml (que só avisa o
+# PACIENTE) - este aqui varre todos os pacientes, calcula o score de risco
+# unificado (lib/riskScore.js) e notifica o NUTRICIONISTA (CRM + Telegram/
+# WhatsApp dele) quando alguém entra em alto risco. Ver backlog.md "H1 -
+# Radar de Abandono unificado".
+on:
+  schedule:
+    - cron: '0 11 * * *' # Todo dia, 11:00 UTC = 08:00 horário de Brasília
+  workflow_dispatch: {}
+
+jobs:
+  trigger-risk-scan:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Chama /api/cron-risk-scan
+        run: |
+          status=$(curl -s -o /tmp/response.json -w "%{http_code}" \
+            -X GET "https://nutrivvo.com.br/api/cron-risk-scan" \
+            -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}")
+          echo "HTTP status: $status"
+          cat /tmp/response.json
+          if [ "$status" -ge 300 ]; then
+            echo "::error::cron-risk-scan retornou status $status"
+            exit 1
+          fi

@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useEffect } from 'react';
-import { Users, Calendar, PlayCircle, Trash2, Plus, Eye, Edit3, TrendingUp, Utensils, FileText, BrainCircuit, Play, Sparkles, Activity, Settings, CreditCard, Palette, AlertTriangle, Trophy, Star, Zap, LayoutDashboard, Search, ChevronUp, ChevronDown, ArrowRight, UserCog, BookOpen, ChefHat, Link as LinkIcon, Camera, Upload, Moon, Dumbbell, DollarSign, CheckCircle2 } from 'lucide-react';
+import { Users, Calendar, PlayCircle, Trash2, Plus, Eye, Edit3, TrendingUp, Utensils, FileText, BrainCircuit, Play, Sparkles, Activity, Settings, CreditCard, Palette, AlertTriangle, Trophy, Star, Zap, LayoutDashboard, Search, ChevronUp, ChevronDown, ArrowRight, UserCog, BookOpen, ChefHat, Link as LinkIcon, Camera, Upload, Moon, Dumbbell, DollarSign, CheckCircle2, Bell, ShieldCheck, ShieldAlert } from 'lucide-react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, Legend, ResponsiveContainer } from 'recharts';
 import { useNavigate } from 'react-router-dom';
 import { auth } from '../../../services/firebase';
@@ -12,6 +12,14 @@ import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import BiomarkersChart from './BiomarkersChart';
 import toast from 'react-hot-toast';
+
+// Nível de risco efetivo de um paciente: o ajuste manual do nutri
+// (riskOverride) tem prioridade sobre o riskLevel calculado 1x/dia por
+// api/cron-risk-scan.js. Substitui o antigo `status === 'em_risco'` (ver
+// backlog.md "H1 - Radar de Abandono unificado").
+function isHighRisk(patient) {
+  return (patient.riskOverride?.level || patient.riskLevel) === 'alto';
+}
 
 export default function PatientList({
   view, setView,
@@ -36,9 +44,15 @@ export default function PatientList({
   clinicConfig, updateClinicConfig
 }) {
   const navigate = useNavigate();
-  const { profile, updateProfile, updatePatient, theme, toggleTheme, isLoadingPatients } = useAppContext();
+  const { profile, updateProfile, updatePatient, theme, toggleTheme, isLoadingPatients, markNutriNotificationsRead } = useAppContext();
   const viewedPatient = patients.find(p => p.id === viewingPatientId);
+  // Nível de risco exibido no prontuário: override manual do nutri tem
+  // prioridade sobre o riskLevel calculado por api/cron-risk-scan.js.
+  const viewedPatientRiskLevel = viewedPatient?.riskOverride?.level || viewedPatient?.riskLevel || 'baixo';
+  const RISK_LEVEL_LABELS = { baixo: 'Baixo', medio: 'Médio', alto: 'Alto' };
+  const RISK_LEVEL_COLORS = { baixo: '#16A34A', medio: '#D97706', alto: '#DC2626' };
 
+  const [showNutriNotifications, setShowNutriNotifications] = useState(false);
   const [copiedGeneralLink, setCopiedGeneralLink] = useState(false);
   const [copiedPatientLink, setCopiedPatientLink] = useState(false);
   const [foodDiaryDate, setFoodDiaryDate] = useState(new Date());
@@ -319,7 +333,7 @@ export default function PatientList({
     ? Math.round((engagedCount / activePatients.length) * 100)
     : 0;
   const topEngagedPatients = [...activePatients].sort((a, b) => (b.xp || 0) - (a.xp || 0)).slice(0, 5);
-  const atRiskPatients = patients.filter(p => p.status === 'em_risco');
+  const atRiskPatients = patients.filter(p => isHighRisk(p));
   // "todayAppointments" antes não filtrava por data nenhuma — só por status
   // 'agendado' — então uma consulta antiga nunca marcada como concluída
   // (ex: paciente faltou e ninguém atualizou o status) ficava aparecendo pra
@@ -342,7 +356,8 @@ export default function PatientList({
   const sortedFilteredPatients = useMemo(() => {
     let list = patients.filter(p => {
       const matchesSearch = p.name.toLowerCase().includes(patientSearch.toLowerCase());
-      const matchesStatus = patientStatusFilter === 'todos' || p.status === patientStatusFilter;
+      const matchesStatus = patientStatusFilter === 'todos'
+        || (patientStatusFilter === 'em_risco' ? isHighRisk(p) : p.status === patientStatusFilter);
       return matchesSearch && matchesStatus;
     });
     list = [...list].sort((a, b) => {
@@ -378,10 +393,55 @@ export default function PatientList({
     <div className="crm-container" style={{ display: 'flex', height: '100vh' }}>
       
       <div className="crm-sidebar">
-        <div style={{ marginBottom: '40px' }}>
+        <div style={{ marginBottom: '40px', position: 'relative' }}>
           <h2 className="crm-sidebar-brand">{clinicConfig?.name || 'Nutrivvo'}</h2>
           <span className="crm-sidebar-tag">CRM Clínico</span>
-          <button onClick={async () => { if (auth) await auth.signOut(); navigate('/'); }} className="crm-sidebar-exit">Sair</button>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginTop: '6px' }}>
+            {/* Notificações do Radar de Abandono (api/cron-risk-scan.js) -
+                equivalente ao sino do paciente (TopBar.jsx), mas sóbrio pro
+                estilo do CRM. Ver backlog.md "H1 - Radar de Abandono unificado". */}
+            <button
+              onClick={() => {
+                const next = !showNutriNotifications;
+                setShowNutriNotifications(next);
+                if (next) markNutriNotificationsRead();
+              }}
+              style={{ position: 'relative', background: 'none', border: 'none', color: 'rgba(255,255,255,0.7)', cursor: 'pointer', padding: '4px' }}
+              aria-label="Notificações"
+              title="Radar de Abandono"
+            >
+              <Bell size={18} />
+              {(profile?.notifications || []).some(n => !n.read) && (
+                <span style={{ position: 'absolute', top: 2, right: 2, width: '8px', height: '8px', borderRadius: '50%', backgroundColor: '#DC2626' }} />
+              )}
+            </button>
+            <button onClick={async () => { if (auth) await auth.signOut(); navigate('/'); }} className="crm-sidebar-exit">Sair</button>
+          </div>
+          {showNutriNotifications && (
+            <>
+              <div onClick={() => setShowNutriNotifications(false)} style={{ position: 'fixed', inset: 0, zIndex: 40 }} />
+              <div style={{ position: 'absolute', top: '100%', left: 0, marginTop: '8px', width: '280px', backgroundColor: 'var(--crm-surface)', border: '1px solid var(--crm-border)', borderRadius: '8px', boxShadow: '0 8px 24px rgba(0,0,0,0.25)', zIndex: 41, padding: '10px', maxHeight: '320px', overflowY: 'auto' }}>
+                <strong style={{ fontSize: '0.8rem', color: 'var(--crm-text-main)' }}>Notificações</strong>
+                {(profile?.notifications || []).length === 0 ? (
+                  <p style={{ fontSize: '0.78rem', color: 'var(--crm-text-muted)', marginTop: '8px' }}>Nenhuma notificação.</p>
+                ) : (
+                  [...(profile.notifications || [])].reverse().map(n => (
+                    <div
+                      key={n.id}
+                      onClick={() => {
+                        setShowNutriNotifications(false);
+                        if (n.patientId) { setView('pacientes'); setViewingPatientId(n.patientId); }
+                      }}
+                      style={{ padding: '8px 4px', borderBottom: '1px solid var(--crm-border)', cursor: n.patientId ? 'pointer' : 'default', fontSize: '0.78rem', color: 'var(--crm-text-main)' }}
+                    >
+                      <div>{n.message}</div>
+                      <div style={{ fontSize: '0.68rem', color: 'var(--crm-text-muted)' }}>{n.date}</div>
+                    </div>
+                  ))
+                )}
+              </div>
+            </>
+          )}
         </div>
 
         <nav style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
@@ -706,9 +766,9 @@ export default function PatientList({
                         <td style={{ fontWeight: '500' }}>
                           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                             {p.name}
-                            {p.behavioral_risk && (
-                              <span style={{ padding: '2px 8px', borderRadius: '12px', fontSize: '0.7rem', fontWeight: 'bold', backgroundColor: '#EDE9FE', color: '#7C3AED', border: '1px solid #C4B5FD' }} title="Alerta: Risco de ansiedade alimentar (detectado pela IA)">
-                                Risco Comportamental
+                            {isHighRisk(p) && (
+                              <span style={{ padding: '2px 8px', borderRadius: '12px', fontSize: '0.7rem', fontWeight: 'bold', backgroundColor: '#FEE2E2', color: '#DC2626', border: '1px solid #FCA5A5' }} title={(p.riskFactors || []).join(' · ') || 'Alto risco de abandono'}>
+                                🔺 Alto Risco
                               </span>
                             )}
                           </div>
@@ -718,7 +778,6 @@ export default function PatientList({
                         <td>
                           {p.status === 'engajado' && <span style={{ padding: '4px 10px', borderRadius: '16px', fontSize: '0.8rem', fontWeight: '600', backgroundColor: '#DCFCE7', color: '#16A34A' }}>Alto Engajamento</span>}
                           {p.status === 'ativo' && <span style={{ padding: '4px 10px', borderRadius: '16px', fontSize: '0.8rem', fontWeight: '600', backgroundColor: 'var(--crm-primary-light, #DBEAFE)', color: 'var(--crm-primary, #2563EB)' }}>Ativo</span>}
-                          {p.status === 'em_risco' && <span style={{ padding: '4px 10px', borderRadius: '16px', fontSize: '0.8rem', fontWeight: '600', backgroundColor: '#FEF3C7', color: '#D97706' }}>Perdendo Foco</span>}
                           {p.status === 'inativo' && <span style={{ padding: '4px 10px', borderRadius: '16px', fontSize: '0.8rem', fontWeight: '600', backgroundColor: '#FEE2E2', color: '#EF4444' }}>Inativo</span>}
                         </td>
                         <td>
@@ -806,22 +865,65 @@ export default function PatientList({
                         <div style={{ fontWeight: 'bold' }}>
                           {viewedPatient.status === 'engajado' && <span style={{ color: '#16A34A' }}>Alto Engajamento</span>}
                           {viewedPatient.status === 'ativo' && <span style={{ color: 'var(--crm-primary, #2563EB)' }}>Ativo</span>}
-                          {viewedPatient.status === 'em_risco' && <span style={{ color: '#D97706' }}>Perdendo Foco</span>}
                           {viewedPatient.status === 'inativo' && <span style={{ color: '#EF4444' }}>Inativo</span>}
                         </div>
                       </div>
-                      
+
                       <div>
                         <div style={{ fontSize: '0.85rem', color: 'var(--crm-text-muted)' }}>Ofensiva App</div>
                         <div style={{ fontWeight: 'bold' }}>🔥 {viewedPatient.streak || 0} dias</div>
                       </div>
-                      
-                      {viewedPatient.behavioral_risk && (
-                        <div>
-                          <div style={{ fontSize: '0.85rem', color: '#7C3AED' }}>Alerta da IA</div>
-                          <div style={{ fontWeight: 'bold', color: '#7C3AED' }}>Risco Comportamental</div>
+
+                      <div>
+                        <div style={{ fontSize: '0.85rem', color: 'var(--crm-text-muted)' }}>Risco de Abandono</div>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                          <span style={{ fontWeight: 'bold', color: RISK_LEVEL_COLORS[viewedPatientRiskLevel] }}>
+                            {RISK_LEVEL_LABELS[viewedPatientRiskLevel]}
+                          </span>
+                          {viewedPatient.riskOverride && (
+                            <span style={{ fontSize: '0.7rem', color: 'var(--crm-text-muted)' }} title="Ajustado manualmente por você">(manual)</span>
+                          )}
                         </div>
-                      )}
+                        {!viewedPatient.riskOverride && (viewedPatient.riskFactors || []).length > 0 && (
+                          <div style={{ fontSize: '0.72rem', color: 'var(--crm-text-muted)', maxWidth: '260px' }}>
+                            🤖 {viewedPatient.riskFactors.join(' · ')}
+                          </div>
+                        )}
+                        {viewedPatient.riskOverride && (viewedPatient.riskLevel) && (
+                          <div style={{ fontSize: '0.72rem', color: 'var(--crm-text-muted)' }}>
+                            🤖 Sugestão da IA: {RISK_LEVEL_LABELS[viewedPatient.riskLevel]}
+                          </div>
+                        )}
+                        <div style={{ display: 'flex', gap: '6px', marginTop: '4px' }}>
+                          <select
+                            className="crm-input"
+                            style={{ fontSize: '0.72rem', padding: '2px 6px', width: 'auto' }}
+                            value=""
+                            onChange={(e) => {
+                              const level = e.target.value;
+                              if (!level) return;
+                              updatePatient(viewedPatient.id, {
+                                riskOverride: { level, setBy: profile?.id || null, setAt: new Date().toISOString() }
+                              });
+                              e.target.value = '';
+                            }}
+                          >
+                            <option value="" disabled>Ajustar manualmente...</option>
+                            <option value="baixo">Baixo</option>
+                            <option value="medio">Médio</option>
+                            <option value="alto">Alto</option>
+                          </select>
+                          {viewedPatient.riskOverride && (
+                            <button
+                              className="crm-btn-secondary"
+                              style={{ fontSize: '0.72rem', padding: '2px 8px' }}
+                              onClick={() => updatePatient(viewedPatient.id, { riskOverride: null })}
+                            >
+                              Voltar ao automático
+                            </button>
+                          )}
+                        </div>
+                      </div>
                     </div>
 
                   </div>
@@ -1924,6 +2026,58 @@ export default function PatientList({
                         <button type="submit" className="crm-btn-primary">Salvar Perfil</button>
                         {profSaved && <p style={{ color: 'var(--crm-good-text)', fontSize: '0.85rem', fontWeight: 600, marginTop: '16px' }}>Perfil salvo com sucesso!</p>}
                       </form>
+
+                      {/* Vínculo de Telegram/WhatsApp DO NUTRI pros alertas
+                          do Radar de Abandono - mesmo padrão de
+                          Profile.jsx (paciente), mas com prefixo "nutri:"
+                          no deep-link (api/telegram-webhook.js e
+                          api/whatsapp-webhook.js resolvem contra
+                          users/{uid} nesse caso). Ver backlog.md "H1 -
+                          Radar de Abandono unificado". */}
+                      <div style={{ marginTop: '32px', paddingTop: '24px', borderTop: '1px solid var(--crm-border)' }}>
+                        <h3 style={{ fontSize: '1rem', marginBottom: '4px' }}>Alertas do Radar de Abandono</h3>
+                        <p style={{ fontSize: '0.85rem', color: 'var(--crm-text-muted)', marginBottom: '16px' }}>
+                          Receba um aviso por Telegram/WhatsApp quando um paciente entrar em alto risco de abandono (varredura diária às 8h).
+                        </p>
+                        <div style={{ display: 'flex', gap: '16px', flexWrap: 'wrap' }}>
+                          <div style={{ flex: '1 1 240px' }}>
+                            <span className="crm-label" style={{ display: 'block', marginBottom: '6px' }}>Telegram</span>
+                            {profile?.telegram_chat_id ? (
+                              <span style={{ display: 'flex', alignItems: 'center', gap: '6px', color: '#16A34A', fontSize: '0.85rem' }}>
+                                <ShieldCheck size={16} /> Conectado
+                              </span>
+                            ) : (
+                              <a
+                                href={`https://t.me/${import.meta.env.VITE_TELEGRAM_BOT_USERNAME || 'nutrivvo_bot'}?start=nutri:${profile?.id || ''}`}
+                                target="_blank" rel="noopener noreferrer"
+                                className="crm-btn-secondary"
+                                style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', fontSize: '0.85rem', textDecoration: 'none' }}
+                              >
+                                <ShieldAlert size={16} /> Conectar Telegram
+                              </a>
+                            )}
+                          </div>
+                          <div style={{ flex: '1 1 240px' }}>
+                            <span className="crm-label" style={{ display: 'block', marginBottom: '6px' }}>WhatsApp</span>
+                            {profile?.whatsapp_chat_id ? (
+                              <span style={{ display: 'flex', alignItems: 'center', gap: '6px', color: '#16A34A', fontSize: '0.85rem' }}>
+                                <ShieldCheck size={16} /> Conectado
+                              </span>
+                            ) : import.meta.env.VITE_WHATSAPP_BOT_NUMBER ? (
+                              <a
+                                href={`https://wa.me/${import.meta.env.VITE_WHATSAPP_BOT_NUMBER}?text=${encodeURIComponent(`/start nutri:${profile?.id || ''}`)}`}
+                                target="_blank" rel="noopener noreferrer"
+                                className="crm-btn-secondary"
+                                style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', fontSize: '0.85rem', textDecoration: 'none' }}
+                              >
+                                <ShieldAlert size={16} /> Conectar WhatsApp
+                              </a>
+                            ) : (
+                              <span style={{ fontSize: '0.8rem', color: 'var(--crm-text-muted)' }}>Indisponível</span>
+                            )}
+                          </div>
+                        </div>
+                      </div>
                     </div>
                   )}
 

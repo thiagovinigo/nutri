@@ -129,7 +129,32 @@ export default async function handler(req, res) {
     // (gerado no Perfil do paciente, Profile.jsx) - mesmo princípio de
     // confiança do fluxo do Telegram.
     if (fromText.startsWith('/start')) {
-      const patientId = fromText.replace('/start', '').trim();
+      const startArg = fromText.replace('/start', '').trim();
+
+      // Vínculo do NUTRICIONISTA pros alertas do Radar de Abandono
+      // (api/cron-risk-scan.js) - mesmo deep-link /start, com prefixo
+      // "nutri:" pra resolver contra users/{uid} em vez de patients/{uid}.
+      // Sem o prefixo, comportamento idêntico ao de sempre (abaixo). Mesma
+      // extensão feita em api/telegram-webhook.js.
+      if (startArg.startsWith('nutri:')) {
+        const nutriId = startArg.slice('nutri:'.length);
+        if (!nutriId) {
+          await sendWhatsAppText(chatId, 'Olá! Para vincular sua conta, abra "Conectar WhatsApp para Alertas" no seu Perfil Profissional dentro do CRM Nutrivvo.');
+          return res.status(200).json({ status: 'ok' });
+        }
+        const nutriRef = db.collection('users').doc(nutriId);
+        const nutriSnap = await nutriRef.get();
+        if (!nutriSnap.exists) {
+          await sendWhatsAppText(chatId, 'Não encontrei seu cadastro. Verifique se abriu o link certo dentro do CRM Nutrivvo.');
+          return res.status(200).json({ status: 'ok' });
+        }
+        await nutriRef.set({ whatsapp_chat_id: chatId, whatsapp_linked_at: new Date() }, { merge: true });
+        const nutriData = nutriSnap.data();
+        await sendWhatsAppText(chatId, `Prontinho, ${nutriData.name?.split(' ')[0] || ''}! 🎉 Seu WhatsApp está conectado. Você vai receber os alertas do Radar de Abandono por aqui.`);
+        return res.status(200).json({ status: 'ok' });
+      }
+
+      const patientId = startArg;
       if (!patientId) {
         await sendWhatsAppText(chatId, 'Olá! Para vincular sua conta, abra o link "Conectar WhatsApp" dentro do seu Perfil no app Nutrivvo.');
         return res.status(200).json({ status: 'ok' });

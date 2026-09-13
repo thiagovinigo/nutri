@@ -121,11 +121,18 @@ export default function PatientApp() {
 
     const userMessageLower = userMessage.toLowerCase();
     const keywords = ['doce', 'doces', 'chocolate', 'jacada', 'açúcar', 'ansiedade', 'compulsão', 'acucar'];
-    if (keywords.some(kw => userMessageLower.includes(kw))) {
+    const matchedKeyword = keywords.find(kw => userMessageLower.includes(kw));
+    if (matchedKeyword) {
       if (activePatient.sleepLogs && activePatient.sleepLogs.length > 0) {
         const latestSleep = [...activePatient.sleepLogs].reverse()[0];
         if (latestSleep.quality === 'Ruim' || parseFloat(latestSleep.hours) < 6) {
-           updatePatient(activePatient.id, { behavioral_risk: true });
+           // Sinal transiente (não mais um booleano permanente nunca
+           // resetado) - vira input do score unificado em lib/riskScore.js,
+           // consumido pela varredura diária em api/cron-risk-scan.js. Ver
+           // backlog.md "H1 - Radar de Abandono unificado".
+           updatePatient(activePatient.id, {
+             behavioralRiskSignal: { detectedAt: new Date().toISOString(), keyword: matchedKeyword }
+           });
         }
       }
     }

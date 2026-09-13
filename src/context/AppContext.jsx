@@ -454,11 +454,41 @@ export function AppProvider({ children }) {
     }
   };
     
-  const markNotificationsRead = (patientId) => {
-    setPatients(prev => prev.map(p => {
-      if (p.id !== patientId) return p;
-      return { ...p, notifications: (p.notifications || []).map(n => ({ ...n, read: true })) };
-    }));
+  const markNotificationsRead = async (patientId) => {
+    const p = patients.find(pat => pat.id === patientId);
+    if (!p) return;
+    const updated = (p.notifications || []).map(n => ({ ...n, read: true }));
+
+    setPatients(prev => prev.map(pat => (pat.id === patientId ? { ...pat, notifications: updated } : pat)));
+
+    // Antes só atualizava o estado local - o badge "não lido" voltava ao
+    // recarregar a página, já que nunca era persistido no Firestore.
+    if (!isFirebaseConfigured) return;
+    try {
+      await updateDoc(doc(db, 'patients', patientId), { notifications: updated });
+    } catch(e) {
+      console.warn('Falha ao persistir notificações lidas do paciente:', e);
+    }
+  };
+
+  // Notificação in-app do NUTRICIONISTA (mesmo formato de addNotification,
+  // mas em users/{nutriId}.notifications). O único produtor hoje é
+  // api/cron-risk-scan.js, que grava direto via Admin SDK (bypassa este
+  // helper) - aqui só precisamos ler (via `profile`, já carregado por
+  // fetchProfile) e marcar como lida. Ver backlog.md "H1 - Radar de
+  // Abandono unificado".
+  const markNutriNotificationsRead = async () => {
+    if (!profile?.id) return;
+    const updated = (profile.notifications || []).map(n => ({ ...n, read: true }));
+
+    setProfile(prev => ({ ...prev, notifications: updated }));
+
+    if (!isFirebaseConfigured) return;
+    try {
+      await updateDoc(doc(db, 'users', profile.id), { notifications: updated });
+    } catch(e) {
+      console.warn('Falha ao persistir notificações lidas do nutricionista:', e);
+    }
   };
 
   const completeQuest = (patientId, xpGained) => {
@@ -590,22 +620,18 @@ export function AppProvider({ children }) {
     }
 
     const currentStreak = p.streak || 0;
-    const currentXp = p.xp || 0;
 
-    // Se tem 0 dias de adesão E tem pouco XP (ou seja, acabou de entrar)
-    if (currentStreak === 0 && currentXp <= 50) {
-      computedStatus = 'ativo';
-    } 
-    // Se tem 0 dias de adesão MAS já tem bastante XP (já usou o app antes e parou)
-    else if (currentStreak === 0 && currentXp > 50) {
-      computedStatus = 'em_risco';
-    } 
-    // Se tem um bom streak de uso contínuo
-    else if (currentStreak >= 3) {
+    // Ciclo de vida puro (ativo/engajado/inativo) - "risco" deixou de ser
+    // derivado aqui (streak===0 && xp>50 -> 'em_risco') porque conflitava
+    // com os outros 2 sinais de risco que existiam (status: 'Em Risco' da
+    // IA, behavioral_risk do ChatBot) e sempre vencia por rodar em todo
+    // render. Risco agora é um campo ortogonal (riskLevel/riskOverride,
+    // calculado 1x/dia por api/cron-risk-scan.js) - ver backlog.md "H1 -
+    // Radar de Abandono unificado". Um paciente pode estar 'ativo' e em
+    // 'alto' risco ao mesmo tempo.
+    if (currentStreak >= 3) {
       computedStatus = 'engajado';
-    } 
-    // Caso geral de uso normal
-    else {
+    } else {
       computedStatus = 'ativo';
     }
 
@@ -621,7 +647,7 @@ export function AppProvider({ children }) {
       clinicConfig, updateClinicConfig,
       addPatient, updatePatient, patchPatientLocal, deletePatient,
       addRecipe, updateMealAiRecipe, markMealDone, markSupplementDone, addExtraMealLog, deleteExtraMealLog, markWorkoutDone, addWeight, addSleepLog, addExam, completeQuest, updateWater,
-      addNotification, markNotificationsRead,
+      addNotification, markNotificationsRead, markNutriNotificationsRead,
       appointments, addAppointment, cancelAppointment, markAppointmentDone,
       dietTemplates, addDietTemplate, deleteDietTemplate,
       recipeLibrary, addLibraryRecipe, deleteLibraryRecipe,
