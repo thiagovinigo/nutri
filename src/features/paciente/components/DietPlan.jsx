@@ -8,6 +8,7 @@ import { useAppContext } from '../../../context/AppContext';
 import { useAiRecipe } from '../hooks/useAiRecipe';
 import { getHouseholdMeasure } from '../../../utils/householdMeasure';
 import { findTacoFood } from '../../../utils/tacoMatch';
+import { hasPreparationSteps } from '../../../utils/mealPreparation';
 import toast from 'react-hot-toast';
 
 export default function DietPlan({ activePatient }) {
@@ -395,7 +396,9 @@ export default function DietPlan({ activePatient }) {
                             onClick={() => setExpandedDescIdx(expandedDescIdx === mIdx ? null : mIdx)}
                             style={{ background: 'none', border: 'none', color: 'var(--primary-color)', fontSize: '0.82rem', fontWeight: 600, cursor: 'pointer', padding: '4px 0', marginBottom: '8px', display: 'flex', alignItems: 'center', gap: '4px' }}
                           >
-                            {expandedDescIdx === mIdx ? '📖 Ocultar modo de preparo' : '📖 Ver modo de preparo'}
+                            {hasPreparationSteps(m.desc)
+                              ? (expandedDescIdx === mIdx ? '📖 Ocultar modo de preparo' : '📖 Ver modo de preparo')
+                              : (expandedDescIdx === mIdx ? '📖 Ocultar orientação' : '📖 Ver orientação')}
                           </button>
                           {expandedDescIdx === mIdx && (
                             <p style={{ margin: '0 0 12px 0', fontSize: '0.85rem', color: 'var(--patient-text-muted)', whiteSpace: 'pre-wrap', lineHeight: '1.5' }}>{m.desc}</p>
@@ -412,7 +415,7 @@ export default function DietPlan({ activePatient }) {
                           ? <><Loader2 size={14} className="spin" /> Gerando receita...</>
                           : savedRecipe
                             ? <>{isRecipeExpanded ? '✨ Ocultar Receita da IA' : '✨ Ver Receita da IA'}</>
-                            : <>✨ Gerar Receita com IA</>
+                            : <>{hasPreparationSteps(m.desc) ? '✨ Gerar Receita com IA' : '✨ Gerar modo de preparo com IA'}</>
                         }
                       </button>
                       {isRecipeExpanded && savedRecipe && !isGeneratingThisRecipe && (
