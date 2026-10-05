@@ -4,8 +4,28 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
+    // Campos que SÓ o servidor grava (Admin SDK, que ignora estas regras): os
+    // chat ids do Telegram/WhatsApp, gravados pelos webhooks ao resgatar o
+    // vínculo. Se o cliente pudesse escrevê-los, qualquer conta apontaria os
+    // crons (api/cron-*.js) pro chat de outra pessoa e dispararia mensagens
+    // não solicitadas. Mantenha em sincronia com lib/serverOnlyFields.js.
+    function serverOnlyKeys() {
+      return ['telegram_chat_id', 'telegram_linked_at', 'whatsapp_chat_id', 'whatsapp_linked_at'];
+    }
+    function createsServerOnlyFields() {
+      return request.resource.data.keys().hasAny(serverOnlyKeys());
+    }
+    // affectedKeys() só lista o que MUDOU: regravar o mesmo valor é permitido.
+    function updatesServerOnlyFields() {
+      return request.resource.data.diff(resource.data).affectedKeys().hasAny(serverOnlyKeys());
+    }
+
     match /users/{userId} {
-      allow read, write: if request.auth != null && request.auth.uid == userId;
+      allow read, delete: if request.auth != null && request.auth.uid == userId;
+      allow create: if request.auth != null && request.auth.uid == userId
+        && !createsServerOnlyFields();
+      allow update: if request.auth != null && request.auth.uid == userId
+        && !updatesServerOnlyFields();
     }
 
     match /patients/{patientId} {
@@ -13,13 +33,21 @@ service cloud.firestore {
       // OTP/phone_verified foram removidas em 28/08/2026 junto com o fluxo de
       // verificação de telefone por SMS (o /start do Telegram já prova posse
       // da conta) - nenhum código lê/escreve esses campos mais.
-      allow read, create, update: if request.auth != null && request.auth.uid == patientId;
+      allow read: if request.auth != null && request.auth.uid == patientId;
+      allow create: if request.auth != null && request.auth.uid == patientId
+        && !createsServerOnlyFields();
+      allow update: if request.auth != null && request.auth.uid == patientId
+        && !updatesServerOnlyFields();
 
       // Nutricionista dono pode ler, atualizar, criar e deletar seus pacientes.
-      allow read, update, delete: if request.auth != null
+      allow read, delete: if request.auth != null
         && resource.data.nutricionista_id == request.auth.uid;
+      allow update: if request.auth != null
+        && resource.data.nutricionista_id == request.auth.uid
+        && !updatesServerOnlyFields();
       allow create: if request.auth != null
-        && request.resource.data.nutricionista_id == request.auth.uid;
+        && request.resource.data.nutricionista_id == request.auth.uid
+        && !createsServerOnlyFields();
 
       // Paciente novo pode ler o documento temporário gerado pelo nutri antes de ter conta (ID atua como token de convite)
       allow read: if resource.data.status == 'inativo';

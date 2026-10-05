@@ -97,7 +97,10 @@ export default function Profile({ activePatient }) {
     e.preventDefault();
     if (activePatient) {
       const newPhoneDigits = editPhone.replace(/\D/g, '');
-      const payload = { ...activePatient, name: editName, email: editEmail, cpf: editCpf.replace(/\D/g, ''), age: editAge, gender: editGender, aversions: editAversions, medications: editMedications, phone: newPhoneDigits };
+      // Só os campos editados: regravar o paciente inteiro sobrescrevia xp/streak/
+      // logs atualizados pelo bot com uma cópia antiga, e levava junto os campos
+      // só-de-servidor (chat ids), que firestore.rules recusa o cliente gravar.
+      const payload = { name: editName, email: editEmail, cpf: editCpf.replace(/\D/g, ''), age: editAge, gender: editGender, aversions: editAversions, medications: editMedications, phone: newPhoneDigits };
       updatePatient(activePatient.id, payload);
       toast.success('Perfil atualizado com sucesso!');
     }

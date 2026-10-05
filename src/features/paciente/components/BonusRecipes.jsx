@@ -85,7 +85,7 @@ export default function BonusRecipes({ activePatient }) {
     };
 
     const updatedPersonal = [...personalRecipes, newRecipe];
-    updatePatient(activePatient.id, { ...activePatient, personalRecipes: updatedPersonal });
+    updatePatient(activePatient.id, { personalRecipes: updatedPersonal });
     
     setNewTitle('');
     setNewContent('');
