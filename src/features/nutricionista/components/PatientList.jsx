@@ -12,6 +12,7 @@ import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import BiomarkersChart from './BiomarkersChart';
 import toast from 'react-hot-toast';
+import { generateNutriLinkCode, NUTRI_LINK_CODE_TTL_MS } from '../../../../lib/nutriLinkCode.js';
 
 // Nível de risco efetivo de um paciente: o ajuste manual do nutri
 // (riskOverride) tem prioridade sobre o riskLevel calculado 1x/dia por
@@ -45,6 +46,17 @@ export default function PatientList({
 }) {
   const navigate = useNavigate();
   const { profile, updateProfile, updatePatient, theme, toggleTheme, isLoadingPatients, markNutriNotificationsRead } = useAppContext();
+
+  // Vínculo de Telegram/WhatsApp com código de uso único (lib/nutriLinkCode.js):
+  // o link do bot leva o código, não o uid. A janela abre antes de qualquer
+  // await pra não ser barrada como pop-up; a gravação do código leva ms e o
+  // nutri ainda precisa tocar em "Iniciar" no chat.
+  const handleConnectAlertChannel = (buildUrl) => {
+    if (!profile?.id) return toast.error('Perfil não carregado!');
+    const code = generateNutriLinkCode();
+    window.open(buildUrl(code), '_blank', 'noopener,noreferrer');
+    updateProfile({ nutriLinkCode: code, nutriLinkCodeExpiresAt: Date.now() + NUTRI_LINK_CODE_TTL_MS });
+  };
   const viewedPatient = patients.find(p => p.id === viewingPatientId);
   // Nível de risco exibido no prontuário: override manual do nutri tem
   // prioridade sobre o riskLevel calculado por api/cron-risk-scan.js.
@@ -2047,14 +2059,14 @@ export default function PatientList({
                                 <ShieldCheck size={16} /> Conectado
                               </span>
                             ) : (
-                              <a
-                                href={`https://t.me/${import.meta.env.VITE_TELEGRAM_BOT_USERNAME || 'nutrivvo_bot'}?start=nutri:${profile?.id || ''}`}
-                                target="_blank" rel="noopener noreferrer"
+                              <button
+                                type="button"
+                                onClick={() => handleConnectAlertChannel((code) => `https://t.me/${import.meta.env.VITE_TELEGRAM_BOT_USERNAME || 'nutrivvo_bot'}?start=nutri:${code}`)}
                                 className="crm-btn-secondary"
-                                style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', fontSize: '0.85rem', textDecoration: 'none' }}
+                                style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', fontSize: '0.85rem' }}
                               >
                                 <ShieldAlert size={16} /> Conectar Telegram
-                              </a>
+                              </button>
                             )}
                           </div>
                           <div style={{ flex: '1 1 240px' }}>
@@ -2064,14 +2076,14 @@ export default function PatientList({
                                 <ShieldCheck size={16} /> Conectado
                               </span>
                             ) : import.meta.env.VITE_WHATSAPP_BOT_NUMBER ? (
-                              <a
-                                href={`https://wa.me/${import.meta.env.VITE_WHATSAPP_BOT_NUMBER}?text=${encodeURIComponent(`/start nutri:${profile?.id || ''}`)}`}
-                                target="_blank" rel="noopener noreferrer"
+                              <button
+                                type="button"
+                                onClick={() => handleConnectAlertChannel((code) => `https://wa.me/${import.meta.env.VITE_WHATSAPP_BOT_NUMBER}?text=${encodeURIComponent(`/start nutri:${code}`)}`)}
                                 className="crm-btn-secondary"
-                                style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', fontSize: '0.85rem', textDecoration: 'none' }}
+                                style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', fontSize: '0.85rem' }}
                               >
                                 <ShieldAlert size={16} /> Conectar WhatsApp
-                              </a>
+                              </button>
                             ) : (
                               <span style={{ fontSize: '0.8rem', color: 'var(--crm-text-muted)' }}>Indisponível</span>
                             )}

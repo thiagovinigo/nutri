@@ -1,6 +1,7 @@
 import { db } from '../lib/firebase-admin.js';
 import { sendWhatsAppText, sendWhatsAppOptionsList, fetchWhatsAppMediaAsDataUrl, fetchWhatsAppAudioAsBuffer } from '../lib/whatsapp.js';
 import { runSecretariaVirtual, transcribeAudioWithWhisper } from '../lib/secretariaVirtual.js';
+import { redeemNutriLinkCode } from '../lib/nutriLinkServer.js';
 
 /**
  * Processa a mensagem com a Secretária Virtual (IA) e responde pelo
@@ -132,24 +133,23 @@ export default async function handler(req, res) {
       const startArg = fromText.replace('/start', '').trim();
 
       // Vínculo do NUTRICIONISTA pros alertas do Radar de Abandono
-      // (api/cron-risk-scan.js) - mesmo deep-link /start, com prefixo
-      // "nutri:" pra resolver contra users/{uid} em vez de patients/{uid}.
-      // Sem o prefixo, comportamento idêntico ao de sempre (abaixo). Mesma
-      // extensão feita em api/telegram-webhook.js.
+      // (api/cron-risk-scan.js). O argumento é um CÓDIGO de uso único gerado
+      // no CRM (lib/nutriLinkCode.js), nunca o uid: o uid do nutri não é
+      // segredo e deixava qualquer pessoa redirecionar os alertas dele.
+      // Mesma extensão feita em api/telegram-webhook.js.
       if (startArg.startsWith('nutri:')) {
-        const nutriId = startArg.slice('nutri:'.length);
-        if (!nutriId) {
-          await sendWhatsAppText(chatId, 'Olá! Para vincular sua conta, abra "Conectar WhatsApp para Alertas" no seu Perfil Profissional dentro do CRM Nutrivvo.');
+        if (chatId.endsWith('@g.us')) {
+          await sendWhatsAppText(chatId, 'Por segurança, vincule seus alertas numa conversa privada comigo, não em grupo.');
           return res.status(200).json({ status: 'ok' });
         }
-        const nutriRef = db.collection('users').doc(nutriId);
-        const nutriSnap = await nutriRef.get();
-        if (!nutriSnap.exists) {
-          await sendWhatsAppText(chatId, 'Não encontrei seu cadastro. Verifique se abriu o link certo dentro do CRM Nutrivvo.');
+        const nutriData = await redeemNutriLinkCode(db, startArg.slice('nutri:'.length), {
+          whatsapp_chat_id: chatId,
+          whatsapp_linked_at: new Date(),
+        });
+        if (!nutriData) {
+          await sendWhatsAppText(chatId, 'Código inválido ou expirado. Abra "Conectar WhatsApp" no seu Perfil Profissional dentro do CRM Nutrivvo para gerar um novo.');
           return res.status(200).json({ status: 'ok' });
         }
-        await nutriRef.set({ whatsapp_chat_id: chatId, whatsapp_linked_at: new Date() }, { merge: true });
-        const nutriData = nutriSnap.data();
         await sendWhatsAppText(chatId, `Prontinho, ${nutriData.name?.split(' ')[0] || ''}! 🎉 Seu WhatsApp está conectado. Você vai receber os alertas do Radar de Abandono por aqui.`);
         return res.status(200).json({ status: 'ok' });
       }

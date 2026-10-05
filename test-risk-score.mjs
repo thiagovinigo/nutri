@@ -192,4 +192,27 @@ test('score nunca passa de 100', () => {
   assert.ok(result.score <= 100);
 });
 
+test('paciente novo (carencia de 4 dias) nao e alto risco sem sinal reativo', () => {
+  const patient = basePatient({ createdAt: daysAgo(1).toISOString(), streak: 0, lastActivityDate: null });
+  const result = computeRiskScore(patient, REF_DATE);
+  assert.equal(result.score, 0);
+  assert.equal(result.level, 'baixo');
+});
+test('carencia acaba apos 4 dias', () => {
+  const patient = basePatient({ createdAt: daysAgo(5).toISOString(), streak: 0, lastActivityDate: null });
+  assert.equal(computeRiskScore(patient, REF_DATE).level, 'alto');
+});
+test('sinal reativo ainda conta durante a carencia', () => {
+  const patient = basePatient({
+    createdAt: daysAgo(1).toISOString(),
+    aiRiskSignal: { reason: 'x', detectedAt: REF_DATE.toISOString() },
+  });
+  assert.equal(computeRiskScore(patient, REF_DATE).level, 'medio');
+});
+test('lastActivityDate invalida conta como nunca registrou atividade', () => {
+  const patient = basePatient({ lastActivityDate: 'lixo' });
+  const result = computeRiskScore(patient, REF_DATE);
+  assert.ok(result.factors.includes('Nunca registrou atividade'));
+});
+
 console.log(`\n${passed} asserts OK.`);

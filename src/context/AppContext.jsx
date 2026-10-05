@@ -1,8 +1,25 @@
 import React, { createContext, useState, useContext, useEffect, useCallback } from 'react';
 import { auth, db } from '../services/firebase';
 import { onAuthStateChanged } from 'firebase/auth';
-import { collection, doc, getDoc, getDocs, addDoc, updateDoc, deleteDoc, query, where } from 'firebase/firestore';
+import { collection, doc, getDoc, getDocs, addDoc, updateDoc, deleteDoc, query, where, runTransaction } from 'firebase/firestore';
 import toast from 'react-hot-toast';
+
+/**
+ * Marca como lidas, no Firestore, só as notificações que o usuário já viu
+ * (`seenIds`). Lê o documento na própria transação: o cron do Radar de
+ * Abandono e a Secretária Virtual gravam `notifications` por fora do app, e
+ * regravar a cópia em memória (carregada uma vez) apagava alertas novos.
+ * Devolve a lista atualizada do servidor, ou null se o documento não existe.
+ */
+async function markSeenNotificationsRead(docRef, seenIds) {
+  return runTransaction(db, async (tx) => {
+    const snap = await tx.get(docRef);
+    if (!snap.exists()) return null;
+    const updated = (snap.data().notifications || []).map((n) => (seenIds.has(n.id) ? { ...n, read: true } : n));
+    tx.update(docRef, { notifications: updated });
+    return updated;
+  });
+}
 
 const AppContext = createContext();
 
@@ -457,6 +474,7 @@ export function AppProvider({ children }) {
   const markNotificationsRead = async (patientId) => {
     const p = patients.find(pat => pat.id === patientId);
     if (!p) return;
+    const seenIds = new Set((p.notifications || []).map(n => n.id));
     const updated = (p.notifications || []).map(n => ({ ...n, read: true }));
 
     setPatients(prev => prev.map(pat => (pat.id === patientId ? { ...pat, notifications: updated } : pat)));
@@ -465,7 +483,8 @@ export function AppProvider({ children }) {
     // recarregar a página, já que nunca era persistido no Firestore.
     if (!isFirebaseConfigured) return;
     try {
-      await updateDoc(doc(db, 'patients', patientId), { notifications: updated });
+      const fresh = await markSeenNotificationsRead(doc(db, 'patients', patientId), seenIds);
+      if (fresh) setPatients(prev => prev.map(pat => (pat.id === patientId ? { ...pat, notifications: fresh } : pat)));
     } catch(e) {
       console.warn('Falha ao persistir notificações lidas do paciente:', e);
     }
@@ -479,13 +498,17 @@ export function AppProvider({ children }) {
   // Abandono unificado".
   const markNutriNotificationsRead = async () => {
     if (!profile?.id) return;
+    const seenIds = new Set((profile.notifications || []).map(n => n.id));
     const updated = (profile.notifications || []).map(n => ({ ...n, read: true }));
 
     setProfile(prev => ({ ...prev, notifications: updated }));
 
     if (!isFirebaseConfigured) return;
     try {
-      await updateDoc(doc(db, 'users', profile.id), { notifications: updated });
+      // Alertas que o cron gravou depois do último carregamento do perfil
+      // continuam não lidos (o nutri ainda não os viu) e passam a aparecer.
+      const fresh = await markSeenNotificationsRead(doc(db, 'users', profile.id), seenIds);
+      if (fresh) setProfile(prev => ({ ...prev, notifications: fresh }));
     } catch(e) {
       console.warn('Falha ao persistir notificações lidas do nutricionista:', e);
     }

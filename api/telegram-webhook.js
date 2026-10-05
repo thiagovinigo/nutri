@@ -7,6 +7,7 @@ import {
   fetchTelegramFileAsBuffer
 } from '../lib/telegram.js';
 import { runSecretariaVirtual, transcribeAudioWithWhisper } from '../lib/secretariaVirtual.js';
+import { redeemNutriLinkCode } from '../lib/nutriLinkServer.js';
 
 /**
  * Processa a mensagem com a Secretária Virtual (IA) e responde pelo
@@ -162,26 +163,26 @@ export default async function handler(req, res) {
     // patientId funciona como token de posse nesse fluxo (mesmo nível de
     // confiança que outros vínculos do app).
     if (fromText.startsWith('/start')) {
-      const startArg = fromText.replace('/start', '').trim();
+      // "/start@NomeDoBot arg" (forma usada em grupos) também é aceito.
+      const startArg = fromText.replace(/^\/start(?:@\w+)?/, '').trim();
 
       // Vínculo do NUTRICIONISTA pros alertas do Radar de Abandono
-      // (api/cron-risk-scan.js) - mesmo deep-link /start, com prefixo
-      // "nutri:" pra resolver contra users/{uid} em vez de patients/{uid}.
-      // Sem o prefixo, comportamento idêntico ao de sempre (abaixo).
+      // (api/cron-risk-scan.js). O argumento é um CÓDIGO de uso único gerado
+      // no CRM (lib/nutriLinkCode.js), nunca o uid: o uid do nutri não é
+      // segredo e deixava qualquer pessoa redirecionar os alertas dele.
       if (startArg.startsWith('nutri:')) {
-        const nutriId = startArg.slice('nutri:'.length);
-        if (!nutriId) {
-          await sendTelegramText(chatId, 'Olá! Para vincular sua conta, abra "Conectar Telegram para Alertas" no seu Perfil Profissional dentro do CRM Nutrivvo.');
+        if (message.chat?.type !== 'private') {
+          await sendTelegramText(chatId, 'Por segurança, vincule seus alertas numa conversa privada comigo, não em grupo.');
           return res.status(200).json({ status: 'ok' });
         }
-        const nutriRef = db.collection('users').doc(nutriId);
-        const nutriSnap = await nutriRef.get();
-        if (!nutriSnap.exists) {
-          await sendTelegramText(chatId, 'Não encontrei seu cadastro. Verifique se abriu o link certo dentro do CRM Nutrivvo.');
+        const nutriData = await redeemNutriLinkCode(db, startArg.slice('nutri:'.length), {
+          telegram_chat_id: chatId,
+          telegram_linked_at: new Date(),
+        });
+        if (!nutriData) {
+          await sendTelegramText(chatId, 'Código inválido ou expirado. Abra "Conectar Telegram" no seu Perfil Profissional dentro do CRM Nutrivvo para gerar um novo.');
           return res.status(200).json({ status: 'ok' });
         }
-        await nutriRef.set({ telegram_chat_id: chatId, telegram_linked_at: new Date() }, { merge: true });
-        const nutriData = nutriSnap.data();
         await sendTelegramText(chatId, `Prontinho, ${nutriData.name?.split(' ')[0] || ''}! 🎉 Seu Telegram está conectado. Você vai receber os alertas do Radar de Abandono por aqui.`);
         return res.status(200).json({ status: 'ok' });
       }
