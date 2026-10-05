@@ -160,9 +160,7 @@ export default function PatientApp() {
   if (isAuthLoading) {
     return (
       <div className="patient-container" style={{display: 'flex', alignItems: 'center', justifyContent: 'center'}}>
-        <div className="animate-pulse-glow" style={{width: '60px', height: '60px', borderRadius: '50%', background: 'var(--primary-color)', display: 'flex', alignItems: 'center', justifyContent: 'center'}}>
-          <span style={{fontSize: '32px'}}>🍏</span>
-        </div>
+        <img src="/mark.svg" alt="Nutrivvo" width="56" height="56" className="animate-pulse-glow" />
       </div>
     );
   }
@@ -172,9 +170,7 @@ export default function PatientApp() {
       <div className="patient-container" style={{display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px'}}>
         <div className="patient-card patient-glass" style={{width: '100%', maxWidth: '400px'}}>
           <div style={{textAlign: 'center', marginBottom: '32px'}}>
-            <div className="animate-pulse-glow" style={{width: '60px', height: '60px', borderRadius: '50%', background: 'var(--primary-color)', margin: '0 auto 16px', display: 'flex', alignItems: 'center', justifyContent: 'center'}}>
-              <span style={{fontSize: '32px'}}>🍏</span>
-            </div>
+            <img src="/mark.svg" alt="" aria-hidden="true" width="56" height="56" style={{display: 'block', margin: '0 auto 16px'}} />
             <h1 style={{color: 'var(--patient-text)', margin: '0 0 8px 0', fontSize: '1.8rem'}}>Nutrivvo App</h1>
             <p style={{color: 'var(--patient-text-muted)', margin: 0}}>Acesse seu plano de Alta Performance</p>
           </div>

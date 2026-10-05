@@ -80,7 +80,7 @@ export default defineConfig(({ mode }) => {
       // toast (ver registerSW em main.jsx) ou reabre o app do zero.
       registerType: 'prompt',
       injectRegister: false,
-      includeAssets: ['favicon.ico', 'apple-touch-icon.png', 'masked-icon.svg'],
+      includeAssets: ['favicon.ico', 'apple-touch-icon.png', 'masked-icon.svg', 'mark.svg'],
       workbox: {
         maximumFileSizeToCacheInBytes: 5000000,
         clientsClaim: true,

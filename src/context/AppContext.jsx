@@ -28,6 +28,11 @@ const AppContext = createContext();
 export function AppProvider({ children }) {
   const [session, setSession] = useState(null);
   const [profile, setProfile] = useState(null);
+  // true até o Firebase Auth restaurar a sessão E o perfil carregar. Sem isso,
+  // toda recarga (inclusive a do botão "Atualizar" do PWA) renderizava as telas
+  // como deslogadas por um instante: /nutri redirecionava pro /login e o
+  // /paciente mostrava o formulário de login.
+  const [isAuthLoading, setIsAuthLoading] = useState(true);
 
   const [patients, setPatients] = useState([]);
   const [isLoadingPatients, setIsLoadingPatients] = useState(true);
@@ -153,10 +158,11 @@ export function AppProvider({ children }) {
 
   useEffect(() => {
     if (!auth) { setIsAuthLoading(false); return; }
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
+    const unsubscribe = onAuthStateChanged(auth, async (user) => {
       setSession(user);
-      if (user) fetchProfile(user.uid);
+      if (user) await fetchProfile(user.uid); // fetchProfile trata os próprios erros
       else setProfile(null);
+      setIsAuthLoading(false);
     });
     return () => unsubscribe();
   }, []);
@@ -667,7 +673,7 @@ export function AppProvider({ children }) {
 
   return (
     <AppContext.Provider value={{
-      session, profile,
+      session, profile, isAuthLoading,
       patients: computedPatients, activePatientId, setActivePatientId,
       fetchProfile, fetchPatients, fetchAppointments, updateProfile,
       isLoadingPatients,
