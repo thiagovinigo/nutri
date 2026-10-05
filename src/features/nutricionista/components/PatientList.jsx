@@ -2059,7 +2059,7 @@ export default function PatientList({
                       <div style={{ marginTop: '32px', paddingTop: '24px', borderTop: '1px solid var(--crm-border)' }}>
                         <h3 style={{ fontSize: '1rem', marginBottom: '4px' }}>Alertas do Radar de Abandono</h3>
                         <p style={{ fontSize: '0.85rem', color: 'var(--crm-text-muted)', marginBottom: '16px' }}>
-                          Receba um aviso por Telegram/WhatsApp quando um paciente entrar em alto risco de abandono (varredura diária às 8h).
+                          Receba um aviso por Telegram (WhatsApp em breve) quando um paciente entrar em alto risco de abandono (varredura diária às 8h).
                         </p>
                         <div style={{ display: 'flex', gap: '16px', flexWrap: 'wrap' }}>
                           <div style={{ flex: '1 1 240px' }}>
@@ -2085,17 +2085,11 @@ export default function PatientList({
                               <span style={{ display: 'flex', alignItems: 'center', gap: '6px', color: '#16A34A', fontSize: '0.85rem' }}>
                                 <ShieldCheck size={16} /> Conectado
                               </span>
-                            ) : import.meta.env.VITE_WHATSAPP_BOT_NUMBER ? (
-                              <button
-                                type="button"
-                                onClick={() => handleConnectAlertChannel((code) => `https://wa.me/${import.meta.env.VITE_WHATSAPP_BOT_NUMBER}?text=${encodeURIComponent(`/start nutri:${code}`)}`)}
-                                className="crm-btn-secondary"
-                                style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', fontSize: '0.85rem' }}
-                              >
-                                <ShieldAlert size={16} /> Conectar WhatsApp
-                              </button>
                             ) : (
-                              <span style={{ fontSize: '0.8rem', color: 'var(--crm-text-muted)' }}>Indisponível</span>
+                              // WhatsApp ainda não é funcional: só a tag, sem botão de conectar.
+                              <span style={{ display: 'inline-block', padding: '4px 10px', borderRadius: '999px', fontSize: '0.75rem', fontWeight: 700, background: 'rgba(139,92,246,0.15)', color: '#8b5cf6' }}>
+                                Em breve
+                              </span>
                             )}
                           </div>
                         </div>
