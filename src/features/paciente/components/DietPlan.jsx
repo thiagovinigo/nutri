@@ -7,6 +7,7 @@ import tacoData from '../../../data/taco.json';
 import { useAppContext } from '../../../context/AppContext';
 import { useAiRecipe } from '../hooks/useAiRecipe';
 import { getHouseholdMeasure } from '../../../utils/householdMeasure';
+import { findTacoFood } from '../../../utils/tacoMatch';
 import toast from 'react-hot-toast';
 
 export default function DietPlan({ activePatient }) {
@@ -28,7 +29,7 @@ export default function DietPlan({ activePatient }) {
   };
 
   const handleOpenSub = (food) => {
-    const baseDbFood = tacoData.find(db => String(db.id) === String(food.foodId) || db.name === food.name);
+    const baseDbFood = findTacoFood(tacoData, food);
     if (!baseDbFood) {
       toast.error('Não foi possível encontrar opções de substituição automática para este item. Por favor, consulte sua Nutricionista.');
       return;

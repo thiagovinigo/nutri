@@ -4,6 +4,7 @@ import tacoData from '../../../data/taco.json';
 import toast from 'react-hot-toast';
 import { callOpenAIBridge } from '../../../utils/openaiBridge';
 import { getHouseholdMeasure } from '../../../utils/householdMeasure';
+import { findTacoFood } from '../../../utils/tacoMatch';
 
 export default function MealBuilder({ meal, onChange, onDelete, aversions }) {
   const [searchTerm, setSearchTerm] = useState('');
@@ -16,7 +17,7 @@ export default function MealBuilder({ meal, onChange, onDelete, aversions }) {
   const aversionList = (aversions || '').split(/[,;\n]+/).map(a => a.trim().toLowerCase()).filter(a => a);
 
   const getSubstitutes = (food) => {
-    const baseDbFood = tacoData.find(db => String(db.id) === String(food.foodId) || db.name === food.name);
+    const baseDbFood = findTacoFood(tacoData, food);
     if (!baseDbFood) return { alternatives: [], mainMacro: 'kcal' };
     let mainMacro = 'kcal';
     if (baseDbFood.category === 'Carboidratos' || baseDbFood.category === 'Frutas') mainMacro = 'carb';
