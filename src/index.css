@@ -13,7 +13,7 @@
   --secondary-color: #0F766E; /* Teal 700 */
   --secondary-shadow: #0D9488;
   --accent-color: #F59E0B; /* Amber 500 for gamification/quests */
-  --glass-bg: rgba(255, 255, 255, 0.7);
+  --glass-bg: rgba(255, 255, 255, 0.94);
   --glass-border: rgba(15, 23, 42, 0.08);
   --font-family-patient: 'Inter', sans-serif;
   --font-family-heading: 'Outfit', 'Inter', sans-serif;
@@ -76,7 +76,7 @@
   --patient-text: #F8FAFC; /* Slate 50 */
   --patient-text-muted: #94A3B8; /* Slate 400 */
   --glass-border: rgba(255, 255, 255, 0.1);
-  --glass-bg: rgba(30, 41, 59, 0.7);
+  --glass-bg: rgba(30, 41, 59, 0.96);
 
   /* CRM Dashboard Dark Variables */
   --crm-bg: #0F172A; 

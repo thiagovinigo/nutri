@@ -41,7 +41,7 @@ export default function OnboardingProfileForm({ patient }) {
         "meals": [
           {
             "name": "Café da Manhã",
-            "desc": "Nome amigável da refeição",
+            "desc": "🍳 Nome apetitoso do prato\\n\\nFrase curta e convidativa.\\n\\n👨‍🍳 Modo de Preparo:\\n1. passo\\n2. passo",
             "type": "cafe",
             "foods": [
               { "foodId": "14", "name": "Nome do Alimento", "amount": 100, "kcal": 150, "carb": 10, "protein": 20, "fat": 5 }
@@ -53,6 +53,7 @@ export default function OnboardingProfileForm({ patient }) {
       Em "foodId" e "name", USE SOMENTE alimentos desta lista (id: nome), copiando o nome exatamente:
       ${TACO_FOOD_LIST}
       "amount" é a quantidade em gramas.
+      O campo "desc" DEVE ser uma receita de verdade, nesta ordem: 1) nome apetitoso do prato com emoji; 2) uma frase curta e convidativa; 3) duas quebras de linha, o título "👨‍🍳 Modo de Preparo:" e um passo a passo numerado (temperos, técnica, tempo) usando APENAS os alimentos de "foods" dessa refeição, mais sal, azeite e temperos básicos. Nunca escreva só uma descrição genérica como "Refeição saudável".
       `;
 
       const dietResponse = await callOpenAIBridge({
