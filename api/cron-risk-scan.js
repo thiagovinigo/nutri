@@ -17,11 +17,25 @@ function isAuthorized(authHeader, cronSecret) {
   return received.length === expected.length && crypto.timingSafeEqual(received, expected);
 }
 
+// Um batch inteiro falha se um único documento sumiu (paciente apagado entre a
+// leitura e a escrita). Nesse caso regrava um a um, pulando só o que falhou.
 async function commitInBatches(updates) {
   for (let i = 0; i < updates.length; i += BATCH_LIMIT) {
-    const batch = db.batch();
-    updates.slice(i, i + BATCH_LIMIT).forEach(({ ref, payload }) => batch.update(ref, payload));
-    await batch.commit();
+    const chunk = updates.slice(i, i + BATCH_LIMIT);
+    try {
+      const batch = db.batch();
+      chunk.forEach(({ ref, payload }) => batch.update(ref, payload));
+      await batch.commit();
+    } catch (batchError) {
+      console.error('[CRON] Batch falhou, regravando individualmente:', batchError.message);
+      for (const { ref, payload } of chunk) {
+        try {
+          await ref.update(payload);
+        } catch (docError) {
+          console.error(`[CRON] Falha ao gravar paciente ${ref.id}:`, docError.message);
+        }
+      }
+    }
   }
 }
 
@@ -156,7 +170,9 @@ export default async function handler(req, res) {
     // o chat com uma mensagem por paciente quando vários caem juntos).
     // Só marca lastRiskNotified* depois do alerta ser entregue: se falhar,
     // o paciente volta a ser candidato na varredura seguinte (não em 3 dias).
-    const notifiedMarks = [];
+    // A marca é gravada logo após cada nutri ser notificado (não no fim): se a
+    // função morrer no meio, quem já recebeu o alerta não o recebe de novo.
+    let flagged = 0;
     let nutrisNotified = 0;
     let nutrisFailed = 0;
     for (const [nutriId, alerts] of alertsByNutri.entries()) {
@@ -164,21 +180,21 @@ export default async function handler(req, res) {
         const delivered = await notifyNutritionist(nutriId, alerts, now);
         if (!delivered) continue;
         nutrisNotified++;
-        alerts.forEach((a) => notifiedMarks.push({
+        flagged += alerts.length;
+        await commitInBatches(alerts.map((a) => ({
           ref: a.ref,
           payload: { lastRiskNotifiedLevel: 'alto', lastRiskNotifiedAt: now.toISOString() },
-        }));
+        })));
       } catch (nutriError) {
         nutrisFailed++;
         console.error(`[CRON] Erro ao notificar nutricionista ${nutriId}:`, nutriError);
       }
     }
-    await commitInBatches(notifiedMarks);
 
     res.status(200).json({
       success: true,
       scanned,
-      flagged: notifiedMarks.length,
+      flagged,
       nutrisNotified,
       nutrisFailed,
     });

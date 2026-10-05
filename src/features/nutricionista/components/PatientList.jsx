@@ -48,14 +48,24 @@ export default function PatientList({
   const { profile, updateProfile, updatePatient, theme, toggleTheme, isLoadingPatients, markNutriNotificationsRead } = useAppContext();
 
   // Vínculo de Telegram/WhatsApp com código de uso único (lib/nutriLinkCode.js):
-  // o link do bot leva o código, não o uid. A janela abre antes de qualquer
-  // await pra não ser barrada como pop-up; a gravação do código leva ms e o
-  // nutri ainda precisa tocar em "Iniciar" no chat.
-  const handleConnectAlertChannel = (buildUrl) => {
+  // o link do bot leva o código, não o uid. A janela é aberta em branco ANTES
+  // do await (senão o navegador barra como pop-up) e só vai pro bot depois que
+  // o código foi gravado - assim o bot nunca recebe um código que não existe.
+  const handleConnectAlertChannel = async (buildUrl) => {
     if (!profile?.id) return toast.error('Perfil não carregado!');
+    const popup = window.open('', '_blank');
     const code = generateNutriLinkCode();
-    window.open(buildUrl(code), '_blank', 'noopener,noreferrer');
-    updateProfile({ nutriLinkCode: code, nutriLinkCodeExpiresAt: Date.now() + NUTRI_LINK_CODE_TTL_MS });
+    const saved = await updateProfile({ nutriLinkCode: code, nutriLinkCodeExpiresAt: Date.now() + NUTRI_LINK_CODE_TTL_MS });
+    if (!saved) {
+      popup?.close();
+      return toast.error('Não foi possível gerar o código de vínculo. Verifique a conexão e tente de novo.');
+    }
+    if (popup) {
+      popup.opener = null;
+      popup.location.href = buildUrl(code);
+    } else {
+      toast.error('O navegador bloqueou a nova janela. Libere pop-ups para este site e tente de novo.');
+    }
   };
   const viewedPatient = patients.find(p => p.id === viewingPatientId);
   // Nível de risco exibido no prontuário: override manual do nutri tem

@@ -15,7 +15,9 @@ async function markSeenNotificationsRead(docRef, seenIds) {
   return runTransaction(db, async (tx) => {
     const snap = await tx.get(docRef);
     if (!snap.exists()) return null;
-    const updated = (snap.data().notifications || []).map((n) => (seenIds.has(n.id) ? { ...n, read: true } : n));
+    // Notificação sem id nunca conta como vista (evita marcar como lida uma que
+    // o usuário não viu: `Set([undefined]).has(undefined)` seria true).
+    const updated = (snap.data().notifications || []).map((n) => (n.id && seenIds.has(n.id) ? { ...n, read: true } : n));
     tx.update(docRef, { notifications: updated });
     return updated;
   });
@@ -196,15 +198,17 @@ export function AppProvider({ children }) {
   };
 
   const updateProfile = async (updates) => {
-    if (!profile?.id) return;
+    if (!profile?.id) return false;
     try {
       setProfile(prev => ({ ...prev, ...updates }));
-      if (!isFirebaseConfigured) return;
+      if (!isFirebaseConfigured) return false;
       const { doc, updateDoc } = await import('firebase/firestore');
       const { db } = await import('../services/firebase');
       await updateDoc(doc(db, 'users', profile.id), updates);
+      return true; // true = gravado no Firestore (quem precisa da garantia checa)
     } catch (e) {
       console.error('Erro ao atualizar perfil:', e);
+      return false;
     }
   };
 
