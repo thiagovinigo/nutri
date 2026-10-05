@@ -2,6 +2,11 @@ import React, { useState } from 'react';
 import { Sparkles, ArrowRight, Loader2, Target, Coffee, Activity, Pill } from 'lucide-react';
 import { callOpenAIBridge } from '../../../utils/openaiBridge';
 import { useAppContext } from '../../../context/AppContext';
+import tacoData from '../../../data/taco.json';
+import { reconcileAiFood } from '../../../utils/tacoMatch';
+
+// A IA deve escolher da base TACO para que a substituição automática funcione.
+const TACO_FOOD_LIST = tacoData.map(f => `${f.id}: ${f.name}`).join('\n');
 
 export default function OnboardingProfileForm({ patient }) {
   const { updatePatient } = useAppContext();
@@ -39,12 +44,15 @@ export default function OnboardingProfileForm({ patient }) {
             "desc": "Nome amigável da refeição",
             "type": "cafe",
             "foods": [
-              { "name": "Nome do Alimento", "amount": 100, "kcal": 150, "carb": 10, "protein": 20, "fat": 5 }
+              { "foodId": "14", "name": "Nome do Alimento", "amount": 100, "kcal": 150, "carb": 10, "protein": 20, "fat": 5 }
             ]
           }
         ]
       }
       Gere 4 refeições (Café, Almoço, Lanche, Jantar).
+      Em "foodId" e "name", USE SOMENTE alimentos desta lista (id: nome), copiando o nome exatamente:
+      ${TACO_FOOD_LIST}
+      "amount" é a quantidade em gramas.
       `;
 
       const dietResponse = await callOpenAIBridge({
@@ -64,7 +72,7 @@ export default function OnboardingProfileForm({ patient }) {
       const formattedMeals = dietData.meals.map((m, i) => ({
         ...m,
         id: Date.now() + i,
-        foods: m.foods.map((f, j) => ({ ...f, foodId: Date.now() + j, amount: Number(f.amount) || 100 }))
+        foods: m.foods.map(f => reconcileAiFood(tacoData, f))
       }));
 
       const newRecipe = {
