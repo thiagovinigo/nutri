@@ -4,6 +4,7 @@
 // segurança e sempre lança um Error com a causa real, em vez de uma mensagem
 // genérica que esconde o problema.
 import { auth } from '../services/firebase';
+import { hasImageInput, isModelRefusal, IMAGE_REFUSAL_MESSAGE } from './aiRefusal';
 
 const FRIENDLY_STATUS_MESSAGES = {
   401: 'Sua sessão expirou. Atualize a página e faça login de novo.',
@@ -56,5 +57,15 @@ export async function callOpenAIBridge(payload) {
     throw new Error(message);
   }
 
-  return response.json();
+  const data = await response.json();
+
+  // O modelo de visão recusa fotos com pessoas/conteúdo sensível respondendo 200
+  // com um texto de recusa. Sem isto os chamadores o gravavam como se fosse a
+  // análise (ex.: diário alimentar marcava a refeição como feita e dava XP).
+  if (hasImageInput(payload) && isModelRefusal(data?.choices?.[0]?.message?.content)) {
+    console.warn('IA recusou a imagem:', data.choices[0].message.content);
+    throw new Error(IMAGE_REFUSAL_MESSAGE);
+  }
+
+  return data;
 }
