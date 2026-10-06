@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import { requireAuthUid } from '../lib/auth.js';
+import { pickChatModel } from '../lib/openaiModel.js';
 
 // Aceita conteudo multimodal (texto + imagem em base64/URL, usado por
 // PhotoRecipeGenerator/QuestBoard) alem de texto simples. Sem essa
@@ -77,7 +78,9 @@ export default async function handler(req, res) {
     }
 
     const requestBody = {
-      model: 'gpt-4o',
+      // Fotos vão pro modelo de visão que não recusa comida de forma
+      // intermitente (ver lib/openaiModel.js); texto continua no gpt-4o.
+      model: pickChatModel(messages),
       messages: [
         { role: 'system', content: system_prompt || 'Você é um assistente.' },
         ...messages
