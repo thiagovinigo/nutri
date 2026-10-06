@@ -8,7 +8,7 @@
     "build": "vite build",
     "lint": "oxlint",
     "preview": "vite preview",
-    "test": "vitest run"
+    "test": "vitest run && node test-risk-score.mjs && node test-cpf-guard.mjs"
   },
   "dependencies": {
     "firebase": "^12.16.0",
