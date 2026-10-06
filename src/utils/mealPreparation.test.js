@@ -1,5 +1,5 @@
 import { describe, test, expect } from 'vitest';
-import { hasPreparationSteps } from './mealPreparation';
+import { hasPreparationSteps, shouldShowMealNote } from './mealPreparation';
 
 describe('hasPreparationSteps', () => {
   test('reconhece a receita gerada com o titulo de modo de preparo', () => {
@@ -26,5 +26,30 @@ describe('hasPreparationSteps', () => {
 
   test.each([[undefined], [null], [''], ['   '], [42]])('retorna false para %s', (value) => {
     expect(hasPreparationSteps(value)).toBe(false);
+  });
+});
+
+describe('shouldShowMealNote', () => {
+  const AI_SAMPLE = 'Amostra Grátis - IA Nutrivvo';
+  const recipe = '🍳 Omelete\n\n👨‍🍳 Modo de Preparo:\n1. Bata os ovos.\n2. Frite.';
+
+  test('amostra da IA com frase generica: nao mostra nada', () => {
+    expect(shouldShowMealNote('Refeição matinal saudável', AI_SAMPLE)).toBe(false);
+  });
+
+  test('amostra da IA com receita de verdade: mostra', () => {
+    expect(shouldShowMealNote(recipe, AI_SAMPLE)).toBe(true);
+  });
+
+  test('plano da nutricionista com orientacao curta: mostra', () => {
+    expect(shouldShowMealNote('Comer com 1 colher de azeite', 'Plano de emagrecimento')).toBe(true);
+  });
+
+  test('plano sem titulo conhecido mantem a orientacao', () => {
+    expect(shouldShowMealNote('Comer devagar', undefined)).toBe(true);
+  });
+
+  test.each([[undefined], [null], [''], ['   ']])('sem texto (%s) nao mostra nada', (desc) => {
+    expect(shouldShowMealNote(desc, 'Plano de emagrecimento')).toBe(false);
   });
 });

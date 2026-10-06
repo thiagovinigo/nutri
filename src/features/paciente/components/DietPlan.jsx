@@ -8,7 +8,7 @@ import { useAppContext } from '../../../context/AppContext';
 import { useAiRecipe } from '../hooks/useAiRecipe';
 import { getHouseholdMeasure } from '../../../utils/householdMeasure';
 import { findTacoFood } from '../../../utils/tacoMatch';
-import { hasPreparationSteps } from '../../../utils/mealPreparation';
+import { hasPreparationSteps, shouldShowMealNote } from '../../../utils/mealPreparation';
 import toast from 'react-hot-toast';
 
 export default function DietPlan({ activePatient }) {
@@ -233,7 +233,7 @@ export default function DietPlan({ activePatient }) {
                       );
                     })}
                   </ul>
-                  {m.desc && <p className="print-muted" style={{ fontSize: '0.85rem', whiteSpace: 'pre-wrap' }}>{m.desc}</p>}
+                  {shouldShowMealNote(m.desc, currentRecipe.title) && <p className="print-muted" style={{ fontSize: '0.85rem', whiteSpace: 'pre-wrap' }}>{m.desc}</p>}
                 </div>
               ))}
             </div>
@@ -390,7 +390,7 @@ export default function DietPlan({ activePatient }) {
                         </div>
                       )}
 
-                      {m.desc && (
+                      {shouldShowMealNote(m.desc, r.title) && (
                         <>
                           <button
                             onClick={() => setExpandedDescIdx(expandedDescIdx === mIdx ? null : mIdx)}

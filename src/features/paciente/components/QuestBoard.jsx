@@ -8,6 +8,7 @@ import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { useAiRecipe } from '../hooks/useAiRecipe';
 import { callOpenAIBridge } from '../../../utils/openaiBridge';
+import { hasPreparationSteps, shouldShowMealNote } from '../../../utils/mealPreparation';
 
 // Fotos de câmera podem chegar com vários MB; a Vercel rejeita (413) requisições
 // acima de ~4.5MB antes mesmo de chegar na função serverless. Reduzimos a imagem
@@ -463,13 +464,15 @@ export default function QuestBoard({ activePatient }) {
                     <h4 style={{margin: 0, fontSize: '1.1rem', color: isDone ? 'var(--primary-color)' : 'var(--patient-text)', display: 'flex', alignItems: 'center', gap: '8px'}}>
                       {isDone && <Check size={18} color="var(--primary-color)" />} {meal.name}
                     </h4>
-                    {meal.desc && (
+                    {shouldShowMealNote(meal.desc, currentRecipe?.title) && (
                       <>
                         <button
                           onClick={() => setExpandedDescIdx(expandedDescIdx === idx ? null : idx)}
                           style={{ background: 'none', border: 'none', color: 'var(--primary-color)', fontSize: '0.8rem', fontWeight: 600, cursor: 'pointer', padding: '4px 0', display: 'flex', alignItems: 'center', gap: '4px' }}
                         >
-                          {expandedDescIdx === idx ? '▾ Ocultar modo de preparo' : '▸ Ver modo de preparo'}
+                          {hasPreparationSteps(meal.desc)
+                            ? (expandedDescIdx === idx ? '▾ Ocultar modo de preparo' : '▸ Ver modo de preparo')
+                            : (expandedDescIdx === idx ? '▾ Ocultar orientação' : '▸ Ver orientação')}
                         </button>
                         {expandedDescIdx === idx && (
                           <p style={{margin: '6px 0 10px 0', fontSize: '0.85rem', color: 'var(--patient-text-muted)', whiteSpace: 'pre-wrap', lineHeight: '1.4'}}>{meal.desc}</p>
@@ -520,7 +523,7 @@ export default function QuestBoard({ activePatient }) {
                     ? <><Loader2 size={14} className="spin" /> Gerando receita...</>
                     : savedRecipe
                       ? <>{isRecipeExpanded ? '✨ Ocultar Receita da IA' : '✨ Ver Receita da IA'}</>
-                      : <>✨ Gerar Receita com IA</>
+                      : <>{hasPreparationSteps(meal.desc) ? '✨ Gerar Receita com IA' : '✨ Gerar modo de preparo com IA'}</>
                   }
                 </button>
                 {isRecipeExpanded && savedRecipe && !isGeneratingThisRecipe && (
