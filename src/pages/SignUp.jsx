@@ -6,7 +6,7 @@ import { doc, setDoc, getDoc, deleteDoc, collection, query, where, getDocs, upda
 import { getFirebaseErrorMessage } from '../utils/firebaseErrors';
 import { reserveCpfForPatient } from '../utils/checkCpfUnique';
 import { useAppContext } from '../context/AppContext';
-import { omitServerOnlyFields } from '../../lib/serverOnlyFields.js';
+import { omitPatientUnwritableFields } from '../../lib/serverOnlyFields.js';
 
 const NLogo = () => (
   <svg width="40" height="40" viewBox="0 0 48 48" fill="none">
@@ -253,9 +253,10 @@ export default function SignUp() {
             const tempDocSnap = await getDoc(tempDocRef);
             if (tempDocSnap.exists()) {
               // Mescla os dados do cadastro temporário com o default (sobrescrevendo o default)
-              // Canais de bot (chat ids) são só-de-servidor: firestore.rules recusa o
-              // cliente gravá-los, então não os copiamos da ficha provisória.
-              initialData = { ...initialData, ...omitServerOnlyFields(tempDocSnap.data()), name: name, email: email, cpf: cpf, cpfDigits: normalizeCpf(cpf), phone: phone || tempDocSnap.data().phone || '11999999999', birthDate: birthDate, age: calculatedAge, gender: gender, status: 'ativo' };
+              // Chat ids, campos de risco do cron e o riskOverride do nutri não
+              // podem ser gravados pelo paciente (firestore.rules recusa), então
+              // não os copiamos da ficha provisória.
+              initialData = { ...initialData, ...omitPatientUnwritableFields(tempDocSnap.data()), name: name, email: email, cpf: cpf, cpfDigits: normalizeCpf(cpf), phone: phone || tempDocSnap.data().phone || '11999999999', birthDate: birthDate, age: calculatedAge, gender: gender, status: 'ativo' };
 
               // O paciente pode já ter consultas agendadas pelo nutricionista
               // antes de terminar o cadastro (fluxo comum: cadastra -> já

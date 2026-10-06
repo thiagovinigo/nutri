@@ -9,8 +9,18 @@ service cloud.firestore {
     // vínculo. Se o cliente pudesse escrevê-los, qualquer conta apontaria os
     // crons (api/cron-*.js) pro chat de outra pessoa e dispararia mensagens
     // não solicitadas. Mantenha em sincronia com lib/serverOnlyFields.js.
+    // Também são só-de-servidor os campos do Radar de Abandono calculados pelo
+    // cron (api/cron-risk-scan.js).
     function serverOnlyKeys() {
-      return ['telegram_chat_id', 'telegram_linked_at', 'whatsapp_chat_id', 'whatsapp_linked_at'];
+      return [
+        'telegram_chat_id', 'telegram_linked_at', 'whatsapp_chat_id', 'whatsapp_linked_at',
+        'riskScore', 'riskLevel', 'riskFactors', 'lastRiskNotifiedLevel', 'lastRiskNotifiedAt'
+      ];
+    }
+    // Só o nutricionista dono grava a correção manual do risco; o paciente não
+    // pode, senão suprimiria os próprios alertas de abandono.
+    function nutriOnlyKeys() {
+      return ['riskOverride'];
     }
     function createsServerOnlyFields() {
       return request.resource.data.keys().hasAny(serverOnlyKeys());
@@ -18,6 +28,14 @@ service cloud.firestore {
     // affectedKeys() só lista o que MUDOU: regravar o mesmo valor é permitido.
     function updatesServerOnlyFields() {
       return request.resource.data.diff(resource.data).affectedKeys().hasAny(serverOnlyKeys());
+    }
+    // O paciente gravando o próprio doc: bloqueia os campos de servidor E os do nutri.
+    function patientCreatesRestrictedFields() {
+      return request.resource.data.keys().hasAny(serverOnlyKeys().concat(nutriOnlyKeys()));
+    }
+    function patientUpdatesRestrictedFields() {
+      return request.resource.data.diff(resource.data).affectedKeys()
+        .hasAny(serverOnlyKeys().concat(nutriOnlyKeys()));
     }
 
     match /users/{userId} {
@@ -35,9 +53,9 @@ service cloud.firestore {
       // da conta) - nenhum código lê/escreve esses campos mais.
       allow read: if request.auth != null && request.auth.uid == patientId;
       allow create: if request.auth != null && request.auth.uid == patientId
-        && !createsServerOnlyFields();
+        && !patientCreatesRestrictedFields();
       allow update: if request.auth != null && request.auth.uid == patientId
-        && !updatesServerOnlyFields();
+        && !patientUpdatesRestrictedFields();
 
       // Nutricionista dono pode ler, atualizar, criar e deletar seus pacientes.
       allow read, delete: if request.auth != null
