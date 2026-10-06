@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useEffect } from 'react';
-import { Users, Calendar, PlayCircle, Trash2, Plus, Eye, Edit3, TrendingUp, Utensils, FileText, BrainCircuit, Play, Sparkles, Activity, Settings, CreditCard, Palette, AlertTriangle, Trophy, Star, Zap, LayoutDashboard, Search, ChevronUp, ChevronDown, ArrowRight, UserCog, BookOpen, ChefHat, Link as LinkIcon, Camera, Upload, Moon, Dumbbell, DollarSign, CheckCircle2, Bell, ShieldCheck, ShieldAlert } from 'lucide-react';
+import { Users, Calendar, Trash2, Plus, Eye, Edit3, TrendingUp, Utensils, FileText, BrainCircuit, Play, Sparkles, Activity, Settings, CreditCard, Palette, AlertTriangle, Trophy, LayoutDashboard, Search, ChevronUp, ChevronDown, ArrowRight, UserCog, BookOpen, ChefHat, Link as LinkIcon, Camera, Upload, Moon, Dumbbell, DollarSign, CheckCircle2, Bell, ShieldCheck, ShieldAlert } from 'lucide-react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, Legend, ResponsiveContainer } from 'recharts';
 import { useNavigate } from 'react-router-dom';
 import { auth } from '../../../services/firebase';
@@ -39,7 +39,6 @@ export default function PatientList({
   viewingPatientId, setViewingPatientId,
   synthesisResult, setSynthesisResult, isSynthesizing, generatePatientSynthesis, synthesisError,
   addNotification, addExam,
-  dietTemplates, deleteDietTemplate,
   recipeLibrary, addLibraryRecipe, deleteLibraryRecipe,
   addBonusRecipe,
   clinicConfig, updateClinicConfig
@@ -93,7 +92,6 @@ export default function PatientList({
   const [editingExercisePath, setEditingExercisePath] = useState(null); // { dIdx, eIdx }
   const [editingExerciseData, setEditingExerciseData] = useState({name: '', sets: '', reps: ''});
   
-  const [chatInput, setChatInput] = useState('');
 
   const [apptPatientSearch, setApptPatientSearch] = useState('');
   const [showPatientDropdown, setShowPatientDropdown] = useState(false);
@@ -240,87 +238,6 @@ export default function PatientList({
   const [isGeneratingRecipe, setIsGeneratingRecipe] = useState(false);
   const [showAttachRecipeModal, setShowAttachRecipeModal] = useState(false);
 
-  // Diet Builder
-  const [showDietBuilder, setShowDietBuilder] = useState(false);
-  const [dietBuilderTitle, setDietBuilderTitle] = useState('');
-  const [dietBuilderDuration, setDietBuilderDuration] = useState(7);
-  const [dietBuilderDays, setDietBuilderDays] = useState([]);
-  const [selectedDayIndex, setSelectedDayIndex] = useState(1);
-  
-  const generateInitialDietDays = (duration) => {
-    const days = [];
-    const defaultMeals = [
-      { name: 'Café da Manhã', time: '08:00', desc: '' },
-      { name: 'Lanche da Manhã', time: '10:30', desc: '' },
-      { name: 'Almoço', time: '13:00', desc: '' },
-      { name: 'Lanche da Tarde', time: '16:00', desc: '' },
-      { name: 'Jantar', time: '19:30', desc: '' },
-      { name: 'Ceia', time: '22:00', desc: '' }
-    ];
-    for(let i=1; i<=duration; i++) {
-      days.push({ dayIndex: i, meals: JSON.parse(JSON.stringify(defaultMeals)) });
-    }
-    setDietBuilderDays(days);
-  };
-
-  const initDietBuilder = () => {
-    setShowDietBuilder(true);
-    setDietBuilderTitle('');
-    setDietBuilderDuration(7);
-    generateInitialDietDays(7);
-    setSelectedDayIndex(1);
-  };
-
-  const [dietBuilderMessage, setDietBuilderMessage] = useState('');
-  const handleCopyDay1 = () => {
-    if (dietBuilderDays.length === 0) return;
-    const day1Meals = JSON.stringify(dietBuilderDays[0].meals);
-    setDietBuilderDays(prev => prev.map(d => ({ ...d, meals: JSON.parse(day1Meals) })));
-    setDietBuilderMessage('Refeições do Dia 1 replicadas para todos os dias!');
-    setTimeout(() => setDietBuilderMessage(''), 3000);
-  };
-
-  const handleAddMeal = (dayIdx) => {
-    setDietBuilderDays(prev => {
-      const newDays = [...prev];
-      newDays[dayIdx].meals.push({ name: 'Nova Refeição', time: '00:00', desc: '' });
-      return newDays;
-    });
-  };
-
-  const handleUpdateMeal = (dayIdx, mealIdx, field, value) => {
-    setDietBuilderDays(prev => {
-      const newDays = [...prev];
-      newDays[dayIdx].meals[mealIdx][field] = value;
-      return newDays;
-    });
-  };
-
-  const handleSaveDietBuilder = () => {
-    if (!dietBuilderTitle.trim()) {
-      toast.error('Dê um nome para a dieta.');
-      return;
-    }
-    // Salvando template com o novo formato Day-by-Day (usando addDietTemplate injetada no AppContext)
-    addDietTemplate(dietBuilderTitle, dietBuilderDuration, dietBuilderDays);
-    setShowDietBuilder(false);
-  };
-
-  // Receitas Bônus
-  const [bonusRecipeTitle, setBonusRecipeTitle] = useState('');
-  const [bonusRecipeContent, setBonusRecipeContent] = useState('');
-
-  // Alerta de churn — Cohorts
-  const [churnAlertMessage, setChurnAlertMessage] = useState('');
-  const handleSendChurnAlert = (patient) => {
-    // 1. Notificação Push no App
-    addNotification(patient.id, `Sua nutri notou que você está há alguns dias sem registrar refeições. Que tal retomar hoje? 🎯`);
-    
-    // 2. Mock de Envio de E-mail (Transacional) — feedback visual já é dado via churnAlertMessage abaixo
-    setChurnAlertMessage(`✅ Notificação Push e E-mail enviados com sucesso para ${patient.name}!`);
-    setTimeout(() => setChurnAlertMessage(''), 4500);
-  };
-
   // Upload de Exames (Nutri)
   const [showUploadExamModal, setShowUploadExamModal] = useState(false);
   const [isUploadingExam, setIsUploadingExam] = useState(false);
@@ -346,7 +263,6 @@ export default function PatientList({
   const activePatients = patients.filter(p => p.status !== 'inativo');
   const inactivePatients = patients.filter(p => p.status === 'inativo');
   
-  const totalXP = activePatients.reduce((sum, p) => sum + (p.xp || 0), 0);
   const avgStreak = activePatients.length > 0
     ? Math.round(activePatients.reduce((sum, p) => sum + (p.streak || 0), 0) / activePatients.length)
     : 0;
