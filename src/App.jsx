@@ -14,6 +14,16 @@ import LandingPreview7 from './pages/LandingPreview7';
 import LandingPreview8 from './pages/LandingPreview8';
 import LandingPreview9 from './pages/LandingPreview9';
 import LandingPreview10 from './pages/LandingPreview10';
+import LandingPreview11 from './pages/LandingPreview11';
+import LandingPreview12 from './pages/LandingPreview12';
+import LandingPreview13 from './pages/LandingPreview13';
+import LandingPreview14 from './pages/LandingPreview14';
+import LandingPreview15 from './pages/LandingPreview15';
+import LandingPreview16 from './pages/LandingPreview16';
+import LandingPreview17 from './pages/LandingPreview17';
+import LandingPreview18 from './pages/LandingPreview18';
+import LandingPreview19 from './pages/LandingPreview19';
+import LandingPreview20 from './pages/LandingPreview20';
 import PreviewsHub from './pages/PreviewsHub';
 import Login from './pages/Login';
 import ForgotPassword from './pages/ForgotPassword';
@@ -55,6 +65,16 @@ function App() {
           <Route path="/preview8" element={<LandingPreview8 />} />
           <Route path="/preview9" element={<LandingPreview9 />} />
           <Route path="/preview10" element={<LandingPreview10 />} />
+          <Route path="/preview11" element={<LandingPreview11 />} />
+          <Route path="/preview12" element={<LandingPreview12 />} />
+          <Route path="/preview13" element={<LandingPreview13 />} />
+          <Route path="/preview14" element={<LandingPreview14 />} />
+          <Route path="/preview15" element={<LandingPreview15 />} />
+          <Route path="/preview16" element={<LandingPreview16 />} />
+          <Route path="/preview17" element={<LandingPreview17 />} />
+          <Route path="/preview18" element={<LandingPreview18 />} />
+          <Route path="/preview19" element={<LandingPreview19 />} />
+          <Route path="/preview20" element={<LandingPreview20 />} />
           <Route path="/preview-landing" element={<LandingPagePrototype />} />
           <Route path="/landing-v2" element={<LandingPagePrototype />} />
           <Route path="/login" element={<Login />} />

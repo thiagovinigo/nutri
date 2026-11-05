@@ -1,27 +1,28 @@
 /* ==========================================================================
-   21st.dev PREVIEWS CSS (PREVIEW 1 a 10)
+   21st.dev PREVIEWS CSS (15 LAYOUTS COMPLETAMENTE DIFERENTES)
    ========================================================================== */
 
-@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;600;700&family=JetBrains+Mono:wght@400;600;700&family=Cabinet+Grotesk:wght@700;800;900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;600;700;800&family=JetBrains+Mono:wght@400;600;700&display=swap');
 
-/* Switcher Flutuante Global Compacto para 10 Versões */
+/* Switcher Flutuante Global Compacto para 15 Versões */
 .preview-nav-bar {
   position: fixed;
-  bottom: 16px;
+  bottom: 14px;
   left: 50%;
   transform: translateX(-50%);
-  z-index: 999;
+  z-index: 9999;
   background: rgba(10, 12, 22, 0.95);
   backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
   border: 1px solid rgba(255, 255, 255, 0.16);
-  box-shadow: 0 15px 40px rgba(0, 0, 0, 0.85), 0 0 30px rgba(168, 85, 247, 0.35);
+  box-shadow: 0 15px 40px rgba(0, 0, 0, 0.9), 0 0 30px rgba(168, 85, 247, 0.35);
   padding: 6px 12px;
   border-radius: 9999px;
   display: flex;
   align-items: center;
   gap: 4px;
   font-family: 'Plus Jakarta Sans', sans-serif;
-  max-width: 95vw;
+  max-width: 96vw;
   overflow-x: auto;
 }
 
@@ -31,7 +32,7 @@
   color: #94a3b8;
   padding: 5px 10px;
   border-radius: 9999px;
-  font-size: 0.78rem;
+  font-size: 0.76rem;
   font-weight: 700;
   cursor: pointer;
   text-decoration: none;
@@ -52,116 +53,170 @@
 }
 
 /* ==========================================================================
-   CALCULADORA DE ROI (PREVIEW 6)
+   LAYOUT 2: SPLIT SCREEN 50/50 DUAL CANVAS
    ========================================================================== */
-.p6-roi-card {
-  background: rgba(15, 20, 36, 0.9);
-  border: 1px solid rgba(16, 185, 129, 0.4);
-  border-radius: 24px;
-  padding: 36px;
-  box-shadow: 0 30px 70px rgba(0, 0, 0, 0.8), 0 0 40px rgba(16, 185, 129, 0.15);
-}
-
-.p6-slider {
-  -webkit-appearance: none;
-  width: 100%;
-  height: 8px;
-  border-radius: 9999px;
-  background: rgba(255, 255, 255, 0.1);
-  outline: none;
-  cursor: pointer;
-}
-
-.p6-slider::-webkit-slider-thumb {
-  -webkit-appearance: none;
-  appearance: none;
-  width: 24px;
-  height: 24px;
-  border-radius: 50%;
-  background: #10b981;
-  box-shadow: 0 0 15px #10b981;
-  cursor: pointer;
-}
-
-/* ==========================================================================
-   EDITORIAL MINIMALIST (PREVIEW 7)
-   ========================================================================== */
-.p7-body {
-  background: #000000;
-  color: #f8fafc;
-  min-height: 100vh;
-  font-family: 'Plus Jakarta Sans', sans-serif;
-  position: relative;
-}
-
-.p7-editorial-title {
-  font-family: 'Space Grotesk', serif;
-  font-weight: 800;
-  font-size: clamp(3rem, 7vw, 5.5rem);
-  letter-spacing: -0.04em;
-  line-height: 1.02;
-}
-
-/* ==========================================================================
-   DUAL SPLIT (PREVIEW 8)
-   ========================================================================== */
-.p8-split-container {
+.split-screen-container {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 24px;
-  overflow: hidden;
-  margin-top: 40px;
+  min-height: 100vh;
 }
 
-@media (max-width: 900px) {
-  .p8-split-container {
+@media (max-width: 960px) {
+  .split-screen-container {
     grid-template-columns: 1fr;
   }
 }
 
-.p8-split-col {
-  padding: 40px 32px;
+.split-screen-left {
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  padding: 80px 48px;
   display: flex;
   flex-direction: column;
+  justify-content: center;
+  border-right: 1px solid rgba(255, 255, 255, 0.08);
+  background: #06070d;
 }
 
-.p8-split-left {
-  background: rgba(14, 18, 34, 0.85);
-  border-right: 1px solid rgba(255, 255, 255, 0.1);
-}
-
-.p8-split-right {
-  background: rgba(28, 18, 38, 0.85);
+.split-screen-right {
+  padding: 80px 48px 120px;
+  overflow-y: auto;
+  background: #090a14;
 }
 
 /* ==========================================================================
-   SOCIAL PROOF WALL (PREVIEW 9)
+   LAYOUT 3: TIMELINE JOURNEY COM BEAM LUMINOSO VERTICAL
    ========================================================================== */
-.p9-tweet-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-  gap: 20px;
-  margin-top: 40px;
+.timeline-journey-wrap {
+  position: relative;
+  max-width: 900px;
+  margin: 60px auto 0;
+  padding-left: 48px;
 }
 
-.p9-tweet-card {
-  background: rgba(18, 20, 32, 0.7);
+.timeline-vertical-beam {
+  position: absolute;
+  left: 18px;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  background: linear-gradient(180deg, #a855f7, #06b6d4, #10b981, #f43f5e);
+  box-shadow: 0 0 15px rgba(168, 85, 247, 0.6);
+}
+
+.timeline-step-card {
+  position: relative;
+  background: rgba(14, 18, 32, 0.85);
   border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 18px;
-  padding: 24px;
-  transition: all 0.25s ease;
+  border-radius: 20px;
+  padding: 32px;
+  margin-bottom: 36px;
+  transition: all 0.3s ease;
 }
 
-.p9-tweet-card:hover {
-  transform: translateY(-4px);
+.timeline-step-card:hover {
   border-color: rgba(168, 85, 247, 0.4);
-  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.6);
+  transform: translateX(6px);
+  box-shadow: 0 15px 40px rgba(0, 0, 0, 0.7);
 }
 
+.timeline-node-dot {
+  position: absolute;
+  left: -48px;
+  top: 36px;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: #030408;
+  border: 3px solid #a855f7;
+  box-shadow: 0 0 15px #a855f7;
+}
 
 /* ==========================================================================
-   THEME CLEAN LIGHT (PREVIEW 6)
+   LAYOUT 5: DEV TERMINAL CLI
+   ========================================================================== */
+.terminal-window-frame {
+  background: #0a0e17;
+  border: 1px solid rgba(6, 182, 212, 0.3);
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 25px 60px rgba(0, 0, 0, 0.9), 0 0 40px rgba(6, 182, 212, 0.15);
+  font-family: 'JetBrains Mono', monospace;
+}
+
+.terminal-top-bar {
+  background: #111827;
+  padding: 10px 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+/* ==========================================================================
+   LAYOUT 7: TABBED OS DESKTOP COM DOCK
+   ========================================================================== */
+.os-desktop-window {
+  background: rgba(15, 18, 30, 0.95);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 24px;
+  padding: 36px;
+  min-height: 520px;
+  box-shadow: 0 35px 80px rgba(0, 0, 0, 0.9);
+}
+
+.os-dock-bar {
+  display: flex;
+  gap: 12px;
+  background: rgba(255, 255, 255, 0.04);
+  backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  padding: 10px 18px;
+  border-radius: 9999px;
+  margin: 0 auto 36px;
+  width: max-content;
+}
+
+.os-dock-btn {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  color: #cbd5e1;
+  padding: 8px 18px;
+  border-radius: 9999px;
+  font-size: 0.85rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.os-dock-btn.active {
+  background: #a855f7;
+  color: #fff;
+  box-shadow: 0 0 20px rgba(168, 85, 247, 0.5);
+  transform: translateY(-2px);
+}
+
+/* ==========================================================================
+   LAYOUT 13: SWISS MODERNIST BRUTALISM
+   ========================================================================== */
+.brutalist-grid-container {
+  display: grid;
+  grid-template-columns: repeat(12, 1fr);
+  border: 2px solid #fff;
+  background: #000;
+}
+
+.brutalist-cell {
+  border: 1px solid #333;
+  padding: 32px;
+}
+
+/* ==========================================================================
+   THEME CLEAN LIGHT (LAYOUT 6)
    ========================================================================== */
 .theme-light {
   background-color: #fafafa !important;
