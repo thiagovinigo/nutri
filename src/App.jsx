@@ -3,6 +3,7 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import DashboardNutri from './features/nutricionista/pages/DashboardNutri';
 import PatientApp from './features/paciente/pages/PatientApp';
 import LandingPage from './pages/LandingPage';
+import LandingPageWithRadar from './pages/LandingPageWithRadar';
 import LandingPagePrototype from './pages/LandingPagePrototype';
 import LandingSwissBentoLight from './pages/LandingSwissBentoLight';
 import Login from './pages/Login';
@@ -35,9 +36,10 @@ function App() {
           {/* Landing Page Atual em Produção */}
           <Route path="/" element={<LandingPage />} />
 
-          {/* Rota Oficial de Preview da Nova Landing (Swiss Bento Light) */}
-          <Route path="/preview" element={<LandingSwissBentoLight />} />
-          <Route path="/preview-final" element={<LandingSwissBentoLight />} />
+          {/* Rota Oficial de Preview: Original + Radar Interativo e Recursos dos Prints */}
+          <Route path="/preview" element={<LandingPageWithRadar />} />
+          <Route path="/preview-final" element={<LandingPageWithRadar />} />
+          <Route path="/radar" element={<LandingPageWithRadar />} />
           <Route path="/swiss-light" element={<LandingSwissBentoLight />} />
 
           {/* Rotas Auxiliares e Autenticação */}

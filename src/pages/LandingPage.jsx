@@ -39,7 +39,6 @@ export default function LandingPage() {
           {isMenuOpen ? <X size={24} /> : <Menu size={24} />}
         </button>
         <div className={`w-nav-links${isMenuOpen ? ' is-open' : ''}`}>
-          <a href="/previews" onClick={(e) => { e.preventDefault(); setIsMenuOpen(false); navigate('/previews'); }} style={{ color: '#a855f7', fontWeight: 700 }}>✨ Previews 21st.dev (10 Telas)</a>
           <a href="#features" onClick={() => setIsMenuOpen(false)}>Recursos</a>
           <a href="#benefits" onClick={() => setIsMenuOpen(false)}>Benefícios</a>
           <button
@@ -194,40 +193,6 @@ export default function LandingPage() {
         <p>© 2026 Nutrivvo. Todos os direitos reservados.</p>
         <p className="w-footer-trust">Dados de cada paciente isolados por regra própria no banco — nenhum nutricionista vê paciente de outro.</p>
       </footer>
-
-      {/* Floating Shortcut to 21st.dev Previews Hub */}
-      <div style={{
-        position: 'fixed',
-        bottom: '24px',
-        right: '24px',
-        zIndex: 9999,
-        background: 'linear-gradient(135deg, #a855f7, #06b6d4)',
-        padding: '2px',
-        borderRadius: '9999px',
-        boxShadow: '0 10px 30px rgba(0,0,0,0.5), 0 0 25px rgba(168,85,247,0.5)'
-      }}>
-        <button
-          onClick={() => navigate('/previews')}
-          style={{
-            background: '#090a0f',
-            color: '#fff',
-            border: 'none',
-            padding: '12px 22px',
-            borderRadius: '9999px',
-            fontWeight: 800,
-            fontSize: '0.88rem',
-            cursor: 'pointer',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '10px'
-          }}
-        >
-          <span>✨ 10 Previews 21st.dev</span>
-          <span style={{ background: '#a855f7', color: '#fff', padding: '2px 8px', borderRadius: '6px', fontSize: '0.72rem' }}>
-            Explorar
-          </span>
-        </button>
-      </div>
 
     </div>
   );
