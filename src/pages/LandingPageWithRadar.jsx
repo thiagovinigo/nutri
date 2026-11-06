@@ -10,7 +10,6 @@ import {
   HeartPulse,
   Dumbbell,
   Stethoscope,
-  Wallet,
   Scan,
   Flame,
   Utensils,
@@ -374,28 +373,6 @@ export default function LandingPageWithRadar() {
 
           </div>
 
-          {/* LINHA 4 (100%): Financeiro Integrado */}
-          <div style={{ background: '#ffffff', border: '1px solid #e2e8f0', borderRadius: '20px', padding: '24px 32px', boxShadow: '0 4px 20px rgba(0,0,0,0.03)' }} data-w-reveal>
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '16px' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-                <div style={{ width: '44px', height: '44px', borderRadius: '12px', background: '#ecfdf5', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                  <Wallet size={24} color="#059669" />
-                </div>
-                <div>
-                  <h4 style={{ fontSize: '1.2rem', fontWeight: 800, color: '#0f172a', margin: '0 0 4px' }}>
-                    Financeiro Integrado
-                  </h4>
-                  <p style={{ color: '#64748b', fontSize: '0.9rem', margin: 0 }}>
-                    Controle planos, vencimentos e cobranças direto no CRM, com lembrete de renovação pronto pra enviar no Telegram em um clique.
-                  </p>
-                </div>
-              </div>
-              <div style={{ background: '#ecfdf5', border: '1px solid #a7f3d0', padding: '8px 16px', borderRadius: '9999px', fontSize: '0.82rem', color: '#065f46', fontWeight: 800 }}>
-                💳 Lembretes de Renovação Pré-Formatados
-              </div>
-            </div>
-          </div>
-
         </div>
       </section>
 
@@ -493,3 +470,4 @@ export default function LandingPageWithRadar() {
     </div>
   );
 }
+

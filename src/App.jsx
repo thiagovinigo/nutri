@@ -3,6 +3,7 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import DashboardNutri from './features/nutricionista/pages/DashboardNutri';
 import PatientApp from './features/paciente/pages/PatientApp';
 import LandingPage from './pages/LandingPage';
+import LandingPageOld from './pages/LandingPageOld';
 import LandingPageWithRadar from './pages/LandingPageWithRadar';
 import LandingPagePrototype from './pages/LandingPagePrototype';
 import LandingSwissBentoLight from './pages/LandingSwissBentoLight';
@@ -33,13 +34,17 @@ function App() {
       <Toaster position="top-right" />
       <BrowserRouter>
         <Routes>
-          {/* Landing Page Atual em Produção */}
+          {/* Landing Page Oficial em Produção */}
           <Route path="/" element={<LandingPage />} />
 
-          {/* Rota Oficial de Preview: Original + Radar Interativo e Recursos dos Prints */}
-          <Route path="/preview" element={<LandingPageWithRadar />} />
-          <Route path="/preview-final" element={<LandingPageWithRadar />} />
-          <Route path="/radar" element={<LandingPageWithRadar />} />
+          {/* Rota da Versão Antiga Salva (Backup) */}
+          <Route path="/old" element={<LandingPageOld />} />
+          <Route path="/landing-old" element={<LandingPageOld />} />
+
+          {/* Rotas de Preview e Compatibilidade */}
+          <Route path="/preview" element={<LandingPage />} />
+          <Route path="/preview-final" element={<LandingPage />} />
+          <Route path="/radar" element={<LandingPage />} />
           <Route path="/swiss-light" element={<LandingSwissBentoLight />} />
 
           {/* Rotas Auxiliares e Autenticação */}
