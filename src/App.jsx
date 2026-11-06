@@ -41,10 +41,10 @@ function App() {
           <Route path="/old" element={<LandingPageOld />} />
           <Route path="/landing-old" element={<LandingPageOld />} />
 
-          {/* Rotas de Preview e Compatibilidade */}
-          <Route path="/preview" element={<LandingPage />} />
-          <Route path="/preview-final" element={<LandingPage />} />
-          <Route path="/radar" element={<LandingPage />} />
+          {/* Rotas de Preview e Validação Local (Com Mockups Aprimorados) */}
+          <Route path="/preview" element={<LandingPageWithRadar />} />
+          <Route path="/preview-final" element={<LandingPageWithRadar />} />
+          <Route path="/radar" element={<LandingPageWithRadar />} />
           <Route path="/swiss-light" element={<LandingSwissBentoLight />} />
 
           {/* Rotas Auxiliares e Autenticação */}

@@ -14,7 +14,9 @@ import {
   Flame,
   Utensils,
   Lock,
-  CheckCircle2
+  CheckCircle2,
+  ZoomIn,
+  Sparkles
 } from 'lucide-react';
 import { landingData } from '../components/landing/landingData';
 import '../landing.css';
@@ -24,6 +26,7 @@ import '../landing-previews.css';
 export default function LandingPage() {
   const navigate = useNavigate();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [activeLightboxImg, setActiveLightboxImg] = useState(null);
 
   useEffect(() => {
     const observer = new IntersectionObserver((entries) => {
@@ -43,7 +46,7 @@ export default function LandingPage() {
     <div className="wellness-body">
 
       {/* ======================================================== */}
-      {/* 1. NAVBAR OFICIAL LIMPA (SEM BOTÃO DE PREVIEW)          */}
+      {/* 1. NAVBAR OFICIAL LIMPA                                  */}
       {/* ======================================================== */}
       <nav className="w-nav">
         <div className="w-logo wellness-heading" style={{ cursor: 'pointer' }} onClick={() => navigate('/')}>
@@ -82,7 +85,7 @@ export default function LandingPage() {
       </nav>
 
       {/* ======================================================== */}
-      {/* 2. HERO SECTION ORIGINAL COM DUAL MOCKUPS                */}
+      {/* 2. HERO SECTION COM MOCKUPS NITIDOS E ZOOM OTIMIZADO     */}
       {/* ======================================================== */}
       <section className="w-hero">
         <div className="w-hero-bg-glow"></div>
@@ -110,14 +113,82 @@ export default function LandingPage() {
           </p>
         </div>
 
-        {/* Dual Mockups Originais */}
-        <div className="w-mockup-container" data-w-reveal>
-          <div className="w-mock-card w-mock-nutri">
-            <img src="/screen_nutri.png" alt="CRM Nutricionista" />
+        {/* Dual Mockups Aprimorados: CRM Focado + Smartphone Frame Nítido */}
+        <div className="w-mockup-container" data-w-reveal style={{ perspective: 'none', position: 'relative' }}>
+          
+          {/* Mockup CRM: Desktop Window com Zoom Inteligente */}
+          <div
+            className="w-mock-card w-mock-nutri"
+            style={{
+              position: 'relative',
+              cursor: 'pointer',
+              background: '#090d16',
+              border: '1px solid #1e293b',
+              padding: '12px',
+              borderRadius: '20px',
+              boxShadow: '0 25px 60px rgba(15, 23, 42, 0.15)',
+              transition: 'transform 0.3s ease, box-shadow 0.3s ease'
+            }}
+            onClick={() => setActiveLightboxImg({
+              src: '/screen_nutri.png',
+              title: 'CRM Clínico do Nutricionista',
+              subtitle: 'Visão Geral: Pacientes Ativos, Consultas Hoje, Alerta de Desânimo e Receita Prevista'
+            })}
+          >
+            {/* Header da Janela estilo macOS */}
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '4px 10px 10px', borderBottom: '1px solid rgba(255,255,255,0.08)', marginBottom: '8px' }}>
+              <div style={{ display: 'flex', gap: '6px' }}>
+                <div style={{ width: '10px', height: '10px', borderRadius: '50%', background: '#ef4444' }} />
+                <div style={{ width: '10px', height: '10px', borderRadius: '50%', background: '#f59e0b' }} />
+                <div style={{ width: '10px', height: '10px', borderRadius: '50%', background: '#10b981' }} />
+              </div>
+              <span style={{ fontSize: '0.75rem', color: '#94a3b8', fontWeight: 600 }}>nutrivvo.com.br/nutri · Painel Clínico</span>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '4px', color: '#a855f7', fontSize: '0.72rem', fontWeight: 700 }}>
+                <ZoomIn size={14} /> Clique para ampliar
+              </div>
+            </div>
+
+            <div style={{ borderRadius: '10px', overflow: 'hidden' }}>
+              <img
+                src="/screen_nutri_focus.png"
+                alt="CRM Nutricionista"
+                style={{ width: '100%', height: 'auto', display: 'block' }}
+              />
+            </div>
           </div>
-          <div className="w-mock-card w-mock-paciente">
-            <img src="/screen_paciente.png" alt="App Paciente" />
+
+          {/* Mockup Smartphone: App Paciente em Moldura Realista com Crop Sem Bordas Pretas */}
+          <div
+            className="w-mock-card w-mock-paciente"
+            style={{
+              cursor: 'pointer',
+              background: '#0a0e1a',
+              border: '4px solid #1e293b',
+              borderRadius: '36px',
+              padding: '8px',
+              boxShadow: '-15px 30px 60px rgba(0, 0, 0, 0.35), 0 0 0 1px rgba(255,255,255,0.1)',
+              transition: 'transform 0.3s ease, box-shadow 0.3s ease'
+            }}
+            onClick={() => setActiveLightboxImg({
+              src: '/screen_paciente_focus.png',
+              title: 'App do Paciente (PWA)',
+              subtitle: 'Check-in de refeições, metas de hidratação, sono e evolução em tempo real'
+            })}
+          >
+            {/* Notch do Celular */}
+            <div style={{ display: 'flex', justifyContent: 'center', padding: '4px 0 8px' }}>
+              <div style={{ width: '48px', height: '5px', background: '#334155', borderRadius: '9999px' }} />
+            </div>
+
+            <div style={{ borderRadius: '24px', overflow: 'hidden' }}>
+              <img
+                src="/screen_paciente_focus.png"
+                alt="App Paciente"
+                style={{ width: '100%', height: 'auto', display: 'block' }}
+              />
+            </div>
           </div>
+
         </div>
       </section>
 
@@ -377,7 +448,7 @@ export default function LandingPage() {
       </section>
 
       {/* ======================================================== */}
-      {/* 4. VALUE PROPS ORIGINAIS DO SITE                        */}
+      {/* 4. VALUE PROPS COM IMAGENS FOCADAS E LIGHTBOX DE ZOOM    */}
       {/* ======================================================== */}
       <section id="benefits" className="w-value-prop">
         <div className="w-value-content" data-w-reveal>
@@ -387,11 +458,39 @@ export default function LandingPage() {
             Monte o cardápio com a IA em minutos: descreva o paciente e receba um plano de 1 a 30 dias pronto, com receita de verdade e modo de preparo — não uma lista de alimentos. Acompanhe se ele está bebendo água e seguindo a dieta em tempo real, sem precisar perguntar.
           </p>
         </div>
-        <div className="w-value-image" data-w-reveal>
-          <img src="/screen_nutri.png" alt="CRM Management" />
+        
+        {/* CRM em Foco com Moldura de Janela e Atalho de Zoom */}
+        <div
+          className="w-value-image"
+          data-w-reveal
+          style={{ cursor: 'pointer' }}
+          onClick={() => setActiveLightboxImg({
+            src: '/screen_nutri.png',
+            title: 'Gestão Completa do Consultório',
+            subtitle: 'Dashboard clínico com métricas de retenção, agenda integrada e cardápios inteligentes'
+          })}
+        >
+          <div style={{ background: '#090d16', border: '1px solid #1e293b', borderRadius: '20px', padding: '12px', boxShadow: '0 20px 50px rgba(0,0,0,0.12)', transition: 'transform 0.25s ease' }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', paddingBottom: '8px', borderBottom: '1px solid rgba(255,255,255,0.06)', marginBottom: '8px' }}>
+              <div style={{ display: 'flex', gap: '6px' }}>
+                <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#ef4444' }} />
+                <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#f59e0b' }} />
+                <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#10b981' }} />
+              </div>
+              <span style={{ fontSize: '0.72rem', color: '#a855f7', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '4px' }}>
+                <ZoomIn size={13} /> Clique para ver em alta definição
+              </span>
+            </div>
+            <img
+              src="/screen_nutri_focus.png"
+              alt="CRM Management"
+              style={{ width: '100%', height: 'auto', borderRadius: '8px', display: 'block' }}
+            />
+          </div>
         </div>
       </section>
 
+      {/* Engajamento Incomparável: Smartphone Nítido com Moldura */}
       <section className="w-value-prop reverse" style={{ paddingTop: 0 }}>
         <div className="w-value-content" data-w-reveal>
           <HeartPulse size={40} color="var(--w-primary)" style={{ marginBottom: '24px' }} />
@@ -400,8 +499,27 @@ export default function LandingPage() {
             O aplicativo do paciente não é apenas um leitor de dieta. É uma experiência motivadora. Toda vez que ele conclui uma refeição no horário, o cérebro recebe uma dose de dopamina pelo avanço — e cada marco vira um cartão pra compartilhar nos stories, marcando sua clínica.
           </p>
         </div>
-        <div className="w-value-image" data-w-reveal>
-          <img src="/screen_paciente.png" alt="Patient Engagement" />
+        
+        <div
+          className="w-value-image"
+          data-w-reveal
+          style={{ display: 'flex', justifyContent: 'center', cursor: 'pointer' }}
+          onClick={() => setActiveLightboxImg({
+            src: '/screen_paciente_focus.png',
+            title: 'App Gamificado do Paciente',
+            subtitle: 'Registro de refeições por foto, copos de água, metas diárias e streaks'
+          })}
+        >
+          <div style={{ maxWidth: '340px', width: '100%', background: '#0a0e1a', border: '4px solid #1e293b', borderRadius: '36px', padding: '10px', boxShadow: '0 25px 60px rgba(0,0,0,0.2)', transition: 'transform 0.25s ease' }}>
+            <div style={{ display: 'flex', justifyContent: 'center', padding: '4px 0 8px' }}>
+              <div style={{ width: '48px', height: '5px', background: '#334155', borderRadius: '9999px' }} />
+            </div>
+            <img
+              src="/screen_paciente_focus.png"
+              alt="Patient Engagement"
+              style={{ width: '100%', height: 'auto', borderRadius: '22px', display: 'block' }}
+            />
+          </div>
         </div>
       </section>
 
@@ -466,6 +584,78 @@ export default function LandingPage() {
         <p>© 2026 Nutrivvo. Todos os direitos reservados.</p>
         <p className="w-footer-trust">Dados de cada paciente isolados por regra própria no banco — nenhum nutricionista vê paciente de outro.</p>
       </footer>
+
+      {/* ======================================================== */}
+      {/* 8. LIGHTBOX MODAL: ZOOM AO CLICAR EM QUALQUER TELA       */}
+      {/* ======================================================== */}
+      {activeLightboxImg && (
+        <div
+          onClick={() => setActiveLightboxImg(null)}
+          style={{
+            position: 'fixed',
+            inset: 0,
+            background: 'rgba(10, 15, 26, 0.88)',
+            backdropFilter: 'blur(10px)',
+            zIndex: 99999,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            padding: '24px'
+          }}
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            style={{
+              maxWidth: '1100px',
+              width: '100%',
+              background: '#0f172a',
+              border: '1px solid #334155',
+              borderRadius: '24px',
+              overflow: 'hidden',
+              boxShadow: '0 30px 80px rgba(0,0,0,0.6)',
+              position: 'relative'
+            }}
+          >
+            {/* Header do Modal */}
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '16px 24px', borderBottom: '1px solid #1e293b' }}>
+              <div>
+                <h4 style={{ color: '#fff', fontSize: '1.1rem', fontWeight: 800, margin: '0 0 2px' }}>
+                  {activeLightboxImg.title}
+                </h4>
+                <p style={{ color: '#94a3b8', fontSize: '0.85rem', margin: 0 }}>
+                  {activeLightboxImg.subtitle}
+                </p>
+              </div>
+              <button
+                onClick={() => setActiveLightboxImg(null)}
+                style={{
+                  background: 'rgba(255,255,255,0.1)',
+                  border: 'none',
+                  color: '#fff',
+                  width: '36px',
+                  height: '36px',
+                  borderRadius: '50%',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  cursor: 'pointer'
+                }}
+              >
+                <X size={20} />
+              </button>
+            </div>
+
+            {/* Imagem em Alta Resolução */}
+            <div style={{ padding: '20px', maxHeight: '80vh', overflowY: 'auto', display: 'flex', justifyContent: 'center', background: '#090d16' }}>
+              <img
+                src={activeLightboxImg.src}
+                alt={activeLightboxImg.title}
+                style={{ maxWidth: '100%', height: 'auto', borderRadius: '12px', border: '1px solid #1e293b' }}
+              />
+            </div>
+          </div>
+        </div>
+      )}
 
     </div>
   );
