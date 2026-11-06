@@ -70,9 +70,9 @@ export const landingData = {
   scanner: {
     tag: 'CHECK-IN DIÁRIO POR FOTO',
     title: 'Reconhecimento de pratos por visão de IA',
-    desc: 'O paciente fotografa a refeição e a IA identifica os alimentos e estima as porções. Registro rápido, sem digitação cansativa de gramas, direto no diário.',
-    confidence: 'PRECISÃO CLÍNICA ESTIMADA',
-    telemetry: '42g PROTEÍNA · 38g CARBO · 11g GORDURA',
+    desc: 'O paciente fotografa a refeição e a IA identifica os alimentos visíveis e estima porções de forma acolhedora, creditando XP no diário sem digitação manual cansativa.',
+    confidence: 'ESTIMATIVA VISUAL POR IA',
+    telemetry: 'ALIMENTOS IDENTIFICADOS · PORÇÃO ESTIMADA · REGISTRO DIRETO',
     img: 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?auto=format&fit=crop&w=600&q=80'
   },
 
@@ -107,10 +107,10 @@ export const landingData = {
   },
 
   financial: {
-    tag: 'FINANCEIRO INTEGRADO',
+    tag: 'FINANCEIRO CLÍNICO',
     title: 'Gestão de planos e lembretes de renovação',
-    desc: 'Controle planos mensais, trimestrais e semestrais direto no CRM, com lembrete de renovação pronto para enviar no Telegram em um único clique.',
-    result: 'Previsibilidade de receita com cobranças e controle de inadimplência.'
+    desc: 'Controle planos mensais e trimestrais no CRM, com status de pagamento e lembretes elegantes de renovação pré-formatados para enviar ao paciente sem constrangimento.',
+    result: 'Visão clara de honorários, controle de vencimentos e régua de renovação.'
   },
 
   // Métricas de Impacto
