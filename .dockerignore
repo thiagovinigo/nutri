@@ -1,0 +1,13 @@
+node_modules
+dist
+.git
+.github
+.vercel
+.claude
+.agents
+.env
+temp_skills_clone
+test
+*.md
+*.png
+*.cjs
