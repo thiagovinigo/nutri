@@ -25,6 +25,8 @@ COPY --from=builder --chown=appuser:appgroup /app/dist ./dist
 COPY --from=builder --chown=appuser:appgroup /app/api ./api
 COPY --from=builder --chown=appuser:appgroup /app/lib ./lib
 COPY --from=builder --chown=appuser:appgroup /app/server ./server
+# lib/secretariaVirtual.js faz require('../src/data/taco.json') em runtime
+COPY --from=builder --chown=appuser:appgroup /app/src/data/taco.json ./src/data/taco.json
 COPY --from=builder --chown=appuser:appgroup /app/package.json ./
 USER appuser
 EXPOSE 3000
