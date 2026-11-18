@@ -343,15 +343,26 @@ nutri.
   `maximumFileSizeToCacheInBytes: 5000000` (5MB) no workbox é justamente pra caber esses chunks grandes.
 - ⬜ **Investigar instabilidade de escrita do Firestore (503 recorrente)** — parece infra/rede.
 - ⬜ **Pesquisa de PMF (Sean Ellis)** — depende de base real de usuários.
-- 🔄 **[EM ANDAMENTO — 17/11/2026] Migração Vercel → VPS (Locaweb).** Problemas na Vercel motivaram a
-  troca. Código pronto e no `main` (`071f6f0`): `server/index.js` (Express monta `api/*.js` em
-  `/api/<nome>` e serve `dist/`), `Dockerfile`, `docker-compose.yml`, `Caddyfile` (HTTPS automático
-  p/ `nutrivvo.com.br`). Pendente: `.env` da VPS (variáveis `Sensitive` da Vercel não são legíveis
-  por API — `FIREBASE_SERVICE_ACCOUNT` exige chave nova no Firebase Console; `CRON_SECRET` novo +
-  atualizar secret no GitHub Actions; `ADMIN_UID` não existia na Vercel, painel admin desativado em
-  prod), subir `docker compose up -d --build`, trocar DNS e reapontar webhook do Telegram. Os crons
-  (GitHub Actions) já usam `https://nutrivvo.com.br`, não mudam. **Efeito colateral:** o limite de 12
-  Serverless Functions (incidente de 31/08) deixa de existir após o cutover.
+- ✅ **[FEITO — 18/11/2026] Migração Vercel → VPS (Locaweb).** A Vercel passou a responder
+  `402 DEPLOYMENT_DISABLED` (site fora do ar) e o app foi movido pra VPS `191.252.191.189`
+  (Ubuntu 24.04, 2 vCPU / 3,8 GB, **compartilhada** com Buscarmas, Mercagym, Quepromo, Sopromoboa e
+  a stack Evolution). Como: `server/index.js` (Express monta `api/*.js` em `/api/<nome>` e serve
+  `dist/`), `Dockerfile`, `docker-compose.yml` com container `nutrivvo-app` (limite 320 MB) na rede
+  `evolution-stack_web` e labels `traefik.*` — **o Traefik do stack Evolution já ocupa 80/443 e emite
+  o HTTPS (Let's Encrypt)**, por isso não há Caddy. Código em `/root/nutri` (clone do `main`, `.env`
+  fora do git). Deploy/atualização: `cd /root/nutri && git pull && docker compose up -d --build`.
+  Cutover: DNS no **Registro.br** (zona própria, `d/f.sec.dns.br`) — `@` e `www` → `191.252.191.189`;
+  `CRON_SECRET` novo no GitHub Actions (cron manual validado, HTTP 2xx); webhook do Telegram segue
+  em `https://nutrivvo.com.br/api/telegram-webhook`, **fixado no IP da VPS** via `ip_address` do
+  `setWebhook` (sem o pino o Telegram insistia no IP antigo da Vercel). **Lições:**
+  (1) variáveis `Sensitive` da Vercel não são legíveis por API — `FIREBASE_SERVICE_ACCOUNT` exigiu
+  chave nova no Firebase Console; (2) `lib/secretariaVirtual.js` lê `../src/data/taco.json` em
+  runtime, então a imagem precisa copiar esse arquivo; (3) o painel do Registro.br expira a sessão
+  em poucos minutos e só aceita preenchimento por campos reais (remover + "Nova entrada") — marcar
+  remoções e salvar numa sessão curta, e conferir a zona antes de salvar; (4) `ADMIN_UID` não existia
+  na Vercel, então o painel admin segue **desativado em produção**. O limite de 12 Serverless
+  Functions (incidente de 31/08) deixou de existir. **Pendente:** pausar o projeto na Vercel,
+  acompanhar memória da VPS compartilhada, e se o IP da VPS mudar refazer o `setWebhook` do Telegram.
 - 🤔 **WAHA (WhatsApp HTTP API) como substituta da Evolution — avaliado em 17/11/2026, não adotar
   por ora.** Docs: `waha.devlike.pro`. Core é gratuita/open source (Plus foi incorporada à Core a
   partir da 2026.6.1), engines WEBJS/WPP/GOWS/NOWEB/VENOM. Mas é **canal não oficial**, e a própria
