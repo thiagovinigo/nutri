@@ -1,5 +1,8 @@
+# Deploy na VPS compartilhada (Locaweb): o Traefik do stack `evolution-stack`
+# já ocupa 80/443 e emite o HTTPS; este serviço só entra na rede dele com labels.
 services:
   app:
+    image: nutrivvo-app:latest
     build:
       context: .
       args:
@@ -11,24 +14,35 @@ services:
         VITE_FIREBASE_APP_ID: ${VITE_FIREBASE_APP_ID}
         VITE_FIREBASE_MEASUREMENT_ID: ${VITE_FIREBASE_MEASUREMENT_ID}
         VITE_TELEGRAM_BOT_USERNAME: ${VITE_TELEGRAM_BOT_USERNAME}
+    container_name: nutrivvo-app
     env_file: .env
+    environment:
+      NODE_OPTIONS: --max-old-space-size=192
     restart: unless-stopped
-    expose:
-      - "3000"
-
-  caddy:
-    image: caddy:2-alpine
-    restart: unless-stopped
+    mem_limit: 320m
+    # Só no loopback do host: permite testar /health na VPS antes do DNS mudar.
     ports:
-      - "80:80"
-      - "443:443"
-    volumes:
-      - ./Caddyfile:/etc/caddy/Caddyfile:ro
-      - caddy_data:/data
-      - caddy_config:/config
-    depends_on:
-      - app
+      - "127.0.0.1:3100:3000"
+    networks:
+      - web
+    labels:
+      - traefik.enable=true
+      - traefik.docker.network=evolution-stack_web
+      - traefik.http.services.nutrivvo.loadbalancer.server.port=3000
+      - traefik.http.middlewares.nutrivvo-www-redirect.redirectregex.permanent=true
+      - traefik.http.middlewares.nutrivvo-www-redirect.redirectregex.regex=^https://www\.nutrivvo\.com\.br/(.*)
+      - traefik.http.middlewares.nutrivvo-www-redirect.redirectregex.replacement=https://nutrivvo.com.br/$${1}
+      - traefik.http.routers.nutrivvo.rule=Host(`nutrivvo.com.br`)
+      - traefik.http.routers.nutrivvo.entrypoints=websecure
+      - traefik.http.routers.nutrivvo.tls.certresolver=letsencrypt
+      - traefik.http.routers.nutrivvo.service=nutrivvo
+      - traefik.http.routers.nutrivvo-www.rule=Host(`www.nutrivvo.com.br`)
+      - traefik.http.routers.nutrivvo-www.entrypoints=websecure
+      - traefik.http.routers.nutrivvo-www.tls.certresolver=letsencrypt
+      - traefik.http.routers.nutrivvo-www.middlewares=nutrivvo-www-redirect
+      - traefik.http.routers.nutrivvo-www.service=nutrivvo
 
-volumes:
-  caddy_data:
-  caddy_config:
+networks:
+  web:
+    external: true
+    name: evolution-stack_web
