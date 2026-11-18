@@ -343,6 +343,25 @@ nutri.
   `maximumFileSizeToCacheInBytes: 5000000` (5MB) no workbox é justamente pra caber esses chunks grandes.
 - ⬜ **Investigar instabilidade de escrita do Firestore (503 recorrente)** — parece infra/rede.
 - ⬜ **Pesquisa de PMF (Sean Ellis)** — depende de base real de usuários.
+- 🔄 **[EM ANDAMENTO — 17/11/2026] Migração Vercel → VPS (Locaweb).** Problemas na Vercel motivaram a
+  troca. Código pronto e no `main` (`071f6f0`): `server/index.js` (Express monta `api/*.js` em
+  `/api/<nome>` e serve `dist/`), `Dockerfile`, `docker-compose.yml`, `Caddyfile` (HTTPS automático
+  p/ `nutrivvo.com.br`). Pendente: `.env` da VPS (variáveis `Sensitive` da Vercel não são legíveis
+  por API — `FIREBASE_SERVICE_ACCOUNT` exige chave nova no Firebase Console; `CRON_SECRET` novo +
+  atualizar secret no GitHub Actions; `ADMIN_UID` não existia na Vercel, painel admin desativado em
+  prod), subir `docker compose up -d --build`, trocar DNS e reapontar webhook do Telegram. Os crons
+  (GitHub Actions) já usam `https://nutrivvo.com.br`, não mudam. **Efeito colateral:** o limite de 12
+  Serverless Functions (incidente de 31/08) deixa de existir após o cutover.
+- 🤔 **WAHA (WhatsApp HTTP API) como substituta da Evolution — avaliado em 17/11/2026, não adotar
+  por ora.** Docs: `waha.devlike.pro`. Core é gratuita/open source (Plus foi incorporada à Core a
+  partir da 2026.6.1), engines WEBJS/WPP/GOWS/NOWEB/VENOM. Mas é **canal não oficial**, e a própria
+  doc avisa que não garante contra bloqueio — mesma classe de risco que já queimou o número em
+  12/08/2026 (Evolution/Baileys). Se WhatsApp voltar a ser prioridade, comparar com a **Cloud API
+  oficial da Meta** antes. Esforço de integração se mesmo assim for WAHA: `POST /api/sendText`
+  (`X-Api-Key`, `chatId` `...@c.us`; p/ alguns números BR usar o chatId retornado pela API "check
+  number exists"); webhook `event: "message"` com `payload.from/body/fromMe`, autenticado por HMAC
+  SHA-512 sobre o **corpo bruto** (`X-Webhook-Hmac`) — exige `verify` no `express.json()` e
+  adaptador novo em `api/whatsapp-webhook.js` / `lib/whatsapp.js` (hoje formato Evolution/`apikey`).
 
 ---
 
