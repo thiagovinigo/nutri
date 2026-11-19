@@ -1,131 +1,170 @@
 import { ico } from './icons.mjs';
-import { spark, bars, lineChart, donut } from './charts.mjs';
-import { BRAND, PATIENTS, ATTENTION, MEALS, WEEK, TRANSACTIONS, initials } from './data.mjs';
+import { dualLine, donut } from './charts.mjs';
+import { BRAND, PATIENTS, initials } from './data.mjs';
 
 const NAV = [
-  { key: 'dashboard', label: 'Dashboard', icon: 'dashboard', target: 'dashboard' },
-  { key: 'pacientes', label: 'Pacientes', icon: 'users', target: 'pacientes' },
-  { key: 'agenda', label: 'Agenda', icon: 'calendar', target: 'agenda' },
-  { key: 'planos', label: 'Planos', icon: 'leaf', target: 'plano' },
-  { key: 'financeiro', label: 'Financeiro', icon: 'wallet', target: 'financeiro' },
+  { key: 'overview', label: 'Visão Geral', icon: 'dashboard', target: '#overview' },
+  { key: 'agenda', label: 'Agenda de Hoje', icon: 'calendar', target: '#agenda' },
+  { key: 'pacientes', label: 'Meus Pacientes', icon: 'users', target: '#pacientes' },
+  { key: 'receitas', label: 'Biblioteca de Receitas', icon: 'book', target: '#' },
+  { key: 'financeiro', label: 'Financeiro & Planos', icon: 'dollar', target: '#financeiro' },
 ];
 
-const riskChip = (risk) => `<span class="chip chip--${risk === 'alto' ? 'alert' : risk === 'médio' ? 'warn' : 'ok'}">Risco ${risk}</span>`;
 const avatar = (name) => `<span class="avatar" aria-hidden="true">${initials(name)}</span>`;
-const adherence = (n) => `<span class="meter" role="img" aria-label="Adesão ${n}%"><span class="meter-fill" data-level="${n < 50 ? 'low' : n < 80 ? 'mid' : 'high'}" style="width:${n}%"></span></span>`;
+const statusChip = (s) => `<span class="chip chip--${s === 'Alto Engajamento' ? 'ok' : s === 'Inativo' ? 'alert' : 'info'}">${s}</span>`;
+const payChip = (p) => `<span class="chip chip--${p === 'Pago' ? 'ok' : p === 'Pendente' ? 'warn' : 'alert'}">${p}</span>`;
+const link = (n, active) => `<li><a href="${n.target}" aria-label="${n.label}"${n.key === active ? ' aria-current="page"' : ''}>${ico(n.icon, 20)}<span>${n.label}</span></a></li>`;
 
 function sidebar(active) {
   return `
   <aside class="sidebar">
-    <a class="brand brand--app" href="#dashboard" aria-label="${BRAND}"><span class="brand-mark" aria-hidden="true">${ico('leaf', 20)}</span><span class="brand-text">${BRAND}</span></a>
+    <div class="side-brand">
+      <a class="brand brand--app" href="#overview" aria-label="${BRAND}"><span class="brand-mark" aria-hidden="true">N</span><span class="brand-text">${BRAND}</span></a>
+      <span class="tag">CRM Clínico</span><a class="side-link" href="#">Sair</a>
+    </div>
     <nav aria-label="Principal">
-      <ul>${NAV.map((n) => `<li><a href="#${n.target}" aria-label="${n.label}"${n.key === active ? ' aria-current="page"' : ''}>${ico(n.icon, 20)}<span>${n.label}</span></a></li>`).join('')}</ul>
+      <ul>${NAV.map((n) => link(n, active)).join('')}</ul>
+      <ul class="side-extra">${link({ key: 'cfg', label: 'Configurações', icon: 'settings', target: '#' }, active)}</ul>
     </nav>
-    <div class="me">${avatar('Helena Prado')}<div><strong>Dra. Helena Prado</strong><small>Plano Clínica</small></div></div>
+    <div class="toggle-row"><span>${ico('moon', 18)} Dark Mode</span><span class="switch" aria-hidden="true"><i></i></span></div>
   </aside>`;
 }
 
-function screen(id, n, title, active, content) {
+function screen(id, n, title, active, content, extra = '') {
   return `
 <section id="${id}" class="screen" data-screen="${id}" aria-labelledby="${id}-t">
   <h2 id="${id}-t" class="screen-title"><span class="num">${String(n).padStart(2, '0')}</span> ${title}</h2>
-  <div class="window">
-    ${sidebar(active)}
-    <div class="main">${content}</div>
-  </div>
+  <div class="window${extra}">${extra ? '' : sidebar(active)}${content}</div>
 </section>`;
 }
 
-const topbar = (title, extra = '') => `
-<header class="topbar"><h3>${title}</h3><div class="topbar-tools">${extra}<label class="search">${ico('search', 18)}<span class="sr-only">Buscar paciente</span><input type="search" placeholder="Buscar paciente" /></label></div></header>`;
+const head = (title, sub, right = '') => `<header class="page-head"><div><h3>${title}</h3><p>${sub}</p></div>${right}</header>`;
+const kpi = (label, value, hint = '', tone = '') => `<article class="stat ${tone}"><p class="stat-label">${label}</p><p class="stat-value num">${value}</p>${hint ? `<p class="stat-hint">${hint}</p>` : ''}</article>`;
+const row = (name, sub, right) => `<li class="line-row"><div class="grow"><strong class="truncate">${name}</strong><small>${sub}</small></div>${right}</li>`;
 
-const stat = (label, value, hint, tone = '') => `<article class="stat ${tone}"><p class="stat-label">${label}</p><p class="stat-value num">${value}</p><p class="stat-hint">${hint}</p></article>`;
+/* 1 · Visão Geral */
+const overview = screen('overview', 1, 'Visão Geral', 'overview', `<div class="main">
+  ${head('Visão Geral', 'Resumo do dia e atalhos rápidos.')}
+  <div class="stats stats--5">
+    ${kpi('Pacientes ativos / inativos', '4 <span class="soft">/ 0</span>')}
+    ${kpi('Consultas hoje', '3')}
+    ${kpi('Engajamento médio', '50%', `${ico('flame', 14)} Sequência média: 5d`)}
+    ${kpi('Em risco', '1', '', 'stat--warn')}
+    ${kpi('Receita prevista', `${ico('dollar', 18)} 1.850`, '', 'stat--good')}
+  </div>
+  <div class="btn-row"><a class="btn btn--primary btn--sm" href="#pacientes">${ico('plus', 16)} Novo Paciente</a><a class="btn btn--ghost btn--sm" href="#agenda">${ico('plus', 16)} Novo Agendamento</a></div>
+  <div class="cards4">
+    <section class="panel" aria-label="Próximas Consultas"><h4 class="panel-head">${ico('calendar', 18)} Próximas Consultas <a href="#agenda">Ver agenda →</a></h4><ul class="rows">
+      ${row('Ana Beatriz Souza', 'Hoje - Retorno', '<b class="num">14:00</b>')}${row('Carlos Eduardo Lima', 'Hoje - Primeira Consulta', '<b class="num">16:30</b>')}</ul></section>
+    <section class="panel" aria-label="Consultas Realizadas"><h4 class="panel-head ok">${ico('check', 18)} Consultas Realizadas <a href="#agenda">Ver agenda →</a></h4><ul class="rows">
+      ${row('Juliana Ferreira', '12/08 - Retorno', '<b class="num">10:00</b>')}</ul></section>
+    <section class="panel" aria-label="Atenção Necessária"><h4 class="panel-head warn">${ico('alert', 18)} Atenção Necessária</h4><ul class="rows">
+      ${row('Rodrigo Martins', 'Sem registro há 4 dias', '<span class="chip chip--warn">Perdendo Foco</span>')}</ul></section>
+    <section class="panel" aria-label="Mais Engajados"><h4 class="panel-head">${ico('trophy', 18)} Mais Engajados</h4><ul class="rows">
+      ${PATIENTS.map((p) => row(p.name, '', `<span class="num soft">${ico('flame', 14)} ${p.streak}d · ${p.xp}xp</span>`)).join('')}</ul></section>
+  </div>
+</div>`);
 
-const dashboard = screen('dashboard', 1, 'Dashboard', 'dashboard', `
-  ${topbar('Bom dia, Dra. Helena')}
+/* 2 · Agenda semanal */
+const DAYS = [['Seg', '16/11'], ['Ter', '17/11'], ['Qua', '18/11'], ['Qui', '19/11', true], ['Sex', '20/11']];
+const HOURS = ['09:00', '10:00', '11:00', '12:00', '13:00', '14:00', '15:00', '16:00', '17:00'];
+const APPT = {
+  'Qui 10:00': { who: 'Juliana Ferreira', kind: 'Retorno', done: true },
+  'Qui 14:00': { who: 'Ana Beatriz Souza', kind: 'Retorno' },
+  'Qui 16:00': { who: 'Carlos Eduardo Lima', kind: 'Primeira Consulta', at: '16:30' },
+  'Sex 15:00': { who: 'Rodrigo Martins', kind: 'Retorno (Online)', online: true },
+  'Ter 11:00': { who: 'Beatriz Nogueira', kind: 'Avaliação Expressa' },
+};
+const cell = (day, hour) => {
+  if (hour === '12:00') return '<div class="cal-cell cal-lunch">Almoço</div>';
+  const a = APPT[`${day} ${hour}`];
+  if (!a) return '<div class="cal-cell cal-free"></div>';
+  return `<div class="cal-cell"><div class="appt${a.done ? ' appt--done' : ''}"><strong class="truncate">${a.who}</strong><small>${a.at ? `${a.at} · ` : ''}${a.kind}</small>${a.online ? '<a href="#agenda">Entrar na Sala</a>' : ''}<span class="appt-tools">${ico('eye', 14)}${a.done ? '' : ico('trash', 14)}</span></div></div>`;
+};
+const agenda = screen('agenda', 2, 'Agenda', 'agenda', `<div class="main">
+  ${head('Agenda Clínica', 'Controle seus agendamentos e inicie consultas.', `<a class="btn btn--primary btn--sm" href="#agenda">${ico('plus', 16)} Novo Agendamento</a>`)}
+  <div class="filters" role="group" aria-label="Filtro"><button class="filter" type="button" aria-pressed="true">Todos</button><button class="filter" type="button" aria-pressed="false">Agendado</button><button class="filter" type="button" aria-pressed="false">Concluído</button></div>
+  <section class="cal" aria-label="Calendário semanal">
+    <header class="cal-head"><strong>Semana de 16/11/2026</strong><span class="cal-nav"><button type="button" aria-label="Semana anterior">${ico('left', 16)}</button><button type="button">Hoje</button><button type="button" aria-label="Próxima semana">${ico('right', 16)}</button></span></header>
+    <div class="cal-scroll"><div class="cal-grid">
+      <div class="cal-corner"></div>
+      ${DAYS.map(([d, dt, today]) => `<div class="cal-day${today ? ' cal-day--today' : ''}"><b>${d}</b><span class="num">${dt}</span>${today ? '<em>Hoje</em>' : ''}</div>`).join('')}
+      ${HOURS.map((h) => `<div class="cal-hour num">${h}</div>${DAYS.map(([d]) => cell(d, h)).join('')}`).join('')}
+    </div></div>
+  </section>
+</div>`);
+
+/* 3 · Meus Pacientes */
+const pacientes = screen('pacientes', 3, 'Meus Pacientes', 'pacientes', `<div class="main">
+  ${head('Meus Pacientes', 'Gestão do seu portfólio clínico.', `<span class="btn-row"><a class="btn btn--ghost btn--sm" href="#pacientes">Link Geral de Convite</a><a class="btn btn--primary btn--sm" href="#pacientes">${ico('plus', 16)} Novo Paciente</a></span>`)}
+  <div class="toolbar"><label class="search search--wide">${ico('search', 18)}<span class="sr-only">Buscar paciente</span><input type="search" placeholder="Buscar paciente por nome..." /></label>
+    <label class="select"><span class="sr-only">Status</span><select><option>Todos os status</option><option>Alto Engajamento</option><option>Perdendo Foco</option><option>Inativo</option></select></label></div>
+  <div class="table-wrap"><table class="table">
+    <thead><tr><th scope="col">Nome</th><th scope="col">Objetivo</th><th scope="col">Adesão App</th><th scope="col">Status</th><th scope="col">Financeiro</th><th scope="col">Ações</th></tr></thead>
+    <tbody>${PATIENTS.map((p) => `<tr><th scope="row"><span class="cell-person">${avatar(p.name)}<span class="cell-name"><span class="truncate">${p.name}</span>${p.risk ? '<span class="chip chip--alert">▲ Alto Risco</span>' : ''}</span></span></th><td>${p.goal}</td><td class="num">${ico('flame', 14)} ${p.streak} dias</td><td>${statusChip(p.status)}</td><td><span class="cell-pay"><small>${p.plan}</small>${payChip(p.pay)}</span></td><td><span class="cell-actions"><a class="btn btn--ghost btn--sm" href="#prontuario">${ico('eye', 14)} Ver</a><button type="button" class="icon-btn" aria-label="Editar ${p.name}">${ico('edit', 16)}</button></span></td></tr>`).join('')}</tbody>
+  </table></div>
+</div>`);
+
+/* 4 · Prontuário (Visão Geral) */
+const prontuario = screen('prontuario', 4, 'Prontuário do paciente', 'pacientes', `<div class="main">
+  <div class="page-head"><a class="btn btn--ghost btn--sm" href="#pacientes">← Voltar para Lista</a><a class="btn btn--primary btn--sm" href="#consulta">▶ Iniciar Prontuário (14:00)</a></div>
+  <section class="panel command" aria-label="Status de engajamento">
+    <div><h4 class="panel-head">${ico('chart', 18)} Status de Engajamento (Cohort)</h4>
+      <dl class="kv kv--3"><div><dt>Status</dt><dd class="ok">Alto Engajamento</dd></div><div><dt>Ofensiva App</dt><dd class="num">${ico('flame', 16)} 12 dias</dd></div><div><dt>Risco de Abandono</dt><dd class="ok">Baixo</dd></div></dl>
+      <p class="hint-line">${ico('sparkles', 14)} Sugestão da IA: manter o acompanhamento semanal</p></div>
+    <div class="dashed"><h4 class="panel-head">${ico('sparkles', 18)} Síntese Clínica</h4><p>Clique em "Gerar Análise" para a IA cruzar o histórico deste paciente com os parâmetros de Cohort e sugerir a conduta ideal.</p><button class="btn btn--ghost btn--sm" type="button">Gerar Análise</button></div>
+  </section>
+  <div class="tabs" role="tablist" aria-label="Abas do prontuário"><button class="tab" role="tab" aria-selected="true" type="button">Visão Geral</button><button class="tab" role="tab" aria-selected="false" type="button">Protocolo Vigente</button><button class="tab" role="tab" aria-selected="false" type="button">Exames &amp; Biomarcadores</button><button class="tab" role="tab" aria-selected="false" type="button">Plano &amp; Contrato</button></div>
+  <section class="hero-card" aria-label="Resumo do paciente"><div><h3>Ana Beatriz Souza</h3><p>Objetivo: Emagrecimento</p></div><dl class="hero-stats"><div><dt>Ofensiva App</dt><dd class="num">${ico('flame', 20)} 12 dias</dd></div><div><dt>Gamificação</dt><dd class="num">${ico('hexagon', 20)} 480 XP</dd></div></dl></section>
+  <div class="split">
+    <section class="panel" aria-label="Evolução clínica"><h4 class="panel-head">${ico('chart', 18)} Evolução Clínica</h4>
+      ${dualLine([82.4, 81.6, 80.9, 80.1, 79.2, 78.5], [31.2, 30.6, 30.1, 29.5, 29.0, 28.4], ['06/10', '13/10', '20/10', '27/10', '03/11', '10/11'])}
+      <p class="legend-inline"><i class="sw sw-1"></i>Peso (kg) <i class="sw sw-2"></i>% Gordura</p></section>
+    <section class="panel" aria-label="Última avaliação física"><h4 class="panel-head">Última Avaliação Física Completa</h4>
+      <dl class="kv kv--grid">${[['Peso', '78,5 kg'], ['Altura', '165 cm'], ['% Gordura', '28,4%'], ['% Músculo', '34,1%'], ['Gordura Visceral', '7'], ['Cintura', '82 cm'], ['Quadril', '104 cm'], ['TMB', '1.412 kcal']].map(([k, v]) => `<div><dt>${k}</dt><dd class="num">${v}</dd></div>`).join('')}</dl></section>
+  </div>
+</div>`);
+
+/* 5 · Consulta · passo 4 */
+const STEPS = ['1. Anamnese', '2. Avaliação Física', '3. Exames (IA OpenAI)', '4. Prescrição Estruturada', '5. Resumo e Envio'];
+const foodRows = (rows) => rows.map(([f, g, k, c, p, gd]) => `<tr><th scope="row"><span class="truncate">${f}</span></th><td class="num">${g}</td><td class="num">${k}</td><td class="num">${c}</td><td class="num">${p}</td><td class="num">${gd}</td></tr>`).join('');
+const mealBlock = (name, rows, total) => `<article class="meal-block"><header><strong>${name}</strong><button class="link-btn" type="button">Remover</button></header>
+  <div class="table-wrap"><table class="table table--tight"><thead><tr><th scope="col">Alimento</th><th scope="col">Qtd (g)</th><th scope="col">Kcal</th><th scope="col">Carb (g)</th><th scope="col">Ptn (g)</th><th scope="col">Gord (g)</th></tr></thead><tbody>${foodRows(rows)}</tbody><tfoot><tr><th scope="row">TOTAL DA REFEIÇÃO</th><td></td>${total.map((t) => `<td class="num">${t}</td>`).join('')}</tr></tfoot></table></div></article>`;
+const consulta = screen('consulta', 5, 'Consulta · Prescrição Dietética', 'pacientes', `
+  <aside class="consult-side"><a class="danger-link" href="#prontuario">← Suspender Consulta</a>
+    <div class="who">${avatar('Ana Beatriz Souza')}<div><strong>Ana Beatriz Souza</strong><small>Obj: Emagrecimento</small></div></div>
+    <ol class="steps-list">${STEPS.map((s, i) => `<li${i === 3 ? ' aria-current="step"' : ''}>${s}</li>`).join('')}</ol></aside>
+  <div class="main">
+    ${head('Prescrição Dietética Estruturada', '')}
+    <div class="tabs" role="tablist" aria-label="Prescrição"><button class="tab" role="tab" aria-selected="true" type="button">Refeições do Cardápio</button><button class="tab" role="tab" aria-selected="false" type="button">Vitaminas e Suplementos</button><button class="tab" role="tab" aria-selected="false" type="button">Ficha de Treino</button></div>
+    <section class="panel ai-card" aria-label="Gerador de cardápio"><h4 class="panel-head">${ico('sparkles', 18)} Gerador de Cardápio (IA Nutricionista)</h4><div class="btn-row"><label class="select"><span class="sr-only">Duração</span><select><option>1 Dia</option><option selected>7 Dias</option><option>15 Dias</option><option>30 Dias</option></select></label><button class="btn btn--primary btn--sm" type="button">Sugerir com IA</button></div></section>
+    <label class="field"><span>Título do Plano Alimentar</span><input type="text" value="Dieta de Transição (Verão)" /></label>
+    <div class="split">
+      <section class="panel macros" aria-label="Distribuição de macros"><h4>Distribuição de Macros</h4>${donut([{ pct: 47, label: 'Carboidratos' }, { pct: 28, label: 'Proteínas' }, { pct: 25, label: 'Gorduras' }], { value: '1.680', label: 'kcal' })}
+        <ul class="legend"><li><i class="sw sw-1"></i>Carboidratos <b class="num">47%</b></li><li><i class="sw sw-2"></i>Proteínas <b class="num">28%</b></li><li><i class="sw sw-3"></i>Gorduras <b class="num">25%</b></li></ul></section>
+      <section class="panel" aria-label="Calorias da dieta"><h4>Calorias da Dieta vs GET</h4><p class="big num">1.680 <small>kcal</small></p><div class="progress" role="img" aria-label="Déficit calórico"><span style="width:82%"></span></div><p class="deficit">▼ Déficit de 370 kcal (Cutting)</p><small>GET estimado: 2.050 kcal</small></section>
+    </div>
+    ${mealBlock('Café da Manhã', [['Ovo de galinha, inteiro, cru', 100, 143, 1, 13, 10], ['Aveia em flocos, crua', 30, 118, 20, 4, 2], ['Banana, prata, crua', 100, 98, 26, 1, 0]], [359, 47, 18, 12])}
+    ${mealBlock('Almoço', [['Arroz integral, cozido', 120, 148, 31, 3, 1], ['Peito de frango, grelhado', 130, 214, 0, 40, 5]], [362, 31, 43, 6])}
+    <p class="hint-line"><button class="btn btn--ghost btn--sm" type="button">+ Adicionar Refeição Manualmente</button></p>
+  </div>`, ' window--consulta');
+
+/* 6 · Financeiro */
+const fin = (label, value, hint, tone) => `<article class="stat stat--edge ${tone}"><p class="stat-label">${label}</p><p class="stat-value num">${value}</p><p class="stat-hint">${hint}</p></article>`;
+const financeiro = screen('financeiro', 6, 'Financeiro & Planos', 'financeiro', `<div class="main">
+  ${head('Gestão Financeira & Planos do Consultório', 'Controle honorários, pacotes de acompanhamento e previsibilidade de receita.', `<a class="btn btn--primary btn--sm" href="#financeiro">${ico('plus', 16)} Cadastrar Novo Plano</a>`)}
+  <div class="tabs" role="tablist" aria-label="Financeiro"><button class="tab" role="tab" aria-selected="true" type="button">Visão Geral &amp; Previsões</button><button class="tab" role="tab" aria-selected="false" type="button">Honorários por Paciente (4)</button><button class="tab" role="tab" aria-selected="false" type="button">Catálogo de Planos (3)</button></div>
   <div class="stats">
-    ${stat('Pacientes ativos', '64', '+3 este mês')}
-    ${stat('Consultas hoje', '5', 'próxima às 09:00')}
-    ${stat('Em risco de abandono', '5', 'agir hoje', 'stat--alert')}
-    ${stat('Receita do mês', 'R$ 18.450', '+9% vs. outubro')}
+    ${fin('Faturamento Esperado (Mês)', 'R$ 1.850', 'Previsão de receita dos contratos ativos', 'edge-1')}
+    ${fin('Recebimentos Confirmados (Pagos)', 'R$ 1.150', '62% da receita liquidada', 'edge-2')}
+    ${fin('A Receber / Pendente', 'R$ 700', 'Acompanhar datas de vencimento', 'edge-3')}
+    ${fin('Ticket Médio por Paciente', 'R$ 463', 'Em 4 pacientes ativos', 'edge-4')}
   </div>
-  <div class="split">
-    <section class="panel" aria-label="Precisa de atenção">
-      <h4>Precisa de atenção</h4>
-      <ul class="attention">${ATTENTION.map((a) => `<li>${avatar(a.name)}<div class="grow"><strong class="truncate">${a.name}</strong><small>${a.note}</small></div>${riskChip(a.risk)}<button class="btn btn--sm btn--ghost" type="button">Enviar mensagem</button></li>`).join('')}</ul>
-    </section>
-    <section class="panel" aria-label="Adesão semanal">
-      <h4>Adesão semanal</h4>
-      ${bars([78, 81, 84, 80, 86, 88, 86], ['S', 'T', 'Q', 'Q', 'S', 'S', 'D'], { unit: 'em %' })}
-    </section>
-  </div>`);
+  <section class="banner" aria-label="Inteligência preditiva"><h4>Inteligência Preditiva: Oportunidades de Renovação</h4><p>Cruzando a pontuação de XP dos pacientes com a data de término dos planos, o Nutrivvo sugere quem está pronto para renovar.</p>
+    <ul class="rows rows--card"><li class="line-row">${avatar('Carlos Eduardo Lima')}<div class="grow"><strong>Carlos Eduardo Lima</strong><small>Plano Atual: Plano Trimestral VIP (Vence em 26/11/2026)</small></div><span class="chip chip--ok">Alta Adesão (Apto para Upgrade)</span><button class="btn btn--primary btn--sm" type="button">Oferecer Renovação</button></li></ul></section>
+</div>`);
 
-const pacientes = screen('pacientes', 2, 'Pacientes', 'pacientes', `
-  ${topbar('Pacientes', '<a class="btn btn--sm btn--primary" href="#pacientes">Novo paciente</a>')}
-  <div class="filters" role="group" aria-label="Filtros">
-    <button class="filter" type="button" aria-pressed="true">Todos</button><button class="filter" type="button" aria-pressed="false">Em risco</button><button class="filter" type="button" aria-pressed="false">Novos</button><button class="filter" type="button" aria-pressed="false">Plano vencendo</button>
-  </div>
-  <div class="table-wrap">
-    <table class="table">
-      <thead><tr><th scope="col">Paciente</th><th scope="col">Idade</th><th scope="col">Objetivo</th><th scope="col">Adesão</th><th scope="col">Risco</th></tr></thead>
-      <tbody>${PATIENTS.map((p) => `<tr><th scope="row"><span class="cell-person">${avatar(p.name)}<span class="truncate cell-name">${p.name}</span></span></th><td class="num">${p.age}</td><td>${p.goal}</td><td><span class="cell-adh">${adherence(p.adherence)}<span class="num">${p.adherence}%</span></span></td><td>${riskChip(p.risk)}</td></tr>`).join('')}</tbody>
-    </table>
-  </div>`);
-
-const ficha = screen('ficha', 3, 'Ficha do paciente', 'pacientes', `
-  ${topbar('Ficha do paciente')}
-  <div class="profile">
-    ${avatar('Carlos Menezes')}
-    <div class="grow"><h3>Carlos Menezes</h3><p>47 anos · Hipertrofia</p></div>
-    <ul class="profile-facts"><li><small>Peso</small><strong class="num">82,4 kg</strong><small>meta 78 kg</small></li><li><small>Ofensiva</small><strong class="num">${ico('flame', 16)} 14 dias</strong></li></ul>
-  </div>
-  <div class="biomarkers">
-    <article class="panel"><small>Glicemia</small><strong class="num">92 mg/dL</strong>${spark([98, 96, 95, 94, 93, 92], 120, 36, 'Glicemia em queda')}</article>
-    <article class="panel"><small>Colesterol total</small><strong class="num">188 mg/dL</strong>${spark([214, 205, 199, 195, 191, 188], 120, 36, 'Colesterol em queda')}</article>
-    <article class="panel"><small>HbA1c</small><strong class="num">5,4%</strong>${spark([6.1, 5.9, 5.8, 5.6, 5.5, 5.4], 120, 36, 'HbA1c em queda')}</article>
-  </div>
-  <div class="split">
-    <section class="panel" aria-label="HbA1c em 6 meses"><h4>HbA1c — 6 meses</h4>${lineChart([6.1, 5.9, 5.8, 5.6, 5.5, 5.4], ['Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov'], { min: 5.2, max: 6.3 })}</section>
-    <section class="panel" aria-label="Diário por foto"><h4>Últimas fotos do diário</h4>
-      <ul class="photos">${['Café · 07:42', 'Almoço · 12:55', 'Lanche · 16:10', 'Jantar · 20:05'].map((l) => `<li class="photo">${ico('camera', 22)}<span>${l}</span></li>`).join('')}</ul>
-    </section>
-  </div>`);
-
-const plano = screen('plano', 4, 'Montador de plano alimentar', 'planos', `
-  ${topbar('Plano de 2.100 kcal', '<a class="btn btn--sm btn--primary" href="#plano">Enviar ao paciente</a>')}
-  <div class="split split--plan">
-    <section class="panel" aria-label="Refeições">
-      <h4>Refeições</h4>
-      <ol class="meals">${MEALS.map((m) => `<li class="meal"><div class="meal-head"><strong>${m.name}</strong><span class="num">${m.kcal} kcal</span></div><p>${m.items.join(' · ')}</p></li>`).join('')}</ol>
-    </section>
-    <section class="panel macros" aria-label="Macros">
-      <h4>Distribuição de macros</h4>
-      ${donut([{ pct: 28, label: 'Proteína' }, { pct: 47, label: 'Carboidrato' }, { pct: 25, label: 'Gordura' }], { value: '2.100', label: 'kcal' })}
-      <ul class="legend"><li><i class="sw sw-1"></i>Proteína <b class="num">28%</b></li><li><i class="sw sw-2"></i>Carboidrato <b class="num">47%</b></li><li><i class="sw sw-3"></i>Gordura <b class="num">25%</b></li></ul>
-    </section>
-  </div>`);
-
-const agenda = screen('agenda', 5, 'Agenda semanal', 'agenda', `
-  ${topbar('Semana de 17 a 21 de novembro')}
-  <div class="week">
-    ${WEEK.map((d) => `<section class="day${d.today ? ' day--today' : ''}" aria-label="${d.day} ${d.date}"><h4><span>${d.day}</span><span class="num">${d.date}</span></h4><ul>${d.events.map((e) => `<li class="event"><span class="num">${e.t}</span><strong class="truncate">${e.who}</strong><small>${e.kind}</small></li>`).join('')}</ul></section>`).join('')}
-  </div>`);
-
-const financeiro = screen('financeiro', 6, 'Financeiro', 'financeiro', `
-  ${topbar('Financeiro')}
-  <div class="stats stats--3">
-    ${stat('Receita do mês', 'R$ 18.450', '+9% vs. outubro')}
-    ${stat('A receber', 'R$ 3.200', '4 cobranças')}
-    ${stat('Inadimplência', '4%', 'abaixo da média', 'stat--ok')}
-  </div>
-  <div class="split">
-    <section class="panel" aria-label="Receita por mês"><h4>Receita por mês (R$ mil)</h4>${bars([12.1, 13.4, 15.2, 14.8, 16.9, 18.45], ['Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov'], { unit: 'em R$ mil' })}</section>
-    <section class="panel" aria-label="Lançamentos"><h4>Lançamentos</h4>
-      <ul class="ledger">${TRANSACTIONS.map((t) => `<li><div class="grow"><strong>${t.what}</strong><small class="truncate">${t.who}</small></div><span class="num">${t.value}</span><span class="chip chip--${t.status === 'pago' ? 'ok' : 'warn'}">${t.status}</span></li>`).join('')}</ul>
-    </section>
-  </div>`);
-
-/** Corpo da página do nutricionista: 6 telas [data-screen]. */
+/** Corpo da página do nutricionista: 6 telas [data-screen] baseadas no CRM real. */
 export function nutri() {
-  return `<main class="screens">${dashboard}${pacientes}${ficha}${plano}${agenda}${financeiro}</main>`;
+  return `<main class="screens">${overview}${agenda}${pacientes}${prontuario}${consulta}${financeiro}</main>`;
 }

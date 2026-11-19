@@ -8,7 +8,7 @@
   box-shadow: 0 30px 60px -20px rgba(0, 0, 0, .35);
   display: flex; flex-direction: column;
 }
-.phone-body { flex: 1; overflow-y: auto; padding: 56px 20px 16px; }
+.phone-body { flex: 1; overflow-y: auto; }
 .phone-nav { display: flex; justify-content: space-around; border-top: 1px solid var(--border); background: var(--surface); }
 .phone-nav a, .phone-nav button { min-width: 44px; min-height: 44px; display: grid; place-items: center; padding: 10px 14px; color: var(--text-muted); text-decoration: none; background: none; border: 0; font: inherit; }
 .phone-nav [aria-current='page'] { color: var(--primary); font-weight: 700; }

@@ -105,10 +105,10 @@ for (const style of STYLES) {
   await p.goto(url(style, 'landing'));
   const gaps = await p.evaluate(() => {
     const m = (s) => { const e = document.querySelector(s); return e ? getComputedStyle(e) : null; };
-    return { cta: parseFloat(m('.cta').marginBottom), problem: parseFloat(m('.problem').marginTop) };
+    return { cta: parseFloat(m('.cta').marginBottom), features: parseFloat(m('.features').marginTop) };
   });
   if (gaps.cta < 24) failures.push(`respiro ${style}/landing: .cta margin-bottom ${gaps.cta}px (mín 24)`);
-  if (style === 'otto' && gaps.problem < 24) failures.push(`respiro otto/landing: .problem margin-top ${gaps.problem}px (mín 24)`);
+  if (Number.isNaN(gaps.features)) failures.push(`respiro ${style}/landing: .features sem margem calculável`);
   await p.close();
 }
 await browser.close();

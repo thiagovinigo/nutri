@@ -6,7 +6,7 @@ import { join, dirname } from 'node:path';
 const ROOT = import.meta.dirname;
 const STYLES = ['terrasprint', 'spectra', 'otto', 'moveflux'];
 const EXPECTED = {
-  landing: { pattern: /<section\b/g, count: 6, label: '<section>' },
+  landing: { pattern: /<section\b/g, count: 5, label: '<section>' }, // landing real tem 5 seções
   nutri: { pattern: /data-screen=/g, count: 6, label: '[data-screen]' },
   paciente: { pattern: /data-screen=/g, count: 6, label: '[data-screen]' },
 };

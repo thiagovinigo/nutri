@@ -14,6 +14,13 @@
 .links { display: grid; gap: 8px; margin-top: auto; }
 .links a { display: flex; justify-content: space-between; align-items: center; min-height: 44px; padding: 10px 16px; border: 1px solid var(--text); border-radius: 999px; text-decoration: none; font-weight: 600; }
 .links a:hover { background: var(--text); color: #fff; }
+.atual { margin-top: 56px; padding-top: 32px; border-top: 1px solid var(--border); }
+.atual h2 { font: 700 1.6rem/1.1 var(--font-display); }
+.atual p { margin-top: 8px; color: var(--text-muted); max-width: 62ch; }
+.atual-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 420px), 1fr)); gap: 20px; margin-top: 24px; }
+.atual figure { margin: 0; background: var(--surface); border: 1px solid var(--border); border-radius: 14px; overflow: hidden; }
+.atual img { width: 100%; height: auto; }
+.atual figcaption { padding: 12px 16px; color: var(--text-muted); font-size: .9rem; }
 .zip-warn:not([hidden]) { display: block; margin-bottom: 24px; padding: 16px 20px; border-radius: 14px; background: #fff3cd; border: 2px solid #b45309; color: #4a2c00; }
 .zip-warn code { background: rgba(0, 0, 0, .08); padding: 1px 6px; border-radius: 4px; }
 .foot { margin-top: 40px; color: var(--text-muted); font-size: .9rem; }

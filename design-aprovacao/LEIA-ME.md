@@ -1,6 +1,6 @@
 # Redesign Nutrivvo — pacote para aprovação do cliente
 
-Quatro direções visuais, cada uma com **landing**, **app do nutricionista** (desktop) e **app do paciente** (mobile), 6 telas por conjunto. Conteúdo e dados são os mesmos e fictícios; muda só o visual.
+Quatro direções visuais que redesenham as **telas reais do Nutrivvo**: a landing de produção (5 seções), o CRM do nutricionista (Visão Geral, Agenda, Meus Pacientes, Prontuário, Consulta, Financeiro) e o app do paciente (Início, Plano, Treino, Receitas, IA, Perfil). Textos, estrutura e fluxos vêm do app atual; os dados são os do modo demo (fictícios). Muda só o visual. O índice mostra os prints atuais em "Como é hoje" para comparar.
 
 ## Como abrir
 Dê dois cliques em `index.html` (abre no navegador, sem internet e sem instalar nada).

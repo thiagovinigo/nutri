@@ -35,6 +35,12 @@ button { font: inherit; color: inherit; cursor: pointer; }
 .chart .seg-2 { stroke: var(--accent); }
 .chart .seg-3 { stroke: var(--border); }
 .chart .donut-num { fill: var(--text); font: 700 20px var(--font-display); }
+.chart .line-2 { stroke: var(--accent); }
+.chart .dot-2 { stroke: var(--accent); }
+.chart .ring-track { fill: none; stroke: var(--border); stroke-width: 9; }
+.chart .ring-fill { fill: none; stroke: var(--primary); stroke-width: 9; stroke-linecap: round; }
+.chart .ring-num { fill: var(--text); font: 700 20px var(--font-display); }
+.ring { width: 92px; height: 92px; flex: none; }
 .spark { width: 100%; max-width: 140px; }
 
 @media (prefers-reduced-motion: reduce) {

@@ -1,5 +1,5 @@
 // Gera as 12 páginas + índice. Uso: node design-aprovacao/_build/build.mjs
-import { mkdirSync, writeFileSync } from 'node:fs';
+import { copyFileSync, mkdirSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { STYLES, SURFACES, BRAND } from './data.mjs';
 import { landing } from './landing.mjs';
@@ -67,6 +67,14 @@ function indexPage() {
       <p class="how"><strong>Como aprovar:</strong> abra os três links de cada estilo, compare e responda com a letra do estilo escolhido (A, B, C ou D) e o que gostaria de ajustar.</p>
     </header>
     <div class="grid">${cards}</div>
+    <section class="atual" aria-labelledby="atual-t">
+      <h2 id="atual-t">Como é hoje</h2>
+      <p>As telas reais do Nutrivvo em produção, para comparar com os estilos acima. Os 4 estilos redesenham estas mesmas telas.</p>
+      <div class="atual-grid">
+        <figure><img src="_shared/atual/screen_nutri.png" alt="Painel Visão Geral do CRM do nutricionista, atual" /><figcaption>CRM do nutricionista · Visão Geral</figcaption></figure>
+        <figure><img src="_shared/atual/screen_paciente.png" alt="Tela Início do app do paciente, atual" /><figcaption>App do paciente · Início</figcaption></figure>
+      </div>
+    </section>
     <p class="foot">Protótipos estáticos para validar o visual. Nenhum dado é real.</p>
   </main>
   <script>
@@ -75,6 +83,12 @@ function indexPage() {
 </body>
 </html>
 `;
+}
+
+// Prints reais do produto, usados no índice como "Como é hoje".
+mkdirSync(join(OUT, '_shared', 'atual'), { recursive: true });
+for (const f of ['screen_nutri.png', 'screen_paciente.png']) {
+  copyFileSync(join(OUT, '..', 'public', f), join(OUT, '_shared', 'atual', f));
 }
 
 for (const style of STYLES) {

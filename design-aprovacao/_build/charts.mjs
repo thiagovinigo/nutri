@@ -46,6 +46,33 @@ export function lineChart(values, labels, { w = 520, h = 210, min, max } = {}) {
   return `<svg class="chart line-chart" viewBox="0 0 ${w} ${h}" role="img" aria-label="Evolução em ${labels.length} meses">${grid}<polygon class="area" points="${area}"/><polyline class="line" points="${pts}"/>${dots}${text}</svg>`;
 }
 
+/** Duas séries com escalas independentes (ex.: Peso kg e % Gordura), como o gráfico do prontuário. */
+export function dualLine(a, b, labels, { w = 560, h = 230 } = {}) {
+  const padX = 22;
+  const top = 16;
+  const bottom = 28;
+  const xs = a.map((_, i) => padX + (i / (a.length - 1)) * (w - padX * 2));
+  const scale = (vals) => {
+    const lo = Math.min(...vals) - 0.4 * (Math.max(...vals) - Math.min(...vals) || 1);
+    const hi = Math.max(...vals) + 0.4 * (Math.max(...vals) - Math.min(...vals) || 1);
+    return vals.map((v) => top + (1 - (v - lo) / (hi - lo)) * (h - top - bottom));
+  };
+  const ya = scale(a);
+  const yb = scale(b);
+  const pts = (ys) => xs.map((x, i) => `${fmt(x)},${fmt(ys[i])}`).join(' ');
+  const grid = [0, 1, 2, 3].map((g) => `<line class="grid-line" x1="${padX}" x2="${w - padX}" y1="${top + (g * (h - top - bottom)) / 3}" y2="${top + (g * (h - top - bottom)) / 3}"/>`).join('');
+  const dots = (ys, cls) => xs.map((x, i) => `<circle class="dot ${cls}" cx="${fmt(x)}" cy="${fmt(ys[i])}" r="3.5"/>`).join('');
+  const text = xs.map((x, i) => `<text class="axis" x="${fmt(x)}" y="${h - 8}" text-anchor="middle">${labels[i]}</text>`).join('');
+  return `<svg class="chart line-chart" viewBox="0 0 ${w} ${h}" role="img" aria-label="Evolução de peso e percentual de gordura">${grid}<polyline class="line" points="${pts(ya)}"/><polyline class="line line-2" points="${pts(yb)}"/>${dots(ya, '')}${dots(yb, 'dot-2')}${text}</svg>`;
+}
+
+/** Anel de progresso (ex.: Performance do dia). */
+export function ring(pct, { size = 92 } = {}) {
+  const r = 40;
+  const C = 2 * Math.PI * r;
+  return `<svg class="chart ring" viewBox="0 0 100 100" width="${size}" height="${size}" role="img" aria-label="${pct}% concluído"><circle class="ring-track" cx="50" cy="50" r="${r}"/><circle class="ring-fill" cx="50" cy="50" r="${r}" stroke-dasharray="${fmt((C * pct) / 100)} ${fmt(C)}" transform="rotate(-90 50 50)"/><text class="ring-num" x="50" y="56" text-anchor="middle">${pct}%</text></svg>`;
+}
+
 /** Rosca de macronutrientes: parts = [{pct, label}] somando 100. */
 export function donut(parts, center) {
   const r = 52;
