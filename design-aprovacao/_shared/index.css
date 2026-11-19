@@ -4,7 +4,7 @@
 .head h1 { font: 800 clamp(2rem, 5vw, 3.25rem)/1.05 var(--font-display); letter-spacing: -.02em; }
 .head p { margin-top: 12px; max-width: 62ch; color: var(--text-muted); font-size: 1.05rem; }
 .how { margin-top: 24px; padding: 16px 20px; background: var(--surface); border: 1px solid var(--border); border-radius: 14px; max-width: 62ch; }
-.grid { display: grid; gap: 20px; margin-top: 40px; grid-template-columns: repeat(auto-fit, minmax(min(100%, 320px), 1fr)); }
+.grid { display: grid; gap: 20px; margin-top: 40px; grid-template-columns: repeat(auto-fit, minmax(min(100%, 235px), 1fr)); }
 .card { background: var(--surface); border: 1px solid var(--border); border-radius: 18px; padding: 24px; display: flex; flex-direction: column; gap: 16px; }
 .card h2 { font: 700 1.5rem/1.1 var(--font-display); }
 .card .letter { font: 700 .8rem/1 var(--font-body); letter-spacing: .12em; text-transform: uppercase; color: var(--text-muted); }
