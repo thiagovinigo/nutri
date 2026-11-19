@@ -98,9 +98,9 @@ small { color: var(--text-muted); font-size: .82rem; }
 .main { padding: 24px clamp(16px, 2.2vw, 32px) 32px; display: grid; gap: 22px; align-content: start; min-width: 0; }
 .topbar { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; justify-content: space-between; }
 .topbar h3 { font: 700 1.6rem/1.1 var(--font-display); letter-spacing: -.01em; }
-.topbar-tools { display: flex; gap: 12px; align-items: center; }
-.search { display: flex; align-items: center; gap: 8px; min-height: 40px; padding: 0 14px; border: 1px solid var(--border); border-radius: 999px; background: var(--surface); color: var(--text-muted); }
-.search input { border: 0; outline: 0; background: none; font: inherit; color: var(--text); width: 150px; }
+.topbar-tools { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; min-width: 0; max-width: 100%; }
+.search { display: flex; align-items: center; gap: 8px; min-height: 40px; padding: 0 14px; border: 1px solid var(--border); border-radius: 999px; background: var(--surface); color: var(--text-muted); min-width: 0; max-width: 100%; }
+.search input { border: 0; outline: 0; background: none; font: inherit; color: var(--text); width: 150px; min-width: 0; max-width: 100%; }
 .stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
 .stats--3 { grid-template-columns: repeat(3, 1fr); }
 .stat { padding: 18px 20px; border: 1px solid var(--border); border-radius: var(--radius); background: var(--surface); display: grid; gap: 4px; }

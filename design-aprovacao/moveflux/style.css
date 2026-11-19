@@ -1,0 +1,103 @@
+/* Estilo D — Moveflux: denso e preciso, neutros stone, âmbar como sinal, cantos curtos */
+:root { --ok: #166534; --warn: #92400e; --alert: #b91c1c; }
+body { font-size: 15px; }
+h1, h2, h3, .stat-value, .fact-num, .price .num, .metrics dd, .topbar h3 { font-weight: 600; letter-spacing: -.03em; }
+.brand { font-weight: 700; letter-spacing: -.02em; }
+.brand-mark { border-radius: 8px; background: var(--accent); color: var(--primary); }
+.btn { border-radius: var(--radius); font-weight: 600; min-height: 44px; }
+.btn--primary:hover { box-shadow: none; transform: none; background: #3a3532; }
+.btn--ghost { border: 1px solid var(--border); background: var(--surface); }
+.btn--ghost:hover { background: var(--surface-2); color: var(--text); border-color: var(--stone-500); }
+.chip { border-radius: 6px; font-weight: 600; }
+.eyebrow { font-family: ui-monospace, 'Cascadia Mono', Consolas, monospace; font-size: .72rem; letter-spacing: .08em; color: var(--stone-500); }
+.eyebrow::before { content: ''; display: inline-block; width: 8px; height: 8px; background: var(--accent); margin-right: 8px; border-radius: 2px; }
+
+/* Landing: grade suíça, linhas finas, sem sombras */
+.site-header { border-bottom: 1px solid var(--border); background: var(--surface); }
+.site-nav a { border-radius: 6px; }
+.hero { grid-template-columns: minmax(0, 1fr) minmax(0, .8fr); }
+.hero h1 { font-size: clamp(2.4rem, 5.4vw, 4.4rem); font-weight: 600; letter-spacing: -.045em; line-height: 1; }
+.hero-art { min-height: 380px; border: 1px solid var(--border); border-radius: var(--radius); background: var(--surface) repeating-linear-gradient(0deg, transparent 0 39px, var(--border) 39px 40px); }
+.art-card { box-shadow: none; border-radius: var(--radius); }
+.art-card--risk { top: 8%; left: 6%; }
+.art-card--streak { top: 40%; right: 6%; background: var(--amber-soft); border-color: var(--accent); }
+.art-card--streak .ico { color: var(--warn); }
+.art-card--adherence { bottom: 6%; left: 6%; width: min(230px, 56%); }
+.art-card--streak { width: min(190px, 40%); }
+.problem, .plans { border-block: 1px solid var(--border); }
+.problem h2, .section-head h2 { font-size: clamp(1.8rem, 3.4vw, 2.8rem); max-width: 26ch; }
+.fact, .feature, .plan { border-radius: var(--radius); box-shadow: none; }
+.fact-num { font-size: 3rem; }
+.fact--solution { background: var(--primary); }
+.fact--solution .fact-num { color: var(--accent); }
+.feature-grid { gap: 0; border: 1px solid var(--border); border-radius: var(--radius); background: var(--surface); overflow: hidden; }
+.feature { border: 0; border-radius: 0; border-right: 1px solid var(--border); border-bottom: 1px solid var(--border); padding: 28px; }
+.feature-ico { background: var(--amber-soft); color: var(--text); border-radius: 8px; width: 44px; height: 44px; }
+.feature h3 { font-size: 1.1rem; font-weight: 600; }
+.quote blockquote { font-weight: 500; font-size: clamp(1.4rem, 2.6vw, 2rem); letter-spacing: -.02em; }
+.metrics dd { font-size: 2.2rem; color: var(--text); }
+.plan--featured { box-shadow: 0 0 0 3px var(--accent); }
+.plan--featured .btn--primary { background: var(--accent); color: var(--primary); }
+.plan-badge { background: var(--accent); color: var(--primary); border-radius: 6px; }
+.cta { border: 1px solid var(--border); border-radius: var(--radius); background: var(--surface); margin-bottom: 40px; }
+
+/* App do nutricionista: denso e pronto para trabalhar */
+.screen-title { font-family: ui-monospace, 'Cascadia Mono', Consolas, monospace; }
+.window { border-radius: 12px; box-shadow: none; min-height: 620px; }
+@media (min-width: 1101px) { .window { grid-template-columns: 200px minmax(0, 1fr); } }
+.sidebar { padding: 16px 12px; gap: 20px; }
+.sidebar nav a { min-height: 40px; border-radius: 6px; font-size: .9rem; }
+.sidebar nav a[aria-current='page'] { background: var(--amber-soft); color: var(--text); box-shadow: inset 3px 0 0 var(--accent); border-radius: 0 6px 6px 0; }
+.main { gap: 16px; padding: 20px 24px 24px; }
+.topbar h3 { font-size: 1.35rem; }
+.stat { border-radius: 8px; padding: 14px 16px; }
+.stat-value { font-size: 1.7rem; font-feature-settings: 'tnum'; }
+.panel, .profile, .day, .table-wrap { border-radius: 8px; padding: 16px; }
+.table-wrap { padding: 0; }
+.table th, .table td { padding: 10px 14px; font-size: .9rem; }
+.table tbody tr:hover > * { background: var(--surface-2); }
+.table thead th { background: var(--surface-2); }
+.search, .filter { border-radius: 6px; }
+.filter[aria-pressed='true'] { background: var(--primary); }
+.avatar { border-radius: 8px; background: var(--surface-2); }
+.meter { height: 6px; border-radius: 2px; }
+.meter-fill { border-radius: 2px; }
+.event { border-left-color: var(--accent); border-radius: 4px; background: var(--surface-2); }
+.day--today { border-color: var(--accent); box-shadow: 0 0 0 1px var(--accent) inset; background: var(--amber-soft); }
+.day--today h4 { color: var(--text); }
+.day--today .event { background: var(--surface); }
+.chart .bar { fill: #d6d3d1; }
+.chart .bar--hi { fill: var(--accent); }
+.chart .line { stroke: var(--primary); }
+.chart .area { fill: var(--accent); opacity: .2; }
+.chart .dot { stroke: var(--primary); }
+.chart .seg-1 { stroke: var(--primary); } .chart .seg-2 { stroke: var(--accent); } .chart .seg-3 { stroke: #d6d3d1; }
+.sw-1 { background: var(--primary); } .sw-2 { background: var(--accent); } .sw-3 { background: #d6d3d1; }
+.photo { border-radius: 6px; background: repeating-linear-gradient(45deg, var(--surface-2) 0 10px, #efeeec 10px 20px); }
+.meal { border-radius: 6px; }
+
+/* App do paciente: funcional, sem excesso */
+.phone { border-color: #1c1917; border-radius: 40px; }
+.phone-nav [aria-current='page'] { color: var(--text); box-shadow: inset 0 3px 0 var(--accent); font-weight: 700; }
+.streak-card { background: var(--primary); border-radius: 12px; }
+.streak-card .ico { color: var(--accent); }
+.mission, .meal-card, .result, .stat-grid div, .ob-steps li { border-radius: 10px; }
+.progress span { background: var(--accent); }
+.meal-card.is-done { background: var(--amber-soft); border-color: var(--accent); }
+.mission.is-done .check { background: var(--primary); }
+.milestone { background: var(--primary); border-radius: 12px; }
+.milestone .ico { color: var(--accent); }
+.badges li { border-radius: 10px; }
+.viewfinder { border-radius: 12px; background: repeating-linear-gradient(45deg, var(--surface-2) 0 10px, #efeeec 10px 20px); }
+.vf { border-color: var(--accent); }
+.bubble { border-radius: 12px; }
+.bubble--me { background: var(--primary); }
+.step-dot { border-radius: 8px; }
+.is-done .step-dot { background: var(--primary); }
+.greet h3, .ob h3 { font-weight: 600; letter-spacing: -.03em; }
+
+@media (max-width: 900px) {
+  .hero { grid-template-columns: 1fr; }
+  .feature-grid { border-radius: var(--radius); }
+  .feature { border-right: 0; }
+}
