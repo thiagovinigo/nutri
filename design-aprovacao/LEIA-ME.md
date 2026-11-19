@@ -34,7 +34,8 @@ As páginas HTML são **geradas**. Para mudar texto, dados ou marcação, edite 
 
 ```
 node design-aprovacao/_build/build.mjs
-node design-aprovacao/verify.mjs
+node design-aprovacao/verify.mjs          # estrutura, offline, links
+node design-aprovacao/verify-visual.mjs   # contraste AA, foco, nomes acessíveis, margens (precisa de Playwright global)
 ```
 
 Para mudar só o visual de um estilo, edite `<estilo>/tokens.css` e `<estilo>/style.css`.

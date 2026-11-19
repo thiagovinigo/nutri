@@ -86,6 +86,7 @@ h1, h2, h3, .stat-value, .fact-num, .price .num, .metrics dd, .topbar h3 { font-
 .meal-card.is-done { background: var(--amber-soft); border-color: var(--accent); }
 .mission.is-done .check { background: var(--primary); }
 .milestone { background: var(--primary); border-radius: 12px; }
+.milestone .btn--ghost { background: transparent; }
 .milestone .ico { color: var(--accent); }
 .badges li { border-radius: 10px; }
 .viewfinder { border-radius: 12px; background: repeating-linear-gradient(45deg, var(--surface-2) 0 10px, #efeeec 10px 20px); }

@@ -34,7 +34,7 @@ small { color: var(--text-muted); font-size: .82rem; }
 .site-nav { display: flex; gap: 8px; margin-left: auto; }
 .site-nav a { padding: 10px 14px; text-decoration: none; color: var(--text-muted); font-weight: 500; border-radius: 999px; min-height: 44px; display: inline-flex; align-items: center; }
 .site-nav a:hover { color: var(--text); background: var(--surface-2); }
-.landing main > section { padding: clamp(56px, 9vw, 120px) clamp(16px, 4vw, 56px); max-width: 1320px; margin: 0 auto; }
+:where(.landing main > section) { padding: clamp(56px, 9vw, 120px) clamp(16px, 4vw, 56px); max-width: 1320px; margin: 0 auto; }
 .hero { display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(0, .9fr); gap: clamp(24px, 5vw, 72px); align-items: center; }
 .hero h1 { font: 700 clamp(2.5rem, 6vw, 5rem)/1.02 var(--font-display); letter-spacing: -.025em; text-wrap: balance; margin-top: 16px; }
 .lede { margin-top: 24px; font-size: clamp(1.05rem, 1.6vw, 1.3rem); color: var(--text-muted); max-width: 52ch; }
@@ -75,7 +75,7 @@ small { color: var(--text-muted); font-size: .82rem; }
 .plan li { display: flex; gap: 10px; align-items: center; }
 .plan li .ico { color: var(--primary); }
 .plan--featured { background: var(--primary); color: var(--on-primary); border-color: transparent; }
-.plan--featured .plan-limit, .plan--featured li .ico { color: inherit; opacity: .85; }
+.plan--featured .plan-limit, .plan--featured li .ico, .plan--featured small { color: inherit; opacity: .85; }
 .plan--featured .btn--primary { background: var(--on-primary); color: var(--primary); }
 .plan-badge { position: absolute; top: -12px; right: 20px; padding: 5px 12px; border-radius: 999px; background: var(--accent); color: #fff; font: 700 .75rem/1 var(--font-body); }
 .cta { text-align: center; display: grid; gap: 28px; justify-items: center; }
@@ -100,6 +100,7 @@ small { color: var(--text-muted); font-size: .82rem; }
 .topbar h3 { font: 700 1.6rem/1.1 var(--font-display); letter-spacing: -.01em; }
 .topbar-tools { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; min-width: 0; max-width: 100%; }
 .search { display: flex; align-items: center; gap: 8px; min-height: 40px; padding: 0 14px; border: 1px solid var(--border); border-radius: 999px; background: var(--surface); color: var(--text-muted); min-width: 0; max-width: 100%; }
+.search:focus-within { outline: 3px solid var(--primary); outline-offset: 2px; }
 .search input { border: 0; outline: 0; background: none; font: inherit; color: var(--text); width: 150px; min-width: 0; max-width: 100%; }
 .stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
 .stats--3 { grid-template-columns: repeat(3, 1fr); }

@@ -17,9 +17,9 @@ const adherence = (n) => `<span class="meter" role="img" aria-label="Adesão ${n
 function sidebar(active) {
   return `
   <aside class="sidebar">
-    <a class="brand brand--app" href="#dashboard"><span class="brand-mark" aria-hidden="true">${ico('leaf', 20)}</span><span class="brand-text">${BRAND}</span></a>
+    <a class="brand brand--app" href="#dashboard" aria-label="${BRAND}"><span class="brand-mark" aria-hidden="true">${ico('leaf', 20)}</span><span class="brand-text">${BRAND}</span></a>
     <nav aria-label="Principal">
-      <ul>${NAV.map((n) => `<li><a href="#${n.target}"${n.key === active ? ' aria-current="page"' : ''}>${ico(n.icon, 20)}<span>${n.label}</span></a></li>`).join('')}</ul>
+      <ul>${NAV.map((n) => `<li><a href="#${n.target}" aria-label="${n.label}"${n.key === active ? ' aria-current="page"' : ''}>${ico(n.icon, 20)}<span>${n.label}</span></a></li>`).join('')}</ul>
     </nav>
     <div class="me">${avatar('Helena Prado')}<div><strong>Dra. Helena Prado</strong><small>Plano Clínica</small></div></div>
   </aside>`;

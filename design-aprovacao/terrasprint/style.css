@@ -1,4 +1,6 @@
 /* Estilo A — TerraSprint: editorial, serifa leve, blocos em tons quentes, formas generosas */
+:root { --ok: #165c38; }
+.photo { color: var(--text); }
 h1, h2, h3, .stat-value, .fact-num, .price .num, .metrics dd { font-weight: 300; }
 .brand, .topbar h3, .profile h3, .plan h3, .feature h3, .panel h4, .row-head h4 { font-weight: 500; }
 .problem h2, .section-head h2, .cta h2, .price .num, .metrics dd, .stat-value, .fact-num { font-weight: 300; }

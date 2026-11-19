@@ -1,5 +1,6 @@
 /* Estilo C — Otto: acolhedor, creme, pastéis arredondados, tipografia gorda e apertada */
-:root { --ok: #2c6e49; --warn: #7a5200; --alert: #a8321f; }
+:root { --ok: #1f5c3a; --warn: #7a5200; --alert: #8f2a19; }
+.meal-card.is-done, .meal-card.is-done small, .meal-card.is-done .kcal, .bubble--ai small { color: var(--text); }
 h1, h2, h3, .stat-value, .fact-num, .price .num, .metrics dd, .topbar h3, .brand { font-weight: 800; letter-spacing: -.04em; }
 .panel h4, .row-head h4, .feature h3, .plan h3, .profile h3, .phone-body h4 { font-weight: 800; letter-spacing: -.02em; }
 .btn { border-radius: 999px; font-weight: 700; }
@@ -93,7 +94,7 @@ h1, h2, h3, .stat-value, .fact-num, .price .num, .metrics dd, .topbar h3, .brand
 .mission, .meal-card, .result, .stat-grid div, .ob-steps li { border: 0; border-radius: 24px; background: var(--surface-2); }
 .meal-card.is-done { background: var(--sage); }
 .mission.is-done { background: var(--sage); }
-.mission.is-done .grow { color: var(--text); opacity: .7; }
+.mission.is-done .grow { color: var(--text); opacity: .85; }
 .progress { height: 12px; background: var(--surface-2); }
 .progress span { background: var(--primary); }
 .milestone { background: var(--sage); color: var(--text); border-radius: 36px; }

@@ -1,5 +1,5 @@
 /* Estilo B — Spectra: escuro premium, tipografia leve, vidro e brilho verde */
-:root { --ok: #34d399; --warn: #fbbf24; --alert: #f87171; --glass: rgba(16, 36, 29, .62); --glow: rgba(52, 211, 153, .22); }
+:root { --ok: #34d399; --warn: #fbbf24; --alert: #fca5a5; --glass: rgba(16, 36, 29, .62); --glow: rgba(52, 211, 153, .22); }
 body { background: radial-gradient(1200px 520px at 50% -120px, #0f3a2c 0%, transparent 70%), var(--bg); background-attachment: fixed; }
 h1, h2, h3, .stat-value, .fact-num, .price .num, .metrics dd, .problem h2, .section-head h2, .cta h2, .topbar h3 { font-weight: 300; letter-spacing: -.035em; }
 .brand-mark { background: var(--primary); box-shadow: 0 0 24px var(--glow); }
@@ -55,8 +55,9 @@ h1, h2, h3, .stat-value, .fact-num, .price .num, .metrics dd, .problem h2, .sect
 /* App do paciente */
 .phone { border-color: #05100c; box-shadow: 0 30px 80px -30px var(--glow), 0 0 0 1px var(--border); background: radial-gradient(500px 260px at 50% 0, #0f3a2c, var(--bg) 70%); }
 .phone-nav { background: var(--glass); backdrop-filter: blur(10px); }
-.streak-card { background: linear-gradient(135deg, #1b6e53, #0f3a2c); border: 1px solid var(--accent); box-shadow: 0 0 40px -16px var(--glow); }
+.streak-card { color: var(--text); background: linear-gradient(135deg, #1b6e53, #0f3a2c); border: 1px solid var(--accent); box-shadow: 0 0 40px -16px var(--glow); }
 .streak-card .ico { color: var(--primary); }
+.streak-card small { color: var(--mint); opacity: 1; }
 .greet h3, .ob h3 { font-weight: 300; font-size: 1.9rem; }
 .milestone { background: linear-gradient(160deg, #1b6e53, #0f3a2c); border: 1px solid var(--accent); color: var(--text); }
 .milestone .ico { color: var(--primary); }
