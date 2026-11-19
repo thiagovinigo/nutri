@@ -1,0 +1,17 @@
+/* Moldura de celular para as telas do paciente. Telas 390×844, centralizadas mesmo em desktop. */
+.phone-stage { display: flex; flex-wrap: wrap; gap: 48px; justify-content: center; align-items: flex-start; padding: 48px 16px; }
+.phone-wrap { display: flex; flex-direction: column; align-items: center; gap: 12px; }
+.phone-label { font: 600 13px/1.2 var(--font-body); letter-spacing: .08em; text-transform: uppercase; color: var(--text-muted); }
+.phone {
+  width: 390px; max-width: 100%; height: 844px; overflow: hidden; position: relative;
+  border-radius: 44px; border: 10px solid var(--text); background: var(--bg); color: var(--text);
+  box-shadow: 0 30px 60px -20px rgba(0, 0, 0, .35);
+  display: flex; flex-direction: column;
+}
+.phone-body { flex: 1; overflow-y: auto; padding: 56px 20px 16px; }
+.phone-nav { display: flex; justify-content: space-around; border-top: 1px solid var(--border); background: var(--surface); }
+.phone-nav a, .phone-nav button { min-width: 44px; min-height: 44px; display: grid; place-items: center; padding: 10px 14px; color: var(--text-muted); text-decoration: none; background: none; border: 0; font: inherit; }
+.phone-nav [aria-current='page'] { color: var(--primary); font-weight: 700; }
+.truncate { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; }
+@media (max-width: 440px) { .phone { height: auto; min-height: 720px; border-width: 6px; border-radius: 32px; } .phone-stage { gap: 32px; padding: 24px 8px; } }
+@media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition: none !important; scroll-behavior: auto !important; } }

@@ -1,0 +1,21 @@
+/* Estilo A — TerraSprint: claro, serifa editorial, verde orgânico + tons quentes */
+@font-face { font-family: 'Fraunces'; src: url('assets/fonts/fraunces.woff2') format('woff2'); font-weight: 100 900; font-style: normal; font-display: swap; }
+@font-face { font-family: 'Geist'; src: url('assets/fonts/geist.woff2') format('woff2'); font-weight: 100 900; font-style: normal; font-display: swap; }
+
+:root {
+  --bg: #f4f5f5;
+  --surface: #ffffff;
+  --surface-2: #f7eeea;
+  --text: #232427;
+  --text-muted: #5b5e63;
+  --primary: #2f6844;
+  --on-primary: #ffffff;
+  --accent: #b4532f;
+  --border: #e1e3e4;
+  --radius: 24px;
+  --peach: #f1ded6;
+  --sky: #dce6f2;
+  --font-display: 'Fraunces', Georgia, 'Times New Roman', serif;
+  --font-body: 'Geist', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  color-scheme: light;
+}

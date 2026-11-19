@@ -1,0 +1,23 @@
+/* Estilo C — Otto: creme acolhedor, verde profundo, pastéis sálvia/pêssego/manteiga */
+@font-face { font-family: 'Inter'; src: url('assets/fonts/inter-800.woff2') format('woff2'); font-weight: 800; font-style: normal; font-display: swap; }
+@font-face { font-family: 'Manrope'; src: url('assets/fonts/manrope-400.woff2') format('woff2'); font-weight: 400 800; font-style: normal; font-display: swap; }
+
+:root {
+  --bg: #fffdf7;
+  --surface: #ffffff;
+  --surface-2: #f6f1e3;
+  --text: #172e2b;
+  --text-muted: #56625d;
+  --primary: #172e2b;
+  --on-primary: #fffdf7;
+  --accent: #3f4d48;
+  --border: #e8e3d3;
+  --radius: 28px;
+  --sage: #c6d7b6;
+  --peach: #f3dbca;
+  --butter: #f6df92;
+  --periwinkle: #c6cffd;
+  --font-display: 'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --font-body: 'Manrope', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  color-scheme: light;
+}

@@ -1,0 +1,19 @@
+/* Estilo B — Spectra: escuro premium, verde-floresta, DM Sans leve */
+@font-face { font-family: 'DM Sans'; src: url('assets/fonts/dmsans.woff2') format('woff2'); font-weight: 100 1000; font-style: normal; font-display: swap; }
+
+:root {
+  --bg: #0a1814;
+  --surface: #10241d;
+  --surface-2: #163027;
+  --text: #eaf4ef;
+  --text-muted: #9bb5a9;
+  --primary: #34d399;
+  --on-primary: #05150f;
+  --accent: #3f8568;
+  --border: #1f3d32;
+  --radius: 14px;
+  --mint: #d1fae5;
+  --font-display: 'DM Sans', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --font-body: 'DM Sans', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  color-scheme: dark;
+}

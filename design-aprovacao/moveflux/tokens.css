@@ -1,0 +1,20 @@
+/* Estilo D — Moveflux: neutros stone, âmbar, Inter; denso e limpo */
+@font-face { font-family: 'Inter'; src: url('assets/fonts/inter.woff2') format('woff2'); font-weight: 100 900; font-style: normal; font-display: swap; }
+
+:root {
+  --bg: #fafaf9;
+  --surface: #ffffff;
+  --surface-2: #f5f5f4;
+  --text: #1c1917;
+  --text-muted: #57534e;
+  --primary: #1c1917;
+  --on-primary: #ffffff;
+  --accent: #f59e0b;
+  --border: #e7e5e4;
+  --radius: 8px;
+  --amber-soft: #fef3c7;
+  --stone-500: #78716c;
+  --font-display: 'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --font-body: 'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  color-scheme: light;
+}
