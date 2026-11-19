@@ -14,4 +14,6 @@
 .links { display: grid; gap: 8px; margin-top: auto; }
 .links a { display: flex; justify-content: space-between; align-items: center; min-height: 44px; padding: 10px 16px; border: 1px solid var(--text); border-radius: 999px; text-decoration: none; font-weight: 600; }
 .links a:hover { background: var(--text); color: #fff; }
+.zip-warn:not([hidden]) { display: block; margin-bottom: 24px; padding: 16px 20px; border-radius: 14px; background: #fff3cd; border: 2px solid #b45309; color: #4a2c00; }
+.zip-warn code { background: rgba(0, 0, 0, .08); padding: 1px 6px; border-radius: 4px; }
 .foot { margin-top: 40px; color: var(--text-muted); font-size: .9rem; }

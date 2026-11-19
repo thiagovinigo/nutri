@@ -60,6 +60,7 @@ function indexPage() {
 </head>
 <body>
   <main class="wrap">
+    <p id="zip-warn" class="zip-warn" role="alert" hidden><strong>Extraia o arquivo .zip antes de abrir.</strong> Você abriu o índice de dentro do .zip, por isso os links dos estilos não funcionam. Clique com o botão direito no .zip, escolha “Extrair tudo…” e abra o <code>index.html</code> da pasta extraída.</p>
     <header class="head">
       <h1>Redesign do ${BRAND}: escolha o estilo</h1>
       <p>Quatro direções visuais, cada uma com a landing, o app do nutricionista e o app do paciente. O conteúdo e os dados são os mesmos (fictícios); muda só o visual.</p>
@@ -68,6 +69,9 @@ function indexPage() {
     <div class="grid">${cards}</div>
     <p class="foot">Protótipos estáticos para validar o visual. Nenhum dado é real.</p>
   </main>
+  <script>
+    try { if (/\.zip([\\/]|$)|Temp\d+_/i.test(decodeURIComponent(location.href))) document.getElementById('zip-warn').hidden = false; } catch (e) {}
+  </script>
 </body>
 </html>
 `;
