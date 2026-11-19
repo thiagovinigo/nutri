@@ -1,0 +1,118 @@
+/* Estilo C — Otto: acolhedor, creme, pastéis arredondados, tipografia gorda e apertada */
+:root { --ok: #2c6e49; --warn: #7a5200; --alert: #a8321f; }
+h1, h2, h3, .stat-value, .fact-num, .price .num, .metrics dd, .topbar h3, .brand { font-weight: 800; letter-spacing: -.04em; }
+.panel h4, .row-head h4, .feature h3, .plan h3, .profile h3, .phone-body h4 { font-weight: 800; letter-spacing: -.02em; }
+.btn { border-radius: 999px; font-weight: 700; }
+.btn--primary { box-shadow: 0 6px 0 -2px #0b1a18; }
+.btn--primary:hover { transform: translateY(2px); box-shadow: 0 3px 0 -2px #0b1a18; }
+.btn--ghost { border: 2px solid var(--text); }
+.brand-mark { background: var(--butter); color: var(--text); border-radius: 50%; }
+.chip { font-weight: 700; }
+
+/* Landing: tipografia enorme e blocos pastel */
+.hero h1 { font-size: clamp(2.8rem, 7.4vw, 6.4rem); line-height: .94; letter-spacing: -.055em; }
+.eyebrow { background: var(--butter); color: var(--text); padding: 8px 14px; border-radius: 999px; display: inline-block; letter-spacing: .08em; }
+.section-head .eyebrow { justify-self: start; }
+.hero-art { min-height: 440px; }
+.hero-art::before { content: ''; position: absolute; inset: 0 0 0 8%; background: var(--sage); border-radius: 56px 56px 140px 56px; }
+.art-card { border: 0; box-shadow: none; border-radius: 28px; }
+.art-card--risk { background: var(--peach); top: 8%; left: 0; transform: rotate(-4deg); }
+.art-card--streak { background: var(--butter); right: 4%; top: 30%; transform: rotate(5deg); }
+.art-card--streak .ico { color: var(--text); }
+.art-card--adherence { background: var(--surface); bottom: 6%; left: 18%; }
+.problem { background: var(--sage); border-radius: 56px; max-width: calc(1320px - 2 * clamp(16px, 4vw, 56px)) !important; margin-block: 24px; }
+.problem h2 { font-size: clamp(2.4rem, 5.4vw, 4.6rem); max-width: 16ch; letter-spacing: -.05em; }
+.fact { border: 0; border-radius: 32px; }
+.fact-num { font-size: 4.2rem; }
+.fact--solution { background: var(--primary); }
+.feature { border: 0; border-radius: 32px; }
+.feature--1 { background: var(--peach); } .feature--2 { background: var(--butter); } .feature--3 { background: var(--sage); }
+.feature--4 { background: var(--periwinkle); } .feature--5 { background: var(--peach); } .feature--6 { background: var(--butter); }
+.feature-ico { background: rgba(255, 255, 255, .7); border-radius: 50%; }
+.feature p { color: var(--text); opacity: .78; }
+.section-head h2 { font-size: clamp(2.2rem, 5vw, 4.2rem); letter-spacing: -.05em; max-width: 16ch; }
+.proof .quote blockquote { font-weight: 800; letter-spacing: -.04em; }
+.metrics dd { font-size: 3.2rem; color: var(--text); }
+.metrics div { border-bottom: 2px solid var(--text); }
+.plan { border: 2px solid var(--text); border-radius: 36px; background: var(--surface); }
+.plan--featured { background: var(--primary); transform: rotate(-1.5deg); }
+.plan--featured .btn--primary { box-shadow: none; }
+.plan-badge { background: var(--butter); color: var(--text); }
+.cta { background: var(--butter); border-radius: 64px; margin-bottom: 48px; }
+.cta h2 { font-size: clamp(2.2rem, 5vw, 4rem); letter-spacing: -.05em; }
+
+/* App do nutricionista: trilho de ícones + painéis pastel */
+.window { border: 0; border-radius: 40px; background: var(--surface-2); padding: 14px; gap: 14px; box-shadow: none; }
+.sidebar { background: var(--primary); color: var(--on-primary); border: 0; border-radius: 28px; }
+.sidebar .brand { color: var(--on-primary); }
+.sidebar .brand-mark { background: var(--butter); }
+.sidebar nav a { color: rgba(255, 253, 247, .7); }
+.sidebar nav a:hover { background: rgba(255, 253, 247, .12); color: var(--on-primary); }
+.sidebar nav a[aria-current='page'] { background: var(--butter); color: var(--text); }
+.me strong { color: var(--on-primary); }
+.me small { color: rgba(255, 253, 247, .7); }
+.me .avatar { background: var(--sage); color: var(--text); border: 0; }
+.main { padding: 14px 12px 14px 8px; }
+.stat, .panel, .profile, .day, .table-wrap { border: 0; border-radius: 28px; }
+.stat:nth-child(1) { background: var(--sage); }
+.stat:nth-child(2) { background: var(--butter); }
+.stat:nth-child(3) { background: var(--peach); }
+.stat:nth-child(4) { background: var(--periwinkle); }
+.stats--3 .stat:nth-child(3) { background: var(--periwinkle); }
+.stat-label, .stat-hint { color: var(--text); opacity: .72; }
+.stat-value { font-size: 2.3rem; }
+.stat--alert .stat-value { color: var(--alert); }
+.search, .filter { background: var(--surface); border: 0; }
+.filter[aria-pressed='true'] { background: var(--text); color: var(--bg); }
+.day--today { background: var(--butter); box-shadow: none; }
+.day--today h4 { color: var(--text); }
+.event { background: var(--surface-2); border-left: 0; border-radius: 16px; }
+.avatar { background: var(--sage); border: 0; color: var(--text); }
+.photo:nth-child(1) { background: var(--peach); } .photo:nth-child(2) { background: var(--sage); }
+.photo:nth-child(3) { background: var(--butter); } .photo:nth-child(4) { background: var(--periwinkle); }
+.photo { color: var(--text); }
+.chart .bar { fill: var(--sage); }
+.chart .bar--hi { fill: var(--primary); }
+.chart .seg-1 { stroke: var(--primary); } .chart .seg-2 { stroke: var(--peach); } .chart .seg-3 { stroke: var(--butter); }
+.sw-2 { background: var(--peach); } .sw-3 { background: var(--butter); }
+@media (min-width: 1101px) {
+  .window { grid-template-columns: 88px minmax(0, 1fr); }
+  .sidebar { align-items: center; padding: 20px 10px; }
+  .sidebar nav a span, .brand-text, .me div { display: none; }
+  .sidebar nav a { justify-content: center; width: 48px; padding: 10px; border-radius: 50%; }
+}
+
+/* App do paciente: o mais caloroso */
+.phone { border-color: var(--primary); border-radius: 52px; background: var(--bg); }
+.phone-nav { border: 0; margin: 0 14px 14px; border-radius: 999px; background: var(--primary); }
+.phone-nav a { color: rgba(255, 253, 247, .65); border-radius: 999px; }
+.phone-nav [aria-current='page'] { color: var(--text); background: var(--butter); }
+.streak-card { background: var(--butter); color: var(--text); border-radius: 32px; }
+.streak-card small { color: var(--text); }
+.greet h3, .ob h3 { font-size: 2rem; letter-spacing: -.05em; }
+.mission, .meal-card, .result, .stat-grid div, .ob-steps li { border: 0; border-radius: 24px; background: var(--surface-2); }
+.meal-card.is-done { background: var(--sage); }
+.mission.is-done { background: var(--sage); }
+.mission.is-done .grow { color: var(--text); opacity: .7; }
+.progress { height: 12px; background: var(--surface-2); }
+.progress span { background: var(--primary); }
+.milestone { background: var(--sage); color: var(--text); border-radius: 36px; }
+.milestone h3 { font-size: 1.9rem; letter-spacing: -.05em; }
+.milestone .btn--ghost:hover { background: var(--text); color: var(--bg); }
+.badges li:nth-child(1) { background: var(--peach); } .badges li:nth-child(2) { background: var(--butter); } .badges li:nth-child(3) { background: var(--periwinkle); }
+.viewfinder { background: var(--peach); border-radius: 36px; color: var(--text); }
+.vf { border-color: var(--primary); }
+.bubble--ai { background: var(--periwinkle); border: 0; }
+.composer input { border: 2px solid var(--text); background: var(--surface); }
+.steps i { background: var(--surface-2); } .steps i.on { background: var(--primary); }
+.is-now { border: 2px solid var(--primary) !important; }
+.step-dot { background: var(--butter); }
+.is-done .step-dot { background: var(--primary); }
+.check { border-color: var(--text); }
+
+@media (max-width: 900px) {
+  .plan--featured { transform: none; }
+  .problem { border-radius: 36px; }
+  .cta { border-radius: 40px; }
+  .window { border-radius: 28px; padding: 8px; }
+}
