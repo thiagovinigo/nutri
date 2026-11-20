@@ -305,7 +305,7 @@ export default function LandingPageWithRadar() {
                   Confirmadíssimo! Acabei de almoçar, segue a foto do prato 🍲
                 </div>
                 <div style={{ alignSelf: 'flex-start', background: '#ffffff', color: '#1e293b', border: '1px solid #e2e8f0', borderRadius: '12px', padding: '10px 14px', fontSize: '0.82rem', maxWidth: '92%', lineHeight: 1.4 }}>
-                  🎯 <strong>Prato Detectado:</strong> 150g Frango grelhado + Arroz + Salada. Registrado no diário com sucesso! +35 XP creditados na sua ofensiva.
+                  🎯 <strong>Prato Detectado:</strong> 150g Frango grelhado + Arroz + Salada. Registrado no diário com sucesso! +20 XP creditados na sua ofensiva.
                 </div>
               </div>
             </div>
@@ -333,15 +333,33 @@ export default function LandingPageWithRadar() {
                 </p>
               </div>
 
-              <div style={{ position: 'relative', borderRadius: '14px', overflow: 'hidden', height: '170px' }}>
-                <img
-                  src="https://images.unsplash.com/photo-1546069901-ba9599a7e63c?auto=format&fit=crop&w=800&q=80"
-                  alt="Prato"
-                  style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                />
-                <div className="swiss-laser-scan" />
-                <div style={{ position: 'absolute', bottom: '10px', left: '10px', right: '10px', background: 'rgba(15, 23, 42, 0.85)', backdropFilter: 'blur(8px)', color: '#fff', padding: '8px 12px', borderRadius: '8px', fontSize: '0.75rem', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '6px' }}>
-                  <span>🥗 Bowl Mediterrâneo: Salada, Tomate, Tofu, Milho (IA Visual)</span>
+              {/* Componente de Escaneamento Clínico Perfeitamente Alinhado à Gamificação */}
+              <div style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '16px', padding: '16px 18px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.8rem', fontWeight: 800, color: '#0891b2' }}>
+                    <Scan size={15} /> IA VISUAL ATIVA
+                  </div>
+                  <span style={{ fontSize: '0.72rem', fontWeight: 700, color: '#059669', background: '#ecfdf5', padding: '2px 8px', borderRadius: '6px' }}>
+                    ⚡ 1.2s
+                  </span>
+                </div>
+
+                {/* Chips de Alimentos Detectados */}
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
+                  <span style={{ background: '#ffffff', border: '1px solid #cbd5e1', color: '#0f172a', padding: '4px 9px', borderRadius: '8px', fontSize: '0.75rem', fontWeight: 700 }}>
+                    🍗 Frango Grelhado · ~150g
+                  </span>
+                  <span style={{ background: '#ffffff', border: '1px solid #cbd5e1', color: '#0f172a', padding: '4px 9px', borderRadius: '8px', fontSize: '0.75rem', fontWeight: 700 }}>
+                    🍚 Arroz Integral · ~120g
+                  </span>
+                  <span style={{ background: '#ffffff', border: '1px solid #cbd5e1', color: '#0f172a', padding: '4px 9px', borderRadius: '8px', fontSize: '0.75rem', fontWeight: 700 }}>
+                    🥗 Salada Mista
+                  </span>
+                </div>
+
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingTop: '8px', borderTop: '1px dashed #e2e8f0', fontSize: '0.76rem', color: '#64748b' }}>
+                  <span>Registro no diário sem digitação</span>
+                  <span style={{ fontWeight: 800, color: '#7c3aed' }}>+20 XP creditados</span>
                 </div>
               </div>
             </div>
@@ -377,8 +395,8 @@ export default function LandingPageWithRadar() {
                   <div style={{ width: '78%', height: '100%', background: 'linear-gradient(90deg, #ea580c, #f59e0b)' }} />
                 </div>
                 <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '10px', fontSize: '0.78rem', color: '#64748b' }}>
-                  <span>Nível 4: Foco Blindado</span>
-                  <span>Meta: 1.200 XP</span>
+                  <span>Ofensiva ativa · 4/5 refeições</span>
+                  <span>Total: 1.200 XP</span>
                 </div>
               </div>
             </div>

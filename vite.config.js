@@ -85,6 +85,11 @@ export default defineConfig(({ mode }) => {
         maximumFileSizeToCacheInBytes: 5000000,
         clientsClaim: true,
         cleanupOutdatedCaches: true,
+        globIgnores: [
+          '**/ClarixPrototypeApp*',
+          '**/ClientPreviewComparison*',
+          'clarix/**'
+        ],
       },
       manifest: {
         id: '/',

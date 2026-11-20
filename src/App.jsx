@@ -1,5 +1,8 @@
-import React from 'react';
+import React, { Suspense, lazy } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+
+const ClarixPrototypeApp = lazy(() => import('./features/clarix-prototype/ClarixPrototypeApp'));
+const ClientPreviewComparison = lazy(() => import('./pages/ClientPreviewComparison'));
 import DashboardNutri from './features/nutricionista/pages/DashboardNutri';
 import PatientApp from './features/paciente/pages/PatientApp';
 import LandingPage from './pages/LandingPage';
@@ -41,8 +44,18 @@ function App() {
           <Route path="/old" element={<LandingPageOld />} />
           <Route path="/landing-old" element={<LandingPageOld />} />
 
-          {/* Rotas de Preview e Validação Local (Com Mockups Aprimorados) */}
+          {/* Rota Legacy de Preview (Preservada como em produção) */}
           <Route path="/preview" element={<LandingPageWithRadar />} />
+
+          {/* Rota Comparativa Isolada para Envio/Aprovação do Cliente */}
+          <Route
+            path="/proposta"
+            element={
+              <Suspense fallback={<div style={{ minHeight: '100vh', background: '#f6fafe', color: '#0f172a', display: 'grid', placeItems: 'center', fontFamily: 'monospace' }}>NUTRIVVO // CARREGANDO PROPOSTA...</div>}>
+                <ClientPreviewComparison />
+              </Suspense>
+            }
+          />
           <Route path="/preview-final" element={<LandingPageWithRadar />} />
           <Route path="/radar" element={<LandingPageWithRadar />} />
           <Route path="/swiss-light" element={<LandingSwissBentoLight />} />
@@ -59,6 +72,22 @@ function App() {
           <Route path="/paciente" element={<PatientApp />} />
           <Route path="/agendar/:nutriId" element={<PublicBooking />} />
           <Route path="/admin" element={<RequireAuth><AdminDashboard /></RequireAuth>} />
+          <Route
+            path="/clarix"
+            element={
+              <Suspense fallback={<div style={{ minHeight: '100vh', background: '#f6fafe', color: '#0f172a', display: 'grid', placeItems: 'center', fontFamily: 'monospace' }}>NutrIA // CARREGANDO EXPERIÊNCIA...</div>}>
+                <ClarixPrototypeApp />
+              </Suspense>
+            }
+          />
+          <Route
+            path="/clarix/*"
+            element={
+              <Suspense fallback={<div style={{ minHeight: '100vh', background: '#f6fafe', color: '#0f172a', display: 'grid', placeItems: 'center', fontFamily: 'monospace' }}>NutrIA // CARREGANDO EXPERIÊNCIA...</div>}>
+                <ClarixPrototypeApp />
+              </Suspense>
+            }
+          />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </BrowserRouter>

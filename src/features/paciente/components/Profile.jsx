@@ -1,11 +1,14 @@
 import React, { useState, useEffect } from 'react';
-import { User, Save, Scale, X, Sparkles, TrendingUp, ShieldCheck, ShieldAlert, ChevronDown, Flame, Gem, FileText, Activity, MapPin } from 'lucide-react';
+import { User, Save, Scale, X, Sparkles, TrendingUp, ShieldCheck, ShieldAlert, ChevronDown, Flame, Gem, FileText, Activity, MapPin, Download, Trash2, Lock } from 'lucide-react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, Legend, ResponsiveContainer } from 'recharts';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import toast from 'react-hot-toast';
+import { signOut } from 'firebase/auth';
+import { auth } from '../../../services/firebase';
 import { useAppContext } from '../../../context/AppContext';
 import { parseMarkdownTabs } from '../../../utils/examMarkdown';
+import { downloadPatientExportJson } from '../../../utils/lgpdExport';
 
 function formatExamDate(d) {
   if (!d) return '—';
@@ -40,6 +43,9 @@ export default function Profile({ activePatient }) {
   const [editPhone, setEditPhone] = useState('');
   const [showWeightModal, setShowWeightModal] = useState(false);
   const [weightInput, setWeightInput] = useState('');
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [deleteConfirmInput, setDeleteConfirmInput] = useState('');
+  const [isDeletingAccount, setIsDeletingAccount] = useState(false);
 
   useEffect(() => {
     if (activePatient) {
@@ -115,6 +121,49 @@ export default function Profile({ activePatient }) {
       setShowWeightModal(false);
       setWeightInput('');
       toast.success('Peso salvo! Você ganhou +10 XP!');
+    }
+  };
+
+  const handleExportMyData = () => {
+    try {
+      downloadPatientExportJson(activePatient);
+      toast.success('Seus dados foram exportados em JSON!');
+    } catch {
+      toast.error('Não foi possível exportar seus dados agora.');
+    }
+  };
+
+  const handleDeleteMyAccount = async (e) => {
+    e.preventDefault();
+    if (deleteConfirmInput.trim().toUpperCase() !== 'EXCLUIR') return;
+
+    if (!auth?.currentUser) {
+      toast.error('Faça login com sua conta para solicitar exclusão definitiva.');
+      return;
+    }
+
+    setIsDeletingAccount(true);
+    try {
+      const token = await auth.currentUser.getIdToken();
+      const resp = await fetch('/api/patient-lgpd', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`
+        },
+        body: JSON.stringify({ confirmText: 'EXCLUIR' })
+      });
+      const data = await resp.json().catch(() => ({}));
+      if (!resp.ok) {
+        throw new Error(data.error || 'Erro ao excluir conta e dados.');
+      }
+      await signOut(auth);
+      toast.success('Conta e dados excluídos definitivamente conforme a LGPD.');
+      window.location.href = '/';
+    } catch (err) {
+      toast.error(err?.message || 'Não foi possível concluir a exclusão definitiva.');
+    } finally {
+      setIsDeletingAccount(false);
     }
   };
 
@@ -340,13 +389,58 @@ export default function Profile({ activePatient }) {
       )}
 
       {/* Bloco 3: Conquistas — tira do 4º card, vira uma faixa curta (não duplica a TopBar) */}
-      <div className="patient-card" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px' }}>
+      <div className="patient-card" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px', marginBottom: '16px' }}>
         <span style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.9rem', fontWeight: 700, color: 'var(--patient-text)' }}>
           <Flame size={18} color="#f97316" /> {activePatient?.streak ?? 0} dias seguidos
         </span>
         <span style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.9rem', fontWeight: 700, color: 'var(--patient-text)' }}>
           <Gem size={18} color="#8b5cf6" /> {activePatient?.xp ?? 0} XP
         </span>
+      </div>
+
+      {/* Bloco 4: Soberania e Privacidade (LGPD Art. 18) */}
+      <div className="patient-card" style={{ marginBottom: '16px' }}>
+        <h3 style={styles.cardTitle}>
+          <Lock size={18} color="#8b5cf6" /> Privacidade &amp; Dados (LGPD)
+        </h3>
+        <p style={{ margin: '0 0 14px 0', fontSize: '0.84rem', color: 'var(--patient-text-muted)', lineHeight: 1.45 }}>
+          Você tem autonomia total sobre os seus registros de saúde: baixe uma cópia completa em JSON ou solicite a exclusão definitiva da sua conta a qualquer momento.
+        </p>
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px' }}>
+          <button
+            type="button"
+            className="btn-3d btn-secondary"
+            style={{ flex: '1 1 180px', justifyContent: 'center', display: 'inline-flex', alignItems: 'center', gap: '8px', padding: '10px 14px', fontSize: '0.88rem' }}
+            onClick={handleExportMyData}
+          >
+            <Download size={16} /> Exportar Meus Dados (JSON)
+          </button>
+          <button
+            type="button"
+            className="btn-3d"
+            style={{
+              flex: '1 1 160px',
+              justifyContent: 'center',
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '8px',
+              padding: '10px 14px',
+              fontSize: '0.88rem',
+              backgroundColor: 'rgba(239, 68, 68, 0.12)',
+              color: '#dc2626',
+              border: '1px solid rgba(239, 68, 68, 0.35)',
+              borderRadius: '12px',
+              fontWeight: 700,
+              cursor: 'pointer'
+            }}
+            onClick={() => {
+              setDeleteConfirmInput('');
+              setShowDeleteModal(true);
+            }}
+          >
+            <Trash2 size={16} /> Excluir Minha Conta
+          </button>
+        </div>
       </div>
 
       {showWeightModal && (
@@ -374,6 +468,65 @@ export default function Profile({ activePatient }) {
             <button type="submit" className="btn-3d" style={{ ...styles.actionBtn, backgroundColor: '#f59e0b', boxShadow: '0 4px 0 #d97706', width: '100%', justifyContent: 'center' }}>
               <Scale size={18} /> Salvar Peso
             </button>
+          </form>
+        </div>
+      )}
+
+      {showDeleteModal && (
+        <div style={styles.modalOverlay} onClick={() => !isDeletingAccount && setShowDeleteModal(false)}>
+          <form onSubmit={handleDeleteMyAccount} className="patient-card" style={{ width: 'min(380px, 100%)' }} onClick={e => e.stopPropagation()}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
+              <h4 style={{ margin: 0, color: '#dc2626', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <Trash2 size={18} /> Excluir Conta e Dados (LGPD)
+              </h4>
+              <button type="button" onClick={() => !isDeletingAccount && setShowDeleteModal(false)} style={styles.closeBtn} aria-label="Fechar modal de exclusão">
+                <X size={20} />
+              </button>
+            </div>
+            <p style={{ margin: '0 0 12px 0', fontSize: '0.86rem', color: 'var(--patient-text-muted)', lineHeight: 1.45 }}>
+              Esta ação apaga permanentemente seu perfil, histórico alimentar, pesos, exames e acesso ao aplicativo, sem possibilidade de reversão. Recomendamos exportar seus dados antes.
+            </p>
+            <label className="patient-label" htmlFor="lgpd-delete-confirm">
+              Digite <strong>EXCLUIR</strong> para confirmar:
+            </label>
+            <input
+              id="lgpd-delete-confirm"
+              type="text"
+              className="patient-input"
+              placeholder="EXCLUIR"
+              value={deleteConfirmInput}
+              onChange={(e) => setDeleteConfirmInput(e.target.value)}
+              style={{ marginBottom: '16px' }}
+              autoFocus
+            />
+            <div style={{ display: 'flex', gap: '10px', justifyContent: 'flex-end' }}>
+              <button
+                type="button"
+                className="btn-3d btn-secondary"
+                disabled={isDeletingAccount}
+                onClick={() => setShowDeleteModal(false)}
+                style={{ padding: '10px 14px', fontSize: '0.86rem' }}
+              >
+                Cancelar
+              </button>
+              <button
+                type="submit"
+                className="btn-3d"
+                disabled={isDeletingAccount || deleteConfirmInput.trim().toUpperCase() !== 'EXCLUIR'}
+                style={{
+                  padding: '10px 16px',
+                  fontSize: '0.86rem',
+                  fontWeight: 800,
+                  borderRadius: '12px',
+                  border: 'none',
+                  cursor: isDeletingAccount || deleteConfirmInput.trim().toUpperCase() !== 'EXCLUIR' ? 'not-allowed' : 'pointer',
+                  backgroundColor: deleteConfirmInput.trim().toUpperCase() === 'EXCLUIR' ? '#dc2626' : '#64748b',
+                  color: '#ffffff'
+                }}
+              >
+                {isDeletingAccount ? 'Excluindo...' : 'Confirmar Exclusão Definitiva'}
+              </button>
+            </div>
           </form>
         </div>
       )}
