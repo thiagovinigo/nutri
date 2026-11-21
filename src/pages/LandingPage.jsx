@@ -600,6 +600,9 @@ export default function LandingPage() {
       {/* ======================================================== */}
       <footer className="w-footer">
         <p>© 2026 Nutrivvo. Todos os direitos reservados.</p>
+        <p className="w-footer-contact">
+          Dúvidas ou parcerias? Fale com a gente: <a href="mailto:thiago.vinigo@gmail.com">thiago.vinigo@gmail.com</a>
+        </p>
         <p className="w-footer-trust">Dados de cada paciente isolados por regra própria no banco — nenhum nutricionista vê paciente de outro.</p>
       </footer>
 

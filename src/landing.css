@@ -411,6 +411,24 @@ html {
   text-align: center;
   color: var(--w-text-muted);
 }
+.w-footer-contact {
+  margin-top: 10px;
+  font-size: 0.9rem;
+}
+.w-footer-contact a {
+  color: var(--w-primary-dark);
+  font-weight: 700;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.w-footer-contact a:hover {
+  text-decoration-thickness: 2px;
+}
+.w-footer-contact a:focus-visible {
+  outline: 2px solid var(--w-primary-dark);
+  outline-offset: 3px;
+  border-radius: 4px;
+}
 .w-footer-trust {
   margin-top: 10px;
   font-size: 0.82rem;
