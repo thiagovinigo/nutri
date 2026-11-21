@@ -1,6 +1,7 @@
 import { db } from '../lib/firebase-admin.js';
 import { sendTelegramText, escapeTelegramHtml } from '../lib/telegram.js';
 import { resolveTodaysMeals } from '../lib/meals.js';
+import { brDateKey, computeWaterGoal, todayWaterMl, shouldSendWaterReminder, buildWaterReminderText } from '../lib/water.js';
 
 export default async function handler(req, res) {
   // Segurança básica: o CRON da Vercel envia automaticamente
@@ -22,6 +23,7 @@ export default async function handler(req, res) {
     // Pegar o horário atual no fuso horário do Brasil (onde o Nutrivvo opera)
     const nowBR = new Date(new Date().toLocaleString("en-US", { timeZone: "America/Sao_Paulo" }));
     const currentHour = nowBR.getHours();
+    const dateKey = brDateKey();
 
     console.log(`[CRON] Rodando verificador de lembretes. Hora atual (BR): ${currentHour}h`);
 
@@ -32,6 +34,26 @@ export default async function handler(req, res) {
 
     for (const doc of patientsSnap.docs) {
       const patient = doc.data();
+
+      // Lembrete de água: SÓ Telegram e só pra quem pediu (waterReminder, criado
+      // pela ferramenta definir_lembrete_agua) - o WhatsApp não manda mensagem
+      // proativa. Vem ANTES do filtro de dieta abaixo: não depende de ter plano.
+      if (shouldSendWaterReminder(patient, { hour: currentHour, dateKey })) {
+        try {
+          const { goalMl } = computeWaterGoal(patient);
+          const sent = await sendTelegramText(
+            patient.telegram_chat_id,
+            buildWaterReminderText(patient, { ml: todayWaterMl(patient, dateKey), goalMl })
+          );
+          if (sent) {
+            await doc.ref.update({ lastWaterReminderKey: `${dateKey}-${currentHour}` });
+            lembretesEnviados++;
+          }
+        } catch (error) {
+          // Um paciente com falha não pode parar o envio dos demais.
+          console.error('[CRON] Falha no lembrete de água de um paciente:', error);
+        }
+      }
 
       // Se não conectou o Telegram ou não tem receitas (dieta), ignora
       if (!patient.telegram_chat_id || !patient.recipes || patient.recipes.length === 0) continue;
