@@ -324,6 +324,18 @@ nutri.
   do `continue`, falha por paciente, trava só após envio ok); (d) tela no CRM para o nutri editar
   `waterGoalMl` (hoje o campo é só lido); (e) `waterGoalMl`/peso × 35 não considera gestante, atleta ou
   restrição renal — definir regra com o nutri.
+- ✅ **[FEITO 21/11/2026, código] Bom dia do Telegram (8h).** PRD/plano: `.claude/prds|plans/bom-dia-telegram.*`.
+  `lib/morning.js`: frase motivadora (7 variações fixas, sem IA), pergunta do sono (a resposta vira
+  `log_sleep`), meta de água do dia e ofensiva; 1x/dia (`lastMorningGreetingKey`), só Telegram, ligado
+  por padrão com opt-out pelo bot (`definir_bom_dia`, grava `morningGreeting`); o lembrete de água da
+  mesma hora é pulado. 206 testes; `code-reviewer` sem CRITICAL/HIGH. **Falta QA real no Telegram.**
+  Em aberto: (a) teste automatizado do handler do cron (envio falho não grava a trava, `greetedNow`,
+  paciente sem dieta); (b) horário por paciente (8h fixo; turnos noturnos); (c) status `undefined`/
+  `pendente` também recebem (só `inativo` é bloqueado) — confirmar se é o desejado; (d) rotação de
+  frases dá um salto na virada de mês (cosmético); (e) revisar o tom dos textos com o nutricionista.
+- 💡 **Landing: e-mail de contato público.** O rodapé de `/` mostra `thiago.vinigo@gmail.com` (pedido do
+  dono, 21/11/2026). Risco: spam por robôs que varrem páginas. Trocar por um endereço do domínio
+  (ex.: contato@nutrivvo.com.br) ou por um formulário de contato quando houver volume.
 - ⬜ **Água ambígua no `log_water`**: o prompt manda "1 copo ≈ 200 ml" e o modelo registra sem
   perguntar quando o valor vem truncado ("de 00 mls"). Pedir confirmação quando o ml informado
   for incompleto/ambíguo. Mexe no prompt compartilhado com o Telegram — validar nos dois canais.

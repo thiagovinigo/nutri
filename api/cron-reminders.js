@@ -2,6 +2,7 @@ import { db } from '../lib/firebase-admin.js';
 import { sendTelegramText, escapeTelegramHtml } from '../lib/telegram.js';
 import { resolveTodaysMeals } from '../lib/meals.js';
 import { brDateKey, computeWaterGoal, todayWaterMl, shouldSendWaterReminder, buildWaterReminderText } from '../lib/water.js';
+import { shouldSendMorningGreeting, buildMorningMessage } from '../lib/morning.js';
 
 export default async function handler(req, res) {
   // Segurança básica: o CRON da Vercel envia automaticamente
@@ -35,10 +36,31 @@ export default async function handler(req, res) {
     for (const doc of patientsSnap.docs) {
       const patient = doc.data();
 
+      // Bom dia (só Telegram, 8h): frase motivadora + sono + meta de água. Se saiu
+      // agora, o lembrete de água desta mesma hora é pulado (o bom dia já cita a meta).
+      // Vem ANTES do filtro de dieta abaixo: não depende de ter plano.
+      let greetedNow = false;
+      if (shouldSendMorningGreeting(patient, { hour: currentHour, dateKey })) {
+        try {
+          const { goalMl } = computeWaterGoal(patient);
+          const sent = await sendTelegramText(
+            patient.telegram_chat_id,
+            buildMorningMessage(patient, { goalMl, dateKey })
+          );
+          if (sent) {
+            await doc.ref.update({ lastMorningGreetingKey: dateKey });
+            greetedNow = true;
+            lembretesEnviados++;
+          }
+        } catch (error) {
+          console.error('[CRON] Falha no bom dia de um paciente:', error);
+        }
+      }
+
       // Lembrete de água: SÓ Telegram e só pra quem pediu (waterReminder, criado
       // pela ferramenta definir_lembrete_agua) - o WhatsApp não manda mensagem
-      // proativa. Vem ANTES do filtro de dieta abaixo: não depende de ter plano.
-      if (shouldSendWaterReminder(patient, { hour: currentHour, dateKey })) {
+      // proativa. Também ANTES do filtro de dieta: não depende de ter plano.
+      if (!greetedNow && shouldSendWaterReminder(patient, { hour: currentHour, dateKey })) {
         try {
           const { goalMl } = computeWaterGoal(patient);
           const sent = await sendTelegramText(
