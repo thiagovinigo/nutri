@@ -1,14 +1,19 @@
 import React, { useEffect, useState } from 'react';
 import {
   Activity,
+  ArrowLeftRight,
   Bot,
   Camera,
   Check,
+  ChefHat,
+  Download,
   Droplets,
   Dumbbell,
+  FileText,
   Flame,
   Home,
   LayoutDashboard,
+  Lock,
   Mic,
   Pause,
   Play,
@@ -16,6 +21,7 @@ import {
   TrendingUp,
   Utensils
 } from 'lucide-react';
+import toast from 'react-hot-toast';
 import ClarixRobotCanvas from '../components/ClarixRobotCanvas';
 import {
   ConicRing,
@@ -23,13 +29,14 @@ import {
   VoiceWaveVisualizer,
   WeightEvolutionChart
 } from '../components/MovefluxCharts';
-import { PHOTO_DISH_SAMPLES, WEEK_DAYS } from '../clarixData';
+import { PHOTO_DISH_SAMPLES, TACO_SUBSTITUTIONS, WEEK_DAYS } from '../clarixData';
 import { useClarix } from '../clarixStore';
 
 export default function ClarixPacienteView({ onNavigate }) {
   const {
     patients,
     activePatient,
+    recipes,
     syncLog,
     botMood,
     botSpeech,
@@ -427,21 +434,39 @@ export default function ClarixPacienteView({ onNavigate }) {
                 </>
               )}
 
-              {/* ABA 4: PLANO ALIMENTAR & TREINOS */}
+              {/* ABA 4: PLANO ALIMENTAR, SUBSTITUIÇÃO TACO, TREINOS & RECEITAS */}
               {tab === 'plano' && (
                 <>
                   <div className="cx-card cx-card-tight" style={{ display: 'flex', flexDirection: 'column', gap: '0.55rem' }}>
                     <strong style={{ fontSize: '0.88rem' }}>Cardápio Sincronizado ({activePatient?.kcalTarget} kcal)</strong>
-                    {(activePatient?.meals || []).map((m) => (
-                      <details key={m.id} style={{ borderTop: '1px solid var(--cx-line)', paddingTop: '0.45rem', fontSize: '0.8rem' }}>
-                        <summary style={{ cursor: 'pointer', fontWeight: 600 }}>
-                          {m.slot} — {m.name}
-                        </summary>
-                        <p style={{ margin: '0.35rem 0 0', color: 'var(--cx-muted)', fontSize: '0.75rem' }}>
-                          {m.prep} ({m.kcal} kcal · P {m.protein}g · C {m.carbs}g · G {m.fats}g)
-                        </p>
-                      </details>
-                    ))}
+                    {(activePatient?.meals || []).map((m, idx) => {
+                      const swapSample = TACO_SUBSTITUTIONS[idx % TACO_SUBSTITUTIONS.length];
+                      return (
+                        <details key={m.id} style={{ borderTop: '1px solid var(--cx-line)', paddingTop: '0.45rem', fontSize: '0.8rem' }}>
+                          <summary style={{ cursor: 'pointer', fontWeight: 600 }}>
+                            {m.slot} — {m.name}
+                          </summary>
+                          <p style={{ margin: '0.35rem 0', color: 'var(--cx-muted)', fontSize: '0.75rem' }}>
+                            {m.prep} ({m.kcal} kcal · P {m.protein}g · C {m.carbs}g · G {m.fats}g)
+                          </p>
+                          <button
+                            type="button"
+                            className="cx-btn cx-btn-sm cx-btn-ghost cx-btn-pill"
+                            style={{ fontSize: '0.7rem', padding: '0.24rem 0.55rem' }}
+                            onClick={() =>
+                              sendBotMessage(
+                                activePatient?.id,
+                                `Quero substituir "${m.name}" respeitando TACO (${swapSample.swap})`,
+                                'patient'
+                              )
+                            }
+                          >
+                            <ArrowLeftRight size={11} aria-hidden="true" />
+                            <span>Trocar via TACO</span>
+                          </button>
+                        </details>
+                      );
+                    })}
                   </div>
 
                   <div className="cx-card cx-card-tight" style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
@@ -476,21 +501,61 @@ export default function ClarixPacienteView({ onNavigate }) {
                       </button>
                     ))}
                   </div>
+
+                  <div className="cx-card cx-card-tight" style={{ display: 'flex', flexDirection: 'column', gap: '0.45rem' }}>
+                    <strong style={{ fontSize: '0.86rem', display: 'inline-flex', alignItems: 'center', gap: '0.35rem' }}>
+                      <ChefHat size={15} color="#0369a1" aria-hidden="true" /> Receitas Bônus da Nutri ({(recipes || []).length})
+                    </strong>
+                    {(recipes || []).slice(0, 3).map((rec) => (
+                      <div key={rec.id} style={{ borderTop: '1px solid var(--cx-line)', paddingTop: '0.4rem', fontSize: '0.75rem' }}>
+                        <strong style={{ display: 'block' }}>{rec.title} · {rec.kcal} kcal</strong>
+                        <span style={{ color: 'var(--cx-muted)' }}>{rec.prep}</span>
+                      </div>
+                    ))}
+                  </div>
                 </>
               )}
 
-              {/* ABA 5: EVOLUÇÃO BIOMÉTRICA */}
+              {/* ABA 5: EVOLUÇÃO, EXAMES & LGPD */}
               {tab === 'evolucao' && (
                 <>
                   <WeightEvolutionChart
                     history={activePatient?.weightHistory}
                     targetWeight={activePatient?.targetWeight}
                   />
-                  <div className="cx-card cx-card-tight">
-                    <strong style={{ fontSize: '0.86rem' }}>Resumo do Ciclo Atual</strong>
-                    <div style={{ fontSize: '0.78rem', color: 'var(--cx-muted)', marginTop: '0.25rem' }}>
-                      Adesão atual em <strong>{activePatient?.adherence}%</strong> com <strong>{activePatient?.streak} dias seguidos</strong> de check-in visual e hidratação.
+                  <div className="cx-card cx-card-tight" style={{ display: 'flex', flexDirection: 'column', gap: '0.45rem' }}>
+                    <strong style={{ fontSize: '0.86rem', display: 'inline-flex', alignItems: 'center', gap: '0.35rem' }}>
+                      <FileText size={14} color="#0369a1" aria-hidden="true" /> Exames &amp; Parecer da Nutri
+                    </strong>
+                    {(activePatient?.labExams || []).map((ex) => (
+                      <div key={ex.name} style={{ borderTop: '1px solid var(--cx-line)', paddingTop: '0.4rem', fontSize: '0.75rem' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', gap: '0.4rem' }}>
+                          <strong>{ex.name}</strong>
+                          <span className="cx-tag cx-tag-info">{ex.value}</span>
+                        </div>
+                        {ex.parecer && (
+                          <div style={{ marginTop: '0.2rem', color: '#0369a1', fontWeight: 500 }}>
+                            Parecer: {ex.parecer}
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                  <div className="cx-card cx-card-tight" style={{ display: 'flex', flexDirection: 'column', gap: '0.45rem' }}>
+                    <strong style={{ fontSize: '0.84rem', display: 'inline-flex', alignItems: 'center', gap: '0.35rem' }}>
+                      <Lock size={14} color="#6d28d9" aria-hidden="true" /> Privacidade &amp; Dados (LGPD)
+                    </strong>
+                    <div style={{ fontSize: '0.74rem', color: 'var(--cx-muted)' }}>
+                      Adesão atual em <strong>{activePatient?.adherence}%</strong> ({activePatient?.streak} dias seguidos). Portabilidade JSON ativa no app real.
                     </div>
+                    <button
+                      type="button"
+                      className="cx-btn cx-btn-sm cx-btn-ghost cx-btn-pill"
+                      onClick={() => toast.success(`Pacote LGPD de ${activePatient?.shortName} pronto para exportação JSON!`)}
+                    >
+                      <Download size={12} aria-hidden="true" />
+                      <span>Exportar Meus Dados (JSON)</span>
+                    </button>
                   </div>
                 </>
               )}

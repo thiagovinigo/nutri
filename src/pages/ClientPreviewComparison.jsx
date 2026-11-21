@@ -78,12 +78,12 @@ function AdaptiveIframe({ initialSrc, targetPath, title, viewMode, iframeTestId 
         style={
           shouldScaleDesktop
             ? {
-                width: `${virtualWidth}px`,
-                height: `${frameHeight}px`,
-                transform: `scale(${scale})`,
-                transformOrigin: 'top left',
-                flexShrink: 0
-              }
+              width: `${virtualWidth}px`,
+              height: `${frameHeight}px`,
+              transform: `scale(${scale})`,
+              transformOrigin: 'top left',
+              flexShrink: 0
+            }
             : undefined
         }
       />
@@ -196,6 +196,74 @@ const FEATURE_MATRIX = [
     prod: 'Cardápio calcula macros, mas diário grava texto livre sem somatório diário',
     proposal: 'Painel Moveflux em tempo real a cada refeição concluída',
     status: 'new'
+  }
+];
+
+const REFORMULATION_BLUEPRINT = [
+  {
+    module: '01 · Cadastro & Ficha de Pacientes',
+    preserved: 'CPF único (patientCpfIndex), telefone Telegram, e-mail, sexo, nascimento, restrições, aversões e medicações.',
+    redesigned: 'Cartões de paciente com tags clínicas imediatas, busca por CPF/objetivo e modal de cadastro completo em 1 tela.',
+    phase: 'Fase 2 · CRM'
+  },
+  {
+    module: '02 · Fluxo de Consulta em 4 Etapas',
+    preserved: 'Anamnese configurável, cálculo Mifflin-St Jeor (TMB/GET + fatores 1.2–1.9 + dobras) e histórico antropométrico.',
+    redesigned: 'Stepper visual Clarix com cálculo automático de TMB/GET ao digitar, cronômetro de teleconsulta e gravação direta no prontuário.',
+    phase: 'Fase 2 · CRM'
+  },
+  {
+    module: '03 · Agenda Semanal & Agendamento Público',
+    preserved: 'Grade semanal, consulta Presencial vs. Teleconsulta com link da sala, confirmações e rota pública /agendar/:nutriId.',
+    redesigned: 'Filtros rápidos por dia da semana, selos de confirmação sincronizados com a NutrIA e cópia rápida do link público.',
+    phase: 'Fase 2 · CRM'
+  },
+  {
+    module: '04 · Prescrição TACO, Suplementos & Treino',
+    preserved: 'Tabela TACO real, geração IA 1–30 dias, substituições com checagem clínica, lista de mercado e treinos A/B.',
+    redesigned: 'Publicação instantânea no App do Paciente com anel de calorias/macros e atualização em tempo real.',
+    phase: 'Fase 2 · CRM'
+  },
+  {
+    module: '05 · Exames PDF/OCR & Biomarcadores',
+    preserved: 'Extração de PDF, parecer da nutricionista + resumo em linguagem leiga e gráfico de biomarcadores.',
+    redesigned: 'Animação de Scanner na NutrIA 3D e cards de status clínico integrados ao prontuário.',
+    phase: 'Fase 2 · CRM'
+  },
+  {
+    module: '06 · App do Paciente (PWA + LGPD)',
+    preserved: 'Check-ins (+20 XP foto / +10 XP água), Receitas Bônus, Análise de Geladeira IA, Perfil e LGPD Exportar/Excluir Conta.',
+    redesigned: 'Interface clara Moveflux + anel calórico + companheira NutrIA 3D interativa no topo.',
+    phase: 'Fase 3 · App Paciente'
+  },
+  {
+    module: '07 · Landing, Secretária 24h & Radar 360°',
+    preserved: 'Webhooks Telegram + WhatsApp, crons diários de abandono/lembrete, score de risco 360° e autenticação Firebase.',
+    redesigned: 'Landing Clarix com simulação ao vivo + cockpit de resgate acionável em 1 clique.',
+    phase: 'Fase 1 & 4'
+  }
+];
+
+const REFORMULATION_PHASES = [
+  {
+    step: 'Fase 1 · Fundação & Landing',
+    scope: 'Tokens Clarix/Moveflux, Landing Page oficial com simulação NutrIA 3D e preservação total das rotas atuais.',
+    eta: 'Semana 1'
+  },
+  {
+    step: 'Fase 2 · CRM, Registro Clínico & Agenda',
+    scope: 'Cockpit Moveflux acoplado ao Firestore real: Cadastro completo, Consulta 4 Etapas (Anamnese + TMB/GET), Agenda Semanal e Financeiro.',
+    eta: 'Semanas 2–3'
+  },
+  {
+    step: 'Fase 3 · App do Paciente PWA',
+    scope: 'Novo App Luminoso conectado ao diário real, Foto IA, Substituição TACO, Treinos, Receitas e módulo LGPD.',
+    eta: 'Semana 4'
+  },
+  {
+    step: 'Fase 4 · Homologação & Go-Live',
+    scope: 'Testes ponta-a-ponta com dados reais da clínica, validação de webhooks/crons e virada sem downtime.',
+    eta: 'Semana 5'
   }
 ];
 
@@ -537,6 +605,59 @@ export default function ClientPreviewComparison() {
                 ))}
               </tbody>
             </table>
+          </div>
+        </section>
+
+        {/* PLANO COMPLETO DE REFORMULAÇÃO (MÓDULO A MÓDULO + CRONOGRAMA) */}
+        <section className="cp-card" style={{ marginTop: '1.35rem' }} aria-label="Proposta completa de reformulação por módulo e fases">
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '0.75rem', marginBottom: '1rem' }}>
+            <div>
+              <span className="cp-eyebrow">PROPOSTA COMPLETA DE REFORMULAÇÃO</span>
+              <h2 style={{ margin: '0.2rem 0 0', fontSize: '1.18rem', fontWeight: 700 }}>
+                Escopo Real: O que é preservado 100% × O que evolui na interface
+              </h2>
+              <p style={{ margin: '0.2rem 0 0', fontSize: '0.82rem', color: 'var(--cp-muted)' }}>
+                Mantemos integralmente a forma atual de registrar informações (CPF, anamnese, TMB/GET, tabela TACO) e a agenda presencial/online com link público.
+              </p>
+            </div>
+            <a href="/clarix/crm" target="_blank" rel="noopener noreferrer" className="cp-btn cp-btn-primary">
+              Testar Fluxo Completo no CRM ↗
+            </a>
+          </div>
+
+          <div className="cp-table-wrap">
+            <table className="cp-table">
+              <thead>
+                <tr>
+                  <th>Módulo do Sistema</th>
+                  <th>Preservado na Regra Atual</th>
+                  <th>Reformulação Clarix + NutrIA</th>
+                  <th>Fase</th>
+                </tr>
+              </thead>
+              <tbody>
+                {REFORMULATION_BLUEPRINT.map((item) => (
+                  <tr key={item.module}>
+                    <td><strong>{item.module}</strong></td>
+                    <td style={{ color: 'var(--cp-muted)' }}>{item.preserved}</td>
+                    <td>{item.redesigned}</td>
+                    <td>
+                      <span className="cp-tag cp-tag-info">{item.phase}</span>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+
+          <div className="cp-diff-grid" style={{ marginTop: '1.1rem' }}>
+            {REFORMULATION_PHASES.map((p) => (
+              <article key={p.step} className="cp-card" style={{ background: '#f8fafc' }}>
+                <span className="cp-tag cp-tag-ok">{p.eta}</span>
+                <h3 style={{ margin: '0.55rem 0 0.35rem', fontSize: '0.96rem', fontWeight: 700 }}>{p.step}</h3>
+                <p style={{ margin: 0, fontSize: '0.79rem', color: 'var(--cp-muted)', lineHeight: 1.45 }}>{p.scope}</p>
+              </article>
+            ))}
           </div>
         </section>
 

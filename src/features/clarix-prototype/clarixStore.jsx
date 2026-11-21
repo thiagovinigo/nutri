@@ -3,12 +3,14 @@ import toast from 'react-hot-toast';
 import {
   INITIAL_APPOINTMENTS,
   INITIAL_PATIENTS,
+  INITIAL_RECIPES,
   MEAL_PLAN_PRESETS,
+  calculateMifflinTmbGet,
   formatBRL,
   generateClarixBotReply
 } from './clarixData';
 
-const STORAGE_KEY = 'nutrivvo_nutria_proto_v3';
+const STORAGE_KEY = 'nutrivvo_nutria_proto_v5';
 
 const ClarixContext = createContext(null);
 
@@ -22,6 +24,15 @@ function createInitialState() {
     patients: INITIAL_PATIENTS,
     activePatientId: 'p-marina',
     appointments: INITIAL_APPOINTMENTS,
+    recipes: INITIAL_RECIPES,
+    clinicSettings: {
+      clinicName: 'Clínica Nutrivvo · Dra. Helena Martins',
+      crn: 'CRN-3 48219',
+      slotMinutes: 45,
+      workDays: 'Seg a Sex · 08h00–19h00',
+      telegramActive: true,
+      whatsappActive: true
+    },
     selectedDayIdx: 2,
     botMood: 'calm',
     botSpeech: 'NutrIA ativa. Monitorando 6 pacientes entre consultas e calibrando trocas TACO em tempo real.',
@@ -38,6 +49,8 @@ function loadState() {
   try {
     localStorage.removeItem('nutrivvo_clarix_proto_v1');
     localStorage.removeItem('nutrivvo_vivvo_proto_v2');
+    localStorage.removeItem('nutrivvo_nutria_proto_v3');
+    localStorage.removeItem('nutrivvo_nutria_proto_v4');
     const raw = localStorage.getItem(STORAGE_KEY);
     if (!raw) return createInitialState();
     const parsed = JSON.parse(raw);
@@ -49,6 +62,8 @@ function loadState() {
       ...parsed,
       patients: parsed.patients,
       appointments: Array.isArray(parsed.appointments) ? parsed.appointments : INITIAL_APPOINTMENTS,
+      recipes: Array.isArray(parsed.recipes) ? parsed.recipes : INITIAL_RECIPES,
+      clinicSettings: { ...createInitialState().clinicSettings, ...(parsed.clinicSettings || {}) },
       syncLog: Array.isArray(parsed.syncLog) ? parsed.syncLog : createInitialState().syncLog
     };
   } catch {
@@ -115,18 +130,52 @@ export function ClarixProvider({ children }) {
     }));
   };
 
-  const addPatient = ({ name, goal, invoiceValue, targetWeight }) => {
+  const addPatient = ({
+    name,
+    goal,
+    invoiceValue,
+    targetWeight,
+    cpf,
+    phone,
+    email,
+    birthDate,
+    gender,
+    restrictions,
+    aversions,
+    medications
+  }) => {
     const cleanName = String(name || '').trim();
     if (!cleanName) return;
     const shortName = cleanName.split(/\s+/).slice(0, 2).join(' ');
     const numericVal = Math.max(0, Number(invoiceValue) || 480);
     const goalWeight = Number(targetWeight) || 68;
     const newId = `p-${Date.now()}`;
+    const safeGender = gender === 'M' ? 'M' : 'F';
+    const baseEval = {
+      weight: String(goalWeight + 1.4),
+      height: safeGender === 'M' ? '176' : '165',
+      age: '31',
+      gender: safeGender,
+      activityLevel: '1.55',
+      bodyFat: safeGender === 'M' ? '18.5' : '24.0',
+      muscleMass: safeGender === 'M' ? '56.0' : '45.0',
+      waist: safeGender === 'M' ? '82' : '74',
+      hips: safeGender === 'M' ? '96' : '99'
+    };
+    const { tmb, get } = calculateMifflinTmbGet(baseEval);
 
     const newPatient = {
       id: newId,
       name: cleanName,
       shortName,
+      cpf: String(cpf || '').trim() || 'Não informado',
+      phone: String(phone || '').trim() || '(11) 99000-0000',
+      email: String(email || '').trim() || 'paciente@nutrivvo.com.br',
+      birthDate: String(birthDate || '').trim() || '1994-05-12',
+      gender: safeGender,
+      restrictions: String(restrictions || '').trim() || 'Nenhuma informada',
+      aversions: String(aversions || '').trim() || 'Nenhuma informada',
+      medications: String(medications || '').trim() || 'Sem uso contínuo',
       goal: String(goal || '').trim() || 'Reeducação Alimentar & Saúde',
       adherence: 88,
       riskLevel: 'low',
@@ -140,13 +189,21 @@ export function ClarixProvider({ children }) {
       stepsGoal: 8000,
       sleepHours: '7h 30m',
       sleepQuality: '86% bom',
-      kcalTarget: 1900,
+      kcalTarget: get ? Math.max(1450, get - 250) : 1900,
       kcalConsumed: 420,
       targetWeight: goalWeight,
       macros: { carbs: 46, carbsGoal: 190, protein: 32, proteinGoal: 150, fats: 12, fatsGoal: 58 },
       invoiceValue: numericVal,
       invoiceStatus: 'pendente',
       lastSeen: 'Agora · Cadastrado no CRM',
+      anamnesis: {
+        routine: 'Acorda 07h, trabalha em escritório, treino 3x/semana às 18h.',
+        sleep: '7h por noite, desperta descansado(a).',
+        digestion: 'Funcionamento intestinal regular (1x/dia).',
+        hydration: 'Ingere ~1,5 L de água; consumo social eventual.',
+        notes: 'Cadastro completo sincronizado com App do Paciente.'
+      },
+      physicalEval: { ...baseEval, tmb, get },
       weightHistory: [
         { month: 'Jun', weight: goalWeight + 4.4, leanMass: 45.0, fatPct: 26.2 },
         { month: 'Jul', weight: goalWeight + 3.8, leanMass: 45.3, fatPct: 25.5 },
@@ -330,27 +387,41 @@ export function ClarixProvider({ children }) {
     toast.success('Refeição adicionada ao App do Paciente!');
   };
 
-  const runLabExamScan = (patientId) => {
+  const runLabExamScan = (patientId, { filename } = {}) => {
     const target = state.patients.find((p) => p.id === patientId) || activePatient;
     if (!target) return;
+    const cleanFile = String(filename || '').trim();
 
     setState((prev) => ({
       ...prev,
       botMood: 'scanning',
-      botSpeech: `NutrIA lendo biomarcadores laboratoriais de ${target.shortName} com IA Clínica...`,
+      botSpeech: cleanFile
+        ? `NutrIA lendo arquivo "${cleanFile}" de ${target.shortName} com OCR + IA Clínica...`
+        : `NutrIA lendo biomarcadores laboratoriais de ${target.shortName} com IA Clínica...`,
       botPulseCount: prev.botPulseCount + 1
     }));
 
     window.setTimeout(() => {
       const updatedExams = [
-        { name: 'Vitamina D (25-OH) · IA PDF', value: '48 ng/mL', status: 'Ideal', note: 'Meta atingida com suplementação atual' },
-        { name: 'Ferritina Sérica · IA PDF', value: '74 ng/mL', status: 'Ótimo', note: 'Alta reserva de ferro para treino' },
-        { name: 'Glicemia em Jejum · IA PDF', value: '86 mg/dL', status: 'Excelente', note: 'Curva estável pós-protocolo' }
+        ...(cleanFile
+          ? [
+              {
+                name: `Laudo ${cleanFile}`,
+                value: 'Analisado IA',
+                status: 'Novo PDF',
+                note: 'Biomarcadores extraídos automaticamente e prontos para parecer.',
+                parecer: ''
+              }
+            ]
+          : []),
+        { name: 'Vitamina D (25-OH) · IA PDF', value: '48 ng/mL', status: 'Ideal', note: 'Meta atingida com suplementação atual', parecer: 'Manter 2.000 UI/dia após almoço.' },
+        { name: 'Ferritina Sérica · IA PDF', value: '74 ng/mL', status: 'Ótimo', note: 'Alta reserva de ferro para treino', parecer: 'Reserva adequada para treinos de força.' },
+        { name: 'Glicemia em Jejum · IA PDF', value: '86 mg/dL', status: 'Excelente', note: 'Curva estável pós-protocolo', parecer: '' }
       ];
       setState((prev) => ({
         ...prev,
         botMood: 'celebrating',
-        botSpeech: `Leitura PDF concluída para ${target.shortName}! Biomarcadores atualizados e sem deficiências críticas detectadas.`,
+        botSpeech: `Leitura ${cleanFile ? `de "${cleanFile}"` : 'PDF'} concluída para ${target.shortName}! Biomarcadores atualizados.`,
         botPulseCount: prev.botPulseCount + 1,
         patients: prev.patients.map((p) =>
           p.id === target.id
@@ -361,10 +432,88 @@ export function ClarixProvider({ children }) {
               }
             : p
         ),
-        syncLog: appendLog(prev, `NutrIA analisou novo exame PDF de ${target.shortName}`, 'crm')
+        syncLog: appendLog(
+          prev,
+          `NutrIA analisou ${cleanFile ? `exame "${cleanFile}"` : 'novo exame PDF'} de ${target.shortName}`,
+          'crm'
+        )
       }));
-      toast.success(`Exame PDF de ${target.shortName} analisado pela NutrIA!`);
-    }, 1100);
+      toast.success(`Exame ${cleanFile ? `"${cleanFile}" ` : 'PDF '}analisado pela NutrIA!`);
+    }, 900);
+  };
+
+  const updateExamParecer = (patientId, examName, parecerText) => {
+    const target = state.patients.find((p) => p.id === patientId) || activePatient;
+    if (!target) return;
+    setState((prev) => ({
+      ...prev,
+      patients: prev.patients.map((p) =>
+        p.id === target.id
+          ? {
+              ...p,
+              labExams: (p.labExams || []).map((ex) =>
+                ex.name === examName ? { ...ex, parecer: parecerText } : ex
+              )
+            }
+          : p
+      ),
+      syncLog: appendLog(prev, `Parecer clínico salvo em "${examName}" para ${target.shortName}`, 'crm')
+    }));
+    toast.success('Parecer clínico salvo e visível no App do Paciente!');
+  };
+
+  const addWorkoutItem = (patientId, { title, detail }) => {
+    const cleanTitle = String(title || '').trim();
+    if (!cleanTitle) return;
+    const target = state.patients.find((p) => p.id === patientId) || activePatient;
+    if (!target) return;
+    const item = {
+      id: `wk-${Date.now()}`,
+      title: cleanTitle,
+      detail: String(detail || '').trim() || '45 min · Prescrição do consultório',
+      done: false
+    };
+    setState((prev) => ({
+      ...prev,
+      botMood: 'celebrating',
+      botSpeech: `Treino "${cleanTitle}" publicado para ${target.shortName}!`,
+      patients: prev.patients.map((p) =>
+        p.id === target.id ? { ...p, workouts: [...(p.workouts || []), item] } : p
+      ),
+      syncLog: appendLog(prev, `Treino "${cleanTitle}" enviado para ${target.shortName}`, 'crm')
+    }));
+    toast.success('Treino publicado no App do Paciente!');
+  };
+
+  const addRecipeToLibrary = ({ title, category, kcal, prep, sendToPatient }) => {
+    const cleanTitle = String(title || '').trim();
+    if (!cleanTitle) return;
+    const rec = {
+      id: `rec-${Date.now()}`,
+      title: cleanTitle,
+      category: String(category || '').trim() || 'Receita Funcional',
+      kcal: Math.max(80, Number(kcal) || 350),
+      prep: String(prep || '').trim() || 'Preparo rápido indicado pela nutricionista.'
+    };
+    setState((prev) => ({
+      ...prev,
+      recipes: [rec, ...(prev.recipes || [])],
+      botMood: 'celebrating',
+      botSpeech: sendToPatient
+        ? `Receita "${cleanTitle}" salva na biblioteca e enviada para ${activePatient?.shortName}!`
+        : `Receita "${cleanTitle}" adicionada à Biblioteca da Clínica.`,
+      syncLog: appendLog(prev, `Receita "${cleanTitle}" adicionada à Biblioteca`, 'crm')
+    }));
+    toast.success('Receita adicionada à Biblioteca da Clínica!');
+  };
+
+  const updateClinicSettings = (partial) => {
+    setState((prev) => ({
+      ...prev,
+      clinicSettings: { ...(prev.clinicSettings || {}), ...(partial || {}) },
+      syncLog: appendLog(prev, 'Configurações da clínica atualizadas', 'crm')
+    }));
+    toast.success('Configurações da clínica salvas!');
   };
 
   const addWater = (patientId, ml = 250) => {
@@ -542,9 +691,10 @@ export function ClarixProvider({ children }) {
     });
   };
 
-  const addAppointment = ({ day, time, patientId, type }) => {
+  const addAppointment = ({ day, time, patientId, type, locationType, meetingLink }) => {
     const pat = state.patients.find((p) => p.id === patientId) || activePatient;
     if (!pat) return;
+    const loc = locationType === 'online' ? 'online' : 'local';
     const appt = {
       id: `ap-${Date.now()}`,
       day: day || 'Sex 21',
@@ -552,16 +702,58 @@ export function ClarixProvider({ children }) {
       patientId: pat.id,
       patientName: pat.shortName,
       type: String(type || '').trim() || 'Retorno Clínico Nutrivvo',
+      locationType: loc,
+      meetingLink: loc === 'online' ? String(meetingLink || '').trim() || `https://meet.jit.si/nutrivvo-${pat.id}` : '',
       status: 'confirmado'
     };
     setState((prev) => ({
       ...prev,
       appointments: [appt, ...prev.appointments],
       botMood: 'celebrating',
-      botSpeech: `Consulta marcada com ${pat.shortName} (${appt.day} às ${appt.time}). Lembrete automático agendado.`,
-      syncLog: appendLog(prev, `Nova consulta agendada: ${pat.shortName} (${appt.day} ${appt.time})`, 'crm')
+      botSpeech: `Consulta ${loc === 'online' ? 'online' : 'presencial'} marcada com ${pat.shortName} (${appt.day} às ${appt.time}). Lembrete automático agendado.`,
+      syncLog: appendLog(prev, `Nova consulta (${loc === 'online' ? 'Online' : 'Presencial'}): ${pat.shortName} · ${appt.day} ${appt.time}`, 'crm')
     }));
     toast.success(`Consulta de ${pat.shortName} adicionada à agenda!`);
+  };
+
+  const saveConsultationRecord = (patientId, { anamnesis, physicalEval }) => {
+    const target = state.patients.find((p) => p.id === patientId) || activePatient;
+    if (!target) return;
+    const calc = calculateMifflinTmbGet(physicalEval || {});
+    const nextEval = { ...(target.physicalEval || {}), ...(physicalEval || {}), ...calc };
+    const nextWeight = Number(nextEval.weight);
+    const nextFat = Number(nextEval.bodyFat);
+    const nextLean = Number(nextEval.muscleMass);
+    const nextKcalTarget = calc.get > 0 ? Math.max(1350, calc.get - 250) : target.kcalTarget;
+
+    setState((prev) => ({
+      ...prev,
+      botMood: 'celebrating',
+      botSpeech: `Prontuário de ${target.shortName} salvo! TMB ${calc.tmb} kcal · GET ${calc.get} kcal · Meta calibrada para ${nextKcalTarget} kcal.`,
+      botPulseCount: prev.botPulseCount + 1,
+      patients: prev.patients.map((p) => {
+        if (p.id !== target.id) return p;
+        const hist = Array.isArray(p.weightHistory) ? [...p.weightHistory] : [];
+        if (hist.length > 0 && nextWeight > 0) {
+          hist[hist.length - 1] = {
+            ...hist[hist.length - 1],
+            weight: nextWeight,
+            leanMass: nextLean > 0 ? nextLean : hist[hist.length - 1].leanMass,
+            fatPct: nextFat > 0 ? nextFat : hist[hist.length - 1].fatPct
+          };
+        }
+        return {
+          ...p,
+          kcalTarget: nextKcalTarget,
+          anamnesis: { ...(p.anamnesis || {}), ...(anamnesis || {}) },
+          physicalEval: nextEval,
+          weightHistory: hist,
+          lastSeen: 'Agora · Prontuário atualizado'
+        };
+      }),
+      syncLog: appendLog(prev, `Consulta & TMB/GET salvos para ${target.shortName} (${calc.get} kcal)`, 'crm')
+    }));
+    toast.success(`Anamnese e Avaliação Física de ${target.shortName} salvas!`);
   };
 
   const toggleInvoiceStatus = (patientId) => {
@@ -614,6 +806,8 @@ export function ClarixProvider({ children }) {
         activePatient,
         activePatientId: activePatient?.id,
         appointments: state.appointments,
+        recipes: state.recipes,
+        clinicSettings: state.clinicSettings,
         syncLog: state.syncLog,
         botMood: state.botMood,
         botSpeech: state.botSpeech,
@@ -628,6 +822,10 @@ export function ClarixProvider({ children }) {
         publishMealPreset,
         addCustomMeal,
         runLabExamScan,
+        updateExamParecer,
+        addWorkoutItem,
+        addRecipeToLibrary,
+        updateClinicSettings,
         addWater,
         toggleMealCheckin,
         logPhotoMealCheckin,
@@ -635,6 +833,7 @@ export function ClarixProvider({ children }) {
         updateSleep,
         toggleAppointmentStatus,
         addAppointment,
+        saveConsultationRecord,
         toggleInvoiceStatus,
         toggleSessionTimer,
         resetSessionTimer,

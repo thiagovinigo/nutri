@@ -33,3 +33,7 @@ dist-ssr
 qrcode.png
 qrcode_novo.png
 qrcode_novo2.png
+
+# Design systems de terceiros usados só como referência visual (zips de ~27 MB,
+# licença incerta): ficam na máquina, nunca no repositório público.
+referencias/

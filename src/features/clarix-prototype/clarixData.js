@@ -1,3 +1,53 @@
+export const ACTIVITY_LEVELS = [
+  { value: '1.2', label: '1.2 · Sedentário (escritório)' },
+  { value: '1.375', label: '1.375 · Leve (1–3x/sem)' },
+  { value: '1.55', label: '1.55 · Moderado (3–5x/sem)' },
+  { value: '1.725', label: '1.725 · Intenso (6–7x/sem)' },
+  { value: '1.9', label: '1.9 · Atleta (2x/dia)' }
+];
+
+export function calculateMifflinTmbGet({ weight, height, age, gender, activityLevel }) {
+  const w = Number(weight) || 0;
+  const h = Number(height) || 0;
+  const a = Number(age) || 0;
+  const act = Number(activityLevel) || 1.2;
+  if (w <= 0 || h <= 0 || a <= 0) return { tmb: 0, get: 0 };
+  const base = 10 * w + 6.25 * h - 5 * a + (gender === 'M' ? 5 : -161);
+  const tmb = Math.round(base);
+  const get = Math.round(tmb * act);
+  return { tmb, get };
+}
+
+export const INITIAL_RECIPES = [
+  {
+    id: 'rec-1',
+    title: 'Bowl Proteico de Quinoa & Frango',
+    category: 'Almoço Rápido',
+    kcal: 490,
+    prep: '140g frango em cubos grelhado + 100g quinoa cozida + abobrinha e tomate-cereja no azeite.'
+  },
+  {
+    id: 'rec-2',
+    title: 'Panqueca Funcional de Banana & Cacau',
+    category: 'Café da Manhã',
+    kcal: 360,
+    prep: '1 banana amassada + 2 ovos + 1 scoop whey cacau + 1 col. aveia fina na frigideira.'
+  },
+  {
+    id: 'rec-3',
+    title: 'Overnight Oats Low-FODMAP',
+    category: 'Pré-Treino / Lanche',
+    kcal: 340,
+    prep: '40g aveia + 150ml bebida vegetal + 1 col. chia + morangos picados (geladeira 6h).'
+  }
+];
+
+export const TACO_SUBSTITUTIONS = [
+  { original: 'Arroz integral (120g)', swap: 'Batata doce cozida (150g) ou Mandioquinha (140g)', note: 'Mesma carga glicêmica e ~135 kcal' },
+  { original: 'Frango grelhado (160g)', swap: 'Filé de tilápia (180g) ou 4 ovos + 2 claras', note: 'Equivalência ~44g proteína TACO' },
+  { original: 'Pão integral (2 fatias)', swap: 'Cuscuz nordestino (100g) ou Tapioca (50g) + chia', note: 'Mesmo aporte de carboidrato (~30g)' }
+];
+
 export const WEEK_DAYS = [
   { short: 'Seg', day: '17', adherence: 92, sessions: 3 },
   { short: 'Ter', day: '18', adherence: 88, sessions: 2 },
@@ -110,7 +160,7 @@ export const BOT_QUICK_SCENARIOS = [
   }
 ];
 
-export const INITIAL_PATIENTS = [
+const BASE_PATIENTS = [
   {
     id: 'p-marina',
     name: 'Marina Albuquerque Teixeira de Souza',
@@ -402,12 +452,152 @@ export const INITIAL_PATIENTS = [
   }
 ];
 
+const CLINICAL_RECORDS_BY_ID = {
+  'p-marina': {
+    cpf: '384.***.***-12',
+    phone: '(11) 98412-3091',
+    email: 'marina.souza@exemplo.com.br',
+    birthDate: '1993-04-18',
+    gender: 'F',
+    restrictions: 'Intolerância leve à lactose',
+    aversions: 'Fígado, coentro e beterraba crua',
+    medications: 'Vitamina D 2.000 UI/dia',
+    anamnesis: {
+      routine: 'Acorda 06h30, musculação 4x/semana às 07h15, home office.',
+      sleep: '7h45/noite, sono reparador sem despertares.',
+      digestion: 'Intestino regular (Bristol 4), sem distensão pós-almoço.',
+      hydration: '2.000–2.500 ml/dia, sem álcool durante a semana.',
+      notes: 'Excelente adesão às substituições TACO no almoço fora.'
+    },
+    physicalEval: {
+      weight: '62.6', height: '166', age: '33', gender: 'F', activityLevel: '1.55',
+      bodyFat: '21.0', muscleMass: '47.4', waist: '70', hips: '98',
+      ...calculateMifflinTmbGet({ weight: 62.6, height: 166, age: 33, gender: 'F', activityLevel: '1.55' })
+    }
+  },
+  'p-camila': {
+    cpf: '412.***.***-88',
+    phone: '(11) 97221-4409',
+    email: 'camila.nogueira@exemplo.com.br',
+    birthDate: '1989-11-02',
+    gender: 'F',
+    restrictions: 'Sensibilidade a ultraprocessados / pico glicêmico',
+    aversions: 'Peixe de água doce e aveia cozida',
+    medications: 'Metformina XR 500mg (noite)',
+    anamnesis: {
+      routine: 'Jornada hospitalar 12x36; pula lanche da tarde em plantões.',
+      sleep: '5h50 em média; fadiga vespertina.',
+      digestion: 'Constipação leve nos dias de plantão.',
+      hydration: 'Baixa (750 ml em dias corridos).',
+      notes: 'Priorizar marmitas rápidas de 5 min e lembretes gentis via Telegram.'
+    },
+    physicalEval: {
+      weight: '73.9', height: '164', age: '37', gender: 'F', activityLevel: '1.375',
+      bodyFat: '31.1', muscleMass: '42.3', waist: '84', hips: '105',
+      ...calculateMifflinTmbGet({ weight: 73.9, height: 164, age: 37, gender: 'F', activityLevel: '1.375' })
+    }
+  },
+  'p-rodrigo': {
+    cpf: '295.***.***-04',
+    phone: '(21) 99654-1180',
+    email: 'rodrigo.mendes@exemplo.com.br',
+    birthDate: '1991-08-25',
+    gender: 'M',
+    restrictions: 'Nenhuma restrição clínica',
+    aversions: 'Ricota e abacate',
+    medications: 'Creatina 5g/dia + Beta-alanina',
+    anamnesis: {
+      routine: 'Corrida 3x/semana + musculação 3x/semana (preparação 10K).',
+      sleep: '6h40/noite; acorda às 05h30 para treino.',
+      digestion: 'Boa tolerância pré-treino com carboidrato de rápida absorção.',
+      hydration: '1.750–3.000 ml + isotônico nos treinos longos.',
+      notes: 'Ajustar carboidrato nos dias de tiro intervalado.'
+    },
+    physicalEval: {
+      weight: '77.2', height: '179', age: '35', gender: 'M', activityLevel: '1.725',
+      bodyFat: '14.8', muscleMass: '58.8', waist: '79', hips: '96',
+      ...calculateMifflinTmbGet({ weight: 77.2, height: 179, age: 35, gender: 'M', activityLevel: '1.725' })
+    }
+  },
+  'p-beatriz': {
+    cpf: '449.***.***-51',
+    phone: '(11) 98103-7742',
+    email: 'beatriz.costa@exemplo.com.br',
+    birthDate: '1995-02-14',
+    gender: 'F',
+    restrictions: 'Dieta low-FODMAP na fase de manutenção',
+    aversions: 'Leite integral e pimentão',
+    medications: 'Probiótico cepa específica (manhã)',
+    anamnesis: {
+      routine: 'Pilates 3x/semana + caminhada diária.',
+      sleep: '8h05/noite, higiene do sono consistente.',
+      digestion: 'Sem distensão abdominal há 6 semanas.',
+      hydration: '2.250 ml/dia.',
+      notes: 'Pronta para reintrodução gradual de fibras solúveis.'
+    },
+    physicalEval: {
+      weight: '58.3', height: '163', age: '31', gender: 'F', activityLevel: '1.55',
+      bodyFat: '20.1', muscleMass: '44.1', waist: '66', hips: '94',
+      ...calculateMifflinTmbGet({ weight: 58.3, height: 163, age: 31, gender: 'F', activityLevel: '1.55' })
+    }
+  },
+  'p-lucas': {
+    cpf: '331.***.***-73',
+    phone: '(11) 99128-6601',
+    email: 'lucas.andrade@exemplo.com.br',
+    birthDate: '1986-09-09',
+    gender: 'M',
+    restrictions: 'Dislipidemia leve (reduzir saturadas e álcool)',
+    aversions: 'Tofu e berinjela',
+    medications: 'Ômega-3 2.000 mg/dia',
+    anamnesis: {
+      routine: 'Executivo comercial; reuniões externas e viagens curtas.',
+      sleep: '5h30/noite; alta carga de estresse.',
+      digestion: 'Refluxo leve quando janta após 22h.',
+      hydration: '1.000 ml/dia (meta 2.800 ml).',
+      notes: 'Reforçar protocolo anti-inflamatório e jantares leves até 20h30.'
+    },
+    physicalEval: {
+      weight: '87.8', height: '177', age: '40', gender: 'M', activityLevel: '1.375',
+      bodyFat: '26.4', muscleMass: '59.0', waist: '96', hips: '103',
+      ...calculateMifflinTmbGet({ weight: 87.8, height: 177, age: 40, gender: 'M', activityLevel: '1.375' })
+    }
+  },
+  'p-helena': {
+    cpf: '478.***.***-39',
+    phone: '(31) 99441-2085',
+    email: 'helena.duarte@exemplo.com.br',
+    birthDate: '1992-07-30',
+    gender: 'F',
+    restrictions: 'Nenhuma alergia alimentar',
+    aversions: 'Camarão e quiabo',
+    medications: 'Sem uso contínuo',
+    anamnesis: {
+      routine: 'Musculação funcional 3x/semana no fim da tarde.',
+      sleep: '7h20/noite.',
+      digestion: 'Normal, sem queixas gástricas.',
+      hydration: '1.850 ml/dia.',
+      notes: 'Boa aderência ao cuscuz proteico no café da manhã.'
+    },
+    physicalEval: {
+      weight: '63.9', height: '165', age: '34', gender: 'F', activityLevel: '1.55',
+      bodyFat: '25.5', muscleMass: '43.8', waist: '74', hips: '100',
+      ...calculateMifflinTmbGet({ weight: 63.9, height: 165, age: 34, gender: 'F', activityLevel: '1.55' })
+    }
+  }
+};
+
+export const INITIAL_PATIENTS = BASE_PATIENTS.map((p) => ({
+  ...p,
+  ...(CLINICAL_RECORDS_BY_ID[p.id] || {})
+}));
+
 export const INITIAL_APPOINTMENTS = [
-  { id: 'ap-1', day: 'Seg 17', time: '09:30', patientId: 'p-marina', patientName: 'Marina Souza', type: 'Bioimpedância + Revisão', status: 'confirmado' },
-  { id: 'ap-2', day: 'Ter 18', time: '14:00', patientId: 'p-camila', patientName: 'Camila Silva', type: 'Resgate Radar (Teleconsulta)', status: 'proximo' },
-  { id: 'ap-3', day: 'Qua 19', time: '16:30', patientId: 'p-rodrigo', patientName: 'Rodrigo Mendes', type: 'Periodização Pré-Prova 10K', status: 'confirmado' },
-  { id: 'ap-4', day: 'Qui 20', time: '18:00', patientId: 'p-lucas', patientName: 'Lucas Andrade', type: 'Revisão Exames Lipídicos', status: 'pendente' },
-  { id: 'ap-5', day: 'Sex 21', time: '10:15', patientId: 'p-beatriz', patientName: 'Beatriz Costa', type: 'Check-up Mensal + Plano TACO', status: 'confirmado' }
+  { id: 'ap-1', day: 'Seg 17', time: '09:30', patientId: 'p-marina', patientName: 'Marina Souza', type: 'Bioimpedância + Revisão', locationType: 'local', meetingLink: '', status: 'confirmado' },
+  { id: 'ap-2', day: 'Ter 18', time: '14:00', patientId: 'p-camila', patientName: 'Camila Silva', type: 'Resgate Radar', locationType: 'online', meetingLink: 'https://meet.jit.si/nutrivvo-camila', status: 'proximo' },
+  { id: 'ap-3', day: 'Qua 19', time: '16:30', patientId: 'p-rodrigo', patientName: 'Rodrigo Mendes', type: 'Periodização Pré-Prova 10K', locationType: 'local', meetingLink: '', status: 'confirmado' },
+  { id: 'ap-4', day: 'Qui 20', time: '18:00', patientId: 'p-lucas', patientName: 'Lucas Andrade', type: 'Revisão Exames Lipídicos', locationType: 'online', meetingLink: 'https://meet.jit.si/nutrivvo-lucas', status: 'pendente' },
+  { id: 'ap-5', day: 'Sex 21', time: '10:15', patientId: 'p-beatriz', patientName: 'Beatriz Costa', type: 'Check-up Mensal + Plano TACO', locationType: 'local', meetingLink: '', status: 'confirmado' }
 ];
 
 export function formatBRL(val) {

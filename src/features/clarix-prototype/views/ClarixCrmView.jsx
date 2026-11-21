@@ -1,12 +1,18 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
+import toast from 'react-hot-toast';
 import {
   Activity,
   Bot,
   Calendar,
+  ChefHat,
+  ClipboardList,
+  Copy,
   Droplets,
+  Dumbbell,
   FileSearch,
   Footprints,
   LayoutDashboard,
+  MapPin,
   Moon,
   Pause,
   Play,
@@ -14,22 +20,35 @@ import {
   Radar,
   RotateCcw,
   Send,
+  Settings,
   Smartphone,
+  Stethoscope,
+  Upload,
   Users,
   Utensils,
+  Video,
   Wallet,
   X
 } from 'lucide-react';
 import ClarixRobotCanvas from '../components/ClarixRobotCanvas';
 import { ConicRing, MacroPillGroup, WeightEvolutionChart } from '../components/MovefluxCharts';
-import { MEAL_PLAN_PRESETS, WEEK_DAYS, formatBRL } from '../clarixData';
+import {
+  ACTIVITY_LEVELS,
+  MEAL_PLAN_PRESETS,
+  WEEK_DAYS,
+  calculateMifflinTmbGet,
+  formatBRL
+} from '../clarixData';
 import { useClarix } from '../clarixStore';
 
 const CRM_NAV = [
-  { id: 'cockpit', label: '01 · Cockpit & Radar', icon: LayoutDashboard },
-  { id: 'patients', label: '02 · Pacientes', icon: Users },
-  { id: 'plans', label: '03 · Plano & Exames IA', icon: Utensils },
-  { id: 'schedule', label: '04 · Agenda & Financeiro', icon: Calendar }
+  { id: 'cockpit', label: '01 · Visão Geral & Radar', icon: LayoutDashboard },
+  { id: 'patients', label: '02 · Meus Pacientes', icon: Users },
+  { id: 'plans', label: '03 · Nova Consulta & Prontuário', icon: Stethoscope },
+  { id: 'schedule', label: '04 · Agenda Semanal', icon: Calendar },
+  { id: 'recipes', label: '05 · Biblioteca de Receitas', icon: ChefHat },
+  { id: 'finance', label: '06 · Financeiro & Planos', icon: Wallet },
+  { id: 'settings', label: '07 · Configurações', icon: Settings }
 ];
 
 function formatTimer(totalSec) {
@@ -45,6 +64,8 @@ export default function ClarixCrmView({ onNavigate }) {
     patients,
     activePatient,
     appointments,
+    recipes,
+    clinicSettings,
     syncLog,
     botMood,
     botSpeech,
@@ -58,8 +79,13 @@ export default function ClarixCrmView({ onNavigate }) {
     publishMealPreset,
     addCustomMeal,
     runLabExamScan,
+    updateExamParecer,
+    addWorkoutItem,
+    addRecipeToLibrary,
+    updateClinicSettings,
     toggleAppointmentStatus,
     addAppointment,
+    saveConsultationRecord,
     toggleInvoiceStatus,
     toggleSessionTimer,
     resetSessionTimer,
@@ -72,21 +98,58 @@ export default function ClarixCrmView({ onNavigate }) {
   const [riskFilter, setRiskFilter] = useState('all');
   const [crmPrompt, setCrmPrompt] = useState('');
 
-  // Modal Novo Paciente
+  // Modal Novo Paciente (Cadastro Clínico Completo)
   const [showModal, setShowModal] = useState(false);
   const [patName, setPatName] = useState('');
+  const [patCpf, setPatCpf] = useState('');
+  const [patPhone, setPatPhone] = useState('');
+  const [patEmail, setPatEmail] = useState('');
+  const [patBirthDate, setPatBirthDate] = useState('1994-05-12');
+  const [patGender, setPatGender] = useState('F');
   const [patGoal, setPatGoal] = useState('');
+  const [patRest, setPatRest] = useState('');
+  const [patAversions, setPatAversions] = useState('');
+  const [patMedications, setPatMedications] = useState('');
   const [patVal, setPatVal] = useState('480');
 
-  // Form Refeição Personalizada
+  // Fluxo de Consulta em 4 Etapas (Anamnese -> Avaliação TMB/GET -> Exames -> Cardápio)
+  const [consultStep, setConsultStep] = useState('anamnesis');
+  const [anamnesisForm, setAnamnesisForm] = useState(() => ({ ...(activePatient?.anamnesis || {}) }));
+  const [physForm, setPhysForm] = useState(() => ({ ...(activePatient?.physicalEval || {}) }));
+
+  useEffect(() => {
+    setAnamnesisForm({ ...(activePatient?.anamnesis || {}) });
+    setPhysForm({ ...(activePatient?.physicalEval || {}) });
+    setApptPatientId(activePatient?.id || '');
+  }, [activePatient?.id]);
+
+  const liveCalc = calculateMifflinTmbGet(physForm);
+
+  // Form Refeição Personalizada & Treino
   const [customSlot, setCustomSlot] = useState('16:00 · Lanche Proteico');
   const [customMealName, setCustomMealName] = useState('');
   const [customPrep, setCustomPrep] = useState('');
+  const [workoutTitle, setWorkoutTitle] = useState('');
+  const [workoutDetail, setWorkoutDetail] = useState('45 min · Hipertrofia / Core');
 
-  // Form Nova Consulta
+  // Form Biblioteca de Receitas
+  const [recTitle, setRecTitle] = useState('');
+  const [recCategory, setRecCategory] = useState('Almoço Rápido');
+  const [recKcal, setRecKcal] = useState('420');
+  const [recPrep, setRecPrep] = useState('');
+
+  // Configurações da Clínica
+  const [settingsForm, setSettingsForm] = useState(() => ({ ...(clinicSettings || {}) }));
+  const [parecerDrafts, setParecerDrafts] = useState({});
+
+  // Form Nova Consulta & Filtro Semanal
+  const [apptPatientId, setApptPatientId] = useState(activePatient?.id || '');
   const [apptDay, setApptDay] = useState('Sex 21');
   const [apptTime, setApptTime] = useState('15:30');
   const [apptType, setApptType] = useState('Retorno + Bioimpedância');
+  const [apptLocationType, setApptLocationType] = useState('local');
+  const [apptMeetingLink, setApptMeetingLink] = useState('');
+  const [scheduleDayFilter, setScheduleDayFilter] = useState('all');
 
   const waterPct = Math.min(100, Math.round(((activePatient?.waterMl || 0) / Math.max(activePatient?.waterGoal || 1, 1)) * 100));
   const stepsPct = Math.min(100, Math.round(((activePatient?.steps || 0) / Math.max(activePatient?.stepsGoal || 1, 1)) * 100));
@@ -97,10 +160,16 @@ export default function ClarixCrmView({ onNavigate }) {
     const matchText =
       !searchTerm.trim() ||
       p.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      p.goal.toLowerCase().includes(searchTerm.toLowerCase());
+      p.goal.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      String(p.cpf || '').toLowerCase().includes(searchTerm.toLowerCase());
     const matchRisk = riskFilter === 'all' || p.riskLevel === riskFilter;
     return matchText && matchRisk;
   });
+
+  const filteredAppointments =
+    scheduleDayFilter === 'all'
+      ? appointments
+      : appointments.filter((a) => a.day === scheduleDayFilter);
 
   const paidSum = patients.filter((p) => p.invoiceStatus === 'pago').reduce((a, p) => a + p.invoiceValue, 0);
   const pendingSum = patients.filter((p) => p.invoiceStatus !== 'pago').reduce((a, p) => a + p.invoiceValue, 0);
@@ -109,9 +178,27 @@ export default function ClarixCrmView({ onNavigate }) {
   const handleCreatePatient = (e) => {
     e.preventDefault();
     if (!patName.trim()) return;
-    addPatient({ name: patName, goal: patGoal, invoiceValue: patVal });
+    addPatient({
+      name: patName,
+      cpf: patCpf,
+      phone: patPhone,
+      email: patEmail,
+      birthDate: patBirthDate,
+      gender: patGender,
+      goal: patGoal,
+      restrictions: patRest,
+      aversions: patAversions,
+      medications: patMedications,
+      invoiceValue: patVal
+    });
     setPatName('');
+    setPatCpf('');
+    setPatPhone('');
+    setPatEmail('');
     setPatGoal('');
+    setPatRest('');
+    setPatAversions('');
+    setPatMedications('');
     setPatVal('480');
     setShowModal(false);
   };
@@ -153,6 +240,18 @@ export default function ClarixCrmView({ onNavigate }) {
           <button
             type="button"
             className="cx-btn cx-btn-primary cx-btn-sm cx-btn-pill"
+            onClick={() => {
+              setSection('plans');
+              setConsultStep('anamnesis');
+            }}
+          >
+            <Stethoscope size={14} aria-hidden="true" />
+            <span>+ Nova Consulta</span>
+          </button>
+
+          <button
+            type="button"
+            className="cx-btn cx-btn-ghost cx-btn-sm cx-btn-pill"
             onClick={() => setShowModal(true)}
           >
             <Plus size={14} aria-hidden="true" />
@@ -407,14 +506,14 @@ export default function ClarixCrmView({ onNavigate }) {
             </>
           )}
 
-          {/* MÓDULO 02: PACIENTES */}
+          {/* MÓDULO 02: PACIENTES & FICHA CLÍNICA REAL */}
           {section === 'patients' && (
             <article className="cx-card" style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '0.75rem' }}>
                 <div>
-                  <h2 style={{ margin: 0, fontSize: '1.2rem' }}>Carteira de Pacientes</h2>
+                  <h2 style={{ margin: 0, fontSize: '1.2rem' }}>Carteira &amp; Ficha Clínica Completa</h2>
                   <p style={{ margin: '0.15rem 0 0', fontSize: '0.82rem', color: 'var(--cx-muted)' }}>
-                    Clique em qualquer paciente para carregar seus biomarcadores e ativar a NutrIA.
+                    Todos os dados cadastrais reais preservados (CPF, Telegram, restrições, aversões, medicamentos e TMB/GET).
                   </p>
                 </div>
                 <button type="button" className="cx-btn cx-btn-primary cx-btn-pill" onClick={() => setShowModal(true)}>
@@ -427,7 +526,7 @@ export default function ClarixCrmView({ onNavigate }) {
                 <input
                   className="cx-input"
                   style={{ flex: '1 1 220px' }}
-                  placeholder="Buscar por nome ou objetivo clínico..."
+                  placeholder="Buscar por nome, CPF ou objetivo clínico..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                 />
@@ -448,36 +547,73 @@ export default function ClarixCrmView({ onNavigate }) {
                 ))}
               </div>
 
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.65rem' }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.7rem' }}>
                 {filteredPatients.map((p) => (
                   <div
                     key={p.id}
                     style={{
                       display: 'flex',
-                      justifyContent: 'space-between',
-                      alignItems: 'center',
-                      gap: '0.8rem',
-                      flexWrap: 'wrap',
-                      padding: '0.85rem 1rem',
+                      flexDirection: 'column',
+                      gap: '0.55rem',
+                      padding: '0.9rem 1rem',
                       borderRadius: '18px',
                       background: '#f8fafc',
                       border: p.id === activePatient?.id ? '1.5px solid #0070d1' : '1px solid rgba(15,23,42,0.08)'
                     }}
                   >
-                    <div style={{ minWidth: 0, flex: '1 1 240px' }}>
-                      <strong className="cx-truncate" style={{ display: 'block', fontSize: '0.94rem' }}>{p.name}</strong>
-                      <div style={{ fontSize: '0.78rem', color: 'var(--cx-muted)' }}>{p.goal} · {p.lastSeen}</div>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '0.8rem', flexWrap: 'wrap' }}>
+                      <div style={{ minWidth: 0, flex: '1 1 240px' }}>
+                        <strong className="cx-truncate" style={{ display: 'block', fontSize: '0.94rem' }}>{p.name}</strong>
+                        <div style={{ fontSize: '0.78rem', color: 'var(--cx-muted)' }}>
+                          {p.goal} · CPF: {p.cpf || '—'} · Tel: {p.phone || '—'}
+                        </div>
+                      </div>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.45rem', flexWrap: 'wrap' }}>
+                        <span className={`cx-tag ${p.riskLevel === 'high' ? 'cx-tag-risk' : p.riskLevel === 'medium' ? 'cx-tag-warn' : 'cx-tag-ok'}`}>
+                          {p.adherence}% adesão
+                        </span>
+                        <button
+                          type="button"
+                          className="cx-btn cx-btn-sm cx-btn-ghost"
+                          onClick={() => {
+                            selectPatient(p.id);
+                            setSection('plans');
+                            setConsultStep('anamnesis');
+                          }}
+                        >
+                          <ClipboardList size={13} aria-hidden="true" />
+                          <span>Nova Consulta</span>
+                        </button>
+                        <button
+                          type="button"
+                          className="cx-btn cx-btn-sm cx-btn-ghost"
+                          onClick={() => {
+                            selectPatient(p.id);
+                            setSection('plans');
+                            setConsultStep('exams');
+                          }}
+                        >
+                          <Upload size={13} aria-hidden="true" />
+                          <span>Subir Exame</span>
+                        </button>
+                        <button type="button" className="cx-btn cx-btn-sm cx-btn-primary" onClick={() => sendTelegramNudge(p.id)}>
+                          Acionar Bot
+                        </button>
+                      </div>
                     </div>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>
-                      <span className={`cx-tag ${p.riskLevel === 'high' ? 'cx-tag-risk' : p.riskLevel === 'medium' ? 'cx-tag-warn' : 'cx-tag-ok'}`}>
-                        {p.adherence}% adesão
-                      </span>
-                      <button type="button" className="cx-btn cx-btn-sm cx-btn-ghost" onClick={() => selectPatient(p.id)}>
-                        Selecionar
-                      </button>
-                      <button type="button" className="cx-btn cx-btn-sm cx-btn-primary" onClick={() => sendTelegramNudge(p.id)}>
-                        Acionar Bot
-                      </button>
+
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.4rem', fontSize: '0.73rem', color: '#334155', paddingTop: '0.45rem', borderTop: '1px dashed rgba(15,23,42,0.09)' }}>
+                      <span><strong>Restrições:</strong> {p.restrictions || 'Nenhuma'}</span>
+                      <span>·</span>
+                      <span><strong>Aversões:</strong> {p.aversions || 'Nenhuma'}</span>
+                      <span>·</span>
+                      <span><strong>Medicações:</strong> {p.medications || 'Nenhuma'}</span>
+                      {p.physicalEval?.get > 0 && (
+                        <>
+                          <span>·</span>
+                          <span className="cx-tabular"><strong>TMB/GET:</strong> {p.physicalEval.tmb} / {p.physicalEval.get} kcal</span>
+                        </>
+                      )}
                     </div>
                   </div>
                 ))}
@@ -485,137 +621,405 @@ export default function ClarixCrmView({ onNavigate }) {
             </article>
           )}
 
-          {/* MÓDULO 03: PLANO ALIMENTAR IA & LEITOR PDF DE EXAMES */}
+          {/* MÓDULO 03: CONSULTA EM 4 ETAPAS (ANAMNESE + TMB/GET + EXAMES + PLANO TACO) */}
           {section === 'plans' && (
             <>
               <article className="cx-card" style={{ display: 'flex', flexDirection: 'column', gap: '0.95rem' }}>
-                <div>
-                  <h2 style={{ margin: 0, fontSize: '1.18rem' }}>Publicação Instantânea TACO · {activePatient?.shortName}</h2>
-                  <p style={{ margin: '0.15rem 0 0', fontSize: '0.82rem', color: 'var(--cx-muted)' }}>
-                    Escolha um protocolo completo para publicar imediatamente no aplicativo móvel do paciente.
-                  </p>
-                </div>
-
-                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.55rem' }}>
-                  {MEAL_PLAN_PRESETS.map((pr) => (
-                    <button
-                      key={pr.id}
-                      type="button"
-                      className="cx-btn cx-btn-accent cx-btn-sm cx-btn-pill"
-                      onClick={() => publishMealPreset(activePatient?.id, pr.id)}
-                    >
-                      Publicar IA: {pr.label}
-                    </button>
-                  ))}
-                </div>
-
-                <form
-                  onSubmit={(e) => {
-                    e.preventDefault();
-                    addCustomMeal(activePatient?.id, { slot: customSlot, name: customMealName, prep: customPrep });
-                    setCustomMealName('');
-                    setCustomPrep('');
-                  }}
-                  style={{ display: 'flex', flexDirection: 'column', gap: '0.6rem', paddingTop: '0.65rem', borderTop: '1px solid var(--cx-line)' }}
-                >
-                  <strong style={{ fontSize: '0.86rem' }}>Adicionar refeição avulsa no app de {activePatient?.shortName}</strong>
-                  <div className="cx-grid-2">
-                    <input className="cx-input" value={customSlot} onChange={(e) => setCustomSlot(e.target.value)} aria-label="Horário da refeição" />
-                    <input className="cx-input" placeholder="Ex.: Iogurte proteico com frutas" value={customMealName} onChange={(e) => setCustomMealName(e.target.value)} aria-label="Nome da refeição" />
-                  </div>
-                  <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
-                    <input className="cx-input" style={{ flex: '1 1 240px' }} placeholder="Modo de preparo..." value={customPrep} onChange={(e) => setCustomPrep(e.target.value)} aria-label="Modo de preparo" />
-                    <button type="submit" className="cx-btn cx-btn-primary">
-                      <Plus size={14} aria-hidden="true" /> Publicar Refeição no App
-                    </button>
-                  </div>
-                </form>
-              </article>
-
-              <article className="cx-card" style={{ display: 'flex', flexDirection: 'column', gap: '0.9rem' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '0.6rem' }}>
                   <div>
-                    <h2 style={{ margin: 0, fontSize: '1.15rem' }}>Leitor IA de Exames PDF</h2>
+                    <h2 style={{ margin: 0, fontSize: '1.18rem' }}>Fluxo de Consulta &amp; Registro Clínico · {activePatient?.shortName}</h2>
                     <p style={{ margin: '0.15rem 0 0', fontSize: '0.82rem', color: 'var(--cx-muted)' }}>
-                      A NutrIA entra em modo Scanner e interpreta biomarcadores laboratoriais.
+                      Forma original de registrar informações mantida integralmente, agora com cálculo instantâneo e visual Clarix.
                     </p>
                   </div>
-                  <button
-                    type="button"
-                    className="cx-btn cx-btn-accent cx-btn-sm cx-btn-pill"
-                    onClick={() => runLabExamScan(activePatient?.id)}
-                  >
-                    <FileSearch size={14} aria-hidden="true" />
-                    <span>Simular Leitura de Exame PDF com NutrIA</span>
-                  </button>
+                  <div style={{ display: 'flex', gap: '0.35rem', flexWrap: 'wrap' }}>
+                    {[
+                      { id: 'anamnesis', label: '1. Anamnese' },
+                      { id: 'physical', label: '2. Avaliação & TMB/GET' },
+                      { id: 'exams', label: '3. Subir Exame PDF' },
+                      { id: 'diet', label: '4. Cardápio TACO & Treino' }
+                    ].map((st) => (
+                      <button
+                        key={st.id}
+                        type="button"
+                        className={`cx-btn cx-btn-sm cx-btn-pill ${consultStep === st.id ? 'cx-btn-primary' : 'cx-btn-ghost'}`}
+                        onClick={() => setConsultStep(st.id)}
+                      >
+                        {st.label}
+                      </button>
+                    ))}
+                  </div>
                 </div>
 
-                {botMood === 'scanning' && (
-                  <div className="cx-scan-stage" style={{ minHeight: '56px', display: 'flex', alignItems: 'center' }}>
-                    <div className="cx-scan-beam" aria-hidden="true" />
-                    <strong style={{ fontSize: '0.84rem', color: '#0369a1' }}>Extraindo marcadores bioquímicos com a NutrIA...</strong>
+                {/* ETAPA 1: ANAMNESE ESTRUTURADA */}
+                {consultStep === 'anamnesis' && (
+                  <form
+                    onSubmit={(e) => {
+                      e.preventDefault();
+                      saveConsultationRecord(activePatient?.id, { anamnesis: anamnesisForm, physicalEval: physForm });
+                      setConsultStep('physical');
+                    }}
+                    style={{ display: 'flex', flexDirection: 'column', gap: '0.7rem' }}
+                  >
+                    <div className="cx-grid-2">
+                      <div>
+                        <label htmlFor="cx-ana-routine" style={{ display: 'block', fontSize: '0.76rem', fontWeight: 600, marginBottom: '0.25rem' }}>Rotina &amp; Horários de Treino/Trabalho</label>
+                        <input
+                          id="cx-ana-routine"
+                          className="cx-input"
+                          value={anamnesisForm.routine || ''}
+                          onChange={(e) => setAnamnesisForm((prev) => ({ ...prev, routine: e.target.value }))}
+                        />
+                      </div>
+                      <div>
+                        <label htmlFor="cx-ana-sleep" style={{ display: 'block', fontSize: '0.76rem', fontWeight: 600, marginBottom: '0.25rem' }}>Qualidade do Sono</label>
+                        <input
+                          id="cx-ana-sleep"
+                          className="cx-input"
+                          value={anamnesisForm.sleep || ''}
+                          onChange={(e) => setAnamnesisForm((prev) => ({ ...prev, sleep: e.target.value }))}
+                        />
+                      </div>
+                      <div>
+                        <label htmlFor="cx-ana-digestion" style={{ display: 'block', fontSize: '0.76rem', fontWeight: 600, marginBottom: '0.25rem' }}>Intestino &amp; Digestão</label>
+                        <input
+                          id="cx-ana-digestion"
+                          className="cx-input"
+                          value={anamnesisForm.digestion || ''}
+                          onChange={(e) => setAnamnesisForm((prev) => ({ ...prev, digestion: e.target.value }))}
+                        />
+                      </div>
+                      <div>
+                        <label htmlFor="cx-ana-hydration" style={{ display: 'block', fontSize: '0.76rem', fontWeight: 600, marginBottom: '0.25rem' }}>Hidratação &amp; Álcool</label>
+                        <input
+                          id="cx-ana-hydration"
+                          className="cx-input"
+                          value={anamnesisForm.hydration || ''}
+                          onChange={(e) => setAnamnesisForm((prev) => ({ ...prev, hydration: e.target.value }))}
+                        />
+                      </div>
+                    </div>
+                    <div>
+                      <label htmlFor="cx-ana-notes" style={{ display: 'block', fontSize: '0.76rem', fontWeight: 600, marginBottom: '0.25rem' }}>Conduta &amp; Observações Clínicas</label>
+                      <input
+                        id="cx-ana-notes"
+                        className="cx-input"
+                        value={anamnesisForm.notes || ''}
+                        onChange={(e) => setAnamnesisForm((prev) => ({ ...prev, notes: e.target.value }))}
+                      />
+                    </div>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '0.5rem' }}>
+                      <span style={{ fontSize: '0.76rem', color: 'var(--cx-muted)' }}>
+                        Restrições: <strong>{activePatient?.restrictions}</strong> · Medicação: <strong>{activePatient?.medications}</strong>
+                      </span>
+                      <button type="submit" className="cx-btn cx-btn-primary cx-btn-sm">
+                        Salvar Anamnese &amp; Avançar →
+                      </button>
+                    </div>
+                  </form>
+                )}
+
+                {/* ETAPA 2: AVALIAÇÃO FÍSICA + MIFFLIN-ST JEOR TMB/GET */}
+                {consultStep === 'physical' && (
+                  <form
+                    onSubmit={(e) => {
+                      e.preventDefault();
+                      saveConsultationRecord(activePatient?.id, { anamnesis: anamnesisForm, physicalEval: physForm });
+                    }}
+                    style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}
+                  >
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))', gap: '0.55rem' }}>
+                      <div>
+                        <label htmlFor="cx-eval-weight" style={{ display: 'block', fontSize: '0.74rem', fontWeight: 600, marginBottom: '0.2rem' }}>Peso (kg)</label>
+                        <input id="cx-eval-weight" type="number" step="0.1" className="cx-input" value={physForm.weight || ''} onChange={(e) => setPhysForm((p) => ({ ...p, weight: e.target.value }))} />
+                      </div>
+                      <div>
+                        <label htmlFor="cx-eval-height" style={{ display: 'block', fontSize: '0.74rem', fontWeight: 600, marginBottom: '0.2rem' }}>Altura (cm)</label>
+                        <input id="cx-eval-height" type="number" className="cx-input" value={physForm.height || ''} onChange={(e) => setPhysForm((p) => ({ ...p, height: e.target.value }))} />
+                      </div>
+                      <div>
+                        <label htmlFor="cx-eval-age" style={{ display: 'block', fontSize: '0.74rem', fontWeight: 600, marginBottom: '0.2rem' }}>Idade</label>
+                        <input id="cx-eval-age" type="number" className="cx-input" value={physForm.age || ''} onChange={(e) => setPhysForm((p) => ({ ...p, age: e.target.value }))} />
+                      </div>
+                      <div>
+                        <label htmlFor="cx-eval-gender" style={{ display: 'block', fontSize: '0.74rem', fontWeight: 600, marginBottom: '0.2rem' }}>Sexo</label>
+                        <select id="cx-eval-gender" className="cx-select" value={physForm.gender || 'F'} onChange={(e) => setPhysForm((p) => ({ ...p, gender: e.target.value }))}>
+                          <option value="F">Feminino</option>
+                          <option value="M">Masculino</option>
+                        </select>
+                      </div>
+                      <div>
+                        <label htmlFor="cx-eval-fat" style={{ display: 'block', fontSize: '0.74rem', fontWeight: 600, marginBottom: '0.2rem' }}>% Gordura</label>
+                        <input id="cx-eval-fat" type="number" step="0.1" className="cx-input" value={physForm.bodyFat || ''} onChange={(e) => setPhysForm((p) => ({ ...p, bodyFat: e.target.value }))} />
+                      </div>
+                      <div>
+                        <label htmlFor="cx-eval-lean" style={{ display: 'block', fontSize: '0.74rem', fontWeight: 600, marginBottom: '0.2rem' }}>Massa Magra (kg)</label>
+                        <input id="cx-eval-lean" type="number" step="0.1" className="cx-input" value={physForm.muscleMass || ''} onChange={(e) => setPhysForm((p) => ({ ...p, muscleMass: e.target.value }))} />
+                      </div>
+                    </div>
+
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(170px, 1fr))', gap: '0.6rem', alignItems: 'end' }}>
+                      <div>
+                        <label htmlFor="cx-eval-act" style={{ display: 'block', fontSize: '0.74rem', fontWeight: 600, marginBottom: '0.2rem' }}>Fator de Atividade (GET)</label>
+                        <select id="cx-eval-act" className="cx-select" value={physForm.activityLevel || '1.55'} onChange={(e) => setPhysForm((p) => ({ ...p, activityLevel: e.target.value }))}>
+                          {ACTIVITY_LEVELS.map((lvl) => (
+                            <option key={lvl.value} value={lvl.value}>{lvl.label}</option>
+                          ))}
+                        </select>
+                      </div>
+                      <div style={{ padding: '0.65rem 0.85rem', borderRadius: '14px', background: '#eff6ff', border: '1px solid #bfdbfe' }}>
+                        <div style={{ fontSize: '0.7rem', color: '#1d4ed8', fontWeight: 700 }}>TMB (Mifflin-St Jeor)</div>
+                        <strong className="cx-tabular" style={{ fontSize: '1.1rem' }}>{liveCalc.tmb} kcal/dia</strong>
+                      </div>
+                      <div style={{ padding: '0.65rem 0.85rem', borderRadius: '14px', background: '#ecfdf5', border: '1px solid #a7f3d0' }}>
+                        <div style={{ fontSize: '0.7rem', color: '#047857', fontWeight: 700 }}>GET Estimado</div>
+                        <strong className="cx-tabular" style={{ fontSize: '1.1rem' }}>{liveCalc.get} kcal/dia</strong>
+                      </div>
+                    </div>
+
+                    <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.5rem' }}>
+                      <button type="submit" className="cx-btn cx-btn-primary cx-btn-sm">
+                        Salvar Avaliação &amp; Recalcular Meta
+                      </button>
+                    </div>
+                  </form>
+                )}
+
+                {/* ETAPA 3: SUBIR EXAME PDF/IMAGEM + PARECER DA NUTRI */}
+                {consultStep === 'exams' && (
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.85rem' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '0.6rem', padding: '0.85rem', borderRadius: '16px', background: '#f0f9ff', border: '1px dashed #38bdf8' }}>
+                      <div>
+                        <strong style={{ fontSize: '0.88rem', display: 'block' }}>Subir Exame Laboratorial (PDF ou Imagem)</strong>
+                        <span style={{ fontSize: '0.76rem', color: 'var(--cx-muted)' }}>
+                          Anexe o arquivo real do paciente para a NutrIA extrair biomarcadores ou rode a demonstração instantânea.
+                        </span>
+                      </div>
+                      <div style={{ display: 'flex', gap: '0.45rem', flexWrap: 'wrap', alignItems: 'center' }}>
+                        <label className="cx-btn cx-btn-primary cx-btn-sm cx-btn-pill" style={{ cursor: 'pointer' }}>
+                          <Upload size={13} aria-hidden="true" />
+                          <span>Anexar PDF/Imagem</span>
+                          <input
+                            type="file"
+                            accept=".pdf,image/*"
+                            style={{ display: 'none' }}
+                            onChange={(e) => {
+                              const file = e.target.files?.[0];
+                              if (file) runLabExamScan(activePatient?.id, { filename: file.name });
+                              e.target.value = '';
+                            }}
+                          />
+                        </label>
+                        <button type="button" className="cx-btn cx-btn-accent cx-btn-sm cx-btn-pill" onClick={() => runLabExamScan(activePatient?.id)}>
+                          <FileSearch size={14} aria-hidden="true" />
+                          <span>Simular Leitura PDF</span>
+                        </button>
+                      </div>
+                    </div>
+
+                    {botMood === 'scanning' && (
+                      <div className="cx-scan-stage" style={{ minHeight: '52px', display: 'flex', alignItems: 'center' }}>
+                        <div className="cx-scan-beam" aria-hidden="true" />
+                        <strong style={{ fontSize: '0.84rem', color: '#0369a1' }}>Extraindo marcadores bioquímicos com a NutrIA...</strong>
+                      </div>
+                    )}
+
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.55rem' }}>
+                      {(activePatient?.labExams || []).map((ex) => {
+                        const draftVal = parecerDrafts[ex.name] !== undefined ? parecerDrafts[ex.name] : (ex.parecer || '');
+                        return (
+                          <div key={ex.name} style={{ display: 'flex', flexDirection: 'column', gap: '0.45rem', padding: '0.75rem 0.9rem', borderRadius: '16px', background: '#f8fafc', border: '1px solid rgba(15,23,42,0.08)' }}>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '0.6rem', flexWrap: 'wrap' }}>
+                              <div>
+                                <strong style={{ fontSize: '0.86rem' }}>{ex.name}</strong>
+                                <div style={{ fontSize: '0.74rem', color: 'var(--cx-muted)' }}>{ex.note}</div>
+                              </div>
+                              <div style={{ display: 'flex', alignItems: 'center', gap: '0.45rem' }}>
+                                <strong className="cx-tabular" style={{ fontSize: '0.86rem' }}>{ex.value}</strong>
+                                <span className="cx-tag cx-tag-info">{ex.status}</span>
+                              </div>
+                            </div>
+                            <div style={{ display: 'flex', gap: '0.45rem', flexWrap: 'wrap', paddingTop: '0.35rem', borderTop: '1px dashed rgba(15,23,42,0.08)' }}>
+                              <input
+                                className="cx-input"
+                                style={{ flex: '1 1 220px', fontSize: '0.76rem' }}
+                                placeholder="Parecer do nutricionista (visível no App do Paciente)..."
+                                value={draftVal}
+                                onChange={(e) => setParecerDrafts((prev) => ({ ...prev, [ex.name]: e.target.value }))}
+                                aria-label={`Parecer clínico para ${ex.name}`}
+                              />
+                              <button
+                                type="button"
+                                className="cx-btn cx-btn-sm cx-btn-ghost"
+                                onClick={() => updateExamParecer(activePatient?.id, ex.name, draftVal)}
+                              >
+                                Salvar Parecer
+                              </button>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
                   </div>
                 )}
 
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-                  {(activePatient?.labExams || []).map((ex) => (
-                    <div
-                      key={ex.name}
-                      style={{
-                        display: 'flex',
-                        justifyContent: 'space-between',
-                        alignItems: 'center',
-                        gap: '0.6rem',
-                        flexWrap: 'wrap',
-                        padding: '0.7rem 0.9rem',
-                        borderRadius: '16px',
-                        background: '#f8fafc',
-                        border: '1px solid rgba(15,23,42,0.07)'
-                      }}
-                    >
-                      <div>
-                        <strong style={{ fontSize: '0.86rem' }}>{ex.name}</strong>
-                        <div style={{ fontSize: '0.75rem', color: 'var(--cx-muted)' }}>{ex.note}</div>
-                      </div>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.45rem' }}>
-                        <strong className="cx-tabular" style={{ fontSize: '0.86rem' }}>{ex.value}</strong>
-                        <span className="cx-tag cx-tag-info">{ex.status}</span>
-                      </div>
+                {/* ETAPA 4: CARDÁPIO TACO & TREINO */}
+                {consultStep === 'diet' && (
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.9rem' }}>
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem' }}>
+                      {MEAL_PLAN_PRESETS.map((pr) => (
+                        <button
+                          key={pr.id}
+                          type="button"
+                          className="cx-btn cx-btn-accent cx-btn-sm cx-btn-pill"
+                          onClick={() => publishMealPreset(activePatient?.id, pr.id)}
+                        >
+                          Publicar IA: {pr.label}
+                        </button>
+                      ))}
                     </div>
-                  ))}
-                </div>
+
+                    <form
+                      onSubmit={(e) => {
+                        e.preventDefault();
+                        addCustomMeal(activePatient?.id, { slot: customSlot, name: customMealName, prep: customPrep });
+                        setCustomMealName('');
+                        setCustomPrep('');
+                      }}
+                      style={{ display: 'flex', flexDirection: 'column', gap: '0.6rem', paddingTop: '0.65rem', borderTop: '1px solid var(--cx-line)' }}
+                    >
+                      <strong style={{ fontSize: '0.84rem' }}>Adicionar refeição avulsa (Tabela TACO) no app de {activePatient?.shortName}</strong>
+                      <div className="cx-grid-2">
+                        <input className="cx-input" value={customSlot} onChange={(e) => setCustomSlot(e.target.value)} aria-label="Horário da refeição" />
+                        <input className="cx-input" placeholder="Ex.: Iogurte proteico com frutas" value={customMealName} onChange={(e) => setCustomMealName(e.target.value)} aria-label="Nome da refeição" />
+                      </div>
+                      <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+                        <input className="cx-input" style={{ flex: '1 1 240px' }} placeholder="Modo de preparo..." value={customPrep} onChange={(e) => setCustomPrep(e.target.value)} aria-label="Modo de preparo" />
+                        <button type="submit" className="cx-btn cx-btn-primary">
+                          <Plus size={14} aria-hidden="true" /> Publicar Refeição no App
+                        </button>
+                      </div>
+                    </form>
+
+                    <form
+                      onSubmit={(e) => {
+                        e.preventDefault();
+                        addWorkoutItem(activePatient?.id, { title: workoutTitle, detail: workoutDetail });
+                        setWorkoutTitle('');
+                      }}
+                      style={{ display: 'flex', flexDirection: 'column', gap: '0.55rem', paddingTop: '0.65rem', borderTop: '1px solid var(--cx-line)' }}
+                    >
+                      <strong style={{ fontSize: '0.84rem', display: 'inline-flex', alignItems: 'center', gap: '0.35rem' }}>
+                        <Dumbbell size={14} color="#0369a1" aria-hidden="true" /> Prescrever Treino (sincroniza com aba Plano do Paciente)
+                      </strong>
+                      <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+                        <input className="cx-input" style={{ flex: '1 1 180px' }} placeholder="Ex.: Treino C · Glúteos & Posterior" value={workoutTitle} onChange={(e) => setWorkoutTitle(e.target.value)} aria-label="Título do treino" />
+                        <input className="cx-input" style={{ flex: '1 1 180px' }} placeholder="Duração / Observação" value={workoutDetail} onChange={(e) => setWorkoutDetail(e.target.value)} aria-label="Detalhes do treino" />
+                        <button type="submit" className="cx-btn cx-btn-ghost cx-btn-sm">Publicar Treino</button>
+                      </div>
+                    </form>
+                  </div>
+                )}
               </article>
             </>
           )}
 
-          {/* MÓDULO 04: AGENDA SEMANAL + FINANCEIRO CRM */}
+          {/* MÓDULO 04: AGENDA SEMANAL (PRESENCIAL/ONLINE) + FINANCEIRO CRM */}
           {section === 'schedule' && (
             <>
               <article className="cx-card" style={{ display: 'flex', flexDirection: 'column', gap: '0.9rem' }}>
-                <div>
-                  <h2 style={{ margin: 0, fontSize: '1.18rem' }}>Agenda da Clínica</h2>
-                  <p style={{ margin: '0.15rem 0 0', fontSize: '0.8rem', color: 'var(--cx-muted)' }}>
-                    Clique em qualquer selo de status para alternar confirmação da NutrIA.
-                  </p>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '0.5rem' }}>
+                  <div>
+                    <h2 style={{ margin: 0, fontSize: '1.18rem' }}>Agenda Semanal da Clínica</h2>
+                    <p style={{ margin: '0.15rem 0 0', fontSize: '0.8rem', color: 'var(--cx-muted)' }}>
+                      Presencial ou Teleconsulta com link público de agendamento `/agendar/:nutriId` mantido integralmente.
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    className="cx-btn cx-btn-sm cx-btn-ghost cx-btn-pill"
+                    onClick={async () => {
+                      const url = `${window.location.origin}/agendar/dra-nutrivvo`;
+                      try {
+                        await navigator.clipboard?.writeText(url);
+                      } catch {
+                        // ignore clipboard restriction
+                      }
+                      toast.success(`Link público da agenda: ${url}`);
+                    }}
+                  >
+                    <Copy size={13} aria-hidden="true" />
+                    <span>Copiar Link Público (/agendar)</span>
+                  </button>
+                </div>
+
+                {/* FILTRO DE GRADE SEMANAL */}
+                <div style={{ display: 'flex', gap: '0.4rem', flexWrap: 'wrap' }}>
+                  <button
+                    type="button"
+                    className={`cx-btn cx-btn-sm cx-btn-pill ${scheduleDayFilter === 'all' ? 'cx-btn-primary' : 'cx-btn-ghost'}`}
+                    onClick={() => setScheduleDayFilter('all')}
+                  >
+                    Semana Completa ({appointments.length})
+                  </button>
+                  {WEEK_DAYS.map((d) => {
+                    const key = `${d.short} ${d.day}`;
+                    const count = appointments.filter((a) => a.day === key).length;
+                    return (
+                      <button
+                        key={key}
+                        type="button"
+                        className={`cx-btn cx-btn-sm cx-btn-pill ${scheduleDayFilter === key ? 'cx-btn-primary' : 'cx-btn-ghost'}`}
+                        onClick={() => setScheduleDayFilter(key)}
+                      >
+                        {key} ({count})
+                      </button>
+                    );
+                  })}
                 </div>
 
                 <form
                   onSubmit={(e) => {
                     e.preventDefault();
-                    addAppointment({ day: apptDay, time: apptTime, patientId: activePatient?.id, type: apptType });
+                    addAppointment({
+                      day: apptDay,
+                      time: apptTime,
+                      patientId: apptPatientId || activePatient?.id,
+                      type: apptType,
+                      locationType: apptLocationType,
+                      meetingLink: apptMeetingLink
+                    });
+                    setApptMeetingLink('');
                   }}
-                  style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}
+                  style={{ display: 'flex', flexDirection: 'column', gap: '0.55rem', padding: '0.85rem', borderRadius: '16px', background: '#f8fafc', border: '1px solid rgba(15,23,42,0.08)' }}
                 >
-                  <select className="cx-select" style={{ width: 'auto' }} value={apptDay} onChange={(e) => setApptDay(e.target.value)} aria-label="Dia da consulta">
-                    {WEEK_DAYS.map((d) => <option key={d.day} value={`${d.short} ${d.day}`}>{d.short} {d.day}</option>)}
-                  </select>
-                  <input className="cx-input" style={{ width: '92px' }} value={apptTime} onChange={(e) => setApptTime(e.target.value)} aria-label="Horário" />
-                  <input className="cx-input" style={{ flex: '1 1 180px' }} value={apptType} onChange={(e) => setApptType(e.target.value)} aria-label="Tipo de consulta" />
-                  <button type="submit" className="cx-btn cx-btn-primary cx-btn-sm">Agendar</button>
+                  <strong style={{ fontSize: '0.84rem' }}>Novo Agendamento</strong>
+                  <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+                    <select className="cx-select" style={{ flex: '1 1 180px' }} value={apptPatientId} onChange={(e) => setApptPatientId(e.target.value)} aria-label="Paciente da consulta">
+                      {patients.map((p) => (
+                        <option key={p.id} value={p.id}>{p.shortName}</option>
+                      ))}
+                    </select>
+                    <select className="cx-select" style={{ width: 'auto' }} value={apptDay} onChange={(e) => setApptDay(e.target.value)} aria-label="Dia da consulta">
+                      {WEEK_DAYS.map((d) => <option key={d.day} value={`${d.short} ${d.day}`}>{d.short} {d.day}</option>)}
+                    </select>
+                    <input className="cx-input" style={{ width: '90px' }} value={apptTime} onChange={(e) => setApptTime(e.target.value)} aria-label="Horário" />
+                    <select className="cx-select" style={{ width: 'auto' }} value={apptLocationType} onChange={(e) => setApptLocationType(e.target.value)} aria-label="Modalidade">
+                      <option value="local">Presencial</option>
+                      <option value="online">Teleconsulta (Online)</option>
+                    </select>
+                  </div>
+                  <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+                    <input className="cx-input" style={{ flex: '1 1 190px' }} value={apptType} onChange={(e) => setApptType(e.target.value)} aria-label="Tipo de consulta" placeholder="Tipo (Retorno, Primeira Consulta, Bioimpedância...)" />
+                    {apptLocationType === 'online' && (
+                      <input className="cx-input" style={{ flex: '1 1 200px' }} value={apptMeetingLink} onChange={(e) => setApptMeetingLink(e.target.value)} aria-label="Link da teleconsulta" placeholder="https://meet.jit.si/sala (opcional)" />
+                    )}
+                    <button type="submit" className="cx-btn cx-btn-primary cx-btn-sm">Agendar Consulta</button>
+                  </div>
                 </form>
 
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-                  {appointments.map((a) => (
+                  {filteredAppointments.map((a) => (
                     <div
                       key={a.id}
                       style={{
@@ -632,7 +1036,19 @@ export default function ClarixCrmView({ onNavigate }) {
                     >
                       <div>
                         <strong style={{ fontSize: '0.88rem' }}>{a.day} · {a.time} — {a.patientName}</strong>
-                        <div style={{ fontSize: '0.76rem', color: 'var(--cx-muted)' }}>{a.type}</div>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.45rem', flexWrap: 'wrap', fontSize: '0.76rem', color: 'var(--cx-muted)', marginTop: '0.12rem' }}>
+                          <span>{a.type}</span>
+                          <span>·</span>
+                          <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.2rem', color: a.locationType === 'online' ? '#0369a1' : '#334155', fontWeight: 600 }}>
+                            {a.locationType === 'online' ? <Video size={12} aria-hidden="true" /> : <MapPin size={12} aria-hidden="true" />}
+                            {a.locationType === 'online' ? 'Teleconsulta' : 'Presencial'}
+                          </span>
+                          {a.meetingLink && (
+                            <span style={{ fontFamily: 'var(--cx-font-mono)', fontSize: '0.7rem', color: '#0369a1' }}>
+                              ({a.meetingLink})
+                            </span>
+                          )}
+                        </div>
                       </div>
                       <button
                         type="button"
@@ -646,7 +1062,66 @@ export default function ClarixCrmView({ onNavigate }) {
                   ))}
                 </div>
               </article>
+            </>
+          )}
 
+          {/* MÓDULO 05: BIBLIOTECA DE RECEITAS */}
+          {section === 'recipes' && (
+            <article className="cx-card" style={{ display: 'flex', flexDirection: 'column', gap: '0.95rem' }}>
+              <div>
+                <h2 style={{ margin: 0, fontSize: '1.18rem' }}>Biblioteca de Receitas da Clínica</h2>
+                <p style={{ margin: '0.15rem 0 0', fontSize: '0.82rem', color: 'var(--cx-muted)' }}>
+                  Cadastre receitas funcionais e compartilhe diretamente na aba Plano do App do Paciente.
+                </p>
+              </div>
+
+              <form
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  addRecipeToLibrary({
+                    title: recTitle,
+                    category: recCategory,
+                    kcal: recKcal,
+                    prep: recPrep,
+                    sendToPatient: true
+                  });
+                  setRecTitle('');
+                  setRecPrep('');
+                }}
+                style={{ display: 'flex', flexDirection: 'column', gap: '0.55rem', padding: '0.85rem', borderRadius: '16px', background: '#f8fafc', border: '1px solid rgba(15,23,42,0.08)' }}
+              >
+                <strong style={{ fontSize: '0.84rem' }}>Nova Receita Bônus</strong>
+                <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+                  <input className="cx-input" style={{ flex: '2 1 200px' }} placeholder="Nome da receita (ex.: Muffin Proteico de Aveia)" value={recTitle} onChange={(e) => setRecTitle(e.target.value)} aria-label="Nome da receita" />
+                  <input className="cx-input" style={{ flex: '1 1 130px' }} value={recCategory} onChange={(e) => setRecCategory(e.target.value)} aria-label="Categoria" />
+                  <input className="cx-input" type="number" style={{ width: '100px' }} value={recKcal} onChange={(e) => setRecKcal(e.target.value)} aria-label="Calorias" />
+                </div>
+                <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+                  <input className="cx-input" style={{ flex: '1 1 240px' }} placeholder="Ingredientes e modo de preparo..." value={recPrep} onChange={(e) => setRecPrep(e.target.value)} aria-label="Modo de preparo da receita" />
+                  <button type="submit" className="cx-btn cx-btn-primary cx-btn-sm">Salvar &amp; Enviar ao App</button>
+                </div>
+              </form>
+
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.55rem' }}>
+                {(recipes || []).map((rec) => (
+                  <div key={rec.id} style={{ padding: '0.8rem 0.95rem', borderRadius: '16px', background: '#f8fafc', border: '1px solid rgba(15,23,42,0.07)' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>
+                      <strong style={{ fontSize: '0.9rem' }}>{rec.title}</strong>
+                      <div style={{ display: 'flex', gap: '0.4rem' }}>
+                        <span className="cx-tag cx-tag-info">{rec.category}</span>
+                        <span className="cx-tag cx-tag-ok cx-tabular">{rec.kcal} kcal</span>
+                      </div>
+                    </div>
+                    <div style={{ fontSize: '0.77rem', color: 'var(--cx-muted)', marginTop: '0.25rem' }}>{rec.prep}</div>
+                  </div>
+                ))}
+              </div>
+            </article>
+          )}
+
+          {/* MÓDULO 06: FINANCEIRO & PLANOS */}
+          {section === 'finance' && (
+            <>
               <article className="cx-card" style={{ display: 'flex', flexDirection: 'column', gap: '0.9rem' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.45rem' }}>
                   <Wallet size={18} color="#0369a1" aria-hidden="true" />
@@ -705,6 +1180,76 @@ export default function ClarixCrmView({ onNavigate }) {
                 </div>
               </article>
             </>
+          )}
+
+          {/* MÓDULO 07: CONFIGURAÇÕES DA CLÍNICA & SECRETÁRIA 24H */}
+          {section === 'settings' && (
+            <article className="cx-card" style={{ display: 'flex', flexDirection: 'column', gap: '0.95rem' }}>
+              <div>
+                <h2 style={{ margin: 0, fontSize: '1.18rem' }}>Configurações da Clínica &amp; Canais</h2>
+                <p style={{ margin: '0.15rem 0 0', fontSize: '0.82rem', color: 'var(--cx-muted)' }}>
+                  Identidade profissional (CRN), horários da agenda e integração com Telegram/WhatsApp.
+                </p>
+              </div>
+
+              <form
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  updateClinicSettings(settingsForm);
+                }}
+                style={{ display: 'flex', flexDirection: 'column', gap: '0.7rem' }}
+              >
+                <div className="cx-grid-2">
+                  <div>
+                    <label htmlFor="cx-cfg-clinic" style={{ display: 'block', fontSize: '0.76rem', fontWeight: 600, marginBottom: '0.25rem' }}>Nome da Clínica / Profissional</label>
+                    <input
+                      id="cx-cfg-clinic"
+                      className="cx-input"
+                      value={settingsForm.clinicName || ''}
+                      onChange={(e) => setSettingsForm((s) => ({ ...s, clinicName: e.target.value }))}
+                    />
+                  </div>
+                  <div>
+                    <label htmlFor="cx-cfg-crn" style={{ display: 'block', fontSize: '0.76rem', fontWeight: 600, marginBottom: '0.25rem' }}>Registro CRN</label>
+                    <input
+                      id="cx-cfg-crn"
+                      className="cx-input"
+                      value={settingsForm.crn || ''}
+                      onChange={(e) => setSettingsForm((s) => ({ ...s, crn: e.target.value }))}
+                    />
+                  </div>
+                  <div>
+                    <label htmlFor="cx-cfg-hours" style={{ display: 'block', fontSize: '0.76rem', fontWeight: 600, marginBottom: '0.25rem' }}>Dias e Horários de Atendimento</label>
+                    <input
+                      id="cx-cfg-hours"
+                      className="cx-input"
+                      value={settingsForm.workDays || ''}
+                      onChange={(e) => setSettingsForm((s) => ({ ...s, workDays: e.target.value }))}
+                    />
+                  </div>
+                  <div>
+                    <label htmlFor="cx-cfg-slot" style={{ display: 'block', fontSize: '0.76rem', fontWeight: 600, marginBottom: '0.25rem' }}>Duração padrão da consulta (min)</label>
+                    <input
+                      id="cx-cfg-slot"
+                      type="number"
+                      className="cx-input"
+                      value={settingsForm.slotMinutes || 45}
+                      onChange={(e) => setSettingsForm((s) => ({ ...s, slotMinutes: Number(e.target.value) || 45 }))}
+                    />
+                  </div>
+                </div>
+
+                <div style={{ display: 'flex', gap: '0.65rem', flexWrap: 'wrap', padding: '0.75rem', borderRadius: '14px', background: '#f8fafc', border: '1px solid rgba(15,23,42,0.08)' }}>
+                  <span className="cx-tag cx-tag-ok">Telegram Bot 24h: Ativo</span>
+                  <span className="cx-tag cx-tag-ok">WhatsApp Secretária: Conectado</span>
+                  <span className="cx-tag cx-tag-info">Radar de Abandono 360°: Diário 08h</span>
+                </div>
+
+                <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+                  <button type="submit" className="cx-btn cx-btn-primary cx-btn-sm">Salvar Configurações</button>
+                </div>
+              </form>
+            </article>
           )}
         </section>
 
@@ -793,27 +1338,69 @@ export default function ClarixCrmView({ onNavigate }) {
         </aside>
       </div>
 
-      {/* MODAL FROSTED NOVO PACIENTE */}
+      {/* MODAL FROSTED NOVO PACIENTE (CADASTRO CLÍNICO COMPLETO) */}
       {showModal && (
         <div className="cx-modal-backdrop" onClick={() => setShowModal(false)}>
-          <form className="cx-modal" onClick={(e) => e.stopPropagation()} onSubmit={handleCreatePatient}>
+          <form className="cx-modal" style={{ maxWidth: '580px', maxHeight: '90vh', overflowY: 'auto' }} onClick={(e) => e.stopPropagation()} onSubmit={handleCreatePatient}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <h2 style={{ margin: 0, fontSize: '1.2rem' }}>Cadastrar Novo Paciente</h2>
+              <div>
+                <h2 style={{ margin: 0, fontSize: '1.18rem' }}>Cadastrar Novo Paciente</h2>
+                <span style={{ fontSize: '0.75rem', color: 'var(--cx-muted)' }}>Campos completos preservados do CRM (CPF, Telegram e restrições).</span>
+              </div>
               <button type="button" className="cx-btn cx-btn-sm cx-btn-ghost" onClick={() => setShowModal(false)} aria-label="Fechar modal">
                 <X size={15} />
               </button>
             </div>
-            <div>
-              <label htmlFor="cx-pat-name" style={{ display: 'block', fontSize: '0.78rem', fontWeight: 600, marginBottom: '0.3rem' }}>Nome completo</label>
-              <input id="cx-pat-name" className="cx-input" placeholder="Ex.: Clara Teixeira Souza" value={patName} onChange={(e) => setPatName(e.target.value)} autoFocus />
+            <div className="cx-grid-2">
+              <div>
+                <label htmlFor="cx-pat-name" style={{ display: 'block', fontSize: '0.76rem', fontWeight: 600, marginBottom: '0.25rem' }}>Nome completo *</label>
+                <input id="cx-pat-name" className="cx-input" placeholder="Ex.: Clara Teixeira Souza" value={patName} onChange={(e) => setPatName(e.target.value)} autoFocus required />
+              </div>
+              <div>
+                <label htmlFor="cx-pat-cpf" style={{ display: 'block', fontSize: '0.76rem', fontWeight: 600, marginBottom: '0.25rem' }}>CPF</label>
+                <input id="cx-pat-cpf" className="cx-input" placeholder="000.000.000-00" value={patCpf} onChange={(e) => setPatCpf(e.target.value)} />
+              </div>
+              <div>
+                <label htmlFor="cx-pat-phone" style={{ display: 'block', fontSize: '0.76rem', fontWeight: 600, marginBottom: '0.25rem' }}>Telefone (Telegram)</label>
+                <input id="cx-pat-phone" className="cx-input" placeholder="(11) 99999-9999" value={patPhone} onChange={(e) => setPatPhone(e.target.value)} />
+              </div>
+              <div>
+                <label htmlFor="cx-pat-email" style={{ display: 'block', fontSize: '0.76rem', fontWeight: 600, marginBottom: '0.25rem' }}>E-mail</label>
+                <input id="cx-pat-email" type="email" className="cx-input" placeholder="paciente@email.com" value={patEmail} onChange={(e) => setPatEmail(e.target.value)} />
+              </div>
+              <div>
+                <label htmlFor="cx-pat-birth" style={{ display: 'block', fontSize: '0.76rem', fontWeight: 600, marginBottom: '0.25rem' }}>Nascimento</label>
+                <input id="cx-pat-birth" type="date" className="cx-input" value={patBirthDate} onChange={(e) => setPatBirthDate(e.target.value)} />
+              </div>
+              <div>
+                <label htmlFor="cx-pat-gender" style={{ display: 'block', fontSize: '0.76rem', fontWeight: 600, marginBottom: '0.25rem' }}>Sexo biológico</label>
+                <select id="cx-pat-gender" className="cx-select" value={patGender} onChange={(e) => setPatGender(e.target.value)}>
+                  <option value="F">Feminino</option>
+                  <option value="M">Masculino</option>
+                </select>
+              </div>
+              <div>
+                <label htmlFor="cx-pat-goal" style={{ display: 'block', fontSize: '0.76rem', fontWeight: 600, marginBottom: '0.25rem' }}>Objetivo clínico</label>
+                <input id="cx-pat-goal" className="cx-input" placeholder="Ex.: Recomposição corporal (-4 kg)" value={patGoal} onChange={(e) => setPatGoal(e.target.value)} />
+              </div>
+              <div>
+                <label htmlFor="cx-pat-val" style={{ display: 'block', fontSize: '0.76rem', fontWeight: 600, marginBottom: '0.25rem' }}>Mensalidade / Pacote (R$)</label>
+                <input id="cx-pat-val" className="cx-input" type="number" value={patVal} onChange={(e) => setPatVal(e.target.value)} />
+              </div>
             </div>
             <div>
-              <label htmlFor="cx-pat-goal" style={{ display: 'block', fontSize: '0.78rem', fontWeight: 600, marginBottom: '0.3rem' }}>Objetivo clínico</label>
-              <input id="cx-pat-goal" className="cx-input" placeholder="Ex.: Recomposição corporal (-4 kg)" value={patGoal} onChange={(e) => setPatGoal(e.target.value)} />
+              <label htmlFor="cx-pat-rest" style={{ display: 'block', fontSize: '0.76rem', fontWeight: 600, marginBottom: '0.25rem' }}>Restrições / Alergias</label>
+              <input id="cx-pat-rest" className="cx-input" placeholder="Ex.: Intolerância à lactose, doença celíaca..." value={patRest} onChange={(e) => setPatRest(e.target.value)} />
             </div>
-            <div>
-              <label htmlFor="cx-pat-val" style={{ display: 'block', fontSize: '0.78rem', fontWeight: 600, marginBottom: '0.3rem' }}>Mensalidade / Pacote (R$)</label>
-              <input id="cx-pat-val" className="cx-input" type="number" value={patVal} onChange={(e) => setPatVal(e.target.value)} />
+            <div className="cx-grid-2">
+              <div>
+                <label htmlFor="cx-pat-aver" style={{ display: 'block', fontSize: '0.76rem', fontWeight: 600, marginBottom: '0.25rem' }}>Aversões alimentares</label>
+                <input id="cx-pat-aver" className="cx-input" placeholder="Ex.: Fígado, quiabo" value={patAversions} onChange={(e) => setPatAversions(e.target.value)} />
+              </div>
+              <div>
+                <label htmlFor="cx-pat-meds" style={{ display: 'block', fontSize: '0.76rem', fontWeight: 600, marginBottom: '0.25rem' }}>Medicações / Suplementos</label>
+                <input id="cx-pat-meds" className="cx-input" placeholder="Ex.: Vitamina D 2.000 UI" value={patMedications} onChange={(e) => setPatMedications(e.target.value)} />
+              </div>
             </div>
             <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.55rem' }}>
               <button type="button" className="cx-btn cx-btn-ghost" onClick={() => setShowModal(false)}>Cancelar</button>

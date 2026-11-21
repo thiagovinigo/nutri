@@ -1,0 +1,984 @@
+/* ==========================================================================
+   NØEMA AI STUDIO 74 — DESIGN SYSTEM SCOPED PARA PROTÓTIPO NUTRIVVO (/noema)
+   Todas as regras estritamente isoladas sob .noema-root (zero vazamento).
+   ========================================================================== */
+
+.noema-root {
+  --n-void: #050506;
+  --n-void-soft: #0b0b0d;
+  --n-void-elev: #121218;
+  --n-ink: #f1f0ea;
+  --n-ink-muted: rgba(241, 240, 234, 0.72);
+  --n-paper: #e7e5de;
+  --n-paper-soft: #f3f2ec;
+  --n-paper-muted: #464642;
+  --n-electric: #6c63ff;
+  --n-electric-dark: #453bc7;
+  --n-signal: #a9a5ff;
+  --n-live: #7bff82;
+  --n-live-dark: #11662b;
+  --n-warn: #ffd166;
+  --n-warn-dark: #854607;
+  --n-danger: #ff8585;
+  --n-danger-dark: #a61c1c;
+  --n-line: rgba(241, 240, 234, 0.16);
+  --n-line-dark: rgba(5, 5, 6, 0.18);
+  --n-pad: clamp(1rem, 2.5vw, 2.4rem);
+  --n-font-sans: "Inter", Arial, Helvetica, sans-serif;
+  --n-font-serif: Georgia, "Times New Roman", serif;
+  --n-font-mono: "Courier New", ui-monospace, SFMono-Regular, Menlo, monospace;
+
+  /* Context tokens ativos (padrão Void) */
+  --n-bg: var(--n-void);
+  --n-surface: var(--n-void-soft);
+  --n-surface-card: var(--n-void-elev);
+  --n-fg: var(--n-ink);
+  --n-fg-muted: var(--n-ink-muted);
+  --n-border: var(--n-line);
+  --n-accent-text: var(--n-signal);
+  --n-ok-fg: var(--n-live);
+  --n-ok-bg: rgba(123, 255, 130, 0.12);
+  --n-warn-fg: var(--n-warn);
+  --n-warn-bg: rgba(255, 209, 102, 0.13);
+  --n-danger-fg: var(--n-danger);
+  --n-danger-bg: rgba(255, 133, 133, 0.14);
+
+  position: relative;
+  min-height: 100vh;
+  background-color: var(--n-void);
+  color: var(--n-ink);
+  font-family: var(--n-font-sans);
+  line-height: 1.5;
+  overflow-x: clip;
+  -webkit-font-smoothing: antialiased;
+}
+
+.noema-root *,
+.noema-root *::before,
+.noema-root *::after {
+  box-sizing: border-box;
+}
+
+.noema-root :focus-visible {
+  outline: 2px solid var(--n-signal);
+  outline-offset: 3px;
+}
+
+.noema-root .n-truncate {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  min-width: 0;
+}
+
+.noema-root .n-tabular {
+  font-variant-numeric: tabular-nums;
+}
+
+/* ---------- MICRO TEXTURA GRAIN + BARRA DE PROGRESSO GLOBAL ---------- */
+.noema-root .noema-noise {
+  position: fixed;
+  inset: 0;
+  z-index: 40;
+  opacity: 0.055;
+  pointer-events: none;
+  background-image: radial-gradient(circle at 35% 40%, rgba(255, 255, 255, 0.06) 0 1px, transparent 1.5px);
+  background-size: 5px 5px;
+}
+
+.noema-root .noema-progress {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 160;
+  height: 2px;
+  pointer-events: none;
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.noema-root .noema-progress-fill {
+  height: 100%;
+  background: var(--n-signal);
+  box-shadow: 0 0 14px rgba(169, 165, 255, 0.8);
+  transform-origin: left;
+  transition: width 0.08s linear;
+}
+
+/* ---------- NAVBAR FIXA NØEMA ---------- */
+.noema-root .noema-nav {
+  position: sticky;
+  top: 0;
+  z-index: 120;
+  background: rgba(5, 5, 6, 0.88);
+  -webkit-backdrop-filter: blur(14px);
+  backdrop-filter: blur(14px);
+  border-bottom: 1px solid var(--n-line);
+}
+
+.noema-root .noema-nav-inner {
+  max-width: 1420px;
+  margin: 0 auto;
+  padding: 0.85rem var(--n-pad);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.noema-root .noema-brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.7rem;
+  background: transparent;
+  border: 0;
+  padding: 0;
+  color: var(--n-ink);
+  cursor: pointer;
+  font-size: 1.05rem;
+  font-weight: 700;
+  letter-spacing: -0.045em;
+}
+
+.noema-root .noema-status-live {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-family: var(--n-font-mono);
+  font-size: 0.68rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--n-ink-muted);
+}
+
+.noema-root .noema-pulse-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--n-live);
+  box-shadow: 0 0 12px rgba(123, 255, 130, 0.75);
+  animation: noema-pulse 2s ease-in-out infinite;
+  flex-shrink: 0;
+}
+
+@keyframes noema-pulse {
+  0%, 100% { transform: scale(1); opacity: 1; }
+  50% { transform: scale(1.3); opacity: 0.65; }
+}
+
+.noema-root .noema-tabs {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  overflow-x: auto;
+  max-width: 100%;
+  scrollbar-width: none;
+}
+
+.noema-root .noema-tabs::-webkit-scrollbar {
+  display: none;
+}
+
+.noema-root .noema-tab {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.5rem 0.85rem;
+  border: 1px solid var(--n-line);
+  background: transparent;
+  color: var(--n-ink-muted);
+  font-family: var(--n-font-mono);
+  font-size: 0.72rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  cursor: pointer;
+  white-space: nowrap;
+  flex-shrink: 0;
+  transition: color 0.2s, border-color 0.2s, background-color 0.2s;
+}
+
+.noema-root .noema-tab:hover {
+  color: var(--n-ink);
+  border-color: var(--n-signal);
+}
+
+.noema-root .noema-tab.is-active {
+  background: #544be6;
+  border-color: #544be6;
+  color: #ffffff;
+}
+
+@media (max-width: 640px) {
+  .noema-root .noema-nav-inner {
+    gap: 0.65rem;
+    padding: 0.7rem var(--n-pad);
+  }
+
+  .noema-root .noema-tabs {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    width: 100%;
+    overflow: visible;
+    gap: 0.35rem;
+  }
+
+  .noema-root .noema-tab {
+    justify-content: center;
+    padding: 0.5rem 0.45rem;
+    font-size: 0.65rem;
+    letter-spacing: 0.08em;
+  }
+}
+
+.noema-root .noema-nav-right {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+}
+
+.noema-root .noema-menu-btn {
+  width: 44px;
+  height: 44px;
+  padding: 0 8px;
+  border: 1px solid var(--n-line);
+  background: transparent;
+  color: var(--n-ink);
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 6px;
+}
+
+.noema-root .noema-menu-btn span {
+  display: block;
+  height: 1px;
+  width: 100%;
+  background: currentColor;
+  transition: transform 0.3s ease;
+}
+
+.noema-root .noema-menu-btn span:last-child {
+  width: 68%;
+  margin-left: auto;
+}
+
+/* ---------- MENU OVERLAY PAPER ---------- */
+.noema-root .noema-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 200;
+  background: var(--n-paper);
+  color: var(--n-void);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: clamp(1.4rem, 4vw, 3.2rem);
+  overflow-y: auto;
+}
+
+.noema-root .noema-overlay-links {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  margin: 2rem 0;
+}
+
+.noema-root .noema-overlay-link {
+  background: transparent;
+  border: 0;
+  border-bottom: 1px solid var(--n-line-dark);
+  padding: 0.85rem 0;
+  text-align: left;
+  color: var(--n-void);
+  font-size: clamp(1.8rem, 5vw, 4rem);
+  font-weight: 500;
+  letter-spacing: -0.055em;
+  line-height: 1;
+  cursor: pointer;
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 1rem;
+  transition: padding-left 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.noema-root .noema-overlay-link:hover {
+  padding-left: 1rem;
+  color: var(--n-electric-dark);
+}
+
+/* ---------- POLARIDADE PAPER (#e7e5de) COM CONTRASTE AA GARANTIDO ---------- */
+.noema-root .noema-paper {
+  --n-bg: var(--n-paper);
+  --n-surface: var(--n-paper-soft);
+  --n-surface-card: #ffffff;
+  --n-fg: var(--n-void);
+  --n-fg-muted: var(--n-paper-muted);
+  --n-border: var(--n-line-dark);
+  --n-accent-text: var(--n-electric-dark);
+  --n-ok-fg: var(--n-live-dark);
+  --n-ok-bg: #d9f2df;
+  --n-warn-fg: var(--n-warn-dark);
+  --n-warn-bg: #faecc2;
+  --n-danger-fg: var(--n-danger-dark);
+  --n-danger-bg: #f9d7d7;
+
+  background-color: var(--n-paper);
+  color: var(--n-void);
+  border-top: 1px solid var(--n-line-dark);
+  border-bottom: 1px solid var(--n-line-dark);
+}
+
+.noema-root .noema-container {
+  max-width: 1360px;
+  margin: 0 auto;
+  padding: 0 var(--n-pad);
+}
+
+.noema-root .noema-section {
+  position: relative;
+  padding: clamp(3.5rem, 7vw, 6.5rem) 0;
+}
+
+/* ---------- TIPOGRAFIA & ORNAMENTOS NØEMA ---------- */
+.noema-root .noema-eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.75rem;
+  font-family: var(--n-font-mono);
+  font-size: 0.68rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--n-accent-text);
+}
+
+.noema-root .noema-eyebrow::before {
+  content: "";
+  width: 2rem;
+  height: 1px;
+  background: currentColor;
+}
+
+.noema-root .noema-serif-italic {
+  font-family: var(--n-font-serif);
+  font-style: italic;
+  font-weight: 400;
+}
+
+.noema-root .noema-stroke {
+  color: transparent;
+  -webkit-text-stroke: 1.35px var(--n-fg);
+  letter-spacing: -0.02em;
+}
+
+.noema-root .noema-display-xl {
+  font-size: clamp(2.5rem, 6.2vw, 5.8rem);
+  font-weight: 500;
+  letter-spacing: -0.06em;
+  line-height: 0.9;
+  margin: 0.9rem 0 1.4rem;
+}
+
+.noema-root .noema-display-md {
+  font-size: clamp(1.8rem, 3.6vw, 3.2rem);
+  font-weight: 500;
+  letter-spacing: -0.045em;
+  line-height: 1.02;
+  margin: 0.6rem 0 1rem;
+}
+
+/* ---------- HERO & HALO ELÉTRICO ---------- */
+.noema-root .noema-hero {
+  position: relative;
+  padding: clamp(3rem, 6vw, 5.5rem) 0;
+  overflow: hidden;
+  background:
+    radial-gradient(ellipse 65% 55% at 72% 35%, rgba(108, 99, 255, 0.2), transparent 65%),
+    var(--n-void);
+}
+
+.noema-root .noema-hero-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.1fr) minmax(0, 0.9fr);
+  gap: clamp(1.8rem, 4vw, 3.5rem);
+  align-items: center;
+}
+
+@media (max-width: 960px) {
+  .noema-root .noema-hero-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+/* ---------- BOTÕES, INPUTS E BADGES ---------- */
+.noema-root .n-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  min-height: 44px;
+  padding: 0.65rem 1.25rem;
+  border: 1px solid var(--n-border);
+  background: var(--n-surface-card);
+  color: var(--n-fg);
+  font-size: 0.88rem;
+  font-weight: 600;
+  cursor: pointer;
+  text-decoration: none;
+  white-space: nowrap;
+  transition: background-color 0.2s, border-color 0.2s, transform 0.15s;
+}
+
+.noema-root .n-btn:hover {
+  border-color: var(--n-electric);
+}
+
+.noema-root .n-btn-electric {
+  background: #544be6;
+  border-color: #544be6;
+  color: #ffffff;
+}
+
+.noema-root .n-btn-electric:hover {
+  background: var(--n-electric-dark);
+  border-color: var(--n-electric-dark);
+}
+
+.noema-root .n-btn-paper {
+  background: var(--n-void);
+  border-color: var(--n-void);
+  color: var(--n-ink);
+}
+
+.noema-root .n-btn-sm {
+  min-height: 38px;
+  padding: 0.42rem 0.85rem;
+  font-size: 0.8rem;
+}
+
+.noema-root .n-input,
+.noema-root .n-select {
+  width: 100%;
+  min-height: 44px;
+  padding: 0.6rem 0.85rem;
+  border: 1px solid var(--n-border);
+  background: var(--n-surface-card);
+  color: var(--n-fg);
+  font-family: inherit;
+  font-size: 0.88rem;
+}
+
+.noema-root .n-input::placeholder {
+  color: var(--n-fg-muted);
+}
+
+.noema-root .n-card {
+  background: var(--n-surface);
+  border: 1px solid var(--n-border);
+  padding: clamp(1rem, 2vw, 1.5rem);
+  min-width: 0;
+}
+
+.noema-root .n-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.25rem 0.6rem;
+  border: 1px solid var(--n-border);
+  background: var(--n-surface-card);
+  color: var(--n-fg);
+  font-family: var(--n-font-mono);
+  font-size: 0.7rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.noema-root .n-tag-ok {
+  background: var(--n-ok-bg);
+  color: var(--n-ok-fg);
+  border-color: var(--n-ok-fg);
+}
+
+.noema-root .n-tag-warn {
+  background: var(--n-warn-bg);
+  color: var(--n-warn-fg);
+  border-color: var(--n-warn-fg);
+}
+
+.noema-root .n-tag-danger {
+  background: var(--n-danger-bg);
+  color: var(--n-danger-fg);
+  border-color: var(--n-danger-fg);
+}
+
+.noema-root .n-tag-signal {
+  background: rgba(108, 99, 255, 0.18);
+  color: var(--n-accent-text);
+  border-color: var(--n-electric);
+}
+
+/* ---------- MANIFESTO ORB & METRICS 4-COLUNAS ---------- */
+.noema-root .noema-manifesto {
+  position: relative;
+  overflow: hidden;
+}
+
+.noema-root .noema-orb {
+  position: relative;
+  width: clamp(180px, 26vw, 310px);
+  aspect-ratio: 1;
+  border: 1px solid var(--n-line-dark);
+  border-radius: 50%;
+  margin: 0 auto;
+}
+
+.noema-root .noema-orb::before,
+.noema-root .noema-orb::after {
+  content: "";
+  position: absolute;
+  border: 1px solid var(--n-line-dark);
+  border-radius: inherit;
+}
+
+.noema-root .noema-orb::before {
+  inset: 16%;
+}
+
+.noema-root .noema-orb::after {
+  inset: 34%;
+  background: var(--n-electric);
+  box-shadow: 0 0 60px rgba(108, 99, 255, 0.3);
+}
+
+.noema-root .noema-metrics {
+  display: grid;
+  grid-template-columns: 1.4fr repeat(3, minmax(0, 1fr));
+  border-top: 1px solid var(--n-line-dark);
+  border-bottom: 1px solid var(--n-line-dark);
+  background: var(--n-paper);
+  color: var(--n-void);
+}
+
+.noema-root .noema-metric {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  min-height: 15.5rem;
+  padding: clamp(1.2rem, 2.4vw, 2rem);
+  border-left: 1px solid var(--n-line-dark);
+  overflow: hidden;
+}
+
+.noema-root .noema-metric:first-child {
+  border-left: 0;
+}
+
+.noema-root .noema-metric:not(.is-feature)::after {
+  content: "";
+  position: absolute;
+  right: -35%;
+  bottom: -42%;
+  width: 82%;
+  aspect-ratio: 1;
+  border: 1px solid var(--n-line-dark);
+  border-radius: 50%;
+  transition: transform 0.55s cubic-bezier(0.16, 1, 0.3, 1);
+  pointer-events: none;
+}
+
+.noema-root .noema-metric:not(.is-feature):hover::after {
+  transform: scale(1.28);
+}
+
+.noema-root .noema-metric-num {
+  position: relative;
+  z-index: 1;
+  font-size: clamp(2.8rem, 5.2vw, 4.8rem);
+  font-weight: 500;
+  letter-spacing: -0.07em;
+  line-height: 0.85;
+}
+
+@media (max-width: 960px) {
+  .noema-root .noema-metrics {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .noema-root .noema-metric {
+    min-height: 12.5rem;
+    border-top: 1px solid var(--n-line-dark);
+  }
+}
+
+@media (max-width: 560px) {
+  .noema-root .noema-metrics {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .noema-root .noema-metric {
+    border-left: 0;
+    min-height: 10.5rem;
+  }
+}
+
+/* ---------- THESIS RINGS & RADAR 360 ---------- */
+.noema-root .noema-radar-stage {
+  position: relative;
+  padding: clamp(2.2rem, 4vw, 3.5rem);
+  border: 1px solid var(--n-line);
+  background: var(--n-void-soft);
+  overflow: hidden;
+}
+
+.noema-root .noema-radar-sweep {
+  transform-origin: 90px 90px;
+  animation: noema-spin 4.5s linear infinite;
+}
+
+@keyframes noema-spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+/* ---------- CAPABILITY ROWS (INTERATIVAS) ---------- */
+.noema-root .noema-cap-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.05fr) minmax(0, 0.95fr);
+  gap: clamp(1.5rem, 4vw, 3.5rem);
+  align-items: start;
+}
+
+@media (max-width: 920px) {
+  .noema-root .noema-cap-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+.noema-root .noema-capability {
+  width: 100%;
+  display: grid;
+  grid-template-columns: 2.4rem minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 0.9rem;
+  padding: 1.15rem 0.5rem;
+  background: transparent;
+  border: 0;
+  border-bottom: 1px solid var(--n-border);
+  color: var(--n-fg);
+  text-align: left;
+  cursor: pointer;
+  transition: padding-left 0.35s cubic-bezier(0.16, 1, 0.3, 1), background-color 0.2s;
+}
+
+.noema-root .noema-capability:hover,
+.noema-root .noema-capability.is-active {
+  padding-left: 1rem;
+  background: rgba(108, 99, 255, 0.08);
+}
+
+.noema-root .noema-capability-arrow {
+  font-size: 1.1rem;
+  transition: transform 0.3s ease;
+}
+
+.noema-root .noema-capability:hover .noema-capability-arrow,
+.noema-root .noema-capability.is-active .noema-capability-arrow {
+  transform: rotate(45deg);
+  color: var(--n-signal);
+}
+
+/* ---------- GRIDS UTILITÁRIOS RESPONSIVOS ---------- */
+.noema-root .n-grid-2 {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1.25rem;
+}
+
+.noema-root .n-grid-3 {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1.25rem;
+}
+
+.noema-root .n-grid-4 {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 1rem;
+}
+
+@media (max-width: 980px) {
+  .noema-root .n-grid-4 {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .noema-root .n-grid-3 {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 680px) {
+  .noema-root .n-grid-2,
+  .noema-root .n-grid-3,
+  .noema-root .n-grid-4 {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+/* ---------- CRM SHELL & TABELAS ---------- */
+.noema-root .noema-crm-shell {
+  display: grid;
+  grid-template-columns: 240px minmax(0, 1fr);
+  border: 1px solid var(--n-line);
+  background: var(--n-void-soft);
+  min-height: 620px;
+}
+
+.noema-root .noema-crm-side {
+  border-right: 1px solid var(--n-line);
+  background: var(--n-void);
+  padding: 1.25rem 0.9rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.noema-root .noema-crm-nav {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+
+.noema-root .noema-crm-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  min-height: 44px;
+  padding: 0.55rem 0.8rem;
+  border: 1px solid transparent;
+  background: transparent;
+  color: var(--n-ink-muted);
+  font-size: 0.86rem;
+  font-weight: 600;
+  text-align: left;
+  cursor: pointer;
+}
+
+.noema-root .noema-crm-btn:hover {
+  color: var(--n-ink);
+  border-color: var(--n-line);
+}
+
+.noema-root .noema-crm-btn.is-active {
+  background: #544be6;
+  color: #ffffff;
+}
+
+.noema-root .noema-crm-main {
+  padding: clamp(1rem, 2.5vw, 2rem);
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+@media (max-width: 1000px) {
+  .noema-root .noema-crm-shell {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .noema-root .noema-crm-side {
+    border-right: 0;
+    border-bottom: 1px solid var(--n-line);
+  }
+  .noema-root .noema-crm-nav {
+    flex-direction: row;
+    overflow-x: auto;
+  }
+  .noema-root .noema-crm-btn {
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+}
+
+.noema-root .n-table-wrap {
+  width: 100%;
+  overflow-x: auto;
+  border: 1px solid var(--n-border);
+  background: var(--n-surface-card);
+}
+
+.noema-root table.n-table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+  font-size: 0.88rem;
+}
+
+.noema-root .n-table th,
+.noema-root .n-table td {
+  padding: 0.8rem 0.95rem;
+  border-bottom: 1px solid var(--n-border);
+  vertical-align: middle;
+}
+
+.noema-root .n-table th {
+  font-family: var(--n-font-mono);
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--n-fg-muted);
+  background: var(--n-surface);
+}
+
+/* ---------- APP PACIENTE MOBILE 390PX + TELEMETRIA ---------- */
+.noema-root .noema-paciente-split {
+  display: grid;
+  grid-template-columns: minmax(0, 410px) minmax(0, 1fr);
+  gap: clamp(1.5rem, 3.5vw, 3rem);
+  align-items: start;
+}
+
+@media (max-width: 920px) {
+  .noema-root .noema-paciente-split {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+.noema-root .noema-phone {
+  width: 100%;
+  max-width: 390px;
+  margin: 0 auto;
+  background: var(--n-void);
+  border: 2px solid var(--n-line);
+  border-radius: 30px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  min-height: 700px;
+  box-shadow: 0 28px 70px rgba(0, 0, 0, 0.7), 0 0 40px rgba(108, 99, 255, 0.14);
+}
+
+@media (max-width: 440px) {
+  .noema-root .noema-phone {
+    border-radius: 16px;
+    border-width: 1px;
+    min-height: 620px;
+  }
+}
+
+.noema-root .noema-phone-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.65rem 1.2rem 0.4rem;
+  background: var(--n-void-soft);
+  font-family: var(--n-font-mono);
+  font-size: 0.72rem;
+  color: var(--n-ink-muted);
+}
+
+.noema-root .noema-phone-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.65rem 1rem;
+  background: var(--n-void-soft);
+  border-bottom: 1px solid var(--n-line);
+}
+
+.noema-root .noema-phone-body {
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.9rem;
+  flex: 1;
+  min-width: 0;
+}
+
+.noema-root .noema-phone-nav {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  border-top: 1px solid var(--n-line);
+  background: var(--n-void-soft);
+  padding: 0.35rem 0.25rem;
+}
+
+.noema-root .noema-phone-tab {
+  min-height: 46px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  border: 0;
+  background: transparent;
+  color: var(--n-ink-muted);
+  font-size: 0.68rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.noema-root .noema-phone-tab.is-active {
+  color: var(--n-signal);
+  background: rgba(108, 99, 255, 0.16);
+}
+
+/* Scanner de Foto IA */
+.noema-root .noema-scan-stage {
+  position: relative;
+  border: 1px solid var(--n-line);
+  background: var(--n-void-elev);
+  padding: 1rem;
+  overflow: hidden;
+}
+
+.noema-root .noema-scan-beam {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  background: linear-gradient(transparent, var(--n-signal), transparent);
+  box-shadow: 0 0 18px var(--n-electric);
+  animation: noema-beam 1.2s ease-in-out infinite alternate;
+}
+
+@keyframes noema-beam {
+  from { left: 6%; }
+  to { left: 94%; }
+}
+
+/* Modal simples */
+.noema-root .noema-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 220;
+  background: rgba(5, 5, 6, 0.8);
+  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(8px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+}
+
+.noema-root .noema-modal {
+  width: 100%;
+  max-width: 520px;
+  background: var(--n-void-soft);
+  border: 1px solid var(--n-line);
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .noema-root *,
+  .noema-root *::before,
+  .noema-root *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+  }
+}
