@@ -7,7 +7,8 @@ import {
   fetchTelegramFileAsBuffer
 } from '../lib/telegram.js';
 import { runSecretariaVirtual, transcribeAudioWithWhisper } from '../lib/secretariaVirtual.js';
-import { redeemNutriLinkCode } from '../lib/nutriLinkServer.js';
+import { redeemNutriLinkCode, redeemPatientLinkCode } from '../lib/nutriLinkServer.js';
+import { isWellFormedLinkCode } from '../lib/nutriLinkCode.js';
 
 /**
  * Processa a mensagem com a Secretária Virtual (IA) e responde pelo
@@ -158,10 +159,8 @@ export default async function handler(req, res) {
       return res.status(200).send('No chat id');
     }
 
-    // /start <patientId> - vínculo inicial. O link é gerado no Perfil do
-    // paciente (Profile.jsx), só visível pra ele logado, então o
-    // patientId funciona como token de posse nesse fluxo (mesmo nível de
-    // confiança que outros vínculos do app).
+    // /start <codigo> - vínculo inicial. O link é gerado no Perfil do paciente
+    // (Profile.jsx), logado, com um código de uso único (ver abaixo).
     if (fromText.startsWith('/start')) {
       // "/start@NomeDoBot arg" (forma usada em grupos) também é aceito.
       const startArg = fromText.replace(/^\/start(?:@\w+)?/, '').trim();
@@ -187,21 +186,35 @@ export default async function handler(req, res) {
         return res.status(200).json({ status: 'ok' });
       }
 
-      const patientId = startArg;
-      if (!patientId) {
+      if (!startArg) {
         await sendTelegramText(chatId, 'Olá! Para vincular sua conta, abra o link "Conectar Telegram" dentro do seu Perfil no app Nutrivvo.');
         return res.status(200).json({ status: 'ok' });
       }
 
-      const patientRef = db.collection('patients').doc(patientId);
-      const patientSnap = await patientRef.get();
-      if (!patientSnap.exists) {
-        await sendTelegramText(chatId, 'Não encontrei seu cadastro. Verifique se abriu o link certo dentro do app Nutrivvo.');
+      // Vínculo do PACIENTE: o argumento é um CÓDIGO de uso único gerado no
+      // Perfil do app (lib/patientLinkCode.js), nunca o patientId. O id não é
+      // segredo suficiente: quem o soubesse ligava o próprio Telegram à conta
+      // do paciente e passava a ler os dados de saúde pela Secretária. O
+      // formato antigo ("/start <patientId>") deixou de vincular. Só em
+      // conversa privada: num grupo, o chat do grupo receberia os dados.
+      if (message.chat?.type !== 'private') {
+        await sendTelegramText(chatId, 'Por segurança, vincule sua conta numa conversa privada comigo, não em grupo.');
+        return res.status(200).json({ status: 'ok' });
+      }
+      if (!isWellFormedLinkCode(startArg)) {
+        await sendTelegramText(chatId, 'Esse link de conexão é antigo ou inválido. Abra "Conectar Telegram" no seu Perfil dentro do app Nutrivvo pra gerar um novo.');
         return res.status(200).json({ status: 'ok' });
       }
 
-      await patientRef.set({ telegram_chat_id: chatId, telegram_linked_at: new Date() }, { merge: true });
-      const patientData = patientSnap.data();
+      const patientData = await redeemPatientLinkCode(db, startArg, {
+        telegram_chat_id: chatId,
+        telegram_linked_at: new Date(),
+      });
+      if (!patientData) {
+        await sendTelegramText(chatId, 'Código inválido ou expirado. Abra "Conectar Telegram" no seu Perfil dentro do app Nutrivvo pra gerar um novo.');
+        return res.status(200).json({ status: 'ok' });
+      }
+
       await sendTelegramText(chatId, `Prontinho, ${patientData.name?.split(' ')[0] || ''}! 🎉 Seu Telegram está conectado ao Nutrivvo. Pode me mandar mensagem por aqui sempre que precisar - dúvidas sobre a dieta, o que comeu no dia, ou marcar consulta.`);
       return res.status(200).json({ status: 'ok' });
     }

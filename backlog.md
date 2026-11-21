@@ -375,11 +375,17 @@ nutri.
 - 💡 **Formato das respostas longas no WhatsApp:** a mesma captura mostra `---`, `*2. Título*` e listas
   numeradas com `*negrito*` dentro, e a receita vem num bloco só. Resolver junto do milestone 2 (mensagens
   curtas, no máximo 3, sem markdown solto) e decidir o padrão de formatação (`*negrito*` nativo × sem asterisco).
-- ⬜ **🔴 HIGH pré-existente — Telegram ainda vincula por `/start <patientId>`** (`api/telegram-webhook.js`
-  ~190-207, link `t.me/<bot>?start=<id>` em `Profile.jsx`): quem souber o id liga o próprio Telegram ao
-  paciente e lê os dados dele pela Secretária. Correção: reutilizar `redeemPatientLinkCode` + `?start=<código>`
-  (webhook e app mudam juntos no mesmo deploy; links antigos já abertos passam a dizer "antigo ou
-  inválido"). Não alterei porque o Telegram está em produção com pacientes reais — decidir a janela.
+- ✅ **[FEITO 21/11/2026, código] Telegram: vínculo do paciente por código de uso único** (era o HIGH
+  pré-existente do `/start <patientId>`). `api/telegram-webhook.js` só vincula com `/start <código>` e só em
+  conversa privada (num grupo o chat do grupo receberia os dados); o formato antigo responde "antigo ou
+  inválido" sem tocar no banco; o Perfil (`Profile.jsx`) trocou o link fixo com o id por um botão que gera o
+  código. Pacientes **já vinculados** não são afetados (lookup por `telegram_chat_id` inalterado). 8 testes
+  novos do webhook do Telegram (que não tinha nenhum). `security-reviewer`: sem CRITICAL/HIGH.
+  **⚠ Deploy:** webhook e app precisam subir juntos (mesma imagem); links antigos já abertos passam a pedir um novo.
+- ✅ **[FEITO 21/11/2026] "Um chat = um paciente"** (MEDIUM da revisão; já tinha ocorrido no 1º teste do
+  WhatsApp, número ligado a 2 pacientes): o resgate do código desvincula, na mesma transação, qualquer outro
+  paciente com o mesmo `whatsapp_chat_id` (nas duas formas de JID) ou `telegram_chat_id`. 246 testes.
+  **Atenção ao testar:** vincular o seu número a um paciente de teste **tira o vínculo do paciente real**.
 - 🟡 **Infra do número novo:** subir o WAHA (Docker), ler o QR com o número novo, conversar de forma
   normal por alguns dias antes de colocar paciente real, sem envio proativo/em massa. Na VPS, WAHA
   não deve ficar exposto (só loopback/rede interna) e a memória da VPS compartilhada precisa de

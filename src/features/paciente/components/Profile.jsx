@@ -9,7 +9,7 @@ import { auth } from '../../../services/firebase';
 import { useAppContext } from '../../../context/AppContext';
 import { parseMarkdownTabs } from '../../../utils/examMarkdown';
 import { downloadPatientExportJson } from '../../../utils/lgpdExport';
-import { generatePatientLinkCode, PATIENT_LINK_CODE_TTL_MS, buildWhatsappConnectUrl } from '../../../../lib/patientLinkCode.js';
+import { generatePatientLinkCode, PATIENT_LINK_CODE_TTL_MS, buildWhatsappConnectUrl, buildTelegramConnectUrl } from '../../../../lib/patientLinkCode.js';
 
 function formatExamDate(d) {
   if (!d) return '—';
@@ -171,7 +171,6 @@ export default function Profile({ activePatient }) {
   const telegramConnected = !!activePatient?.telegram_chat_id;
   const needsTelegramAction = !telegramConnected;
   const telegramBotUsername = import.meta.env.VITE_TELEGRAM_BOT_USERNAME || 'nutrivvo_bot';
-  const telegramConnectUrl = activePatient?.id ? `https://t.me/${telegramBotUsername}?start=${activePatient.id}` : '#';
 
   // WhatsApp: o botão de conectar só aparece quando o número do bot está
   // configurado (VITE_WHATSAPP_BOT_NUMBER, embutido no build). Vazio = interruptor
@@ -184,10 +183,13 @@ export default function Profile({ activePatient }) {
   // abre o WhatsApp já com "/start <codigo>" e só então grava o código no próprio
   // doc (expira em 10 min e é apagado ao ser usado pelo servidor). Abre a janela
   // ANTES do await pra o navegador não bloquear o pop-up.
-  const handleConnectWhatsapp = async () => {
+  const connectChannelWithCode = async (buildUrl) => {
     const code = generatePatientLinkCode();
-    const url = buildWhatsappConnectUrl(whatsappBotNumber, code);
-    if (!url || !activePatient?.id) return;
+    const url = buildUrl(code);
+    if (!url || !activePatient?.id) {
+      toast.error('Esta conexão não está disponível no momento.');
+      return;
+    }
     window.open(url, '_blank', 'noopener,noreferrer');
     try {
       await updatePatient(activePatient.id, {
@@ -198,6 +200,9 @@ export default function Profile({ activePatient }) {
       toast.error('Não foi possível preparar a conexão agora. Tente de novo.');
     }
   };
+  const handleConnectWhatsapp = () => connectChannelWithCode((code) => buildWhatsappConnectUrl(whatsappBotNumber, code));
+  // Telegram também usa código de uso único (antes o link levava o id do paciente).
+  const handleConnectTelegram = () => connectChannelWithCode((code) => buildTelegramConnectUrl(telegramBotUsername, code));
 
   return (
     <div className="animate-pop-in">
@@ -282,12 +287,12 @@ export default function Profile({ activePatient }) {
                   <span style={styles.unverifiedBadge}>
                     <ShieldAlert size={16} /> Não conectado — a Secretária Virtual só responde depois de conectar
                   </span>
-                  <a href={telegramConnectUrl} target="_blank" rel="noopener noreferrer"
-                    className="btn-3d btn-primary" style={{ padding: '8px 14px', fontSize: '0.85rem', textDecoration: 'none', display: 'inline-flex' }}>
+                  <button type="button" onClick={handleConnectTelegram}
+                    className="btn-3d btn-primary" style={{ padding: '8px 14px', fontSize: '0.85rem', display: 'inline-flex' }}>
                     Conectar no Telegram
-                  </a>
+                  </button>
                   <p style={{ fontSize: '0.78rem', color: 'var(--patient-text-muted)', marginTop: '8px' }}>
-                    Abre o Telegram — é só apertar "Iniciar" na conversa com o bot pra vincular.
+                    Abre o Telegram — é só apertar "Iniciar" na conversa com o bot pra vincular. O link vale por 10 minutos.
                   </p>
                 </div>
               )}
