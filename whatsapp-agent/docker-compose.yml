@@ -1,0 +1,26 @@
+# WAHA (WhatsApp HTTP API) - peça CANAL. O agente Python roda fora do Docker (uvicorn).
+services:
+  waha:
+    image: devlikeapro/waha
+    container_name: waha
+    restart: unless-stopped
+    ports:
+      # Só no loopback: o WAHA não deve ficar exposto na internet.
+      - "127.0.0.1:3000:3000"
+    environment:
+      WAHA_API_KEY: ${WAHA_API_KEY}
+      WAHA_DASHBOARD_USERNAME: ${WAHA_DASHBOARD_USERNAME}
+      WAHA_DASHBOARD_PASSWORD: ${WAHA_DASHBOARD_PASSWORD}
+      WHATSAPP_HOOK_URL: ${WAHA_HOOK_URL:-http://host.docker.internal:8000/webhook}
+      WHATSAPP_HOOK_EVENTS: message
+      WHATSAPP_HOOK_HMAC_KEY: ${WAHA_WEBHOOK_HMAC_KEY:-}
+      # NOWEB: sem navegador (mais leve e estável). O motor padrão WEBJS quebrou o
+      # QR ("Cmd.refreshQR is not a function") com a versão atual do WhatsApp Web.
+      WHATSAPP_DEFAULT_ENGINE: NOWEB
+      WHATSAPP_START_SESSION: default
+      WHATSAPP_RESTART_ALL_SESSIONS: "True"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    volumes:
+      # Guarda a sessão do WhatsApp: não precisa ler o QR code a cada reinício.
+      - ./waha-sessions:/app/.sessions

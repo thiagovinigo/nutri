@@ -232,6 +232,114 @@ nutri.
   Google Calendar API vs. alternativa, e modelo de custo/permissão.
 - ⬜ **Integração com Gmail** — enviar convite `.ics` / lembrete por e-mail como canal alternativo ao Telegram.
 
+### 🤖 Agente WhatsApp: paridade com o Telegram + melhorias do curso (aberto 20/11/2026)
+
+> **Meta:** o agente do WhatsApp deve se comportar **igual ao do Telegram de hoje**
+> (`lib/secretariaVirtual.js`, 15 tools, dados do paciente no Firestore, Radar de Abandono). A base
+> está em `whatsapp-agent/` (Python + PydanticAI + WAHA, só personalidade e canal, **sem tools ainda**).
+> O curso "Seu Agente no AR Hoje" (exemplo Barbearia Navalha) foi lido só para extrair o que
+> melhora o nosso; **conteúdo da barbearia, Groq/OpenRouter e histórico em JSON não entram**
+> (a gente já tem OpenAI, Firestore e o prompt do Nutrivvo Bot). Nenhum item abaixo foi pro código
+> do Telegram/Node ainda.
+>
+> **🤔 Decisão pendente:** a paridade sai de (A) portar as 15 tools pro Python ou (B) trocar só
+> Evolution → WAHA no Node (`lib/whatsapp.js` + `api/whatsapp-webhook.js`), que já tem as tools.
+> Escolher antes de implementar qualquer item abaixo.
+
+- ⬜ **Paridade de tools e dados do paciente** (`log_meal`, `log_water`, `log_sleep`, `log_weight`,
+  `alertar_nutricionista`, agenda, receita, substituição, suplemento, treino) + vínculo
+  `/start <patientId>` e `/start nutri:<código>` + gamificação (XP/streak). Hoje o `whatsapp-agent/`
+  responde, mas não registra nada nem enxerga plano/exame.
+- ⬜ **Buffer de mensagens picadas** — esperar `BUFFER_SEGUNDOS` (2 s nos testes, ~8 s em produção)
+  e juntar o que o paciente mandou em sequência numa resposta só; um contato nunca recebe duas
+  respostas ao mesmo tempo. (feito em `whatsapp-agent/app/ritmo.py`; falta no Node)
+- ⬜ **Ritmo humano: visto + "digitando" + espera proporcional** (1 s + 0,04 s/caractere, máx. 8 s,
+  descontando o tempo da IA). Além da UX, **ajuda a reduzir risco de bloqueio** (3 números já
+  queimados). WAHA: `/api/sendSeen`, `/api/startTyping`, `/api/stopTyping`.
+- ⬜ **Respostas em mensagens curtas** (até 3, separadas por linha em branco). **Atenção:** o prompt
+  atual do Telegram/Node manda usar `*negrito*` nativo do WhatsApp; o curso manda tirar asterisco.
+  Decidir um padrão antes de copiar.
+- ⬜ **Data e hora de hoje no prompt** (America/Sao_Paulo, em português) pra IA entender "amanhã",
+  "sábado que vem" e se o consultório está aberto. Feito em `whatsapp-agent/app/agent.py`.
+- ⬜ **Documento PDF** — baixar, mandar em base64 pro modelo e resumir (≤500 caracteres: tipo, valores,
+  datas, nomes). Hoje o Node trata foto e áudio, não PDF. Feito em `whatsapp-agent/app/midia.py`.
+- ⬜ **Webhook assinado (HMAC-SHA512)** do WAHA no corpo bruto (`X-Webhook-Hmac`), no lugar de `apikey`
+  no header. Feito em `whatsapp-agent/app/main.py`; no Node exige `verify` no `express.json()`.
+- ⬜ **Responder ao webhook na hora e processar mídia em segundo plano** (hoje o Node só responde
+  200 depois de tudo, por causa do bug de 12/08/2026 em serverless; na VPS/Docker isso não se aplica).
+- ⬜ **Pilar "saber passar a vez"** (paciente pede "falar com uma pessoa" → handoff pro nutri com
+  pausa do bot). O curso deixa pro "Curso 2"; já existe "pausar bot" no ChatIA do CRM, falta o gatilho.
+- ⬜ **Régua de teste do agente** (tabela da Aula 10): ritmo, formato, tom, memória, conhecimento,
+  áudio/foto/PDF — rodar com histórico limpo e número de teste antes de ligar pacientes reais.
+- 💬 **Prompts úteis do curso a considerar no `systemPrompt` do Nutrivvo Bot** (texto para adaptar,
+  não copiar): *"Se o cliente perguntar algo que não tá lá, não inventa: diz que vai confirmar com a
+  equipe e retorna."* · *"Nunca confirma um horário por conta própria."* · *"Se perguntarem se é
+  robô, diz a verdade."* · *"Tu não confirma pagamento. Se mandar comprovante, agradece e avisa que a
+  equipe confere."* · *"Às vezes a mensagem chega marcada como áudio, imagem ou documento. Responde
+  naturalmente, como quem ouviu, viu ou leu. Nunca fala em transcrição, descrição ou marcação."* ·
+  *"Usa no máximo um emoji por conversa."* · *"Uma pergunta por vez."*
+- ✅ **[FEITO 21/11/2026, código] Adaptador WAHA no Node (milestone 1).** `lib/whatsapp.js` e
+  `api/whatsapp-webhook.js` falam com o WAHA, com webhook assinado por HMAC-SHA512 no corpo bruto
+  (`server/index.js` guarda `req.rawBody`), lookup do paciente pelos dois formatos de JID, mídia
+  restrita a `/api/files/` com timeout e limite de 15 MB, e só remetentes `@c.us`/`@s.whatsapp.net`.
+  116 → 128 testes, `security-reviewer` e `code-reviewer` sem CRITICAL/HIGH. **Falta validar com o WAHA
+  de verdade** (Docker + QR do número novo) — ver item de infra abaixo.
+- ✅ **[FEITO 21/11/2026] Buffer por contato + fila (parte do milestone 2) e busca determinística.**
+  Achado no 1º teste real: mensagens picadas ("2 copos de 00 ml" + "100") eram respondidas
+  separadas e fora de ordem, e o modelo registrou 400 ml em vez de 200. `lib/whatsappBuffer.js` junta
+  o que o contato escreve (`WHATSAPP_BUFFER_MS`, padrão 5000) e processa um lote por vez; o webhook
+  responde 200 na hora. Também: o mesmo número ligado a 2 pacientes (legado `@s.whatsapp.net` +
+  novo `@c.us`) fazia o `in`+`limit(1)` escolher um ao acaso — agora o `@c.us` vence sempre. Suporte
+  a remetente `@lid` (telefone alternativo do payload, ou API de LIDs do WAHA).
+  Falta do milestone 2: visto + "digitando" + espera proporcional + mensagens curtas.
+- 💡 **[Feedback real do usuário, 21/11/2026 — para pensarmos] Lembrete de hidratação e meta
+  diária personalizada.** Captura: `docs/feedback/2026-11-21-whatsapp-lembrete-agua.png`. No teste
+  com o WAHA o paciente perguntou "quantos ml tenho que tomar por dia?" e o bot respondeu o genérico
+  "2 a 3 litros" (o sistema tem peso/objetivo do paciente e não usou); depois "consegue me avisar a
+  cada 2 horas?" e o bot respondeu "Infelizmente, não consigo" + dicas genéricas (garrafinha, alarme).
+  O que isso mostra: (1) **há demanda real por lembrete proativo**; (2) a Secretária afirma o que
+  não consegue fazer sem saber o que o sistema faz (já existe `cron-reminders` pra consultas);
+  (3) a meta diária deveria vir do paciente (ex.: peso × 35 ml, ou meta definida pelo nutri) e o bot já
+  sabe o total do dia ("700 ml até agora"), então daria pra dizer "faltam X ml".
+  **Tensão a decidir:** lembrete é mensagem **proativa**, exatamente o que o canal WhatsApp não
+  oficial evita de propósito (3 números queimados). Caminhos: (a) lembretes só por Telegram/push do
+  PWA e WhatsApp só reativo; (b) **WhatsApp Cloud API oficial** (templates aprovados, pode iniciar
+  conversa, custo por conversa) só para lembretes, mantendo o WAHA para a conversa; (c) WAHA proativo
+  com limites duros (opt-in explícito, poucos por dia, janela de horário, só quem pediu) — risco
+  aceito conscientemente; (d) lembrete "puxado" pelo paciente (ao registrar água, o bot sugere o
+  próximo horário, sem enviar nada sozinho). Também: tool `definir_lembrete` com preferência no doc do
+  paciente, e a resposta de "não consigo" deve apontar a alternativa real em vez de dicas soltas.
+- ✅ **[FEITO 21/11/2026, código] Hidratação: meta personalizada (Telegram + WhatsApp) e lembrete
+  (só Telegram).** PRD/plano: `.claude/prds|plans/hidratacao-lembrete-meta.*`. `lib/water.js`:
+  meta = `waterGoalMl` (nutri) › peso × 35 ml (arred. 50, 1500–4500) › 2000 ml; o contexto do dia
+  informa "X de Y ml, faltam Z" e proíbe o "2 a 3 litros" genérico; `log_water` devolve total e o que
+  falta; chave de data em fuso de São Paulo. Tool `definir_lembrete_agua` **só no Telegram** (no
+  WhatsApp nem é oferecida; o contexto explica o Telegram) + envio no `cron-reminders` (de hora em hora,
+  antes do filtro de dieta, para quando a meta é batida, trava `lastWaterReminderKey`). 187 testes;
+  `code-reviewer` APPROVE e `security-reviewer` sem CRITICAL/HIGH. **Falta QA real no Telegram.**
+  Limitações aceitas / próximos passos: (a) o lembrete depende de o cron rodar em cada hora cheia —
+  uma execução pulada perde aquela hora, sem reenvio; (b) o laço do cron é sequencial e lê todos os
+  pacientes (`patients.get()`): com muitos pacientes filtrar por `waterReminder.enabled` e enviar em
+  lotes tratando 429 do Telegram; (c) não há teste automatizado de `api/cron-reminders.js` (ordem antes
+  do `continue`, falha por paciente, trava só após envio ok); (d) tela no CRM para o nutri editar
+  `waterGoalMl` (hoje o campo é só lido); (e) `waterGoalMl`/peso × 35 não considera gestante, atleta ou
+  restrição renal — definir regra com o nutri.
+- ⬜ **Água ambígua no `log_water`**: o prompt manda "1 copo ≈ 200 ml" e o modelo registra sem
+  perguntar quando o valor vem truncado ("de 00 mls"). Pedir confirmação quando o ml informado
+  for incompleto/ambíguo. Mexe no prompt compartilhado com o Telegram — validar nos dois canais.
+- ⬜ **Dedupe de webhook por `payload.id`** (achado do security-reviewer, MEDIUM): um webhook assinado
+  reenviado (ou retry do WAHA) repete resposta da IA, +10 de XP e custo de Whisper. Gravar um doc
+  `processedWhatsappMessages/{id}` com `create()` (falha se já existe) e TTL.
+- ⬜ **Suporte a `@lid`**: hoje remetente `...@lid` é ignorado com `console.warn`. Se aparecer no teste
+  real, mapear pro telefone (`GET /api/{session}/lids/{lid}`) antes do lookup.
+- ⬜ **`/start <patientId>` sem prova de posse** (pré-existente, não piorou): qualquer pessoa que souber
+  um `patientId` vincula o próprio WhatsApp a ele. Trocar por código de uso único, como já é no vínculo do
+  nutri (`lib/nutriLinkCode.js`).
+- 🟡 **Infra do número novo:** subir o WAHA (Docker), ler o QR com o número novo, conversar de forma
+  normal por alguns dias antes de colocar paciente real, sem envio proativo/em massa. Na VPS, WAHA
+  não deve ficar exposto (só loopback/rede interna) e a memória da VPS compartilhada precisa de
+  checagem (engine WEBJS usa Chromium; NOWEB/GOWS são mais leves).
+
 ### 📊 Inteligência de Cohorts e Risco
 
 - ✅ **[FEITO 12/09/2026] H1 — Radar de Abandono unificado + Varredura diária → nutricionista.**
@@ -363,8 +471,10 @@ nutri.
   na Vercel, então o painel admin segue **desativado em produção**. O limite de 12 Serverless
   Functions (incidente de 31/08) deixou de existir. **Pendente:** pausar o projeto na Vercel,
   acompanhar memória da VPS compartilhada, e se o IP da VPS mudar refazer o `setWebhook` do Telegram.
-- 🤔 **WAHA (WhatsApp HTTP API) como substituta da Evolution — avaliado em 17/11/2026, não adotar
-  por ora.** Docs: `waha.devlike.pro`. Core é gratuita/open source (Plus foi incorporada à Core a
+- 🟡 **[20/11/2026] WAHA (WhatsApp HTTP API) como substituta da Evolution — decidido testar com
+  número novo** (a Evolution já queimou 3 números; em 17/11/2026 a avaliação tinha sido "não adotar
+  por ora"). Ver "🤖 Agente WhatsApp: paridade com o Telegram + melhorias do curso" abaixo. A
+  ressalva de risco continua valendo. Docs: `waha.devlike.pro`. Core é gratuita/open source (Plus foi incorporada à Core a
   partir da 2026.6.1), engines WEBJS/WPP/GOWS/NOWEB/VENOM. Mas é **canal não oficial**, e a própria
   doc avisa que não garante contra bloqueio — mesma classe de risco que já queimou o número em
   12/08/2026 (Evolution/Baileys). Se WhatsApp voltar a ser prioridade, comparar com a **Cloud API
