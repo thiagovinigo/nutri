@@ -336,6 +336,18 @@ nutri.
 - 💡 **Landing: e-mail de contato público.** O rodapé de `/` mostra `thiago.vinigo@gmail.com` (pedido do
   dono, 21/11/2026). Risco: spam por robôs que varrem páginas. Trocar por um endereço do domínio
   (ex.: contato@nutrivvo.com.br) ou por um formulário de contato quando houver volume.
+- 🟡 **[21/11/2026] Plano de deploy do WhatsApp (WAHA) na VPS:** `.claude/plans/deploy-waha-vps.plan.md`.
+  Achado: em produção o app **não tem botão "Conectar WhatsApp"** (`Profile.jsx:175-284` só diz "ainda não
+  está disponível") e o `.env` da VPS não tem `EVOLUTION_*`/`WAHA_*` (WhatsApp já está desligado lá).
+  Etapas: decisões (chip dedicado) › WAHA no compose da VPS sem porta pública + pareamento por túnel SSH ›
+  código de uso único no lugar do `/start <patientId>` + botão no app (`VITE_WHATSAPP_BOT_NUMBER`) › ritmo
+  humano (visto/digitando) e rampa de aquecimento › desligar a Evolution após 7 dias estáveis.
+- ✅ **[FEITO 21/11/2026] Correção de dados do teste:** a água de 21/11 do paciente real (400 ml, gravada
+  por engano pelo teste do buffer) voltou a 200 ml e o XP foi de 436 para 416. Streak/última atividade
+  não foram tocados (valor anterior desconhecido).
+- ✅ **[21/11/2026] Higiene do repositório público:** os testes de `@lid` usavam o telefone e o LID reais
+  do teste ao vivo; foram trocados por valores fictícios **antes do push** (histórico local reescrito).
+  Regra daqui pra frente: nada de telefone, LID, IDs de paciente ou e-mail reais em testes/docs.
 - ⬜ **Água ambígua no `log_water`**: o prompt manda "1 copo ≈ 200 ml" e o modelo registra sem
   perguntar quando o valor vem truncado ("de 00 mls"). Pedir confirmação quando o ml informado
   for incompleto/ambíguo. Mexe no prompt compartilhado com o Telegram — validar nos dois canais.
