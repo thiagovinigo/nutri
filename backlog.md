@@ -356,9 +356,20 @@ nutri.
   `processedWhatsappMessages/{id}` com `create()` (falha se já existe) e TTL.
 - ⬜ **Suporte a `@lid`**: hoje remetente `...@lid` é ignorado com `console.warn`. Se aparecer no teste
   real, mapear pro telefone (`GET /api/{session}/lids/{lid}`) antes do lookup.
-- ⬜ **`/start <patientId>` sem prova de posse** (pré-existente, não piorou): qualquer pessoa que souber
-  um `patientId` vincula o próprio WhatsApp a ele. Trocar por código de uso único, como já é no vínculo do
-  nutri (`lib/nutriLinkCode.js`).
+- ✅ **[FEITO 21/11/2026, código] WhatsApp: vínculo do paciente por código de uso único** (etapa C do
+  `.claude/plans/deploy-waha-vps.plan.md`). O `/start <patientId>` **deixou de vincular**; só vale
+  `/start <código>` (128 bits, 10 min, apagado ao resgatar, resgate em transação — núcleo único com o do
+  nutri em `lib/nutriLinkServer.js`). Botão "Conectar no WhatsApp" no Perfil (`Profile.jsx`) **atrás do
+  interruptor `VITE_WHATSAPP_BOT_NUMBER`, vazio por padrão** (= "Em breve"; também é o rollback).
+  223 testes; `security-reviewer` sem CRITICAL. Restos (MEDIUM/LOW): código não resgatado fica no doc,
+  expirado, legível pelo paciente/nutri e no export LGPD (limpar ao abrir o Perfil); o código passa pelo
+  histórico do chat/WAHA nos 10 min de vida (não logar o `/start`); o resgate não impede trocar um número
+  já vinculado (aceitável: o código nasce no app autenticado); rate limit por `chatId` seria só defesa extra.
+- ⬜ **🔴 HIGH pré-existente — Telegram ainda vincula por `/start <patientId>`** (`api/telegram-webhook.js`
+  ~190-207, link `t.me/<bot>?start=<id>` em `Profile.jsx`): quem souber o id liga o próprio Telegram ao
+  paciente e lê os dados dele pela Secretária. Correção: reutilizar `redeemPatientLinkCode` + `?start=<código>`
+  (webhook e app mudam juntos no mesmo deploy; links antigos já abertos passam a dizer "antigo ou
+  inválido"). Não alterei porque o Telegram está em produção com pacientes reais — decidir a janela.
 - 🟡 **Infra do número novo:** subir o WAHA (Docker), ler o QR com o número novo, conversar de forma
   normal por alguns dias antes de colocar paciente real, sem envio proativo/em massa. Na VPS, WAHA
   não deve ficar exposto (só loopback/rede interna) e a memória da VPS compartilhada precisa de

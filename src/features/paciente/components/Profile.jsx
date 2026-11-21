@@ -9,6 +9,7 @@ import { auth } from '../../../services/firebase';
 import { useAppContext } from '../../../context/AppContext';
 import { parseMarkdownTabs } from '../../../utils/examMarkdown';
 import { downloadPatientExportJson } from '../../../utils/lgpdExport';
+import { generatePatientLinkCode, PATIENT_LINK_CODE_TTL_MS, buildWhatsappConnectUrl } from '../../../../lib/patientLinkCode.js';
 
 function formatExamDate(d) {
   if (!d) return '—';
@@ -172,9 +173,31 @@ export default function Profile({ activePatient }) {
   const telegramBotUsername = import.meta.env.VITE_TELEGRAM_BOT_USERNAME || 'nutrivvo_bot';
   const telegramConnectUrl = activePatient?.id ? `https://t.me/${telegramBotUsername}?start=${activePatient.id}` : '#';
 
-  // WhatsApp ainda não é funcional: sem botão de conectar, só a tag "Em breve"
-  // (quem já tinha vínculo continua vendo "Conectado").
+  // WhatsApp: o botão de conectar só aparece quando o número do bot está
+  // configurado (VITE_WHATSAPP_BOT_NUMBER, embutido no build). Vazio = interruptor
+  // desligado: segue só a tag "Em breve" (quem já tinha vínculo continua vendo "Conectado").
   const whatsappConnected = !!activePatient?.whatsapp_chat_id;
+  const whatsappBotNumber = import.meta.env.VITE_WHATSAPP_BOT_NUMBER || '';
+  const whatsappConnectEnabled = whatsappBotNumber.replace(/\D/g, '').length >= 10;
+
+  // Vínculo com código de uso único (nunca o id do paciente): gera o código,
+  // abre o WhatsApp já com "/start <codigo>" e só então grava o código no próprio
+  // doc (expira em 10 min e é apagado ao ser usado pelo servidor). Abre a janela
+  // ANTES do await pra o navegador não bloquear o pop-up.
+  const handleConnectWhatsapp = async () => {
+    const code = generatePatientLinkCode();
+    const url = buildWhatsappConnectUrl(whatsappBotNumber, code);
+    if (!url || !activePatient?.id) return;
+    window.open(url, '_blank', 'noopener,noreferrer');
+    try {
+      await updatePatient(activePatient.id, {
+        patientLinkCode: code,
+        patientLinkCodeExpiresAt: Date.now() + PATIENT_LINK_CODE_TTL_MS,
+      });
+    } catch {
+      toast.error('Não foi possível preparar a conexão agora. Tente de novo.');
+    }
+  };
 
   return (
     <div className="animate-pop-in">
@@ -276,6 +299,17 @@ export default function Profile({ activePatient }) {
                   <ShieldCheck size={16} /> Conectado
                 </span>
               ) : (
+                whatsappConnectEnabled ? (
+                  <div>
+                    <button type="button" onClick={handleConnectWhatsapp}
+                      className="btn-3d btn-primary" style={{ padding: '8px 14px', fontSize: '0.85rem', display: 'inline-flex' }}>
+                      Conectar no WhatsApp
+                    </button>
+                    <p style={{ fontSize: '0.78rem', color: 'var(--patient-text-muted)', marginTop: '8px' }}>
+                      Abre o WhatsApp com uma mensagem pronta. É só enviar pra vincular. O link vale por 10 minutos.
+                    </p>
+                  </div>
+                ) : (
                 <div>
                   <span style={{ display: 'inline-block', padding: '4px 10px', borderRadius: '999px', fontSize: '0.75rem', fontWeight: 700, background: 'rgba(139,92,246,0.15)', color: '#8b5cf6' }}>
                     Em breve
@@ -284,6 +318,7 @@ export default function Profile({ activePatient }) {
                     A Secretária Virtual no WhatsApp ainda não está disponível. Por enquanto, use o Telegram acima.
                   </p>
                 </div>
+                )
               )}
             </div>
           </div>

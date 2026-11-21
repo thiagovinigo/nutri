@@ -1,7 +1,8 @@
 import { db } from '../lib/firebase-admin.js';
 import { sendWhatsAppText, sendWhatsAppOptionsList, fetchWhatsAppMediaAsDataUrl, fetchWhatsAppAudioAsBuffer, chatIdVariants, verifyWahaSignature, resolvePhoneChatId, lookupPhoneChatIdByLid } from '../lib/whatsapp.js';
 import { runSecretariaVirtual, transcribeAudioWithWhisper } from '../lib/secretariaVirtual.js';
-import { redeemNutriLinkCode } from '../lib/nutriLinkServer.js';
+import { redeemNutriLinkCode, redeemPatientLinkCode } from '../lib/nutriLinkServer.js';
+import { isWellFormedLinkCode } from '../lib/nutriLinkCode.js';
 import { createMessageBuffer } from '../lib/whatsappBuffer.js';
 
 /**
@@ -167,9 +168,8 @@ export default async function handler(req, res) {
     const hasImage = mediaType.startsWith('image/');
     const hasAudio = mediaType.startsWith('audio/');
 
-    // /start <patientId> - vínculo inicial via link wa.me pré-preenchido
-    // (gerado no Perfil do paciente, Profile.jsx) - mesmo princípio de
-    // confiança do fluxo do Telegram.
+    // /start <codigo> - vínculo inicial via link wa.me pré-preenchido, gerado
+    // no Perfil do paciente (Profile.jsx) com um código de uso único.
     if (fromText.startsWith('/start')) {
       const startArg = fromText.replace('/start', '').trim();
 
@@ -192,21 +192,30 @@ export default async function handler(req, res) {
         return res.status(200).json({ status: 'ok' });
       }
 
-      const patientId = startArg;
-      if (!patientId) {
+      if (!startArg) {
         await sendWhatsAppText(chatId, 'Olá! Para vincular sua conta, abra o link "Conectar WhatsApp" dentro do seu Perfil no app Nutrivvo.');
         return res.status(200).json({ status: 'ok' });
       }
 
-      const patientRef = db.collection('patients').doc(patientId);
-      const patientSnap = await patientRef.get();
-      if (!patientSnap.exists) {
-        await sendWhatsAppText(chatId, 'Não encontrei seu cadastro. Verifique se abriu o link certo dentro do app Nutrivvo.');
+      // Vínculo do PACIENTE: o argumento é um CÓDIGO de uso único gerado no
+      // Perfil do app (lib/patientLinkCode.js), nunca o patientId. O id não é
+      // segredo suficiente: quem o soubesse vinculava o próprio WhatsApp à
+      // conta do paciente e passava a ler os dados de saúde pela Secretária.
+      // O formato antigo ("/start <patientId>") deixou de vincular.
+      if (!isWellFormedLinkCode(startArg)) {
+        await sendWhatsAppText(chatId, 'Esse link de conexão é antigo ou inválido. Abra "Conectar WhatsApp" no seu Perfil dentro do app Nutrivvo pra gerar um novo.');
         return res.status(200).json({ status: 'ok' });
       }
 
-      await patientRef.set({ whatsapp_chat_id: chatId, whatsapp_linked_at: new Date() }, { merge: true });
-      const patientData = patientSnap.data();
+      const patientData = await redeemPatientLinkCode(db, startArg, {
+        whatsapp_chat_id: chatId,
+        whatsapp_linked_at: new Date(),
+      });
+      if (!patientData) {
+        await sendWhatsAppText(chatId, 'Código inválido ou expirado. Abra "Conectar WhatsApp" no seu Perfil dentro do app Nutrivvo pra gerar um novo.');
+        return res.status(200).json({ status: 'ok' });
+      }
+
       await sendWhatsAppText(chatId, `Prontinho, ${patientData.name?.split(' ')[0] || ''}! 🎉 Seu WhatsApp está conectado ao Nutrivvo. Pode me mandar mensagem por aqui sempre que precisar - dúvidas sobre a dieta, o que comeu no dia, ou marcar consulta.`);
       return res.status(200).json({ status: 'ok' });
     }

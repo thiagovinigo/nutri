@@ -12,6 +12,9 @@ ARG VITE_FIREBASE_MESSAGING_SENDER_ID
 ARG VITE_FIREBASE_APP_ID
 ARG VITE_FIREBASE_MEASUREMENT_ID
 ARG VITE_TELEGRAM_BOT_USERNAME
+# Número do bot do WhatsApp (só dígitos, com DDI). VAZIO = interruptor desligado:
+# o app do paciente mostra "Em breve" em vez do botão "Conectar no WhatsApp".
+ARG VITE_WHATSAPP_BOT_NUMBER
 RUN npm run build
 RUN npm prune --omit=dev
 
