@@ -365,6 +365,16 @@ nutri.
   expirado, legível pelo paciente/nutri e no export LGPD (limpar ao abrir o Perfil); o código passa pelo
   histórico do chat/WAHA nos 10 min de vida (não logar o `/start`); o resgate não impede trocar um número
   já vinculado (aceitável: o código nasce no app autenticado); rate limit por `chatId` seria só defesa extra.
+- ✅ **[FEITO 21/11/2026] Receita cortada no meio da frase** (captura do usuário no WhatsApp: "…Cozinhar a
+  Batata-Doce: Descasque e corte"). Causa: `max_tokens` de **600** na geração da receita e **500** na resposta
+  final (`lib/secretariaVirtual.js`); o texto cortado ainda era **salvo no app** como a receita do paciente.
+  Agora `lib/aiReply.js`: orçamento de 1500 tokens nas chamadas; se mesmo assim bater o limite
+  (`finish_reason: 'length'`) a resposta é fechada na última linha/frase completa com o aviso "me peça
+  'continua'"; receita cortada não é mais gravada em `aiRecipes`/`aiRecipeHistory`. 232 testes. Afeta
+  Telegram e WhatsApp. **Falta:** receitas já salvas truncadas no Firestore (auditar `aiRecipeHistory`).
+- 💡 **Formato das respostas longas no WhatsApp:** a mesma captura mostra `---`, `*2. Título*` e listas
+  numeradas com `*negrito*` dentro, e a receita vem num bloco só. Resolver junto do milestone 2 (mensagens
+  curtas, no máximo 3, sem markdown solto) e decidir o padrão de formatação (`*negrito*` nativo × sem asterisco).
 - ⬜ **🔴 HIGH pré-existente — Telegram ainda vincula por `/start <patientId>`** (`api/telegram-webhook.js`
   ~190-207, link `t.me/<bot>?start=<id>` em `Profile.jsx`): quem souber o id liga o próprio Telegram ao
   paciente e lê os dados dele pela Secretária. Correção: reutilizar `redeemPatientLinkCode` + `?start=<código>`
