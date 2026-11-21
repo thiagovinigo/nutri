@@ -1,6 +1,6 @@
 # Nutrivvo
 
-CRM para nutricionistas + app PWA gamificado para pacientes (React 19 + Vite, Firebase, Evolution API). Documentação de produto: `prd.md`, `spec.md`, `context.md`, `features.md`, `backlog.md` (backlog ativo unificado). Backend serverless em `api/` (Vercel Functions).
+CRM para nutricionistas + app PWA gamificado para pacientes (React 19 + Vite, Firebase, WAHA para WhatsApp). Documentação de produto: `prd.md`, `spec.md`, `context.md`, `features.md`, `backlog.md` (backlog ativo unificado). Backend serverless em `api/` (Vercel Functions).
 
 ## React + Vite
 

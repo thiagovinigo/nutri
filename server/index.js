@@ -33,7 +33,13 @@ async function main() {
 
   app.get('/health', (_req, res) => res.status(200).json({ status: 'ok' }));
 
-  app.use('/api', express.json({ limit: BODY_LIMIT }));
+  // `verify` guarda o corpo bruto: webhooks assinados (WAHA, HMAC-SHA512)
+  // precisam validar a assinatura sobre os bytes originais, não sobre o JSON
+  // reserializado.
+  app.use('/api', express.json({
+    limit: BODY_LIMIT,
+    verify: (req, _res, buf) => { req.rawBody = buf; }
+  }));
   await loadApiRoutes(app);
   app.use('/api', (_req, res) => res.status(404).json({ error: 'Not found' }));
 
