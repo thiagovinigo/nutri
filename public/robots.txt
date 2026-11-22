@@ -1,0 +1,18 @@
+User-agent: *
+Allow: /
+Disallow: /api/
+Disallow: /nutri
+Disallow: /admin
+Disallow: /paciente
+Disallow: /proposta
+Disallow: /clarix
+Disallow: /preview
+Disallow: /preview-final
+Disallow: /preview-landing
+Disallow: /landing-v2
+Disallow: /old
+Disallow: /landing-old
+Disallow: /swiss-light
+Disallow: /radar
+
+Sitemap: https://nutrivvo.com.br/sitemap.xml
