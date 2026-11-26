@@ -1,5 +1,5 @@
-import React, { Suspense, lazy } from 'react';
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import React, { Suspense, lazy, useEffect } from 'react';
+import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 
 const ClarixPrototypeApp = lazy(() => import('./features/clarix-prototype/ClarixPrototypeApp'));
 const ClientPreviewComparison = lazy(() => import('./pages/ClientPreviewComparison'));
@@ -31,11 +31,39 @@ function RequireAuth({ children }) {
   return children;
 }
 
+function RouteSeoManager() {
+  const { pathname } = useLocation();
+
+  useEffect(() => {
+    const cleanPath = pathname === '/' ? '/' : pathname.replace(/\/+$/, '');
+    const isPublicIndexable = cleanPath === '/' || cleanPath.startsWith('/agendar/');
+
+    let canonical = document.querySelector('link[rel="canonical"]');
+    if (!canonical) {
+      canonical = document.createElement('link');
+      canonical.setAttribute('rel', 'canonical');
+      document.head.appendChild(canonical);
+    }
+    canonical.setAttribute('href', `https://nutrivvo.com.br${cleanPath}`);
+
+    let robots = document.querySelector('meta[name="robots"]');
+    if (!robots) {
+      robots = document.createElement('meta');
+      robots.setAttribute('name', 'robots');
+      document.head.appendChild(robots);
+    }
+    robots.setAttribute('content', isPublicIndexable ? 'index, follow' : 'noindex, nofollow');
+  }, [pathname]);
+
+  return null;
+}
+
 function App() {
   return (
     <AppProvider>
       <Toaster position="top-right" />
       <BrowserRouter>
+        <RouteSeoManager />
         <Routes>
           {/* Landing Page Oficial em Produção */}
           <Route path="/" element={<LandingPage />} />
